@@ -1,8 +1,10 @@
 import { StrictMode } from 'react';
 import { render } from 'react-dom';
 import reportWebVitals from './reportWebVitals';
-// components
+// ---
 import App from 'components/App';
+import 'uswds/css/uswds.css';
+import 'uswds/js/uswds.js';
 
 const rootElement = document.getElementById('root');
 
