@@ -1,16 +1,30 @@
 import { StrictMode } from 'react';
 import { render } from 'react-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import reportWebVitals from './reportWebVitals';
 // ---
 import App from 'components/App';
-import 'uswds/css/uswds.css';
-import 'uswds/js/uswds.js';
+import Rebates from 'routes/rebates';
+import Rebate from 'routes/rebate';
+import Profile from 'routes/profile';
+import NotFound from 'routes/notFound';
 
 const rootElement = document.getElementById('root');
 
 render(
   <StrictMode>
-    <App />
+    <BrowserRouter>
+      <Routes>
+        <Route path='/' element={<App />}>
+          <Route index element={<p>(Application Dashboard)</p>} />
+          <Route path='rebates' element={<Rebates />}>
+            <Route path=':rebateId' element={<Rebate />} />
+          </Route>
+          <Route path='profile' element={<Profile />} />
+          <Route path="*" element={<NotFound />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   </StrictMode>,
   rootElement
 );
