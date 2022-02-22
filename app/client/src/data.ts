@@ -23,7 +23,7 @@ const rebates = [
     id: 5,
     name: "Echo",
     text: "Pellentesque ut finibus leo, a volutpat elit. Suspendisse rhoncus sed arcu pellentesque porttitor. Fusce tempus tortor a magna euismod viverra. Sed malesuada commodo orci, eu auctor elit hendrerit molestie. Integer tincidunt velit eget molestie scelerisque. Nunc tincidunt mollis tellus, et varius felis malesuada eu. Vestibulum vel dolor lacinia turpis aliquet egestas. Integer fringilla mollis feugiat. Integer et nunc interdum, condimentum felis ac, finibus nisi. Sed tempus mollis accumsan. Etiam dui sem, tincidunt eu enim id, tristique viverra purus. Vivamus nulla magna, pretium non turpis ac, elementum tempus neque. Nulla pellentesque velit erat, vitae tempus tellus venenatis et. Suspendisse potenti. Vestibulum nec arcu a lorem cursus efficitur. Vestibulum finibus eu eros nec congue.",
-  }
+  },
 ];
 
 export function getRebates() {
@@ -31,5 +31,5 @@ export function getRebates() {
 }
 
 export function getRebate(id: number) {
-  return rebates.find(rebate => rebate.id === id);
+  return rebates.find((rebate) => rebate.id === id);
 }

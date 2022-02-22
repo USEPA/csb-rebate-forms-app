@@ -1,8 +1,8 @@
-import { Link, Outlet } from 'react-router-dom';
+import { Link, Outlet } from "react-router-dom";
 // ---
-import 'uswds/css/uswds.css';
-import 'uswds/js/uswds.js';
-import icons from 'uswds/img/sprite.svg';
+import "uswds/css/uswds.css";
+import "uswds/js/uswds.js";
+import icons from "uswds/img/sprite.svg";
 
 function App() {
   return (
