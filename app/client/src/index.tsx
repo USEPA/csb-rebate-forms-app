@@ -4,7 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import reportWebVitals from "./reportWebVitals";
 // ---
 import App from "components/App";
-import Rebates from "routes/rebates";
+import Forms from "routes/forms";
 import Rebate from "routes/rebate";
 import Profile from "routes/profile";
 import NotFound from "routes/notFound";
@@ -16,10 +16,8 @@ render(
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<App />}>
-          <Route index element={<p>(Application Dashboard)</p>} />
-          <Route path="rebates" element={<Rebates />}>
-            <Route path=":rebateId" element={<Rebate />} />
-          </Route>
+          <Route index element={<Forms />} />
+          <Route path="rebate/:id" element={<Rebate />} />
           <Route path="profile" element={<Profile />} />
           <Route path="*" element={<NotFound />} />
         </Route>

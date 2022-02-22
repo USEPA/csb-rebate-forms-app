@@ -1,11 +1,12 @@
 import { useParams } from "react-router-dom";
 // ---
+import NotFound from "routes/notFound";
 import { getRebate } from "../data";
 
 function Rebate() {
-  const { rebateId } = useParams<"rebateId">();
-  const rebate = getRebate(parseInt(rebateId!, 10));
-  if (!rebate) return null;
+  const { id } = useParams<"id">();
+  const rebate = getRebate(parseInt(id!, 10));
+  if (!rebate) return <NotFound />;
 
   return (
     <div>
