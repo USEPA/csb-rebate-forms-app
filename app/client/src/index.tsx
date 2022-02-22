@@ -3,7 +3,8 @@ import { render } from "react-dom";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import reportWebVitals from "./reportWebVitals";
 // ---
-import App from "components/App";
+import ErrorBoundary from "components/errorBoundary";
+import App from "components/app";
 import Forms from "routes/forms";
 import Rebate from "routes/rebate";
 import Profile from "routes/profile";
@@ -13,16 +14,18 @@ const rootElement = document.getElementById("root");
 
 render(
   <StrictMode>
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<App />}>
-          <Route index element={<Forms />} />
-          <Route path="rebate/:id" element={<Rebate />} />
-          <Route path="profile" element={<Profile />} />
-          <Route path="*" element={<NotFound />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<App />}>
+            <Route index element={<Forms />} />
+            <Route path="rebate/:id" element={<Rebate />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="*" element={<NotFound />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </ErrorBoundary>
   </StrictMode>,
   rootElement
 );
