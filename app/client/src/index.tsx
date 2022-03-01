@@ -8,6 +8,7 @@ import App from "components/app";
 import Forms from "routes/forms";
 import Rebate from "routes/rebate";
 import Profile from "routes/profile";
+import Login from "routes/login";
 import NotFound from "routes/notFound";
 
 const rootElement = document.getElementById("root");
@@ -19,8 +20,9 @@ render(
         <Routes>
           <Route path="/" element={<App />}>
             <Route index element={<Forms />} />
-            <Route path="rebate/:id" element={<Rebate />} />
+            <Route path="login" element={<Login />} />
             <Route path="profile" element={<Profile />} />
+            <Route path="rebate/:id" element={<Rebate />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
