@@ -1,0 +1,25 @@
+{
+  "name": "epa-csb",
+  "version": "0.1.0",
+  "description": "U.S. EPA Clean School Bus data collection system",
+  "license": "CC0-1.0",
+  "author": "USEPA (https://www.epa.gov)",
+  "contributors": [
+    "Brad Cooper <brad.cooper@erg.com>",
+    "Courtney Myers <courtney.myers@erg.com>"
+  ],
+  "devDependencies": {
+    "concurrently": "7.0.0",
+    "husky": "7.0.4",
+    "lint-staged": "12.3.4",
+    "prettier": "2.5.1"
+  },
+  "scripts": {
+    "client": "cd client && npm start",
+    "server": "cd server && npm start",
+    "start": "concurrently -kc \"blue.dim,green.dim\" \"npm:server\" \"npm:client\""
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,json,css,scss,md}": "prettier --write"
+  }
+}

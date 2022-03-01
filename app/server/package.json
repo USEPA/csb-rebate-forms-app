@@ -1,0 +1,20 @@
+{
+  "name": "epa-csb-server",
+  "version": "0.1.0",
+  "description": "U.S. EPA Clean School Bus data collection system (server app)",
+  "license": "CC0-1.0",
+  "author": "USEPA (https://www.epa.gov)",
+  "contributors": [
+    "Brad Cooper <brad.cooper@erg.com>",
+    "Courtney Myers <courtney.myers@erg.com>"
+  ],
+  "scripts": {
+    "start": "nodemon app/index.js"
+  },
+  "dependencies": {
+    "express": "4.17.2"
+  },
+  "devDependencies": {
+    "nodemon": "2.0.15"
+  }
+}
