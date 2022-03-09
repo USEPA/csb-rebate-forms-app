@@ -9,12 +9,16 @@
     "Courtney Myers <courtney.myers@erg.com>"
   ],
   "scripts": {
-    "start": "nodemon app/index.js"
+    "start": "nodemon app/index.js",
+    "lint": "eslint ./ --fix"
   },
   "dependencies": {
     "express": "4.17.2"
   },
   "devDependencies": {
+    "eslint": "^8.10.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.0.0",
     "nodemon": "2.0.15"
   }
 }
