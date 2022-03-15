@@ -15,17 +15,17 @@ function Dashboard() {
 
       <div className="display-flex flex-justify border-bottom padding-bottom-1">
         <nav>
-          <Link to="/" className="usa-button usa-button--outline">
+          <Link to="/" className="usa-button usa-button--outline font-sans-2xs">
             <span className="display-flex flex-align-center">
               <svg
-                className="usa-icon margin-right-1"
+                className="usa-icon"
                 aria-hidden="true"
                 focusable="false"
                 role="img"
               >
                 <use href={`${icons}#list`} />
               </svg>
-              Dashboard
+              <span className="margin-left-1">Dashboard</span>
             </span>
           </Link>
         </nav>
@@ -36,13 +36,23 @@ function Dashboard() {
           </p>
 
           <button
-            className="usa-button usa-button--outline margin-right-0"
+            className="usa-button usa-button--outline font-sans-2xs margin-right-0"
             onClick={(ev) => {
               // TODO: placeholder...integrate with server app's SAML login
               dispatch({ type: "SIGN_OUT" });
             }}
           >
-            Sign out
+            <span className="display-flex flex-align-center">
+              <span className="margin-right-1">Sign out</span>
+              <svg
+                className="usa-icon"
+                aria-hidden="true"
+                focusable="false"
+                role="img"
+              >
+                <use href={`${icons}#logout`} />
+              </svg>
+            </span>
           </button>
         </nav>
       </div>

@@ -12,9 +12,11 @@ function Form() {
 
   return (
     <div className="margin-top-2 bg-base-lightest">
-      <p className="margin-0 padding-9 text-center">
-        UID: <strong>{submission.uid}</strong>
-      </p>
+      <div className="padding-9 text-center">
+        <p className="margin-0">
+          (Form.io Submission #<strong>{submission.uid}</strong>)
+        </p>
+      </div>
     </div>
   );
 }

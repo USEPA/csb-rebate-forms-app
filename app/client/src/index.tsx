@@ -3,6 +3,7 @@ import { render } from "react-dom";
 import reportWebVitals from "./reportWebVitals";
 // ---
 import { UserProvider } from "contexts/user";
+import { FormioProvider } from "contexts/formio";
 import ErrorBoundary from "components/errorBoundary";
 import App from "components/app";
 
@@ -12,7 +13,9 @@ render(
   <StrictMode>
     <ErrorBoundary>
       <UserProvider>
-        <App />
+        <FormioProvider>
+          <App />
+        </FormioProvider>
       </UserProvider>
     </ErrorBoundary>
   </StrictMode>,

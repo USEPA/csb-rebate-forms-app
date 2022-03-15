@@ -1,9 +1,14 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 // ---
 import { useUserState } from "contexts/user";
 
 function Forms() {
   const { samData } = useUserState();
+
+  useEffect(() => {
+    // TODO: fetch formio form schema and submissions
+  }, []);
 
   return (
     <table className="usa-table usa-table--borderless usa-table--striped width-full">
