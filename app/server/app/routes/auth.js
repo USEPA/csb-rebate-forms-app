@@ -38,14 +38,14 @@ router.get('/logout', ensureAuthenticated, (req, res) => {
   });
 });
 
-router.get('/logout/callback', function (req, res) {
+router.get('/logout/callback', (req, res) => {
   // Clear token cookie so client no longer passes JWT after logout
   res.clearCookie('token');
   res.redirect(process.env.CLIENT_URL || '/');
 });
 
 // Return SAML metadata
-router.get('/metadata', function (req, res) {
+router.get('/metadata', (req, res) => {
   res.type('application/xml');
   res.status(200).send(samlStrategy.generateServiceProviderMetadata(null, process.env.SAML_PUBLIC_KEY));
 });
