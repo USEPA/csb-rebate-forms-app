@@ -31,12 +31,12 @@ const rejectRequest = (req, res) => {
   // Clear token cookie if there was an error verifying (e.g. expired)
   res.clearCookie('token');
 
-  if (req.url.includes('/api')) {
+  if (req.originalUrl.includes('/api')) {
     // Send JSON Unauthorized message if request is for an API endpoint
     return res.status(401).json({ message: 'Unauthorized' });
   }
   // For non-API requests (e.g. on logout), redirect to base URL if token is non-existent or invalid
-  return res.redirect(process.env.CLIENT_URL || '/');
+  return res.redirect(`${process.env.CLIENT_URL || ''}/login?RelayState=${req.originalUrl}`);
 };
 
 module.exports = { ensureAuthenticated };

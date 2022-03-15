@@ -14,11 +14,12 @@ router.get(
 router.post(
   '/login/assert',
   passport.authenticate('saml', { failureRedirect: '/login/fail', session: false }),
-  (req, res, next) => {
+  (req, res) => {
     // Create JWT, set as cookie, then redirect to client
     const token = createJwt(req.user.attributes);
     res.cookie('token', token, { httpOnly: true });
-    res.redirect(process.env.CLIENT_URL || '/');
+    // "RelayState" will be the path that the user initially tried to access before being sent to /login
+    res.redirect(`${process.env.CLIENT_URL || ''}${req.body.RelayState}`);
   }
 );
 
