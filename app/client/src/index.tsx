@@ -1,32 +1,19 @@
 import { StrictMode } from "react";
 import { render } from "react-dom";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
 import reportWebVitals from "./reportWebVitals";
 // ---
+import { UserProvider } from "contexts/user";
 import ErrorBoundary from "components/errorBoundary";
 import App from "components/app";
-import Forms from "routes/forms";
-import Rebate from "routes/rebate";
-import Profile from "routes/profile";
-import Login from "routes/login";
-import NotFound from "routes/notFound";
 
 const rootElement = document.getElementById("root");
 
 render(
   <StrictMode>
     <ErrorBoundary>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<App />}>
-            <Route index element={<Forms />} />
-            <Route path="login" element={<Login />} />
-            <Route path="profile" element={<Profile />} />
-            <Route path="rebate/:id" element={<Rebate />} />
-            <Route path="*" element={<NotFound />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+      <UserProvider>
+        <App />
+      </UserProvider>
     </ErrorBoundary>
   </StrictMode>,
   rootElement

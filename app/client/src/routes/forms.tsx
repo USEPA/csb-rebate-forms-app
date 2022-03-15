@@ -1,27 +1,29 @@
 import { Link } from "react-router-dom";
 // ---
-import { getRebates } from "../data";
+import { useUserState } from "contexts/user";
 
 function Forms() {
-  const rebates = getRebates();
+  const { samData } = useUserState();
 
   return (
     <table className="usa-table usa-table--borderless usa-table--striped width-full">
       <thead>
         <tr>
-          <th scope="col">ID</th>
-          <th scope="col">Name</th>
+          <th scope="col">UID</th>
+          <th scope="col">Placeholder</th>
+          <th scope="col">Placeholder</th>
           <th scope="col">Status</th>
         </tr>
       </thead>
       <tbody>
-        {rebates.map(({ id, name }) => {
+        {samData.map(({ uid }) => {
           return (
-            <tr key={id}>
+            <tr key={uid}>
               <th scope="row">
-                <Link to={`/rebate/${id}`}>{id}</Link>
+                <Link to={`/rebate/${uid}`}>{uid}</Link>
               </th>
-              <td>{name}</td>
+              <td>(placeholder)</td>
+              <td>(placeholder)</td>
               <td>(status)</td>
             </tr>
           );
