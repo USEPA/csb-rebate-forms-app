@@ -1,4 +1,4 @@
-const { Strategy } = require('passport-saml');
+const { Strategy } = require("passport-saml");
 
 const samlStrategy = new Strategy(
   {
@@ -9,7 +9,7 @@ const samlStrategy = new Strategy(
     issuer: process.env.SAML_ENTITY_ID,
     cert: process.env.SAML_IDP_CERT,
     privateKey: process.env.SAML_PRIVATE_KEY || null,
-    signatureAlgorithm: 'sha256',
+    signatureAlgorithm: "sha256",
   },
   // login
   function (profile, done) {
