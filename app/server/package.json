@@ -9,10 +9,13 @@
     "Courtney Myers <courtney.myers@erg.com>"
   ],
   "scripts": {
-    "start": "nodemon app/index.js"
+    "start": "nodemon --require dotenv/config app/index.js"
   },
   "dependencies": {
-    "express": "4.17.2"
+    "cors": "2.8.5",
+    "dotenv": "16.0.0",
+    "express": "4.17.2",
+    "morgan": "1.10.0"
   },
   "devDependencies": {
     "nodemon": "2.0.15"

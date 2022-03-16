@@ -1,10 +1,23 @@
 const path = require("path");
 const express = require("express");
-
+const cors = require("cors");
+const morgan = require("morgan");
+// ---
 const routes = require("./routes.js");
 
 const app = express();
 const port = process.env.PORT || 3001;
+
+if (!process.env.CLIENT_URL) {
+  throw new Error("CLIENT_URL environment variable not found.");
+  process.exit();
+}
+
+app.disable("x-powered-by");
+
+app.use(cors({ origin: process.env.CLIENT_URL }));
+app.use(express.json());
+app.use(morgan("dev"));
 
 app.use(express.static(path.join(__dirname, "app", "public")));
 
