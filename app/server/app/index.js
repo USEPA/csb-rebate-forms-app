@@ -1,14 +1,17 @@
-require("dotenv").config();
-
 const path = require("path");
 const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
-
+// ---
 const routes = require("./routes.js");
 
 const app = express();
 const port = process.env.PORT || 3001;
+
+if (!process.env.CLIENT_URL) {
+  throw new Error("CLIENT_URL environment variable not found.");
+  process.exit();
+}
 
 app.disable("x-powered-by");
 

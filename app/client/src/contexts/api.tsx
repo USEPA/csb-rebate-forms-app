@@ -11,7 +11,9 @@ type State = {
 const StateContext = createContext<State | undefined>(undefined);
 
 export function ApiProvider({ children }: Props) {
-  if (!process.env.REACT_APP_API_URL) throw new Error("API URL required!");
+  if (!process.env.REACT_APP_API_URL) {
+    throw new Error("REACT_APP_API_URL environment variable not found.");
+  }
 
   const state: State = {
     apiUrl: process.env.REACT_APP_API_URL,
