@@ -33,7 +33,7 @@ router.get("/bap", (req, res, next) => {
   ]);
 });
 
-router.get("/form-schema", (req, res) => {
+router.get("/form-schema", ensureAuthenticated, (req, res) => {
   // If "version" is passed in querystring, add to form.io request to get specific version's schema
   let url = process.env.FORMIO_BASE_URL;
   if (req.query.version) {
@@ -56,7 +56,7 @@ router.get("/form-schema", (req, res) => {
     });
 });
 
-router.get("/form-submissions", (req, res) => {
+router.get("/form-submissions", ensureAuthenticated, (req, res) => {
   axios
     .get(`${process.env.FORMIO_BASE_URL}/submission`, {
       headers: {
