@@ -37,9 +37,17 @@ export function useApiState() {
  * Returns a promise containing JSON fetched from a provided web service URL
  * or handles any other OK response returned from the server
  */
-export async function fetchData(url: string) {
+export async function fetchData(url: string, data?: object) {
+  const options = !data
+    ? { method: "GET" }
+    : {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      };
+
   try {
-    const res = await fetch(url);
+    const res = await fetch(url, options);
     if (!res.ok) throw new Error(res.statusText);
     const contentType = res.headers.get("content-type");
     return contentType?.includes("application/json")

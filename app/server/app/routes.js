@@ -32,6 +32,21 @@ router.get("/api/v1/bap", (req, res, next) => {
   ]);
 });
 
+router.get("/api/v1/form-schema", (req, res, next) => {
+  // throw new Error("TODO: implement Forms.gov integration");
+  res.json({ schema: "TODO" });
+});
+
+router.post("/api/v1/form-submissions", (req, res, next) => {
+  // throw new Error("TODO: implement Forms.gov integration");
+  console.log(req.body);
+  res.json([
+    { uei: "779442964145", name: "Form One" },
+    { uei: "779442964145", name: "Form Two" },
+    { uei: "960885252143", name: "Form Three" },
+  ]);
+});
+
 router.get("/status", (req, res, next) => {
   res.json({ running: true });
 });

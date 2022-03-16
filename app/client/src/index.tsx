@@ -4,6 +4,7 @@ import reportWebVitals from "./reportWebVitals";
 // ---
 import { ApiProvider } from "contexts/api";
 import { UserProvider } from "contexts/user";
+import { FormioProvider } from "contexts/formio";
 import ErrorBoundary from "components/errorBoundary";
 import App from "components/app";
 
@@ -14,7 +15,9 @@ render(
     <ErrorBoundary>
       <ApiProvider>
         <UserProvider>
-          <App />
+          <FormioProvider>
+            <App />
+          </FormioProvider>
         </UserProvider>
       </ApiProvider>
     </ErrorBoundary>

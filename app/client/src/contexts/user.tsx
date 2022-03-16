@@ -23,15 +23,15 @@ type SAMData = {
 type State = {
   isAuthenticated: boolean;
   epaUserData:
-    | { status: "idle"; fields: {} }
-    | { status: "fetching"; fields: {} }
-    | { status: "success"; fields: EPAData }
-    | { status: "failure"; fields: {} };
+    | { status: "idle"; data: {} }
+    | { status: "fetching"; data: {} }
+    | { status: "success"; data: EPAData }
+    | { status: "failure"; data: {} };
   samUserData:
-    | { status: "idle"; fields: [] }
-    | { status: "fetching"; fields: [] }
-    | { status: "success"; fields: SAMData[] }
-    | { status: "failure"; fields: [] };
+    | { status: "idle"; data: [] }
+    | { status: "fetching"; data: [] }
+    | { status: "success"; data: SAMData[] }
+    | { status: "failure"; data: [] };
 };
 
 type Action =
@@ -66,15 +66,15 @@ function reducer(state: State, action: Action): State {
       return {
         ...state,
         isAuthenticated: false,
-        epaUserData: { status: "idle", fields: {} },
-        samUserData: { status: "idle", fields: [] },
+        epaUserData: { status: "idle", data: {} },
+        samUserData: { status: "idle", data: [] },
       };
     }
 
     case "FETCH_EPA_USER_DATA_REQUEST": {
       return {
         ...state,
-        epaUserData: { status: "fetching", fields: {} },
+        epaUserData: { status: "fetching", data: {} },
       };
     }
 
@@ -82,21 +82,21 @@ function reducer(state: State, action: Action): State {
       const { epaUserData } = action.payload;
       return {
         ...state,
-        epaUserData: { status: "success", fields: epaUserData },
+        epaUserData: { status: "success", data: epaUserData },
       };
     }
 
     case "FETCH_EPA_USER_DATA_FAILURE": {
       return {
         ...state,
-        epaUserData: { status: "failure", fields: {} },
+        epaUserData: { status: "failure", data: {} },
       };
     }
 
     case "FETCH_SAM_USER_DATA_REQUEST": {
       return {
         ...state,
-        samUserData: { status: "fetching", fields: [] },
+        samUserData: { status: "fetching", data: [] },
       };
     }
 
@@ -104,14 +104,14 @@ function reducer(state: State, action: Action): State {
       const { samUserData } = action.payload;
       return {
         ...state,
-        samUserData: { status: "success", fields: samUserData },
+        samUserData: { status: "success", data: samUserData },
       };
     }
 
     case "FETCH_SAM_USER_DATA_FAILURE": {
       return {
         ...state,
-        samUserData: { status: "failure", fields: [] },
+        samUserData: { status: "failure", data: [] },
       };
     }
 
@@ -124,8 +124,8 @@ function reducer(state: State, action: Action): State {
 export function UserProvider({ children }: Props) {
   const initialState: State = {
     isAuthenticated: false,
-    epaUserData: { status: "idle", fields: {} },
-    samUserData: { status: "idle", fields: [] },
+    epaUserData: { status: "idle", data: {} },
+    samUserData: { status: "idle", data: [] },
   };
 
   const [state, dispatch] = useReducer(reducer, initialState);

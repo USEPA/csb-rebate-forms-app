@@ -1,15 +1,15 @@
 import { useParams } from "react-router-dom";
 // ---
-import { useUserState } from "contexts/user";
+import { useFormioState } from "contexts/formio";
 import NotFound from "routes/notFound";
 
 export default function Form() {
-  const { id } = useParams<"id">();
-  const { samUserData } = useUserState();
+  const { id } = useParams<"id">(); // TODO: use mongodb ID instead of UEI, as multiple forms can use a UEI
+  const { formSubmissions } = useFormioState();
 
-  if (samUserData.status !== "success") return null;
+  if (formSubmissions.status !== "success") return null;
 
-  const submission = samUserData.fields.find((data) => data.uei === id);
+  const submission = formSubmissions.data.find((d) => d.uei === id);
 
   if (!submission) return <NotFound />;
 
@@ -17,7 +17,9 @@ export default function Form() {
     <div className="margin-top-2 bg-base-lightest">
       <div className="padding-9 text-center">
         <p className="margin-0">
-          (Form.io Submission #<strong>{submission.uei}</strong>)
+          <strong>{submission.name}</strong>
+          <br />
+          (#{submission.uei})
         </p>
       </div>
     </div>
