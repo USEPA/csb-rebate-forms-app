@@ -20,12 +20,12 @@ type FormSubmission = {
 type State = {
   formSchema:
     | { status: "idle"; data: {} }
-    | { status: "fetching"; data: {} }
+    | { status: "pending"; data: {} }
     | { status: "success"; data: FormSchema }
     | { status: "failure"; data: {} };
   formSubmissions:
     | { status: "idle"; data: [] }
-    | { status: "fetching"; data: [] }
+    | { status: "pending"; data: [] }
     | { status: "success"; data: FormSubmission[] }
     | { status: "failure"; data: [] };
 };
@@ -52,7 +52,7 @@ function reducer(state: State, action: Action): State {
     case "FETCH_FORM_SCHEMA_REQUEST": {
       return {
         ...state,
-        formSchema: { status: "fetching", data: {} },
+        formSchema: { status: "pending", data: {} },
       };
     }
 
@@ -74,7 +74,7 @@ function reducer(state: State, action: Action): State {
     case "FETCH_FORM_SUBMISSIONS_REQUEST": {
       return {
         ...state,
-        formSubmissions: { status: "fetching", data: [] },
+        formSubmissions: { status: "pending", data: [] },
       };
     }
 

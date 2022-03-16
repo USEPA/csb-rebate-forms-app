@@ -42,7 +42,7 @@ export default function Dashboard() {
             onClick={(ev) => {
               fetchData(`${apiUrl}/api/v1/logout`)
                 .then((logoutRes) => {
-                  dispatch({ type: "SIGN_OUT" });
+                  dispatch({ type: "USER_SIGN_OUT" });
                 })
                 .catch((logoutErr) => {
                   console.error("Error logging user out");

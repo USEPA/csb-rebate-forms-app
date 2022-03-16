@@ -24,19 +24,19 @@ type State = {
   isAuthenticated: boolean;
   epaUserData:
     | { status: "idle"; data: {} }
-    | { status: "fetching"; data: {} }
+    | { status: "pending"; data: {} }
     | { status: "success"; data: EPAData }
     | { status: "failure"; data: {} };
   samUserData:
     | { status: "idle"; data: [] }
-    | { status: "fetching"; data: [] }
+    | { status: "pending"; data: [] }
     | { status: "success"; data: SAMData[] }
     | { status: "failure"; data: [] };
 };
 
 type Action =
-  | { type: "SIGN_IN" }
-  | { type: "SIGN_OUT" }
+  | { type: "USER_SIGN_IN" }
+  | { type: "USER_SIGN_OUT" }
   | { type: "FETCH_EPA_USER_DATA_REQUEST" }
   | {
       type: "FETCH_EPA_USER_DATA_SUCCESS";
@@ -55,14 +55,14 @@ const DispatchContext = createContext<Dispatch<Action> | undefined>(undefined);
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
-    case "SIGN_IN": {
+    case "USER_SIGN_IN": {
       return {
         ...state,
         isAuthenticated: true,
       };
     }
 
-    case "SIGN_OUT": {
+    case "USER_SIGN_OUT": {
       return {
         ...state,
         isAuthenticated: false,
@@ -74,7 +74,7 @@ function reducer(state: State, action: Action): State {
     case "FETCH_EPA_USER_DATA_REQUEST": {
       return {
         ...state,
-        epaUserData: { status: "fetching", data: {} },
+        epaUserData: { status: "pending", data: {} },
       };
     }
 
@@ -96,7 +96,7 @@ function reducer(state: State, action: Action): State {
     case "FETCH_SAM_USER_DATA_REQUEST": {
       return {
         ...state,
-        samUserData: { status: "fetching", data: [] },
+        samUserData: { status: "pending", data: [] },
       };
     }
 

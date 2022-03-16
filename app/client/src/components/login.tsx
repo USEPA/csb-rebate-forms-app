@@ -31,7 +31,7 @@ export default function Login() {
                       payload: { samUserData: bapRes },
                     });
 
-                    dispatch({ type: "SIGN_IN" });
+                    dispatch({ type: "USER_SIGN_IN" });
                   })
                   .catch((bapErr) => {
                     console.error("Error fetching SAM user data");
