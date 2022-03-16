@@ -12,7 +12,9 @@
     "start": "nodemon app/index.js"
   },
   "dependencies": {
-    "express": "4.17.2"
+    "cors": "2.8.5",
+    "express": "4.17.2",
+    "morgan": "1.10.0"
   },
   "devDependencies": {
     "nodemon": "2.0.15"
