@@ -26,7 +26,7 @@ router.post(
     const token = createJwt(req.user.attributes);
     res.cookie("token", token, { httpOnly: true });
     // "RelayState" will be the path that the user initially tried to access before being sent to /login
-    res.redirect(`${process.env.CLIENT_URL || ""}${req.body.RelayState}`);
+    res.redirect(`${process.env.CLIENT_URL || ""}${req.body.RelayState || ""}`);
   }
 );
 
