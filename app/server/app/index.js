@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const path = require("path");
 const express = require("express");
 const cors = require("cors");
@@ -8,7 +10,9 @@ const routes = require("./routes.js");
 const app = express();
 const port = process.env.PORT || 3001;
 
-app.use(cors());
+app.disable("x-powered-by");
+
+app.use(cors({ origin: process.env.CLIENT_URL }));
 app.use(express.json());
 app.use(morgan("dev"));
 
