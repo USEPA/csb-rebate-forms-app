@@ -74,7 +74,7 @@ function reducer(state: State, action: Action): State {
     case "FETCH_FORM_SUBMISSIONS_REQUEST": {
       return {
         ...state,
-        formSchema: { status: "fetching", data: [] },
+        formSubmissions: { status: "fetching", data: [] },
       };
     }
 
@@ -89,7 +89,7 @@ function reducer(state: State, action: Action): State {
     case "FETCH_FORM_SUBMISSIONS_FAILURE": {
       return {
         ...state,
-        formSchema: { status: "failure", data: [] },
+        formSubmissions: { status: "failure", data: [] },
       };
     }
 
@@ -99,7 +99,7 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-export function FormioProvider({ children }: Props) {
+export function FormsProvider({ children }: Props) {
   const initialState: State = {
     formSchema: { status: "idle", data: {} },
     formSubmissions: { status: "idle", data: [] },
@@ -117,24 +117,24 @@ export function FormioProvider({ children }: Props) {
 }
 
 /**
- * Returns state stored in `FormioProvider` context component.
+ * Returns state stored in `FormsProvider` context component.
  */
-export function useFormioState() {
+export function useFormsState() {
   const context = useContext(StateContext);
   if (context === undefined) {
-    throw new Error("useFormioState must be called within a FormioProvider");
+    throw new Error("useFormsState must be called within a FormsProvider");
   }
   return context;
 }
 
 /**
  * Returns `dispatch` method for dispatching actions to update state stored in
- * `FormioProvider` context component.
+ * `FormsProvider` context component.
  */
-export function useFormioDispatch() {
+export function useFormsDispatch() {
   const context = useContext(DispatchContext);
   if (context === undefined) {
-    throw new Error("useFormioDispatch must be used within a FormioProvider");
+    throw new Error("useFormsDispatch must be used within a FormsProvider");
   }
   return context;
 }

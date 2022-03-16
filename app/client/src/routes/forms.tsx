@@ -3,13 +3,13 @@ import { Link } from "react-router-dom";
 // ---
 import { useApiState, fetchData } from "contexts/api";
 import { useUserState } from "contexts/user";
-import { useFormioState, useFormioDispatch } from "contexts/formio";
+import { useFormsState, useFormsDispatch } from "contexts/forms";
 
 export default function Forms() {
   const { apiUrl } = useApiState();
   const { samUserData } = useUserState();
-  const { formSchema, formSubmissions } = useFormioState();
-  const dispatch = useFormioDispatch();
+  const { formSubmissions } = useFormsState();
+  const dispatch = useFormsDispatch();
 
   useEffect(() => {
     if (samUserData.status !== "success") return;
@@ -17,13 +17,13 @@ export default function Forms() {
     dispatch({ type: "FETCH_FORM_SCHEMA_REQUEST" });
 
     fetchData(`${apiUrl}/api/v1/form-schema`)
-      .then((formioRes) => {
+      .then((schemaRes) => {
         dispatch({
           type: "FETCH_FORM_SCHEMA_SUCCESS",
-          payload: { formSchema: formioRes },
+          payload: { formSchema: schemaRes },
         });
       })
-      .catch((formioErr) => {
+      .catch((schemaErr) => {
         console.error("Error fetching form schema");
         dispatch({ type: "FETCH_FORM_SCHEMA_FAILURE" });
       });
@@ -33,13 +33,13 @@ export default function Forms() {
     dispatch({ type: "FETCH_FORM_SUBMISSIONS_REQUEST" });
 
     fetchData(`${apiUrl}/api/v1/form-submissions`, { ueis })
-      .then((formioRes) => {
+      .then((submissionsRes) => {
         dispatch({
           type: "FETCH_FORM_SUBMISSIONS_SUCCESS",
-          payload: { formSubmissions: formioRes },
+          payload: { formSubmissions: submissionsRes },
         });
       })
-      .catch((formioErr) => {
+      .catch((submissionsErr) => {
         console.error("Error fetching form submissions");
         dispatch({ type: "FETCH_FORM_SUBMISSIONS_FAILURE" });
       });
