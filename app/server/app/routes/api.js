@@ -1,13 +1,13 @@
 const express = require("express");
+const { ensureAuthenticated } = require("../middleware");
 
 const router = express.Router();
 
-router.use((req, res, next) => {
-  // TODO: apply any route specific middleware here as needed
-  next();
+router.get("/user", ensureAuthenticated, function (req, res) {
+  res.json(req.user);
 });
 
-router.get("/api/v1/login", (req, res, next) => {
+router.get("/login", (req, res, next) => {
   // throw new Error("TODO: implement EPA gateway integration");
   res.json({
     firstName: "George",
@@ -16,12 +16,12 @@ router.get("/api/v1/login", (req, res, next) => {
   });
 });
 
-router.get("/api/v1/logout", (req, res, next) => {
+router.get("/logout", (req, res, next) => {
   // throw new Error("TODO: implement EPA gateway integration");
   res.sendStatus(200);
 });
 
-router.get("/api/v1/bap", (req, res, next) => {
+router.get("/bap", (req, res, next) => {
   // throw new Error("TODO: implement BAP API integration");
   res.json([
     { uei: "056143447853" },
@@ -32,12 +32,12 @@ router.get("/api/v1/bap", (req, res, next) => {
   ]);
 });
 
-router.get("/api/v1/form-schema", (req, res, next) => {
+router.get("/form-schema", (req, res, next) => {
   // throw new Error("TODO: implement Forms.gov integration");
   res.json({ schema: "TODO" });
 });
 
-router.post("/api/v1/form-submissions", (req, res, next) => {
+router.post("/form-submissions", (req, res, next) => {
   // throw new Error("TODO: implement Forms.gov integration");
   console.log(req.body);
   res.json([
@@ -45,10 +45,6 @@ router.post("/api/v1/form-submissions", (req, res, next) => {
     { uei: "779442964145", name: "Form Two" },
     { uei: "960885252143", name: "Form Three" },
   ]);
-});
-
-router.get("/status", (req, res, next) => {
-  res.json({ running: true });
 });
 
 module.exports = router;

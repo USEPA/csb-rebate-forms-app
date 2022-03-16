@@ -6,7 +6,8 @@
   "author": "USEPA (https://www.epa.gov)",
   "contributors": [
     "Brad Cooper <brad.cooper@erg.com>",
-    "Courtney Myers <courtney.myers@erg.com>"
+    "Courtney Myers <courtney.myers@erg.com>",
+    "Devin Galloway <devin.galloway@erg.com>"
   ],
   "devDependencies": {
     "concurrently": "7.0.0",
