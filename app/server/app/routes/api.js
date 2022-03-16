@@ -1,4 +1,5 @@
 const express = require("express");
+const axios = require("axios");
 const { ensureAuthenticated } = require("../middleware");
 
 const router = express.Router();
@@ -32,19 +33,47 @@ router.get("/bap", (req, res, next) => {
   ]);
 });
 
-router.get("/form-schema", (req, res, next) => {
-  // throw new Error("TODO: implement Forms.gov integration");
-  res.json({ schema: "TODO" });
+router.get("/form-schema", (req, res) => {
+  // If "version" is passed in querystring, add to form.io request to get specific version's schema
+  let url = process.env.FORMIO_BASE_URL;
+  if (req.query.version) {
+    url += `/v/${req.query.version}`;
+  }
+  axios
+    .get(url, {
+      headers: {
+        "x-token": process.env.FORMIO_API_KEY,
+      },
+    })
+    .then((response) => {
+      res.json(response.data);
+    })
+    .catch((error) => {
+      console.error(error);
+      res.status(error.response.status || 500).json({
+        message: `There was an error retrieving the Form.io schema: ${error.response.statusText}`,
+      });
+    });
 });
 
-router.post("/form-submissions", (req, res, next) => {
-  // throw new Error("TODO: implement Forms.gov integration");
-  console.log(req.body);
-  res.json([
-    { uei: "779442964145", name: "Form One" },
-    { uei: "779442964145", name: "Form Two" },
-    { uei: "960885252143", name: "Form Three" },
-  ]);
+router.get("/form-submissions", (req, res) => {
+  axios
+    .get(`${process.env.FORMIO_BASE_URL}/submission`, {
+      headers: {
+        "x-token": process.env.FORMIO_API_KEY,
+      },
+      // Pass query params through to form.io, e.g. "?data.applicantName=name"
+      params: req.query,
+    })
+    .then((response) => {
+      res.json(response.data);
+    })
+    .catch((error) => {
+      console.error(error);
+      res.status(error.response.status || 500).json({
+        message: `There was an error retrieving Form.io submissions: ${error.response.statusText}`,
+      });
+    });
 });
 
 module.exports = router;
