@@ -1,6 +1,6 @@
 import icons from "uswds/img/sprite.svg";
 // ---
-import { useApiState, fetchJSON } from "contexts/api";
+import { useApiState, fetchData } from "contexts/api";
 import { useUserDispatch } from "contexts/user";
 
 export default function Login() {
@@ -15,16 +15,16 @@ export default function Login() {
           onClick={(ev) => {
             dispatch({ type: "FETCH_EPA_USER_DATA_REQUEST" });
 
-            fetchJSON(`${apiUrl}/api/v1/login`)
-              .then((appRes) => {
+            fetchData(`${apiUrl}/api/v1/login`)
+              .then((loginRes) => {
                 dispatch({
                   type: "FETCH_EPA_USER_DATA_SUCCESS",
-                  payload: { epaUserData: appRes },
+                  payload: { epaUserData: loginRes },
                 });
 
                 dispatch({ type: "FETCH_SAM_USER_DATA_REQUEST" });
 
-                fetchJSON(`${apiUrl}/api/v1/bap`)
+                fetchData(`${apiUrl}/api/v1/bap`)
                   .then((bapRes) => {
                     dispatch({
                       type: "FETCH_SAM_USER_DATA_SUCCESS",
@@ -38,7 +38,7 @@ export default function Login() {
                     dispatch({ type: "FETCH_SAM_USER_DATA_FAILURE" });
                   });
               })
-              .catch((appErr) => {
+              .catch((loginErr) => {
                 console.error("Error fetching EPA user data");
                 dispatch({ type: "FETCH_EPA_USER_DATA_FAILURE" });
               });

@@ -34,13 +34,17 @@ export function useApiState() {
 }
 
 /**
- * Returns a promise conaining JSON fetched from a provided web service URL.
+ * Returns a promise containing JSON fetched from a provided web service URL
+ * or handles any other OK response returned from the server
  */
-export async function fetchJSON(url: string) {
+export async function fetchData(url: string) {
   try {
     const res = await fetch(url);
     if (!res.ok) throw new Error(res.statusText);
-    return await res.json();
+    const contentType = res.headers.get("content-type");
+    return contentType?.includes("application/json")
+      ? await res.json()
+      : Promise.resolve();
   } catch (error) {
     return await Promise.reject(error);
   }

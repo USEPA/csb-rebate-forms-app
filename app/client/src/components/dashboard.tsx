@@ -1,9 +1,11 @@
 import { Link, Outlet } from "react-router-dom";
 import icons from "uswds/img/sprite.svg";
 // ---
+import { useApiState, fetchData } from "contexts/api";
 import { useUserState, useUserDispatch } from "contexts/user";
 
 export default function Dashboard() {
+  const { apiUrl } = useApiState();
   const { epaUserData } = useUserState();
   const dispatch = useUserDispatch();
 
@@ -38,8 +40,13 @@ export default function Dashboard() {
           <button
             className="usa-button usa-button--outline font-sans-2xs margin-right-0"
             onClick={(ev) => {
-              // TODO: placeholder...integrate with server app's SAML login
-              dispatch({ type: "SIGN_OUT" });
+              fetchData(`${apiUrl}/api/v1/logout`)
+                .then((logoutRes) => {
+                  dispatch({ type: "SIGN_OUT" });
+                })
+                .catch((logoutErr) => {
+                  console.error("Error logging user out");
+                });
             }}
           >
             <span className="display-flex flex-align-center">

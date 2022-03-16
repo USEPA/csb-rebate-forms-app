@@ -9,7 +9,6 @@ router.use((req, res, next) => {
 
 router.get("/api/v1/login", (req, res, next) => {
   // throw new Error("TODO: implement EPA gateway integration");
-
   res.json({
     firstName: "George",
     lastName: "Washington",
@@ -17,9 +16,13 @@ router.get("/api/v1/login", (req, res, next) => {
   });
 });
 
+router.get("/api/v1/logout", (req, res, next) => {
+  // throw new Error("TODO: implement EPA gateway integration");
+  res.sendStatus(200);
+});
+
 router.get("/api/v1/bap", (req, res, next) => {
   // throw new Error("TODO: implement BAP API integration");
-
   res.json([
     { uei: "056143447853" },
     { uei: "779442964145" },
