@@ -1,8 +1,10 @@
 import icons from "uswds/img/sprite.svg";
 // ---
+import { useApiState, fetchJSON } from "contexts/api";
 import { useUserDispatch } from "contexts/user";
 
-function Login() {
+export default function Login() {
+  const { apiUrl } = useApiState();
   const dispatch = useUserDispatch();
 
   return (
@@ -11,33 +13,35 @@ function Login() {
         <button
           className="usa-button font-sans-2xs"
           onClick={(ev) => {
-            // TODO: placeholder...
-            // integrate with server app's SAML login and BAP API call
-            setTimeout(() => {
-              dispatch({ type: "SIGN_IN" });
-              dispatch({
-                type: "SET_USER_DATA",
-                payload: {
-                  epaData: {
-                    firstName: "George",
-                    lastName: "Washington",
-                    email: "george.washington@epa.gov",
-                  },
-                },
+            dispatch({ type: "FETCH_EPA_USER_DATA_REQUEST" });
+
+            fetchJSON(`${apiUrl}/api/v1/login`)
+              .then((appRes) => {
+                dispatch({
+                  type: "FETCH_EPA_USER_DATA_SUCCESS",
+                  payload: { epaUserData: appRes },
+                });
+
+                dispatch({ type: "FETCH_SAM_USER_DATA_REQUEST" });
+
+                fetchJSON(`${apiUrl}/api/v1/bap`)
+                  .then((bapRes) => {
+                    dispatch({
+                      type: "FETCH_SAM_USER_DATA_SUCCESS",
+                      payload: { samUserData: bapRes },
+                    });
+
+                    dispatch({ type: "SIGN_IN" });
+                  })
+                  .catch((bapErr) => {
+                    console.error("Error fetching SAM user data");
+                    dispatch({ type: "FETCH_SAM_USER_DATA_FAILURE" });
+                  });
+              })
+              .catch((appErr) => {
+                console.error("Error fetching EPA user data");
+                dispatch({ type: "FETCH_EPA_USER_DATA_FAILURE" });
               });
-              dispatch({
-                type: "SET_SAM_DATA",
-                payload: {
-                  samData: [
-                    { uid: "056143447853" },
-                    { uid: "779442964145" },
-                    { uid: "960885252143" },
-                    { uid: "549203627426" },
-                    { uid: "569160091719" },
-                  ],
-                },
-              });
-            }, 300);
           }}
         >
           <span className="display-flex flex-align-center">
@@ -56,5 +60,3 @@ function Login() {
     </div>
   );
 }
-
-export default Login;

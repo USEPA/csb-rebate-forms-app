@@ -13,7 +13,7 @@ type Props = {
 type FormSchema = object;
 
 type FormSubmission = {
-  uid: string;
+  uei: string;
 };
 
 type State = {

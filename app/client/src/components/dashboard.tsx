@@ -3,11 +3,11 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import { useUserState, useUserDispatch } from "contexts/user";
 
-function Dashboard() {
-  const { epaData } = useUserState();
+export default function Dashboard() {
+  const { epaUserData } = useUserState();
   const dispatch = useUserDispatch();
 
-  const { email } = epaData;
+  if (epaUserData.status !== "success") return null;
 
   return (
     <div>
@@ -32,7 +32,7 @@ function Dashboard() {
 
         <nav className="display-flex flex-align-center">
           <p className="margin-bottom-0 margin-right-1">
-            <span>{email}</span>
+            <span>{epaUserData.fields.email}</span>
           </p>
 
           <button
@@ -61,5 +61,3 @@ function Dashboard() {
     </div>
   );
 }
-
-export default Dashboard;

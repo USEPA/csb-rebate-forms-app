@@ -1,31 +1,28 @@
-import { useEffect } from "react";
 import { Link } from "react-router-dom";
 // ---
 import { useUserState } from "contexts/user";
 
-function Forms() {
-  const { samData } = useUserState();
+export default function Forms() {
+  const { samUserData } = useUserState();
 
-  useEffect(() => {
-    // TODO: fetch formio form schema and submissions
-  }, []);
+  if (samUserData.status !== "success") return null;
 
   return (
     <table className="usa-table usa-table--borderless usa-table--striped width-full">
       <thead>
         <tr>
-          <th scope="col">UID</th>
+          <th scope="col">UEI</th>
           <th scope="col">Placeholder</th>
           <th scope="col">Placeholder</th>
           <th scope="col">Status</th>
         </tr>
       </thead>
       <tbody>
-        {samData.map(({ uid }) => {
+        {samUserData.fields.map(({ uei }) => {
           return (
-            <tr key={uid}>
+            <tr key={uei}>
               <th scope="row">
-                <Link to={`/rebate/${uid}`}>{uid}</Link>
+                <Link to={`/rebate/${uei}`}>{uei}</Link>
               </th>
               <td>(placeholder)</td>
               <td>(placeholder)</td>
@@ -37,5 +34,3 @@ function Forms() {
     </table>
   );
 }
-
-export default Forms;

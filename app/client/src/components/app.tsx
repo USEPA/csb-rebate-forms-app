@@ -9,7 +9,7 @@ import Forms from "routes/forms";
 import Form from "routes/form";
 import NotFound from "routes/notFound";
 
-function App() {
+export default function App() {
   const { isAuthenticated } = useUserState();
 
   if (!isAuthenticated) return <Login />;
@@ -26,5 +26,3 @@ function App() {
     </BrowserRouter>
   );
 }
-
-export default App;

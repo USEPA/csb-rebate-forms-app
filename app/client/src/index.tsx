@@ -2,8 +2,8 @@ import { StrictMode } from "react";
 import { render } from "react-dom";
 import reportWebVitals from "./reportWebVitals";
 // ---
+import { ApiProvider } from "contexts/api";
 import { UserProvider } from "contexts/user";
-import { FormioProvider } from "contexts/formio";
 import ErrorBoundary from "components/errorBoundary";
 import App from "components/app";
 
@@ -12,11 +12,11 @@ const rootElement = document.getElementById("root");
 render(
   <StrictMode>
     <ErrorBoundary>
-      <UserProvider>
-        <FormioProvider>
+      <ApiProvider>
+        <UserProvider>
           <App />
-        </FormioProvider>
-      </UserProvider>
+        </UserProvider>
+      </ApiProvider>
     </ErrorBoundary>
   </StrictMode>,
   rootElement
