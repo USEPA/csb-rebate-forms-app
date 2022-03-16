@@ -10,6 +10,7 @@ const samlStrategy = new Strategy(
     cert: process.env.SAML_IDP_CERT,
     privateKey: process.env.SAML_PRIVATE_KEY || null,
     signatureAlgorithm: "sha256",
+    acceptedClockSkewMs: process.env.SAML_CLOCK_SKEW || 0,
   },
   // login
   function (profile, done) {
