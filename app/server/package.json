@@ -10,7 +10,7 @@
     "Devin Galloway <devin.galloway@erg.com>"
   ],
   "scripts": {
-    "start": "nodemon --require dotenv/config app/index.js",
+    "start": "nodemon app/index.js",
     "lint": "eslint ./ --fix"
   },
   "dependencies": {
@@ -19,6 +19,7 @@
     "cors": "2.8.5",
     "dotenv": "16.0.0",
     "express": "4.17.2",
+    "express-basic-auth": "1.2.1",
     "express-session": "1.17.2",
     "jsonwebtoken": "8.5.1",
     "morgan": "1.10.0",

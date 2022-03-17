@@ -1,9 +1,11 @@
+require("dotenv").config();
 const path = require("path");
 const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 const history = require("connect-history-api-fallback");
+const basicAuth = require("express-basic-auth");
 const passport = require("passport");
 // ---
 const samlStrategy = require("./config/samlStrategy");
@@ -21,6 +23,24 @@ if (!process.env.CLIENT_URL) {
 }
 
 app.disable("x-powered-by");
+
+// Set up browser basic auth for dev and staging sites
+const unauthorizedResponse = (req) => {
+  return req.auth ? "Invalid credentials" : "No credentials provided";
+};
+
+if (
+  process.env.NODE_ENV === "development" ||
+  process.env.NODE_ENV === "staging"
+) {
+  app.use(
+    basicAuth({
+      users: { [process.env.BASIC_AUTH_USER]: process.env.BASIC_AUTH_PASSWORD },
+      challenge: true,
+      unauthorizedResponse,
+    })
+  );
+}
 
 app.use(cors({ origin: process.env.CLIENT_URL }));
 app.use(express.json());
