@@ -59,8 +59,8 @@ jobs:
           key: v1-npm-client-deps-${{ hashFiles('**/client/package-lock.json') }}
           restore-keys: v1-npm-client-deps-
 
-      - name: Lint front-end code
-        run: npm run lint
+      - name: Install front-end dependencies
+        run: npm install
         working-directory: app/client
 
       - name: Build front-end files and move to server
