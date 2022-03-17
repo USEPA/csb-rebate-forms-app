@@ -25,7 +25,6 @@ jobs:
     # Set environment variables
     env:
       APP_NAME: csb-dev
-      SERVER_URL: https://app-dev.app.cloud.gov/csb
       CF_ORG: epa-avert
       CF_SPACE: csb-dev
       CF_USER_DEV: ${{ secrets.CF_USER_DEV }}
