@@ -10,7 +10,7 @@
     "Devin Galloway <devin.galloway@erg.com>"
   ],
   "scripts": {
-    "start": "nodemon --require dotenv/config app/index.js",
+    "start": "nodemon app/index.js",
     "lint": "eslint ./ --fix"
   },
   "dependencies": {
