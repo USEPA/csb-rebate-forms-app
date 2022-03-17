@@ -76,4 +76,22 @@ router.get("/form-submissions", ensureAuthenticated, (req, res) => {
     });
 });
 
+router.get("/form-submissions/:id", ensureAuthenticated, (req, res) => {
+  axios
+    .get(`${process.env.FORMIO_BASE_URL}/submission/${req.params.id}`, {
+      headers: {
+        "x-token": process.env.FORMIO_API_KEY,
+      },
+    })
+    .then((response) => {
+      res.json(response.data);
+    })
+    .catch((error) => {
+      console.error(error);
+      res.status(error.response.status || 500).json({
+        message: `There was an error retrieving the Form.io submission: ${error.response.statusText}`,
+      });
+    });
+});
+
 module.exports = router;
