@@ -71,7 +71,8 @@ jobs:
         run: |
           npm run build
           rm ../server/app/public/index.html
-          mv build/ ../server/app/public
+          cd build
+          mv * ../../server/app/public
         working-directory: app/client
 
       # Run CloudFoundry/Cloud.gov deployment
