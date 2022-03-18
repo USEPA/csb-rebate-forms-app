@@ -1,18 +1,19 @@
 ---
- applications:
-   - name: csb
-     routes:
+applications:
+  - name: csb-staging
+    routes:
       - route: app-stage.app.cloud.gov/csb
-     instances: 1
-     memory: 128M
-     disk_quota: 512MB
-     timeout: 180
-     buildpacks:
+    instances: 1
+    memory: 128M
+    disk_quota: 512MB
+    timeout: 180
+    buildpacks:
       - nodejs_buildpack
-     command: node app/index.js
-     path: /
-     env:
-        NODE_ENV: staging
-        LOGGER_LEVEL: ERROR
-        OPTIMIZE_MEMORY: true
-        SUB_PATH: /csb
+    command: node app/index.js
+    path: /
+    env:
+      SERVER_URL: https://app-dev.app.cloud.gov/csb
+      NODE_ENV: staging
+      LOGGER_LEVEL: ERROR
+      OPTIMIZE_MEMORY: true
+      SUB_PATH: /csb

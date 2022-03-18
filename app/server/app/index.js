@@ -8,19 +8,34 @@ const history = require("connect-history-api-fallback");
 const basicAuth = require("express-basic-auth");
 const passport = require("passport");
 // ---
+const logger = require("./utilities/logger");
+const log = logger.logger;
+
 const samlStrategy = require("./config/samlStrategy");
 
-const baseRoutes = require("./routes");
-const authRoutes = require("./routes/auth");
-const apiRoutes = require("./routes/api");
+const routes = require("./routes");
 
 const app = express();
 const port = process.env.PORT || 3001;
 
-if (!process.env.CLIENT_URL) {
-  throw new Error("CLIENT_URL environment variable not found.");
-  process.exit();
-}
+const requiredEnvVars = [
+  "SERVER_URL",
+  "SAML_LOGIN_URL",
+  "SAML_LOGOUT_URL",
+  "SAML_ENTITY_ID",
+  "SAML_IDP_CERT",
+  "SAML_PUBLIC_KEY",
+  "JWT_PRIVATE_KEY",
+  "JWT_PUBLIC_KEY",
+  "FORMIO_BASE_URL",
+  "FORMIO_API_KEY",
+];
+requiredEnvVars.forEach((envVar) => {
+  if (!process.env[envVar]) {
+    log.error(`Required environment variable ${envVar} not found.`);
+    process.exit();
+  }
+});
 
 app.disable("x-powered-by");
 
@@ -42,7 +57,9 @@ if (
   );
 }
 
-app.use(cors({ origin: process.env.CLIENT_URL }));
+if (process.env.NODE_ENV === "local") {
+  app.use(cors({ origin: process.env.CLIENT_URL }));
+}
 app.use(express.json());
 app.use(morgan("dev"));
 
@@ -54,18 +71,22 @@ passport.use("saml", samlStrategy);
 
 app.use(express.static(path.join(__dirname, "app", "public")));
 
-app.use("/", baseRoutes);
-app.use("/", authRoutes);
-app.use("/api/v1", apiRoutes);
+// If SUB_PATH is provided, server routes and static files from there (e.g. /csb)
+const basePath = `${process.env.SUB_PATH || ""}/`;
+app.use(basePath, routes);
+
+// Use regex to add trailing slash on static requests (required when using sub path)
+const pathRegex = new RegExp(`^\\${process.env.SUB_PATH || ""}$`);
+app.all(pathRegex, (req, res) => res.redirect(`${basePath}`));
 
 /*
  * Set up history fallback to provide direct access to react router routes
  * Note: must come AFTER api routes and BEFORE static serve of react files
  */
-app.use(history());
+app.use(basePath, history());
 
 // Serve static react-based front-end from build folder
-app.use(express.static(path.resolve(__dirname, "public")));
+app.use(basePath, express.static(path.resolve(__dirname, "public/")));
 
 app.listen(port, () => {
   console.log(`Express server listening on port ${port}`);
