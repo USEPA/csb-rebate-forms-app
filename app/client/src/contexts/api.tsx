@@ -11,12 +11,17 @@ type State = {
 const StateContext = createContext<State | undefined>(undefined);
 
 export function ApiProvider({ children }: Props) {
-  if (!process.env.REACT_APP_SERVER_URL) {
+  const localServerUrl = process.env.REACT_APP_SERVER_URL;
+
+  if (process.env.NODE_ENV === "development" && !localServerUrl) {
     throw new Error("REACT_APP_SERVER_URL environment variable not found.");
   }
 
   const state: State = {
-    apiUrl: process.env.REACT_APP_SERVER_URL,
+    apiUrl:
+      process.env.NODE_ENV === "development" && localServerUrl
+        ? localServerUrl
+        : window.location.origin,
   };
 
   return (

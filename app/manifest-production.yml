@@ -14,7 +14,7 @@ applications:
     path: /
     env:
       SERVER_URL: https://app-dev.app.cloud.gov/csb
-      NODE_ENV: production
+      CLOUD_SPACE: production
       LOGGER_LEVEL: ERROR
       OPTIMIZE_MEMORY: true
       SUB_PATH: /csb
