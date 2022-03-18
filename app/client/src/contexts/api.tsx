@@ -1,4 +1,6 @@
 import { ReactNode, createContext, useContext } from "react";
+// ---
+import { cloudSubPath } from "../index";
 
 type Props = {
   children: ReactNode;
@@ -15,7 +17,7 @@ export function ApiProvider({ children }: Props) {
     apiUrl:
       process.env.NODE_ENV === "development"
         ? "http://localhost:3001"
-        : window.location.origin,
+        : window.location.origin + cloudSubPath,
   };
 
   return (

@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "uswds/css/uswds.css";
 import "uswds/js/uswds.js";
 // ---
+import { cloudSubPath } from "../index";
 import { useUserState } from "contexts/user";
 import Login from "components/login";
 import Dashboard from "components/dashboard";
@@ -15,7 +16,9 @@ export default function App() {
   if (!isAuthenticated) return <Login />;
 
   return (
-    <BrowserRouter>
+    <BrowserRouter
+      basename={process.env.NODE_ENV === "development" ? "/" : cloudSubPath}
+    >
       <Routes>
         <Route path="/" element={<Dashboard />}>
           <Route index element={<Forms />} />
