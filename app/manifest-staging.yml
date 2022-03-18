@@ -1,6 +1,6 @@
 ---
 applications:
-  - name: csb
+  - name: csb-staging
     routes:
       - route: app-stage.app.cloud.gov/csb
     instances: 1

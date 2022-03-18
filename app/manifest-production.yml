@@ -1,6 +1,6 @@
 ---
 applications:
-  - name: csb
+  - name: csb-prod
     routes:
       - route: app-prod.app.cloud.gov/csb
       - route: app.epa.gov/csb
