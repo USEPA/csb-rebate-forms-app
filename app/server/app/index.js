@@ -86,7 +86,9 @@ app.all(pathRegex, (req, res) => res.redirect(`${basePath}`));
  */
 app.use(basePath, history());
 
-// Serve static react-based front-end from build folder
+// Serve client app's static built files
+// NOTE: client app's `build` directory contents copied into server app's
+// `public` directory in CI/CD step
 app.use(basePath, express.static(path.resolve(__dirname, "public/")));
 
 app.listen(port, () => {
