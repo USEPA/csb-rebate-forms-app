@@ -1,4 +1,6 @@
 import { ReactNode, createContext, useContext } from "react";
+// ---
+import { cloudSubPath } from "../index";
 
 type Props = {
   children: ReactNode;
@@ -11,12 +13,11 @@ type State = {
 const StateContext = createContext<State | undefined>(undefined);
 
 export function ApiProvider({ children }: Props) {
-  if (!process.env.REACT_APP_SERVER_URL) {
-    throw new Error("REACT_APP_SERVER_URL environment variable not found.");
-  }
-
   const state: State = {
-    apiUrl: process.env.REACT_APP_SERVER_URL,
+    apiUrl:
+      process.env.NODE_ENV === "development"
+        ? "http://localhost:3001"
+        : window.location.origin + cloudSubPath,
   };
 
   return (

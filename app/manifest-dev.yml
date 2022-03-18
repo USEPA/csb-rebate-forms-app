@@ -12,7 +12,7 @@ applications:
     command: node app/index.js
     env:
       SERVER_URL: https://app-dev.app.cloud.gov/csb
-      NODE_ENV: development
+      CLOUD_SPACE: development
       LOGGER_LEVEL: DEBUG
       OPTIMIZE_MEMORY: true
       SUB_PATH: /csb

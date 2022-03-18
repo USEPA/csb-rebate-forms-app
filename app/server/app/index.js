@@ -1,4 +1,5 @@
 require("dotenv").config();
+
 const path = require("path");
 const express = require("express");
 const cors = require("cors");
@@ -9,14 +10,12 @@ const basicAuth = require("express-basic-auth");
 const passport = require("passport");
 // ---
 const logger = require("./utilities/logger");
-const log = logger.logger;
-
 const samlStrategy = require("./config/samlStrategy");
-
 const routes = require("./routes");
 
 const app = express();
 const port = process.env.PORT || 3001;
+const log = logger.logger;
 
 const requiredEnvVars = [
   "SERVER_URL",
@@ -30,23 +29,24 @@ const requiredEnvVars = [
   "FORMIO_BASE_URL",
   "FORMIO_API_KEY",
 ];
+
 requiredEnvVars.forEach((envVar) => {
   if (!process.env[envVar]) {
     log.error(`Required environment variable ${envVar} not found.`);
-    process.exit();
+    process.exitCode = 1;
   }
 });
 
 app.disable("x-powered-by");
 
-// Set up browser basic auth for dev and staging sites
+// Set up browser basic auth for development and staging sites
 const unauthorizedResponse = (req) => {
   return req.auth ? "Invalid credentials" : "No credentials provided";
 };
 
 if (
-  process.env.NODE_ENV === "development" ||
-  process.env.NODE_ENV === "staging"
+  process.env.CLOUD_SPACE === "development" ||
+  process.env.CLOUD_SPACE === "staging"
 ) {
   app.use(
     basicAuth({
@@ -57,19 +57,20 @@ if (
   );
 }
 
-if (process.env.NODE_ENV === "local") {
+// Enable CORS and logging with morgan for local development only
+// NOTE: process.env.NODE_ENV set to "development" below to match value defined
+// in create-react-app when client app is run locally via `npm start`
+if (process.env.NODE_ENV === "development") {
   app.use(cors({ origin: process.env.CLIENT_URL }));
+  app.use(morgan("dev"));
 }
-app.use(express.json());
-app.use(morgan("dev"));
 
+app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(passport.initialize());
 passport.use("saml", samlStrategy);
-
-app.use(express.static(path.join(__dirname, "app", "public")));
 
 // If SUB_PATH is provided, server routes and static files from there (e.g. /csb)
 const basePath = `${process.env.SUB_PATH || ""}/`;
@@ -85,9 +86,11 @@ app.all(pathRegex, (req, res) => res.redirect(`${basePath}`));
  */
 app.use(basePath, history());
 
-// Serve static react-based front-end from build folder
+// Serve client app's static built files
+// NOTE: client app's `build` directory contents copied into server app's
+// `public` directory in CI/CD step
 app.use(basePath, express.static(path.resolve(__dirname, "public/")));
 
 app.listen(port, () => {
-  console.log(`Express server listening on port ${port}`);
+  console.log(`Server listening on port ${port}`);
 });

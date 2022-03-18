@@ -13,7 +13,7 @@ applications:
     path: /
     env:
       SERVER_URL: https://app-dev.app.cloud.gov/csb
-      NODE_ENV: staging
+      CLOUD_SPACE: staging
       LOGGER_LEVEL: ERROR
       OPTIMIZE_MEMORY: true
       SUB_PATH: /csb
