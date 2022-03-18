@@ -1,11 +1,21 @@
+import { useLocation, useNavigate } from "react-router-dom";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { useApiState, fetchData } from "contexts/api";
 import { useUserDispatch } from "contexts/user";
 
+type LocationState = {
+  redirectedFrom: string;
+};
+
 export default function Login() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const { apiUrl } = useApiState();
   const dispatch = useUserDispatch();
+
+  // page user was previously on before they were redirected to "/login"
+  const destination = (location.state as LocationState).redirectedFrom || "/";
 
   return (
     <div className="margin-top-2 bg-base-lightest">
@@ -32,6 +42,11 @@ export default function Login() {
                     });
 
                     dispatch({ type: "USER_SIGN_IN" });
+
+                    // NOTE: { replace: true } passed so an entry for "/login"
+                    // isn't added to the history stack, so the user can click
+                    // the back button and not go back to this login page
+                    navigate(destination, { replace: true });
                   })
                   .catch((bapErr) => {
                     console.error("Error fetching SAM user data");
