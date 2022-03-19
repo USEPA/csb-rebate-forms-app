@@ -4,12 +4,10 @@ import { useFormsState } from "contexts/forms";
 import NotFound from "routes/notFound";
 
 export default function Form() {
-  const { id } = useParams<"id">(); // TODO: use mongodb id instead of UEI, as multiple forms can use the same UEI
-  const { formSubmissions } = useFormsState();
+  const { id } = useParams<"id">();
+  const { rebateFormSubmissions } = useFormsState();
 
-  if (formSubmissions.status !== "success") return null;
-
-  const submission = formSubmissions.data.find((d) => d.uei === id);
+  const submission = rebateFormSubmissions.data.find((d) => d._id === id);
 
   if (!submission) return <NotFound />;
 
@@ -17,9 +15,9 @@ export default function Form() {
     <div className="margin-top-2 bg-base-lightest">
       <div className="padding-9 text-center">
         <p className="margin-0">
-          <strong>{submission.name}</strong>
+          <strong>{submission.entityName}</strong>
           <br />
-          (#{submission.uei})
+          (#{submission._id})
         </p>
       </div>
     </div>
