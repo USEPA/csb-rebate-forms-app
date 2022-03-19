@@ -16,14 +16,18 @@ type Props = {
  * retreive the form's JSON schema in order to display and edit the form.
  */
 type RebateFormSubmission = {
+  // --- metadata fields ---
   _id: string; // unique ID of form submission
-  form: string; // unique ID of form
   _fvid: number; // version number of form
+  form: string; // unique ID of form
+  project: string; // unique ID of project
+  created: string; // datetime string created
+  modified: string; // datetime string modified
+  // --- form fields ---
   uei: string;
   entityName: string;
   applicationName: string;
   lastUpdatedBy: string;
-  lastUpdatedDate: string;
 };
 
 type State = {

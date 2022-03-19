@@ -25,7 +25,13 @@ export default function Forms() {
       });
   }, [apiUrl, dispatch]);
 
-  if (rebateFormSubmissions.status !== "success") return null;
+  if (rebateFormSubmissions.status === "pending") {
+    return <p>Loading...</p>;
+  }
+
+  if (rebateFormSubmissions.status === "failure") {
+    return <p>Error</p>;
+  }
 
   return (
     <table className="usa-table usa-table--borderless usa-table--striped width-full">
@@ -39,16 +45,25 @@ export default function Forms() {
         </tr>
       </thead>
       <tbody>
-        {rebateFormSubmissions.data.map(({ _id, uei, entityName }) => {
+        {rebateFormSubmissions.data.map((submission) => {
+          const {
+            _id,
+            uei,
+            entityName,
+            applicationName,
+            lastUpdatedBy,
+            modified,
+          } = submission;
+
           return (
             <tr key={_id}>
               <th scope="row">{uei}</th>
               <td>
                 <Link to={`/rebate/${_id}`}>{entityName}</Link>
               </td>
-              <td>(placeholder)</td>
-              <td>(placeholder)</td>
-              <td>(placeholder)</td>
+              <td>{applicationName}</td>
+              <td>{lastUpdatedBy}</td>
+              <td>{modified}</td>
             </tr>
           );
         })}

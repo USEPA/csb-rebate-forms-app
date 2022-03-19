@@ -4,6 +4,8 @@ const { ensureAuthenticated } = require("../middleware");
 
 const router = express.Router();
 
+const fetchOptions = { headers: { "x-token": process.env.FORMIO_API_KEY } };
+
 router.get("/user", ensureAuthenticated, function (req, res) {
   res.json(req.user);
 });
@@ -56,23 +58,43 @@ router.get("/form-schema", ensureAuthenticated, (req, res) => {
     });
 });
 
-router.get("/form-submissions", ensureAuthenticated, (req, res) => {
+// TODO: re-add `ensureAuthenticated` middleware – removing for initial testing
+router.get("/rebate-form-submissions", (req, res) => {
+  // TODO: pull UEIs from JWT, and store in an `ueis` array, for building up
+  // `query` string, which is appended to the `url` string
+
+  // const query = ueis.join("&data.uei=");
+  // const url = `${process.env.FORMIO_BASE_URL}/submission?data.uei=${query}`;
+
+  const url = `${process.env.FORMIO_BASE_URL}/submission`;
+
   axios
-    .get(`${process.env.FORMIO_BASE_URL}/submission`, {
-      headers: {
-        "x-token": process.env.FORMIO_API_KEY,
-      },
-      // Pass query params through to form.io, e.g. "?data.applicantName=name"
-      params: req.query,
-    })
-    .then((response) => {
-      res.json(response.data);
-    })
-    .catch((error) => {
-      console.error(error);
-      res.status(error.response.status || 500).json({
-        message: `There was an error retrieving Form.io submissions: ${error.response.statusText}`,
+    .get(url, fetchOptions)
+    .then((res) => res.data)
+    .then((submissions) => {
+      return submissions.map((sub) => {
+        const { _id, _fid, form, project, created, modified, data } = sub;
+        return {
+          // --- metadata fields ---
+          _id,
+          _fid,
+          form,
+          project,
+          created,
+          modified,
+          // --- form fields ---
+          uei: "(TODO)", // TODO: ensure these fields are in the form
+          entityName: data.name,
+          applicationName: "(TODO)",
+          lastUpdatedBy: "(TODO)",
+        };
       });
+    })
+    .then((submissions) => res.json(submissions))
+    .catch((err) => {
+      console.error(err);
+      const message = `Error retrieving Forms.gov submissions: ${err.response.statusText}`;
+      return res.status(err.response.status || 500).json({ message });
     });
 });
 
