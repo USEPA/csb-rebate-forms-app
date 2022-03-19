@@ -1,0 +1,20 @@
+---
+applications:
+  - name: csb-prod
+    routes:
+      - route: app-prod.app.cloud.gov/csb
+      - route: app.epa.gov/csb
+    instances: 1
+    memory: 128M
+    disk_quota: 512MB
+    timeout: 180
+    buildpacks:
+      - nodejs_buildpack
+    command: node app/index.js
+    path: /
+    env:
+      SERVER_URL: https://app-dev.app.cloud.gov/csb
+      CLOUD_SPACE: production
+      LOGGER_LEVEL: ERROR
+      OPTIMIZE_MEMORY: true
+      SUB_PATH: /csb
