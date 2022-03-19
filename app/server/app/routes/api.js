@@ -26,17 +26,6 @@ router.get("/logout", (req, res, next) => {
   res.sendStatus(200);
 });
 
-router.get("/bap", (req, res, next) => {
-  // throw new Error("TODO: implement BAP API integration");
-  res.json([
-    { uei: "056143447853" },
-    { uei: "779442964145" },
-    { uei: "960885252143" },
-    { uei: "549203627426" },
-    { uei: "569160091719" },
-  ]);
-});
-
 // TODO: re-add `ensureAuthenticated` middleware – removing for initial testing
 router.get("/rebate-form-submissions", (req, res) => {
   // TODO: pull UEIs from JWT, and store in an `ueis` array, for building up

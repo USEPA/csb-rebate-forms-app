@@ -32,26 +32,12 @@ export default function Login() {
                   payload: { epaUserData: loginRes },
                 });
 
-                dispatch({ type: "FETCH_SAM_USER_DATA_REQUEST" });
+                dispatch({ type: "USER_SIGN_IN" });
 
-                fetchData(`${apiUrl}/api/v1/bap`)
-                  .then((bapRes) => {
-                    dispatch({
-                      type: "FETCH_SAM_USER_DATA_SUCCESS",
-                      payload: { samUserData: bapRes },
-                    });
-
-                    dispatch({ type: "USER_SIGN_IN" });
-
-                    // NOTE: { replace: true } passed so an entry for "/login"
-                    // isn't added to the history stack, so the user can click
-                    // the back button and not go back to this login page
-                    navigate(destination, { replace: true });
-                  })
-                  .catch((bapErr) => {
-                    console.error("Error fetching SAM user data");
-                    dispatch({ type: "FETCH_SAM_USER_DATA_FAILURE" });
-                  });
+                // NOTE: { replace: true } passed so an entry for "/login"
+                // isn't added to the history stack, so the user can click
+                // the back button and not go back to this login page
+                navigate(destination, { replace: true });
               })
               .catch((loginErr) => {
                 console.error("Error fetching EPA user data");
