@@ -25,6 +25,10 @@ export default function Forms() {
       });
   }, [apiUrl, dispatch]);
 
+  if (rebateFormSubmissions.status === "idle") {
+    return null;
+  }
+
   if (rebateFormSubmissions.status === "pending") {
     return <p>Loading...</p>;
   }

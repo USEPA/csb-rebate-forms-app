@@ -4,6 +4,8 @@ const { ensureAuthenticated } = require("../middleware");
 
 const router = express.Router();
 
+const formioProjectUrl = process.env.FORMIO_PROJECT_URL;
+const formioFormId = process.env.FORMIO_FORM_ID;
 const fetchOptions = { headers: { "x-token": process.env.FORMIO_API_KEY } };
 
 router.get("/user", ensureAuthenticated, function (req, res) {
@@ -35,41 +37,16 @@ router.get("/bap", (req, res, next) => {
   ]);
 });
 
-router.get("/form-schema", ensureAuthenticated, (req, res) => {
-  // If "version" is passed in querystring, add to form.io request to get specific version's schema
-  let url = process.env.FORMIO_BASE_URL;
-  if (req.query.version) {
-    url += `/v/${req.query.version}`;
-  }
-  axios
-    .get(url, {
-      headers: {
-        "x-token": process.env.FORMIO_API_KEY,
-      },
-    })
-    .then((response) => {
-      res.json(response.data);
-    })
-    .catch((error) => {
-      console.error(error);
-      res.status(error.response.status || 500).json({
-        message: `There was an error retrieving the Form.io schema: ${error.response.statusText}`,
-      });
-    });
-});
-
 // TODO: re-add `ensureAuthenticated` middleware – removing for initial testing
 router.get("/rebate-form-submissions", (req, res) => {
   // TODO: pull UEIs from JWT, and store in an `ueis` array, for building up
   // `query` string, which is appended to the `url` string
 
   // const query = ueis.join("&data.uei=");
-  // const url = `${process.env.FORMIO_BASE_URL}/submission?data.uei=${query}`;
-
-  const url = `${process.env.FORMIO_BASE_URL}/submission`;
+  // const url = `${formioBaseUrl}/submission?data.uei=${query}`;
 
   axios
-    .get(url, fetchOptions)
+    .get(`${formioProjectUrl}/${formioFormId}/submission`, fetchOptions)
     .then((res) => res.data)
     .then((submissions) => {
       return submissions.map((sub) => {
@@ -98,21 +75,29 @@ router.get("/rebate-form-submissions", (req, res) => {
     });
 });
 
-router.get("/form-submissions/:id", ensureAuthenticated, (req, res) => {
+// TODO: re-add `ensureAuthenticated` middleware – removing for initial testing
+router.get("/rebate-form-submission/:id", (req, res) => {
   axios
-    .get(`${process.env.FORMIO_BASE_URL}/submission/${req.params.id}`, {
-      headers: {
-        "x-token": process.env.FORMIO_API_KEY,
-      },
+    .get(
+      `${formioProjectUrl}/${formioFormId}/submission/${req.params.id}`,
+      fetchOptions
+    )
+    .then((res) => res.data)
+    .then((submission) => {
+      axios
+        .get(`${formioProjectUrl}/form/${submission.form}`, fetchOptions)
+        .then((res) => res.data)
+        .then((schema) => {
+          res.json({
+            jsonSchema: schema,
+            submissionData: submission.data,
+          });
+        });
     })
-    .then((response) => {
-      res.json(response.data);
-    })
-    .catch((error) => {
-      console.error(error);
-      res.status(error.response.status || 500).json({
-        message: `There was an error retrieving the Form.io submission: ${error.response.statusText}`,
-      });
+    .catch((err) => {
+      console.error(err);
+      const message = `Error retrieving Forms.gov submission: ${err.response.statusText}`;
+      res.status(err.response.status || 500).json({ message });
     });
 });
 
