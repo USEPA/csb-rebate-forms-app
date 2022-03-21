@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 // ---
+import Message from "components/message";
 import { useApiState, fetchData } from "contexts/api";
 import { useFormsState, useFormsDispatch } from "contexts/forms";
 
@@ -34,7 +35,9 @@ export default function RebateForms() {
   }
 
   if (rebateFormSubmissions.status === "failure") {
-    return <p>Error</p>;
+    return (
+      <Message type="error" text="Error loading rebate form submissions." />
+    );
   }
 
   return (

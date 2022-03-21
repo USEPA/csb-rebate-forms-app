@@ -4,6 +4,7 @@ import { Formio } from "formiojs";
 import { Form } from "@formio/react";
 import uswds from "@formio/uswds";
 // ---
+import Message from "components/message";
 import { useApiState, fetchData } from "contexts/api";
 
 Formio.use(uswds);
@@ -63,7 +64,7 @@ export default function RebateForm() {
   }
 
   if (rebateFormSubmission.status === "failure") {
-    return <p>Error</p>;
+    return <Message type="error" text={`Error loading rebate form ${id}.`} />;
   }
 
   const { jsonSchema, submissionData } = rebateFormSubmission.data;
