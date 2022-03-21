@@ -1,8 +1,12 @@
-import { Fragment, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { Formio } from "formiojs";
 import { Form } from "@formio/react";
+import uswds from "@formio/uswds";
 // ---
 import { useApiState, fetchData } from "contexts/api";
+
+Formio.use(uswds);
 
 type State =
   | { status: "idle"; data: { jsonSchema: null; submissionData: null } }
@@ -64,12 +68,9 @@ export default function RebateForm() {
 
   const { jsonSchema, submissionData } = rebateFormSubmission.data;
 
-  console.log("JSON Schema:", jsonSchema);
-  console.log("Submitted Data:", submissionData);
-
   return (
-    <Fragment>
+    <div className="margin-top-2">
       <Form form={jsonSchema} submission={submissionData} />
-    </Fragment>
+    </div>
   );
 }
