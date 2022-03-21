@@ -4,6 +4,7 @@ import { Formio } from "formiojs";
 import { Form } from "@formio/react";
 import uswds from "@formio/uswds";
 // ---
+import Loading from "components/loading";
 import Message from "components/message";
 import { useApiState, fetchData } from "contexts/api";
 
@@ -60,7 +61,7 @@ export default function RebateForm() {
   }
 
   if (rebateFormSubmission.status === "pending") {
-    return <p>Loading...</p>;
+    return <Loading />;
   }
 
   if (rebateFormSubmission.status === "failure") {

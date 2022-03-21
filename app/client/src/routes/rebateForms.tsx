@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 // ---
+import Loading from "components/loading";
 import Message from "components/message";
 import { useApiState, fetchData } from "contexts/api";
 import { useFormsState, useFormsDispatch } from "contexts/forms";
@@ -31,7 +32,7 @@ export default function RebateForms() {
   }
 
   if (rebateFormSubmissions.status === "pending") {
-    return <p>Loading...</p>;
+    return <Loading />;
   }
 
   if (rebateFormSubmissions.status === "failure") {
@@ -39,6 +40,8 @@ export default function RebateForms() {
       <Message type="error" text="Error loading rebate form submissions." />
     );
   }
+
+  // return <Loading />;
 
   return (
     <table className="usa-table usa-table--borderless usa-table--striped width-full">
