@@ -92,7 +92,8 @@ jobs:
           cf set-env $APP_NAME "SAML_PRIVATE_KEY" "$SAML_PRIVATE_KEY" > /dev/null
           cf set-env $APP_NAME "JWT_PUBLIC_KEY" "$JWT_PUBLIC_KEY" > /dev/null
           cf set-env $APP_NAME "JWT_PRIVATE_KEY" "$JWT_PRIVATE_KEY" > /dev/null
-          cf set-env $APP_NAME "FORMIO_BASE_URL" "$FORMIO_BASE_URL" > /dev/null
+          cf set-env $APP_NAME "FORMIO_PROJECT_URL" "$FORMIO_PROJECT_URL" > /dev/null
+          cf set-env $APP_NAME "FORMIO_FORM_ID" "$FORMIO_FORM_ID" > /dev/null
           cf set-env $APP_NAME "FORMIO_API_KEY" "$FORMIO_API_KEY" > /dev/null
 
       # Now that front-end is built in server/dist, only push server dir to Cloud.gov
