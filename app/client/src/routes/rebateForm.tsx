@@ -9,7 +9,7 @@ type State =
   | { status: "success"; data: { jsonSchema: object; submissionData: object } }
   | { status: "failure"; data: { jsonSchema: null; submissionData: null } };
 
-export default function Form() {
+export default function RebateForm() {
   const { id } = useParams<"id">();
   const { apiUrl } = useApiState();
 

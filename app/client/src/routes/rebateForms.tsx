@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { useApiState, fetchData } from "contexts/api";
 import { useFormsState, useFormsDispatch } from "contexts/forms";
 
-export default function Forms() {
+export default function RebateForms() {
   const { apiUrl } = useApiState();
   const { rebateFormSubmissions } = useFormsState();
   const dispatch = useFormsDispatch();
