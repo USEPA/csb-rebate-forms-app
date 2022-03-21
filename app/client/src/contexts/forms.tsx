@@ -10,86 +10,77 @@ type Props = {
   children: ReactNode;
 };
 
-type FormSchema = object;
-
-type FormSubmission = {
+/**
+ * Minimum fields required to display the user's forms on their dashboard, and
+ * have the metadata needed to make an API call to the forms.gov web service to
+ * retreive the form's JSON schema in order to display and edit the form.
+ */
+type RebateFormSubmission = {
+  // --- metadata fields ---
+  _id: string; // unique ID of form submission
+  _fvid: number; // version number of form
+  form: string; // unique ID of form
+  project: string; // unique ID of project
+  created: string; // datetime string created
+  modified: string; // datetime string modified
+  // --- form fields ---
   uei: string;
-  name: string;
+  entityName: string;
+  applicationName: string;
+  lastUpdatedBy: string;
 };
 
 type State = {
-  formSchema:
-    | { status: "idle"; data: {} }
-    | { status: "pending"; data: {} }
-    | { status: "success"; data: FormSchema }
-    | { status: "failure"; data: {} };
-  formSubmissions:
+  rebateFormSubmissions:
     | { status: "idle"; data: [] }
     | { status: "pending"; data: [] }
-    | { status: "success"; data: FormSubmission[] }
+    | { status: "success"; data: RebateFormSubmission[] }
     | { status: "failure"; data: [] };
 };
 
 type Action =
-  | { type: "FETCH_FORM_SCHEMA_REQUEST" }
+  | { type: "FETCH_REBATE_FORM_SUBMISSIONS_REQUEST" }
   | {
-      type: "FETCH_FORM_SCHEMA_SUCCESS";
-      payload: { formSchema: FormSchema };
+      type: "FETCH_REBATE_FORM_SUBMISSIONS_SUCCESS";
+      payload: {
+        rebateFormSubmissions: RebateFormSubmission[];
+      };
     }
-  | { type: "FETCH_FORM_SCHEMA_FAILURE" }
-  | { type: "FETCH_FORM_SUBMISSIONS_REQUEST" }
-  | {
-      type: "FETCH_FORM_SUBMISSIONS_SUCCESS";
-      payload: { formSubmissions: FormSubmission[] };
-    }
-  | { type: "FETCH_FORM_SUBMISSIONS_FAILURE" };
+  | { type: "FETCH_REBATE_FORM_SUBMISSIONS_FAILURE" };
 
 const StateContext = createContext<State | undefined>(undefined);
 const DispatchContext = createContext<Dispatch<Action> | undefined>(undefined);
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
-    case "FETCH_FORM_SCHEMA_REQUEST": {
+    case "FETCH_REBATE_FORM_SUBMISSIONS_REQUEST": {
       return {
         ...state,
-        formSchema: { status: "pending", data: {} },
+        rebateFormSubmissions: {
+          status: "pending",
+          data: [],
+        },
       };
     }
 
-    case "FETCH_FORM_SCHEMA_SUCCESS": {
-      const { formSchema } = action.payload;
+    case "FETCH_REBATE_FORM_SUBMISSIONS_SUCCESS": {
+      const { rebateFormSubmissions } = action.payload;
       return {
         ...state,
-        formSchema: { status: "success", data: formSchema },
+        rebateFormSubmissions: {
+          status: "success",
+          data: rebateFormSubmissions,
+        },
       };
     }
 
-    case "FETCH_FORM_SCHEMA_FAILURE": {
+    case "FETCH_REBATE_FORM_SUBMISSIONS_FAILURE": {
       return {
         ...state,
-        formSchema: { status: "failure", data: {} },
-      };
-    }
-
-    case "FETCH_FORM_SUBMISSIONS_REQUEST": {
-      return {
-        ...state,
-        formSubmissions: { status: "pending", data: [] },
-      };
-    }
-
-    case "FETCH_FORM_SUBMISSIONS_SUCCESS": {
-      const { formSubmissions } = action.payload;
-      return {
-        ...state,
-        formSubmissions: { status: "success", data: formSubmissions },
-      };
-    }
-
-    case "FETCH_FORM_SUBMISSIONS_FAILURE": {
-      return {
-        ...state,
-        formSubmissions: { status: "failure", data: [] },
+        rebateFormSubmissions: {
+          status: "failure",
+          data: [],
+        },
       };
     }
 
@@ -101,8 +92,10 @@ function reducer(state: State, action: Action): State {
 
 export function FormsProvider({ children }: Props) {
   const initialState: State = {
-    formSchema: { status: "idle", data: {} },
-    formSubmissions: { status: "idle", data: [] },
+    rebateFormSubmissions: {
+      status: "idle",
+      data: [],
+    },
   };
 
   const [state, dispatch] = useReducer(reducer, initialState);

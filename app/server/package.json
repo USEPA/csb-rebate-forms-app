@@ -14,6 +14,7 @@
     "lint": "eslint ./ --fix"
   },
   "dependencies": {
+    "axios": "0.26.1",
     "connect-history-api-fallback": "1.6.0",
     "cookie-parser": "1.4.6",
     "cors": "2.8.5",
