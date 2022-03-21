@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { Form } from "@formio/react";
 // ---
 import { useApiState, fetchData } from "contexts/api";
 
@@ -63,21 +64,12 @@ export default function RebateForm() {
 
   const { jsonSchema, submissionData } = rebateFormSubmission.data;
 
-  // TODO: add @formio/react and render form
   console.log("JSON Schema:", jsonSchema);
   console.log("Submitted Data:", submissionData);
 
   return (
-    <div className="margin-top-2 bg-base-lightest">
-      <div className="padding-9 text-center">
-        <p className="margin-0">
-          Placeholder for form submission <strong>{id}</strong>
-          <br />
-          <small>
-            (View the console for form JSON schema and submitted data)
-          </small>
-        </p>
-      </div>
-    </div>
+    <Fragment>
+      <Form form={jsonSchema} submission={submissionData} />
+    </Fragment>
   );
 }
