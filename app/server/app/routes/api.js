@@ -79,7 +79,7 @@ router.get("/rebate-form-submission/:id", (req, res) => {
         .then((schema) => {
           res.json({
             jsonSchema: schema,
-            submissionData: submission.data,
+            submissionData: submission,
           });
         });
     })
