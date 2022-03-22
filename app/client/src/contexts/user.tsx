@@ -11,9 +11,9 @@ type Props = {
 };
 
 type EPAData = {
-  firstName: string;
-  lastName: string;
-  email: string;
+  givenname: string;
+  mail: string;
+  memberof: string;
 };
 
 type SAMData = {

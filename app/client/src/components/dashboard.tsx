@@ -1,14 +1,10 @@
-import { Link, Outlet, useNavigate } from "react-router-dom";
+import { Link, Outlet } from "react-router-dom";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { useApiState, fetchData } from "contexts/api";
-import { useUserState, useUserDispatch } from "contexts/user";
+import { useUserState } from "contexts/user";
 
 export default function Dashboard() {
-  const navigate = useNavigate();
-  const { apiUrl } = useApiState();
   const { epaUserData } = useUserState();
-  const dispatch = useUserDispatch();
 
   if (epaUserData.status !== "success") return null;
 
@@ -35,7 +31,7 @@ export default function Dashboard() {
 
         <nav className="display-flex flex-align-center">
           <p className="margin-bottom-0 margin-right-1">
-            <span>{epaUserData.data.email}</span>
+            <span>{epaUserData.data.mail}</span>
           </p>
 
           <a
