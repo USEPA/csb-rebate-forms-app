@@ -50,7 +50,7 @@ export async function fetchData(url: string, data?: object) {
       };
 
   try {
-    const res = await fetch(url, options);
+    const res = await fetch(url, { ...options, credentials: "include" });
     if (!res.ok) throw new Error(res.statusText);
     const contentType = res.headers.get("content-type");
     return contentType?.includes("application/json")
