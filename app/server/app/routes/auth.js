@@ -3,9 +3,13 @@ const passport = require("passport");
 const samlStrategy = require("../config/samlStrategy");
 const { ensureAuthenticated } = require("../middleware");
 const { createJwt } = require("../utils");
+const logger = require("../utilities/logger");
+
+const log = logger.logger;
 
 const router = express.Router();
 
+// TODO: pass RelayState from front-end if necessary?
 router.get(
   "/login",
   passport.authenticate("saml", {
@@ -22,9 +26,19 @@ router.post(
     session: false,
   }),
   (req, res) => {
+    const epaUserData = req.user.attributes;
+
     // Create JWT, set as cookie, then redirect to client
-    const token = createJwt(req.user.attributes);
+    const token = createJwt(epaUserData);
     res.cookie("token", token, { httpOnly: true });
+
+    // If user has Admin or Helpdesk role, log to INFO
+    log.info(
+      `User with email ${epaUserData.mail} and member of ${
+        epaUserData.memberof || "no"
+      } groups logged in.`
+    );
+
     // "RelayState" will be the path that the user initially tried to access before being sent to /login
     res.redirect(`${process.env.CLIENT_URL || ""}${req.body.RelayState || ""}`);
   }

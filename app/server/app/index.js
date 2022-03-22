@@ -61,7 +61,7 @@ if (
 // NOTE: process.env.NODE_ENV set to "development" below to match value defined
 // in create-react-app when client app is run locally via `npm start`
 if (process.env.NODE_ENV === "development") {
-  app.use(cors({ origin: process.env.CLIENT_URL }));
+  app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
   app.use(morgan("dev"));
 }
 
