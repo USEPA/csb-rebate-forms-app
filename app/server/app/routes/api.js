@@ -62,7 +62,7 @@ router.get("/rebate-form-submissions", (req, res) => {
         console.error(err.toJSON());
       }
 
-      return res
+      res
         .status(err?.response?.status || 500)
         .json({ message: "Error fetching Forms.gov submissions" });
     });
