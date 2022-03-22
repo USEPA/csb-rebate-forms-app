@@ -22,7 +22,6 @@ export default function RebateForms() {
         });
       })
       .catch((err) => {
-        console.error("Error fetching form submissions");
         dispatch({ type: "FETCH_REBATE_FORM_SUBMISSIONS_FAILURE" });
       });
   }, [apiUrl, dispatch]);

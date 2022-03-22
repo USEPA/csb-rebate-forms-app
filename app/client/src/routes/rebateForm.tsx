@@ -45,7 +45,6 @@ export default function RebateForm() {
         });
       })
       .catch((err) => {
-        console.error("Error fetching form submissions");
         setRebateFormSubmission({
           status: "failure",
           data: {
