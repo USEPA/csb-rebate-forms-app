@@ -16,7 +16,7 @@ export function ApiProvider({ children }: Props) {
   const state: State = {
     apiUrl:
       process.env.NODE_ENV === "development"
-        ? "http://localhost:3001"
+        ? process.env.REACT_APP_SERVER_URL || "http://localhost:3001"
         : window.location.origin + cloudSubPath,
   };
 
