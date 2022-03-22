@@ -58,19 +58,22 @@ router.get("/rebate-form-submissions", (req, res) => {
     })
     .then((submissions) => res.json(submissions))
     .catch((err) => {
-      console.error(err);
-      const message = `Error retrieving Forms.gov submissions: ${err.response.statusText}`;
-      return res.status(err.response.status || 500).json({ message });
+      if (typeof err.toJSON === "function") {
+        console.error(err.toJSON());
+      }
+
+      return res
+        .status(err?.response?.status || 500)
+        .json({ message: "Error fetching Forms.gov submissions" });
     });
 });
 
 // TODO: re-add `ensureAuthenticated` middleware – removing for initial testing
 router.get("/rebate-form-submission/:id", (req, res) => {
+  const id = req.params.id;
+
   axios
-    .get(
-      `${formioProjectUrl}/${formioFormId}/submission/${req.params.id}`,
-      fetchOptions
-    )
+    .get(`${formioProjectUrl}/${formioFormId}/submission/${id}`, fetchOptions)
     .then((res) => res.data)
     .then((submission) => {
       axios
@@ -84,9 +87,13 @@ router.get("/rebate-form-submission/:id", (req, res) => {
         });
     })
     .catch((err) => {
-      console.error(err);
-      const message = `Error retrieving Forms.gov submission: ${err.response.statusText}`;
-      res.status(err.response.status || 500).json({ message });
+      if (typeof err.toJSON === "function") {
+        console.error(err.toJSON());
+      }
+
+      res
+        .status(err?.response?.status || 500)
+        .json({ message: `Error fetching Forms.gov submission ${id}` });
     });
 });
 
