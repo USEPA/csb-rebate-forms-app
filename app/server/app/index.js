@@ -26,7 +26,8 @@ const requiredEnvVars = [
   "SAML_PUBLIC_KEY",
   "JWT_PRIVATE_KEY",
   "JWT_PUBLIC_KEY",
-  "FORMIO_BASE_URL",
+  "FORMIO_PROJECT_URL",
+  "FORMIO_FORM_ID",
   "FORMIO_API_KEY",
 ];
 

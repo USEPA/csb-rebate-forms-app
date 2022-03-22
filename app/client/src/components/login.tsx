@@ -3,10 +3,9 @@ import icons from "uswds/img/sprite.svg";
 
 export default function Login() {
   return (
-    <div className="margin-top-2 bg-base-lightest">
-      <div className="padding-9 text-center">
+    <div className="padding-9 text-center bg-base-lightest">
         <a
-          className="usa-button font-sans-2xs"
+          className="usa-button margin-0 font-sans-2xs"
           href={`${process.env.REACT_APP_SERVER_URL}/login`}
         >
           <span className="display-flex flex-align-center">
@@ -21,7 +20,6 @@ export default function Login() {
             </svg>
           </span>
         </a>
-      </div>
     </div>
   );
 }

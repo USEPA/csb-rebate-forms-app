@@ -12,8 +12,8 @@ import { cloudSubPath } from "../index";
 import { useUserState, useUserDispatch } from "contexts/user";
 import Login from "components/login";
 import Dashboard from "components/dashboard";
-import Forms from "routes/forms";
-import Form from "routes/form";
+import RebateForms from "routes/rebateForms";
+import RebateForm from "routes/rebateForm";
 import NotFound from "routes/notFound";
 import { useEffect } from "react";
 import { fetchData, useApiState } from "../contexts/api";
@@ -75,8 +75,8 @@ export default function App() {
             </ProtectedRoutes>
           }
         >
-          <Route index element={<Forms />} />
-          <Route path="rebate/:id" element={<Form />} />
+          <Route index element={<RebateForms />} />
+          <Route path="rebate/:id" element={<RebateForm />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

@@ -16,10 +16,6 @@ type EPAData = {
   email: string;
 };
 
-type SAMData = {
-  uei: string;
-};
-
 type State = {
   isAuthenticated: boolean;
   isAuthenticating: boolean;
@@ -28,11 +24,6 @@ type State = {
     | { status: "pending"; data: {} }
     | { status: "success"; data: EPAData }
     | { status: "failure"; data: {} };
-  samUserData:
-    | { status: "idle"; data: [] }
-    | { status: "pending"; data: [] }
-    | { status: "success"; data: SAMData[] }
-    | { status: "failure"; data: [] };
 };
 
 type Action =
@@ -43,13 +34,7 @@ type Action =
       type: "FETCH_EPA_USER_DATA_SUCCESS";
       payload: { epaUserData: EPAData };
     }
-  | { type: "FETCH_EPA_USER_DATA_FAILURE" }
-  | { type: "FETCH_SAM_USER_DATA_REQUEST" }
-  | {
-      type: "FETCH_SAM_USER_DATA_SUCCESS";
-      payload: { samUserData: SAMData[] };
-    }
-  | { type: "FETCH_SAM_USER_DATA_FAILURE" };
+  | { type: "FETCH_EPA_USER_DATA_FAILURE" };
 
 const StateContext = createContext<State | undefined>(undefined);
 const DispatchContext = createContext<Dispatch<Action> | undefined>(undefined);
@@ -70,7 +55,6 @@ function reducer(state: State, action: Action): State {
         isAuthenticated: false,
         isAuthenticating: false,
         epaUserData: { status: "idle", data: {} },
-        samUserData: { status: "idle", data: [] },
       };
     }
 
@@ -97,28 +81,6 @@ function reducer(state: State, action: Action): State {
       };
     }
 
-    case "FETCH_SAM_USER_DATA_REQUEST": {
-      return {
-        ...state,
-        samUserData: { status: "pending", data: [] },
-      };
-    }
-
-    case "FETCH_SAM_USER_DATA_SUCCESS": {
-      const { samUserData } = action.payload;
-      return {
-        ...state,
-        samUserData: { status: "success", data: samUserData },
-      };
-    }
-
-    case "FETCH_SAM_USER_DATA_FAILURE": {
-      return {
-        ...state,
-        samUserData: { status: "failure", data: [] },
-      };
-    }
-
     default: {
       throw new Error(`Unhandled action type: ${action}`);
     }
@@ -130,7 +92,6 @@ export function UserProvider({ children }: Props) {
     isAuthenticated: false,
     isAuthenticating: true,
     epaUserData: { status: "idle", data: {} },
-    samUserData: { status: "idle", data: [] },
   };
 
   const [state, dispatch] = useReducer(reducer, initialState);
