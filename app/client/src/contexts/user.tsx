@@ -16,6 +16,10 @@ type EPAData = {
   email: string;
 };
 
+type SAMData = {
+  uei: string;
+};
+
 type State = {
   isAuthenticated: boolean;
   isAuthenticating: boolean;
@@ -24,6 +28,11 @@ type State = {
     | { status: "pending"; data: {} }
     | { status: "success"; data: EPAData }
     | { status: "failure"; data: {} };
+  samUserData:
+    | { status: "idle"; data: [] }
+    | { status: "pending"; data: [] }
+    | { status: "success"; data: SAMData }
+    | { status: "failure"; data: [] };
 };
 
 type Action =
@@ -33,6 +42,10 @@ type Action =
   | {
       type: "FETCH_EPA_USER_DATA_SUCCESS";
       payload: { epaUserData: EPAData };
+    }
+  | {
+      type: "FETCH_SAM_USER_DATA_SUCCESS";
+      payload: { samUserData: SAMData };
     }
   | { type: "FETCH_EPA_USER_DATA_FAILURE" };
 
@@ -81,6 +94,15 @@ function reducer(state: State, action: Action): State {
       };
     }
 
+    case "FETCH_SAM_USER_DATA_SUCCESS": {
+      const { samUserData } = action.payload;
+      return {
+        ...state,
+        isAuthenticating: false,
+        samUserData: { status: "success", data: samUserData },
+      };
+    }
+
     default: {
       throw new Error(`Unhandled action type: ${action}`);
     }
@@ -92,6 +114,7 @@ export function UserProvider({ children }: Props) {
     isAuthenticated: false,
     isAuthenticating: true,
     epaUserData: { status: "idle", data: {} },
+    samUserData: { status: "idle", data: [] },
   };
 
   const [state, dispatch] = useReducer(reducer, initialState);
