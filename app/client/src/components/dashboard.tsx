@@ -31,7 +31,7 @@ export default function Dashboard() {
 
         <nav className="display-flex flex-align-center">
           <p className="margin-bottom-0 margin-right-1">
-            <span>{epaUserData.data.email}</span>
+            <span>{epaUserData.data.mail}</span>
           </p>
 
           <a
