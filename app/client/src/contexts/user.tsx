@@ -22,6 +22,7 @@ type SAMData = {
 
 type State = {
   isAuthenticated: boolean;
+  isAuthenticating: boolean;
   epaUserData:
     | { status: "idle"; data: {} }
     | { status: "pending"; data: {} }
@@ -59,6 +60,7 @@ function reducer(state: State, action: Action): State {
       return {
         ...state,
         isAuthenticated: true,
+        isAuthenticating: false,
       };
     }
 
@@ -66,6 +68,7 @@ function reducer(state: State, action: Action): State {
       return {
         ...state,
         isAuthenticated: false,
+        isAuthenticating: false,
         epaUserData: { status: "idle", data: {} },
         samUserData: { status: "idle", data: [] },
       };
@@ -82,6 +85,7 @@ function reducer(state: State, action: Action): State {
       const { epaUserData } = action.payload;
       return {
         ...state,
+        isAuthenticating: false,
         epaUserData: { status: "success", data: epaUserData },
       };
     }
@@ -124,6 +128,7 @@ function reducer(state: State, action: Action): State {
 export function UserProvider({ children }: Props) {
   const initialState: State = {
     isAuthenticated: false,
+    isAuthenticating: true,
     epaUserData: { status: "idle", data: {} },
     samUserData: { status: "idle", data: [] },
   };
