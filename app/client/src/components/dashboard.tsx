@@ -1,14 +1,10 @@
-import { Link, Outlet, useNavigate } from "react-router-dom";
+import { Link, Outlet } from "react-router-dom";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { useApiState, fetchData } from "contexts/api";
-import { useUserState, useUserDispatch } from "contexts/user";
+import { useUserState } from "contexts/user";
 
 export default function Dashboard() {
-  const navigate = useNavigate();
-  const { apiUrl } = useApiState();
   const { epaUserData } = useUserState();
-  const dispatch = useUserDispatch();
 
   if (epaUserData.status !== "success") return null;
 
