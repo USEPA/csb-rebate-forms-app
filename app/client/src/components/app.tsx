@@ -12,6 +12,7 @@ import { cloudSubPath } from "../index";
 import { useUserState, useUserDispatch } from "contexts/user";
 import Login from "components/login";
 import Dashboard from "components/dashboard";
+import Loading from "components/loading";
 import RebateForms from "routes/rebateForms";
 import RebateForm from "routes/rebateForm";
 import NotFound from "routes/notFound";
@@ -48,7 +49,7 @@ function ProtectedRoutes({ children }: { children: JSX.Element }) {
   );
 
   if (isAuthenticating) {
-    return <p>Checking login...</p>;
+    return <Loading />;
   }
 
   if (!isAuthenticated) {
