@@ -29,6 +29,7 @@ jobs:
       CF_SPACE: csb-dev
       CF_USER_DEV: ${{ secrets.CF_USER_DEV }}
       CF_PASSWORD_DEV: ${{ secrets.CF_PASSWORD_DEV }}
+      SEVER_URL: https://app-dev.app.cloud.gov/csb
       BASIC_AUTH_USER: ${{ secrets.BASIC_AUTH_USER }}
       BASIC_AUTH_PASSWORD: ${{ secrets.BASIC_AUTH_PASSWORD }}
       SAML_LOGIN_URL: ${{ secrets.SAML_LOGIN_URL }}
@@ -65,7 +66,7 @@ jobs:
 
       - name: Build front-end files and move to server
         run: |
-          npm run build
+          REACT_APP_SERVER_URL="$SERVER_URL" npm run build
           rm ../server/app/public/index.html
           cd build
           mv * ../../server/app/public
@@ -83,6 +84,7 @@ jobs:
 
       - name: Set application-level variables
         run: |
+          cf set-env $APP_NAME "SERVER_URL" "$SERVER_URL" > /dev/null
           cf set-env $APP_NAME "BASIC_AUTH_USER" "$BASIC_AUTH_USER" > /dev/null
           cf set-env $APP_NAME "BASIC_AUTH_PASSWORD" "$BASIC_AUTH_PASSWORD" > /dev/null
           cf set-env $APP_NAME "SAML_LOGIN_URL" "$SAML_LOGIN_URL" > /dev/null
