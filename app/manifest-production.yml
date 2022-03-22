@@ -4,7 +4,7 @@ applications:
     routes:
       - route: app-prod.app.cloud.gov/csb
       - route: app.epa.gov/csb
-    instances: 1
+    instances: 4
     memory: 128M
     disk_quota: 512MB
     timeout: 180
