@@ -16,7 +16,7 @@ export function ApiProvider({ children }: Props) {
   const state: State = {
     apiUrl:
       process.env.NODE_ENV === "development"
-        ? "http://localhost:3001"
+        ? process.env.REACT_APP_SERVER_URL || "http://localhost:3001"
         : window.location.origin + cloudSubPath,
   };
 
@@ -50,7 +50,7 @@ export async function fetchData(url: string, data?: object) {
       };
 
   try {
-    const res = await fetch(url, options);
+    const res = await fetch(url, { ...options, credentials: "include" });
     if (!res.ok) throw new Error(res.statusText);
     const contentType = res.headers.get("content-type");
     return contentType?.includes("application/json")

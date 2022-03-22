@@ -16,13 +16,23 @@ type EPAData = {
   email: string;
 };
 
+type SAMData = {
+  uei: string;
+};
+
 type State = {
   isAuthenticated: boolean;
+  isAuthenticating: boolean;
   epaUserData:
     | { status: "idle"; data: {} }
     | { status: "pending"; data: {} }
     | { status: "success"; data: EPAData }
     | { status: "failure"; data: {} };
+  samUserData:
+    | { status: "idle"; data: [] }
+    | { status: "pending"; data: [] }
+    | { status: "success"; data: SAMData }
+    | { status: "failure"; data: [] };
 };
 
 type Action =
@@ -32,6 +42,10 @@ type Action =
   | {
       type: "FETCH_EPA_USER_DATA_SUCCESS";
       payload: { epaUserData: EPAData };
+    }
+  | {
+      type: "FETCH_SAM_USER_DATA_SUCCESS";
+      payload: { samUserData: SAMData };
     }
   | { type: "FETCH_EPA_USER_DATA_FAILURE" };
 
@@ -44,6 +58,7 @@ function reducer(state: State, action: Action): State {
       return {
         ...state,
         isAuthenticated: true,
+        isAuthenticating: false,
       };
     }
 
@@ -51,6 +66,7 @@ function reducer(state: State, action: Action): State {
       return {
         ...state,
         isAuthenticated: false,
+        isAuthenticating: false,
         epaUserData: { status: "idle", data: {} },
       };
     }
@@ -66,6 +82,7 @@ function reducer(state: State, action: Action): State {
       const { epaUserData } = action.payload;
       return {
         ...state,
+        isAuthenticating: false,
         epaUserData: { status: "success", data: epaUserData },
       };
     }
@@ -74,6 +91,15 @@ function reducer(state: State, action: Action): State {
       return {
         ...state,
         epaUserData: { status: "failure", data: {} },
+      };
+    }
+
+    case "FETCH_SAM_USER_DATA_SUCCESS": {
+      const { samUserData } = action.payload;
+      return {
+        ...state,
+        isAuthenticating: false,
+        samUserData: { status: "success", data: samUserData },
       };
     }
 
@@ -86,7 +112,9 @@ function reducer(state: State, action: Action): State {
 export function UserProvider({ children }: Props) {
   const initialState: State = {
     isAuthenticated: false,
+    isAuthenticating: true,
     epaUserData: { status: "idle", data: {} },
+    samUserData: { status: "idle", data: [] },
   };
 
   const [state, dispatch] = useReducer(reducer, initialState);

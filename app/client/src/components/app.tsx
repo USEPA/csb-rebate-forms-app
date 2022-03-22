@@ -9,16 +9,48 @@ import "uswds/css/uswds.css";
 import "uswds/js/uswds.js";
 // ---
 import { cloudSubPath } from "../index";
-import { useUserState } from "contexts/user";
+import { useUserState, useUserDispatch } from "contexts/user";
 import Login from "components/login";
 import Dashboard from "components/dashboard";
+import Loading from "components/loading";
 import RebateForms from "routes/rebateForms";
 import RebateForm from "routes/rebateForm";
 import NotFound from "routes/notFound";
+import { useEffect } from "react";
+import { fetchData, useApiState } from "../contexts/api";
 
 function ProtectedRoutes({ children }: { children: JSX.Element }) {
   const { pathname } = useLocation();
-  const { isAuthenticated } = useUserState();
+  const { isAuthenticated, isAuthenticating } = useUserState();
+  const dispatch = useUserDispatch();
+  const { apiUrl } = useApiState();
+
+  // Check if user is already logged in or needs to be redirected to /login route
+  useEffect(
+    function () {
+      fetchData(`${apiUrl}/api/v1/user`)
+        .then((res) => {
+          dispatch({ type: "USER_SIGN_IN" });
+          dispatch({
+            type: "FETCH_EPA_USER_DATA_SUCCESS",
+            payload: { epaUserData: res.epaUserData },
+          });
+          dispatch({
+            type: "FETCH_SAM_USER_DATA_SUCCESS",
+            payload: { samUserData: res.samUserData },
+          });
+        })
+        .catch(() => {
+          // If API returns error/unauthorized, sign out user from client
+          dispatch({ type: "USER_SIGN_OUT" });
+        });
+    },
+    [apiUrl, dispatch]
+  );
+
+  if (isAuthenticating) {
+    return <Loading />;
+  }
 
   if (!isAuthenticated) {
     return (

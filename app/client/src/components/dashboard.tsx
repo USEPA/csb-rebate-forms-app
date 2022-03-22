@@ -38,18 +38,9 @@ export default function Dashboard() {
             <span>{epaUserData.data.email}</span>
           </p>
 
-          <button
+          <a
             className="usa-button usa-button--outline font-sans-2xs margin-right-0"
-            onClick={(ev) => {
-              fetchData(`${apiUrl}/api/v1/logout`)
-                .then((logoutRes) => {
-                  dispatch({ type: "USER_SIGN_OUT" });
-                  navigate("/");
-                })
-                .catch((logoutErr) => {
-                  console.error("Error logging user out");
-                });
-            }}
+            href={`${process.env.REACT_APP_SERVER_URL}/logout`}
           >
             <span className="display-flex flex-align-center">
               <span className="margin-right-1">Sign out</span>
@@ -62,7 +53,7 @@ export default function Dashboard() {
                 <use href={`${icons}#logout`} />
               </svg>
             </span>
-          </button>
+          </a>
         </nav>
       </div>
 
