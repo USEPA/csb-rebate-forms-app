@@ -16,7 +16,7 @@ export default function Login() {
   // TODO: append the destination url to the login link's href as a query string
   // param, so it could be used in the server app's /login controller
   // (change the `successRedirect` value of '/' to the destination url)
-  console.log(destination);
+  console.log("previous url", destination);
 
   return (
     <div className="padding-9 text-center bg-base-lightest">

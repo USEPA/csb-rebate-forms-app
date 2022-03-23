@@ -5,9 +5,9 @@ import { serverUrl } from "../index";
 import { useUserState } from "contexts/user";
 
 export default function Dashboard() {
-  const { epaUserData } = useUserState();
+  const { userData } = useUserState();
 
-  if (epaUserData.status !== "success") return null;
+  if (userData.status !== "success") return null;
 
   return (
     <div>
@@ -32,7 +32,7 @@ export default function Dashboard() {
 
         <nav className="display-flex flex-align-center">
           <p className="margin-bottom-0 margin-right-1">
-            <span>{epaUserData.data.mail}</span>
+            <span>{userData.data.epaUserData.mail}</span>
           </p>
 
           <a
