@@ -25,8 +25,6 @@ function ProtectedRoutes({ children }: { children: JSX.Element }) {
   const { isAuthenticating, isAuthenticated } = useUserState();
   const dispatch = useUserDispatch();
 
-  // TODO: should we hit "/api/v1/user" every route change after the user's logged in?
-
   // check if user is already logged in or needs to be redirected to /login route
   useEffect(() => {
     dispatch({ type: "FETCH_USER_DATA_REQUEST" });
@@ -43,7 +41,7 @@ function ProtectedRoutes({ children }: { children: JSX.Element }) {
         dispatch({ type: "FETCH_USER_DATA_FAILURE" });
         dispatch({ type: "USER_SIGN_OUT" });
       });
-  }, [apiUrl, dispatch]);
+  }, [apiUrl, dispatch, pathname]);
 
   if (isAuthenticating) {
     return <Loading />;
