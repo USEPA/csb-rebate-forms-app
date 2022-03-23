@@ -1,6 +1,7 @@
 import { Link, Outlet } from "react-router-dom";
 import icons from "uswds/img/sprite.svg";
 // ---
+import { serverUrl } from "../index";
 import { useUserState } from "contexts/user";
 
 export default function Dashboard() {
@@ -36,7 +37,7 @@ export default function Dashboard() {
 
           <a
             className="usa-button usa-button--outline font-sans-2xs margin-right-0"
-            href={`${process.env.REACT_APP_SERVER_URL}/logout`}
+            href={`${serverUrl}/logout`}
           >
             <span className="display-flex flex-align-center">
               <span className="margin-right-1">Sign out</span>

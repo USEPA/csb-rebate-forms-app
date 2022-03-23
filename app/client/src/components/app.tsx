@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
   BrowserRouter,
   Navigate,
@@ -8,16 +9,15 @@ import {
 import "uswds/css/uswds.css";
 import "uswds/js/uswds.js";
 // ---
-import { cloudSubPath } from "../index";
+import { serverBasePath } from "../index";
+import { useApiState, fetchData } from "contexts/api";
 import { useUserState, useUserDispatch } from "contexts/user";
+import Loading from "components/loading";
 import Login from "components/login";
 import Dashboard from "components/dashboard";
-import Loading from "components/loading";
 import RebateForms from "routes/rebateForms";
 import RebateForm from "routes/rebateForm";
 import NotFound from "routes/notFound";
-import { useEffect } from "react";
-import { fetchData, useApiState } from "../contexts/api";
 
 function ProtectedRoutes({ children }: { children: JSX.Element }) {
   const { pathname } = useLocation();
@@ -63,9 +63,7 @@ function ProtectedRoutes({ children }: { children: JSX.Element }) {
 
 export default function App() {
   return (
-    <BrowserRouter
-      basename={process.env.NODE_ENV === "development" ? "/" : cloudSubPath}
-    >
+    <BrowserRouter basename={serverBasePath}>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route
