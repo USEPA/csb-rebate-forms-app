@@ -29,7 +29,7 @@ jobs:
       CF_SPACE: csb-dev
       CF_USER_DEV: ${{ secrets.CF_USER_DEV }}
       CF_PASSWORD_DEV: ${{ secrets.CF_PASSWORD_DEV }}
-      SEVER_URL: https://app-dev.app.cloud.gov/csb
+      SERVER_URL: https://app-dev.app.cloud.gov/csb
       BASIC_AUTH_USER: ${{ secrets.BASIC_AUTH_USER }}
       BASIC_AUTH_PASSWORD: ${{ secrets.BASIC_AUTH_PASSWORD }}
       SAML_LOGIN_URL: ${{ secrets.SAML_LOGIN_URL }}
