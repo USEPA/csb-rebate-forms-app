@@ -10,44 +10,44 @@ type Props = {
   children: ReactNode;
 };
 
-type EPAData = {
+type EPAUserData = {
   givenname: string;
   mail: string;
   memberof: string;
 };
 
-type SAMData = {
+type SAMUserData = {
   uei: string;
+  // ...other fields...
+};
+
+type UserData = {
+  epaUserData: EPAUserData;
+  samUserData: SAMUserData[];
 };
 
 type State = {
-  isAuthenticated: boolean;
   isAuthenticating: boolean;
-  epaUserData:
+  isAuthenticated: boolean;
+  userData:
     | { status: "idle"; data: {} }
     | { status: "pending"; data: {} }
-    | { status: "success"; data: EPAData }
+    | { status: "success"; data: UserData }
     | { status: "failure"; data: {} };
-  samUserData:
-    | { status: "idle"; data: [] }
-    | { status: "pending"; data: [] }
-    | { status: "success"; data: SAMData }
-    | { status: "failure"; data: [] };
 };
 
 type Action =
   | { type: "USER_SIGN_IN" }
   | { type: "USER_SIGN_OUT" }
-  | { type: "FETCH_EPA_USER_DATA_REQUEST" }
+  | { type: "FETCH_USER_DATA_REQUEST" }
   | {
-      type: "FETCH_EPA_USER_DATA_SUCCESS";
-      payload: { epaUserData: EPAData };
+      type: "FETCH_USER_DATA_SUCCESS";
+      payload: {
+        epaUserData: EPAUserData;
+        samUserData: SAMUserData[];
+      };
     }
-  | {
-      type: "FETCH_SAM_USER_DATA_SUCCESS";
-      payload: { samUserData: SAMData };
-    }
-  | { type: "FETCH_EPA_USER_DATA_FAILURE" };
+  | { type: "FETCH_USER_DATA_FAILURE" };
 
 const StateContext = createContext<State | undefined>(undefined);
 const DispatchContext = createContext<Dispatch<Action> | undefined>(undefined);
@@ -57,49 +57,51 @@ function reducer(state: State, action: Action): State {
     case "USER_SIGN_IN": {
       return {
         ...state,
-        isAuthenticated: true,
         isAuthenticating: false,
+        isAuthenticated: true,
       };
     }
 
     case "USER_SIGN_OUT": {
       return {
         ...state,
+        isAuthenticating: false,
         isAuthenticated: false,
-        isAuthenticating: false,
-        epaUserData: { status: "idle", data: {} },
+        userData: {
+          status: "idle",
+          data: {},
+        },
       };
     }
 
-    case "FETCH_EPA_USER_DATA_REQUEST": {
+    case "FETCH_USER_DATA_REQUEST": {
       return {
         ...state,
-        epaUserData: { status: "pending", data: {} },
+        userData: {
+          status: "pending",
+          data: {},
+        },
       };
     }
 
-    case "FETCH_EPA_USER_DATA_SUCCESS": {
-      const { epaUserData } = action.payload;
+    case "FETCH_USER_DATA_SUCCESS": {
+      const { epaUserData, samUserData } = action.payload;
       return {
         ...state,
-        isAuthenticating: false,
-        epaUserData: { status: "success", data: epaUserData },
+        userData: {
+          status: "success",
+          data: { epaUserData, samUserData },
+        },
       };
     }
 
-    case "FETCH_EPA_USER_DATA_FAILURE": {
+    case "FETCH_USER_DATA_FAILURE": {
       return {
         ...state,
-        epaUserData: { status: "failure", data: {} },
-      };
-    }
-
-    case "FETCH_SAM_USER_DATA_SUCCESS": {
-      const { samUserData } = action.payload;
-      return {
-        ...state,
-        isAuthenticating: false,
-        samUserData: { status: "success", data: samUserData },
+        userData: {
+          status: "failure",
+          data: {},
+        },
       };
     }
 
@@ -111,10 +113,12 @@ function reducer(state: State, action: Action): State {
 
 export function UserProvider({ children }: Props) {
   const initialState: State = {
-    isAuthenticated: false,
     isAuthenticating: true,
-    epaUserData: { status: "idle", data: {} },
-    samUserData: { status: "idle", data: [] },
+    isAuthenticated: false,
+    userData: {
+      status: "idle",
+      data: {},
+    },
   };
 
   const [state, dispatch] = useReducer(reducer, initialState);

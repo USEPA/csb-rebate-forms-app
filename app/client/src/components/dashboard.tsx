@@ -1,12 +1,13 @@
 import { Link, Outlet } from "react-router-dom";
 import icons from "uswds/img/sprite.svg";
 // ---
+import { serverUrl } from "../index";
 import { useUserState } from "contexts/user";
 
 export default function Dashboard() {
-  const { epaUserData } = useUserState();
+  const { userData } = useUserState();
 
-  if (epaUserData.status !== "success") return null;
+  if (userData.status !== "success") return null;
 
   return (
     <div>
@@ -31,12 +32,12 @@ export default function Dashboard() {
 
         <nav className="display-flex flex-align-center">
           <p className="margin-bottom-0 margin-right-1">
-            <span>{epaUserData.data.mail}</span>
+            <span>{userData.data.epaUserData.mail}</span>
           </p>
 
           <a
             className="usa-button usa-button--outline font-sans-2xs margin-right-0"
-            href={`${process.env.REACT_APP_SERVER_URL}/logout`}
+            href={`${serverUrl}/logout`}
           >
             <span className="display-flex flex-align-center">
               <span className="margin-right-1">Sign out</span>

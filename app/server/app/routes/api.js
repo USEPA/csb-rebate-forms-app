@@ -19,27 +19,15 @@ router.get("/user", ensureAuthenticated, function (req, res) {
     { uei: "569160091719" },
   ];
 
-  res.json({ epaUserData: req.user, samUserData });
-});
-
-router.get("/login", (req, res, next) => {
-  // throw new Error("TODO: implement EPA gateway integration");
   res.json({
-    firstName: "George",
-    lastName: "Washington",
-    email: "george.washington@epa.gov",
+    epaUserData: req.user,
+    samUserData,
   });
-});
-
-router.get("/logout", (req, res, next) => {
-  // throw new Error("TODO: implement EPA gateway integration");
-  res.sendStatus(200);
 });
 
 // TODO: Add log info when admin/helpdesk changes submission back to draft
 
-// TODO: re-add `ensureAuthenticated` middleware – removing for initial testing
-router.get("/rebate-form-submissions", (req, res) => {
+router.get("/rebate-form-submissions", ensureAuthenticated, (req, res) => {
   // TODO: pull UEIs from JWT, and store in an `ueis` array, for building up
   // `query` string, which is appended to the `url` string
 
@@ -80,8 +68,7 @@ router.get("/rebate-form-submissions", (req, res) => {
     });
 });
 
-// TODO: re-add `ensureAuthenticated` middleware – removing for initial testing
-router.get("/rebate-form-submission/:id", (req, res) => {
+router.get("/rebate-form-submission/:id", ensureAuthenticated, (req, res) => {
   const id = req.params.id;
 
   axios

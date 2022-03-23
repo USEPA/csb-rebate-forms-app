@@ -1,6 +1,6 @@
 import { ReactNode, createContext, useContext } from "react";
 // ---
-import { cloudSubPath } from "../index";
+import { serverUrl, serverBasePath } from "../index";
 
 type Props = {
   children: ReactNode;
@@ -14,10 +14,7 @@ const StateContext = createContext<State | undefined>(undefined);
 
 export function ApiProvider({ children }: Props) {
   const state: State = {
-    apiUrl:
-      process.env.NODE_ENV === "development"
-        ? process.env.REACT_APP_SERVER_URL || "http://localhost:3001"
-        : window.location.origin + cloudSubPath,
+    apiUrl: serverUrl + serverBasePath,
   };
 
   return (
@@ -42,15 +39,19 @@ export function useApiState() {
  */
 export async function fetchData(url: string, data?: object) {
   const options = !data
-    ? { method: "GET" }
+    ? {
+        method: "GET",
+        credentials: "include" as const,
+      }
     : {
         method: "POST",
+        credentials: "include" as const,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       };
 
   try {
-    const res = await fetch(url, { ...options, credentials: "include" });
+    const res = await fetch(url, options);
     if (!res.ok) throw new Error(res.statusText);
     const contentType = res.headers.get("content-type");
     return contentType?.includes("application/json")

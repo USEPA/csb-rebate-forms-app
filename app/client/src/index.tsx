@@ -8,10 +8,13 @@ import { FormsProvider } from "contexts/forms";
 import ErrorBoundary from "components/errorBoundary";
 import App from "components/app";
 
-// deployed Cloud.gov app is currently configured to be served from "/csb"
-// subdirectory so defining that as the fallback here, but this can be
-// explicitly set by defining the REACT_APP_SUB_PATH environment variable
-export const cloudSubPath = process.env.REACT_APP_SUB_PATH || "/csb";
+const { NODE_ENV, REACT_APP_SUB_PATH } = process.env;
+
+export const serverUrl =
+  NODE_ENV === "development" ? "http://localhost:3001" : window.location.origin;
+
+export const serverBasePath =
+  NODE_ENV === "development" ? "" : REACT_APP_SUB_PATH || "/csb";
 
 const rootElement = document.getElementById("root");
 
