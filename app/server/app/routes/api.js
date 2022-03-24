@@ -52,6 +52,22 @@ router.get("/user", ensureAuthenticated, function (req, res) {
 
 // TODO: Add log info when admin/helpdesk changes submission back to draft
 
+router.get("/rebate-form-schema", ensureAuthenticated, (req, res) => {
+  axios
+    .get(`${formioProjectUrl}/${formioFormId}`, formioHeaders)
+    .then((axiosRes) => axiosRes.data)
+    .then((schema) => res.json(schema))
+    .catch((error) => {
+      if (typeof error.toJSON === "function") {
+        console.error(error.toJSON());
+      }
+
+      res
+        .status(error?.response?.status || 500)
+        .json({ message: "Error fetching Forms.gov form schema" });
+    });
+});
+
 router.get("/rebate-form-submissions", ensureAuthenticated, (req, res) => {
   // TODO: pull UEIs from JWT, and store in an `ueis` array, for building up
   // `query` string, which is appended to the `url` string

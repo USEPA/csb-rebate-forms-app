@@ -1,8 +1,15 @@
-import { useRef, useLayoutEffect } from "react";
+import { useRef, useLayoutEffect, useEffect, useState } from "react";
 import { modal } from "uswds/src/js/components";
 import icons from "uswds/img/sprite.svg";
 // ---
+import { serverUrl, fetchData } from "../config";
 import { useUserState } from "contexts/user";
+
+type State =
+  | { status: "idle"; data: null }
+  | { status: "pending"; data: null }
+  | { status: "success"; data: object }
+  | { status: "failure"; data: null };
 
 export default function NewRebateForm() {
   const { userData } = useUserState();
@@ -10,6 +17,7 @@ export default function NewRebateForm() {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
+  // trigger modal on page load
   useLayoutEffect(() => {
     const buttonEl = buttonRef.current;
     const modalEl = modalRef.current;
@@ -23,7 +31,36 @@ export default function NewRebateForm() {
     };
   }, [modalRef, buttonRef]);
 
+  const [jsonSchema, setJsonSchema] = useState<State>({
+    status: "idle",
+    data: null,
+  });
+
+  // fetch json schema for use in new form
+  useEffect(() => {
+    setJsonSchema({
+      status: "pending",
+      data: null,
+    });
+
+    fetchData(`${serverUrl}/api/v1/rebate-form-schema/`)
+      .then((res) => {
+        setJsonSchema({
+          status: "success",
+          data: res,
+        });
+      })
+      .catch((err) => {
+        setJsonSchema({
+          status: "failure",
+          data: null,
+        });
+      });
+  }, []);
+
   if (userData.status !== "success") return null;
+
+  console.log(jsonSchema);
 
   return (
     <div className="margin-top-2 padding-2 bg-base-lightest">
