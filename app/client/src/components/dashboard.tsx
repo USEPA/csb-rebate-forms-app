@@ -1,8 +1,12 @@
 import { Link, Outlet } from "react-router-dom";
+import { Formio } from "formiojs";
+import uswds from "@formio/uswds";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl } from "../config";
 import { useUserState } from "contexts/user";
+
+Formio.use(uswds);
 
 export default function Dashboard() {
   const { userData } = useUserState();

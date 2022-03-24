@@ -1,14 +1,10 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Formio } from "formiojs";
 import { Form } from "@formio/react";
-import uswds from "@formio/uswds";
 // ---
 import { serverUrl, fetchData } from "../config";
 import Loading from "components/loading";
 import Message from "components/message";
-
-Formio.use(uswds);
 
 type State =
   | { status: "idle"; data: { jsonSchema: null; submissionData: null } }
