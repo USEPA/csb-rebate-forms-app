@@ -12,11 +12,36 @@ router.get("/user", ensureAuthenticated, function (req, res) {
   // Call BAP/SAM API for UEI data to add onto user data
   // TODO: Integrate salesforce
   const samUserData = [
-    { uei: "056143447853" },
-    { uei: "779442964145" },
-    { uei: "960885252143" },
-    { uei: "549203627426" },
-    { uei: "569160091719" },
+    {
+      uei: "056143447853",
+      eft: "436988994",
+      cage: "46308",
+      entityName: "Metro Buslines",
+    },
+    {
+      uei: "779442964145",
+      eft: "398640677",
+      cage: "26532",
+      entityName: "Highway Logistics, LLC",
+    },
+    {
+      uei: "960885252143",
+      eft: "381191934",
+      cage: "11877",
+      entityName: "Fleet Services, Inc.",
+    },
+    {
+      uei: "549203627426",
+      eft: "555409114",
+      cage: "25751",
+      entityName: "Green Transport",
+    },
+    {
+      uei: "569160091719",
+      eft: "330109015",
+      cage: "65925",
+      entityName: "SmartBus Co.",
+    },
   ];
 
   res.json({
@@ -49,9 +74,9 @@ router.get("/rebate-form-submissions", ensureAuthenticated, (req, res) => {
           created,
           modified,
           // --- form fields ---
-          uei: "(TODO)", // TODO: ensure these fields are in the form
-          eft: "(TODO)",
-          cage: "(TODO)",
+          uei: "(TODO)", // 12 digits
+          eft: "(TODO)", // 9 digits
+          cage: "(TODO)", // 5 dights
           entityName: "(TODO)",
           applicationName: "(TODO)",
           lastUpdatedBy: data.name,

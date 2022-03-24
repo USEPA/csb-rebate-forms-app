@@ -18,7 +18,9 @@ type EPAUserData = {
 
 type SAMUserData = {
   uei: string;
-  // ...other fields...
+  eft: string;
+  cage: string;
+  entityName: string;
 };
 
 type UserData = {

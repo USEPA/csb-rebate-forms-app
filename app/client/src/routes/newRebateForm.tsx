@@ -1,8 +1,12 @@
 import { useRef, useLayoutEffect } from "react";
 import { modal } from "uswds/src/js/components";
 import icons from "uswds/img/sprite.svg";
+// ---
+import { useUserState } from "contexts/user";
 
 export default function NewRebateForm() {
+  const { userData } = useUserState();
+
   const modalRef = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
@@ -16,8 +20,7 @@ export default function NewRebateForm() {
     };
   }, [modalRef]);
 
-  // TODO: get data from server app API call
-  const records = Array.from(Array(4).keys());
+  if (userData.status !== "success") return null;
 
   return (
     <div className="margin-top-1 padding-2 bg-base-lightest">
@@ -65,13 +68,14 @@ export default function NewRebateForm() {
                   </tr>
                 </thead>
                 <tbody>
-                  {records.map((record) => {
+                  {userData.data.samUserData.map((data, index) => {
+                    const { uei, eft, cage, entityName } = data;
                     return (
-                      <tr key={record}>
+                      <tr key={index}>
                         <th scope="row">
                           <button
                             type="button"
-                            className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
+                            className="usa-button usa-button--base font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
                             data-close-modal
                           >
                             <span className="display-flex flex-align-center">
@@ -81,15 +85,15 @@ export default function NewRebateForm() {
                                 focusable="false"
                                 role="img"
                               >
-                                <use href={`${icons}#check`} />
+                                <use href={`${icons}#arrow_forward`} />
                               </svg>
                             </span>
                           </button>
                         </th>
-                        <th>(TODO)</th>
-                        <th>(TODO)</th>
-                        <th>(TODO)</th>
-                        <th>(TODO)</th>
+                        <th>{uei}</th>
+                        <th>{eft}</th>
+                        <th>{cage}</th>
+                        <th>{entityName}</th>
                       </tr>
                     );
                   })}
