@@ -7,26 +7,29 @@ import { useUserState } from "contexts/user";
 export default function NewRebateForm() {
   const { userData } = useUserState();
 
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
+    const buttonEl = buttonRef.current;
     const modalEl = modalRef.current;
-    if (!modalEl) return;
+    if (!buttonEl || !modalEl) return;
 
     modal.on(modalEl);
+    buttonEl.click();
 
     return function cleanup() {
       modal.off(modalEl);
     };
-  }, [modalRef]);
+  }, [modalRef, buttonRef]);
 
   if (userData.status !== "success") return null;
 
   return (
-    <div className="margin-top-1 padding-2 bg-base-lightest">
+    <div className="margin-top-2 padding-2 bg-base-lightest">
       <button
-        type="button"
-        className="usa-button font-sans-2xs"
+        ref={buttonRef}
+        className="usa-button display-none"
         aria-controls="csb-new-rebate-modal"
         data-open-modal
       >
@@ -103,6 +106,8 @@ export default function NewRebateForm() {
           </div>
         </div>
       </div>
+
+      <p>(Form)</p>
     </div>
   );
 }
