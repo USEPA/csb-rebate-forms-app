@@ -8,52 +8,55 @@ import { SAMUserData, useUserState } from "contexts/user";
 import Loading from "components/loading";
 import Message from "components/message";
 
-type State =
+type FormSchemaState =
   | { status: "idle"; data: null }
   | { status: "pending"; data: null }
   | { status: "success"; data: object }
   | { status: "failure"; data: null };
 
-function FormioForm() {
-  const [jsonSchema, setJsonSchema] = useState<State>({
+function FormioForm({ samData }: { samData: SAMUserData }) {
+  const [formSchema, setFormSchema] = useState<FormSchemaState>({
     status: "idle",
     data: null,
   });
 
   useEffect(() => {
-    setJsonSchema({
+    setFormSchema({
       status: "pending",
       data: null,
     });
 
     fetchData(`${serverUrl}/api/v1/rebate-form-schema/`)
       .then((res) => {
-        setJsonSchema({
+        setFormSchema({
           status: "success",
           data: res,
         });
       })
       .catch((err) => {
-        setJsonSchema({
+        setFormSchema({
           status: "failure",
           data: null,
         });
       });
   }, []);
 
-  if (jsonSchema.status === "idle") {
+  // TODO: pass SAM data into form in hidden fields
+  console.log(samData);
+
+  if (formSchema.status === "idle") {
     return null;
   }
 
-  if (jsonSchema.status === "pending") {
+  if (formSchema.status === "pending") {
     return <Loading />;
   }
 
-  if (jsonSchema.status === "failure") {
+  if (formSchema.status === "failure") {
     return <Message type="error" text="Error loading rebate form" />;
   }
 
-  return <Form form={jsonSchema.data} />;
+  return <Form form={formSchema.data} />;
 }
 
 export default function NewRebateForm() {
@@ -163,7 +166,7 @@ export default function NewRebateForm() {
         </div>
       </div>
 
-      {samData ? <FormioForm /> : null}
+      {samData ? <FormioForm samData={samData} /> : null}
     </div>
   );
 }

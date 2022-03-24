@@ -6,19 +6,20 @@ import { serverUrl, fetchData } from "../config";
 import Loading from "components/loading";
 import Message from "components/message";
 
-type State =
-  | { status: "idle"; data: { jsonSchema: null; submissionData: null } }
-  | { status: "pending"; data: { jsonSchema: null; submissionData: null } }
-  | { status: "success"; data: { jsonSchema: object; submissionData: object } }
-  | { status: "failure"; data: { jsonSchema: null; submissionData: null } };
+type SubmissionsState =
+  | { status: "idle"; data: { formSchema: null; submissionData: null } }
+  | { status: "pending"; data: { formSchema: null; submissionData: null } }
+  | { status: "success"; data: { formSchema: object; submissionData: object } }
+  | { status: "failure"; data: { formSchema: null; submissionData: null } };
 
 export default function ExistingRebateForm() {
   const { id } = useParams<"id">();
 
-  const [rebateFormSubmission, setRebateFormSubmission] = useState<State>({
+  const [rebateFormSubmission, setRebateFormSubmission] =
+    useState<SubmissionsState>({
     status: "idle",
     data: {
-      jsonSchema: null,
+        formSchema: null,
       submissionData: null,
     },
   });
@@ -27,7 +28,7 @@ export default function ExistingRebateForm() {
     setRebateFormSubmission({
       status: "pending",
       data: {
-        jsonSchema: null,
+        formSchema: null,
         submissionData: null,
       },
     });
@@ -43,7 +44,7 @@ export default function ExistingRebateForm() {
         setRebateFormSubmission({
           status: "failure",
           data: {
-            jsonSchema: null,
+            formSchema: null,
             submissionData: null,
           },
         });
@@ -62,11 +63,11 @@ export default function ExistingRebateForm() {
     return <Message type="error" text={`Error loading rebate form ${id}.`} />;
   }
 
-  const { jsonSchema, submissionData } = rebateFormSubmission.data;
+  const { formSchema, submissionData } = rebateFormSubmission.data;
 
   return (
     <div className="margin-top-2">
-      <Form form={jsonSchema} submission={submissionData} />
+      <Form form={formSchema} submission={submissionData} />
     </div>
   );
 }

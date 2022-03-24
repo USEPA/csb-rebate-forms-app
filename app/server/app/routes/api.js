@@ -123,7 +123,7 @@ router.get("/rebate-form-submission/:id", ensureAuthenticated, (req, res) => {
         .then((axiosRes) => axiosRes.data)
         .then((schema) => {
           res.json({
-            jsonSchema: schema,
+            formSchema: schema,
             submissionData: submission,
           });
         });
