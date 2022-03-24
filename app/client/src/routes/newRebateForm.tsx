@@ -4,7 +4,9 @@ import { modal } from "uswds/src/js/components";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, fetchData } from "../config";
-import { useUserState } from "contexts/user";
+import { SAMUserData, useUserState } from "contexts/user";
+import Loading from "components/loading";
+import Message from "components/message";
 
 type State =
   | { status: "idle"; data: null }
@@ -12,32 +14,12 @@ type State =
   | { status: "success"; data: object }
   | { status: "failure"; data: null };
 
-export default function NewRebateForm() {
-  const { userData } = useUserState();
-
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const modalRef = useRef<HTMLDivElement>(null);
-
-  // trigger modal on page load
-  useLayoutEffect(() => {
-    const buttonEl = buttonRef.current;
-    const modalEl = modalRef.current;
-    if (!buttonEl || !modalEl) return;
-
-    modal.on(modalEl);
-    buttonEl.click();
-
-    return function cleanup() {
-      modal.off(modalEl);
-    };
-  }, [modalRef, buttonRef]);
-
+function FormioForm() {
   const [jsonSchema, setJsonSchema] = useState<State>({
     status: "idle",
     data: null,
   });
 
-  // fetch json schema for use in new form
   useEffect(() => {
     setJsonSchema({
       status: "pending",
@@ -58,6 +40,44 @@ export default function NewRebateForm() {
         });
       });
   }, []);
+
+  if (jsonSchema.status === "idle") {
+    return null;
+  }
+
+  if (jsonSchema.status === "pending") {
+    return <Loading />;
+  }
+
+  if (jsonSchema.status === "failure") {
+    return <Message type="error" text="Error loading rebate form" />;
+  }
+
+  return <Form form={jsonSchema.data} />;
+}
+
+export default function NewRebateForm() {
+  const { userData } = useUserState();
+
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // trigger modal on component route load (button is hidden)
+  useLayoutEffect(() => {
+    const buttonEl = buttonRef.current;
+    const modalEl = modalRef.current;
+    if (!buttonEl || !modalEl) return;
+
+    modal.on(modalEl);
+    buttonEl.click();
+
+    return function cleanup() {
+      modal.off(modalEl);
+    };
+  }, [modalRef, buttonRef]);
+
+  // samData set when user selects table row in modal
+  const [samData, setSamData] = useState<SAMUserData | null>(null);
 
   if (userData.status !== "success") return null;
 
@@ -107,8 +127,7 @@ export default function NewRebateForm() {
                   </tr>
                 </thead>
                 <tbody>
-                  {userData.data.samUserData.map((data, index) => {
-                    const { uei, eft, cage, entityName } = data;
+                  {userData.data.samUserData.map((samData, index) => {
                     return (
                       <tr key={index}>
                         <th scope="row">
@@ -116,6 +135,7 @@ export default function NewRebateForm() {
                             type="button"
                             className="usa-button usa-button--base font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
                             data-close-modal
+                            onClick={(ev) => setSamData(samData)}
                           >
                             <span className="display-flex flex-align-center">
                               <svg
@@ -129,10 +149,10 @@ export default function NewRebateForm() {
                             </span>
                           </button>
                         </th>
-                        <th>{uei}</th>
-                        <th>{eft}</th>
-                        <th>{cage}</th>
-                        <th>{entityName}</th>
+                        <th>{samData.uei}</th>
+                        <th>{samData.eft}</th>
+                        <th>{samData.cage}</th>
+                        <th>{samData.entityName}</th>
                       </tr>
                     );
                   })}
@@ -143,7 +163,7 @@ export default function NewRebateForm() {
         </div>
       </div>
 
-      <Form form={jsonSchema.data} />
+      {samData ? <FormioForm /> : null}
     </div>
   );
 }

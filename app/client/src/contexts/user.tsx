@@ -16,7 +16,7 @@ type EPAUserData = {
   memberof: string;
 };
 
-type SAMUserData = {
+export type SAMUserData = {
   uei: string;
   eft: string;
   cage: string;
