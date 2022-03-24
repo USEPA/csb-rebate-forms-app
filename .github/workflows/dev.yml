@@ -30,6 +30,7 @@ jobs:
       CF_USER_DEV: ${{ secrets.CF_USER_DEV }}
       CF_PASSWORD_DEV: ${{ secrets.CF_PASSWORD_DEV }}
       SERVER_URL: https://app-dev.app.cloud.gov/csb
+      SERVER_BASE_PATH: /csb
       BASIC_AUTH_USER: ${{ secrets.BASIC_AUTH_USER }}
       BASIC_AUTH_PASSWORD: ${{ secrets.BASIC_AUTH_PASSWORD }}
       SAML_LOGIN_URL: ${{ secrets.SAML_LOGIN_URL }}
@@ -66,7 +67,7 @@ jobs:
 
       - name: Build front-end files and move to server
         run: |
-          REACT_APP_SERVER_URL="$SERVER_URL" npm run build
+          REACT_APP_SERVER_BASE_PATH="$SERVER_BASE_PATH" npm run build
           rm ../server/app/public/index.html
           cd build
           mv * ../../server/app/public

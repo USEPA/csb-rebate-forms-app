@@ -40,15 +40,15 @@ requiredEnvVars.forEach((envVar) => {
 
 app.disable("x-powered-by");
 
-// Set up browser basic auth for development and staging sites
-const unauthorizedResponse = (req) => {
-  return req.auth ? "Invalid credentials" : "No credentials provided";
-};
-
+// Set up browser basic auth for Cloud.gov development and staging sites
 if (
   process.env.CLOUD_SPACE === "development" ||
   process.env.CLOUD_SPACE === "staging"
 ) {
+  const unauthorizedResponse = (req) => {
+    return req.auth ? "Invalid credentials" : "No credentials provided";
+  };
+
   app.use(
     basicAuth({
       users: { [process.env.BASIC_AUTH_USER]: process.env.BASIC_AUTH_PASSWORD },
@@ -73,12 +73,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
 passport.use("saml", samlStrategy);
 
-// If SUB_PATH is provided, server routes and static files from there (e.g. /csb)
-const basePath = `${process.env.SUB_PATH || ""}/`;
+// If SERVER_BASE_PATH is provided, serve routes and static files from there (e.g. /csb)
+const basePath = `${process.env.SERVER_BASE_PATH || ""}/`;
 app.use(basePath, routes);
 
 // Use regex to add trailing slash on static requests (required when using sub path)
-const pathRegex = new RegExp(`^\\${process.env.SUB_PATH || ""}$`);
+const pathRegex = new RegExp(`^\\${process.env.SERVER_BASE_PATH || ""}$`);
 app.all(pathRegex, (req, res) => res.redirect(`${basePath}`));
 
 /*
