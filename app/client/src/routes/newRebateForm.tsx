@@ -14,7 +14,7 @@ type FormSchemaState =
   | { status: "success"; data: object }
   | { status: "failure"; data: null };
 
-function FormioForm({ samData }: { samData: SAMUserData }) {
+function FormioForm({ samData }: { samData: SAMUserData | null }) {
   const [formSchema, setFormSchema] = useState<FormSchemaState>({
     status: "idle",
     data: null,
@@ -41,8 +41,9 @@ function FormioForm({ samData }: { samData: SAMUserData }) {
       });
   }, []);
 
-  // TODO: pass SAM data into form in hidden fields
-  console.log(samData);
+  if (!samData) {
+    return null;
+  }
 
   if (formSchema.status === "idle") {
     return null;
@@ -56,7 +57,12 @@ function FormioForm({ samData }: { samData: SAMUserData }) {
     return <Message type="error" text="Error loading rebate form" />;
   }
 
-  return <Form form={formSchema.data} />;
+  return (
+    <Form
+      form={formSchema.data}
+      // TODO: pass samData into hidden form fields
+    />
+  );
 }
 
 export default function NewRebateForm() {
@@ -135,7 +141,6 @@ export default function NewRebateForm() {
                       <tr key={index}>
                         <th scope="row">
                           <button
-                            type="button"
                             className="usa-button usa-button--base font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
                             data-close-modal
                             onClick={(ev) => setSamData(samData)}
@@ -166,7 +171,7 @@ export default function NewRebateForm() {
         </div>
       </div>
 
-      {samData ? <FormioForm samData={samData} /> : null}
+      <FormioForm samData={samData} />
     </div>
   );
 }
