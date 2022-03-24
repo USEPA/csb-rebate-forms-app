@@ -1,4 +1,5 @@
 import { useRef, useLayoutEffect, useEffect, useState } from "react";
+import { Form } from "@formio/react";
 import { modal } from "uswds/src/js/components";
 import icons from "uswds/img/sprite.svg";
 // ---
@@ -60,10 +61,8 @@ export default function NewRebateForm() {
 
   if (userData.status !== "success") return null;
 
-  console.log(jsonSchema);
-
   return (
-    <div className="margin-top-2 padding-2 bg-base-lightest">
+    <div className="margin-top-2">
       <button
         ref={buttonRef}
         className="usa-button display-none"
@@ -144,7 +143,7 @@ export default function NewRebateForm() {
         </div>
       </div>
 
-      <p>(Form)</p>
+      <Form form={jsonSchema.data} />
     </div>
   );
 }
