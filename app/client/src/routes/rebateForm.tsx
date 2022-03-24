@@ -4,9 +4,9 @@ import { Formio } from "formiojs";
 import { Form } from "@formio/react";
 import uswds from "@formio/uswds";
 // ---
+import { serverUrl, fetchData } from "../config";
 import Loading from "components/loading";
 import Message from "components/message";
-import { useApiState, fetchData } from "contexts/api";
 
 Formio.use(uswds);
 
@@ -18,7 +18,6 @@ type State =
 
 export default function RebateForm() {
   const { id } = useParams<"id">();
-  const { apiUrl } = useApiState();
 
   const [rebateFormSubmission, setRebateFormSubmission] = useState<State>({
     status: "idle",
@@ -37,7 +36,7 @@ export default function RebateForm() {
       },
     });
 
-    fetchData(`${apiUrl}/api/v1/rebate-form-submission/${id}`)
+    fetchData(`${serverUrl}/api/v1/rebate-form-submission/${id}`)
       .then((res) => {
         setRebateFormSubmission({
           status: "success",
@@ -53,7 +52,7 @@ export default function RebateForm() {
           },
         });
       });
-  }, [apiUrl, id]);
+  }, [id]);
 
   if (rebateFormSubmission.status === "idle") {
     return null;

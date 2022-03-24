@@ -1,7 +1,7 @@
 import { useLocation } from "react-router-dom";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl } from "../index";
+import { serverUrl } from "../config";
 
 type LocationState = {
   redirectedFrom: string;
