@@ -7,7 +7,7 @@ import Loading from "components/loading";
 import Message from "components/message";
 import { useFormsState, useFormsDispatch } from "contexts/forms";
 
-export default function RebateForms() {
+export default function AllRebateForms() {
   const { rebateFormSubmissions } = useFormsState();
   const dispatch = useFormsDispatch();
 

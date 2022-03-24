@@ -13,7 +13,7 @@ import { serverBasePath, serverUrl, fetchData } from "../config";
 import Loading from "components/loading";
 import Login from "components/login";
 import Dashboard from "components/dashboard";
-import RebateForms from "routes/rebateForms";
+import AllRebateForms from "routes/allRebateForms";
 import NewRebateForm from "routes/newRebateForm";
 import ExistingRebateForm from "routes/existingRebateForm";
 import NotFound from "routes/notFound";
@@ -68,7 +68,7 @@ export default function App() {
             </ProtectedRoutes>
           }
         >
-          <Route index element={<RebateForms />} />
+          <Route index element={<AllRebateForms />} />
           <Route path="rebate/new" element={<NewRebateForm />} />
           <Route path="rebate/:id" element={<ExistingRebateForm />} />
           <Route path="*" element={<NotFound />} />
