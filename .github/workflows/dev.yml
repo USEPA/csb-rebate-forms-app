@@ -86,6 +86,7 @@ jobs:
       - name: Set application-level variables
         run: |
           cf set-env $APP_NAME "SERVER_URL" "$SERVER_URL" > /dev/null
+          cf set-env $APP_NAME "SERVER_BASE_PATH" "$SERVER_BASE_PATH" > /dev/null
           cf set-env $APP_NAME "BASIC_AUTH_USER" "$BASIC_AUTH_USER" > /dev/null
           cf set-env $APP_NAME "BASIC_AUTH_PASSWORD" "$BASIC_AUTH_PASSWORD" > /dev/null
           cf set-env $APP_NAME "SAML_LOGIN_URL" "$SAML_LOGIN_URL" > /dev/null
