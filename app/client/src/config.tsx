@@ -1,37 +1,12 @@
-import { ReactNode, createContext, useContext } from "react";
-// ---
-import { serverUrl, serverBasePath } from "../index";
+const { NODE_ENV, REACT_APP_SERVER_BASE_PATH } = process.env;
 
-type Props = {
-  children: ReactNode;
-};
+export const serverBasePath =
+  NODE_ENV === "development" ? "" : REACT_APP_SERVER_BASE_PATH || "";
 
-type State = {
-  apiUrl: string;
-};
-
-const StateContext = createContext<State | undefined>(undefined);
-
-export function ApiProvider({ children }: Props) {
-  const state: State = {
-    apiUrl: serverUrl + serverBasePath,
-  };
-
-  return (
-    <StateContext.Provider value={state}>{children}</StateContext.Provider>
-  );
-}
-
-/**
- * Returns state stored in `ApiProvider` context component.
- */
-export function useApiState() {
-  const context = useContext(StateContext);
-  if (context === undefined) {
-    throw new Error("useApiState must be called within an ApiProvider");
-  }
-  return context;
-}
+export const serverUrl =
+  NODE_ENV === "development"
+    ? "http://localhost:3001"
+    : window.location.origin + serverBasePath;
 
 /**
  * Returns a promise containing JSON fetched from a provided web service URL

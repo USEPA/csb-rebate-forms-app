@@ -1,7 +1,7 @@
 import { Link, Outlet } from "react-router-dom";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl } from "../index";
+import { serverUrl } from "../config";
 import { useUserState } from "contexts/user";
 
 export default function Dashboard() {
