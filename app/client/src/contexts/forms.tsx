@@ -25,6 +25,8 @@ type RebateFormSubmission = {
   modified: string; // datetime string modified
   // --- form fields ---
   uei: string;
+  eft: string;
+  cage: string;
   entityName: string;
   applicationName: string;
   lastUpdatedBy: string;

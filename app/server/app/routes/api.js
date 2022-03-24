@@ -50,9 +50,11 @@ router.get("/rebate-form-submissions", ensureAuthenticated, (req, res) => {
           modified,
           // --- form fields ---
           uei: "(TODO)", // TODO: ensure these fields are in the form
-          entityName: data.name,
+          eft: "(TODO)",
+          cage: "(TODO)",
+          entityName: "(TODO)",
           applicationName: "(TODO)",
-          lastUpdatedBy: "(TODO)",
+          lastUpdatedBy: data.name,
         };
       });
     })
