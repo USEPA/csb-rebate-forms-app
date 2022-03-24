@@ -14,7 +14,8 @@ import Loading from "components/loading";
 import Login from "components/login";
 import Dashboard from "components/dashboard";
 import RebateForms from "routes/rebateForms";
-import RebateForm from "routes/rebateForm";
+import NewRebateForm from "routes/newRebateForm";
+import ExistingRebateForm from "routes/existingRebateForm";
 import NotFound from "routes/notFound";
 import { useUserState, useUserDispatch } from "contexts/user";
 
@@ -68,7 +69,8 @@ export default function App() {
           }
         >
           <Route index element={<RebateForms />} />
-          <Route path="rebate/:id" element={<RebateForm />} />
+          <Route path="rebate/new" element={<NewRebateForm />} />
+          <Route path="rebate/:id" element={<ExistingRebateForm />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

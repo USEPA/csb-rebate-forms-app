@@ -16,7 +16,7 @@ type State =
   | { status: "success"; data: { jsonSchema: object; submissionData: object } }
   | { status: "failure"; data: { jsonSchema: null; submissionData: null } };
 
-export default function RebateForm() {
+export default function ExistingRebateForm() {
   const { id } = useParams<"id">();
 
   const [rebateFormSubmission, setRebateFormSubmission] = useState<State>({

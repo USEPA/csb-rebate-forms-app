@@ -15,7 +15,7 @@ export default function Dashboard() {
 
       <div className="display-flex flex-justify border-bottom padding-bottom-1">
         <nav>
-          <Link to="/" className="usa-button usa-button--outline font-sans-2xs">
+          <Link to="/" className="usa-button font-sans-2xs">
             <span className="display-flex flex-align-center">
               <svg
                 className="usa-icon"
@@ -25,7 +25,21 @@ export default function Dashboard() {
               >
                 <use href={`${icons}#list`} />
               </svg>
-              <span className="margin-left-1">Dashboard</span>
+              <span className="margin-left-1">All Rebates</span>
+            </span>
+          </Link>
+
+          <Link to="/rebate/new" className="usa-button font-sans-2xs">
+            <span className="display-flex flex-align-center">
+              <svg
+                className="usa-icon"
+                aria-hidden="true"
+                focusable="false"
+                role="img"
+              >
+                <use href={`${icons}#add_circle`} />
+              </svg>
+              <span className="margin-left-1">New Rebate</span>
             </span>
           </Link>
         </nav>
@@ -36,7 +50,7 @@ export default function Dashboard() {
           </p>
 
           <a
-            className="usa-button usa-button--outline font-sans-2xs margin-right-0"
+            className="usa-button font-sans-2xs margin-right-0"
             href={`${serverUrl}/logout`}
           >
             <span className="display-flex flex-align-center">
