@@ -10,7 +10,7 @@ const ensureAuthenticated = (req, res, next) => {
   jwt.verify(
     req.cookies.token,
     process.env.JWT_PUBLIC_KEY,
-    {},
+    { algorithms: ["RS256"] },
     function (err, user) {
       if (err) {
         console.error(err);
