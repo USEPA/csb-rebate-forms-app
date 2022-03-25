@@ -16,9 +16,11 @@ type EPAUserData = {
   memberof: string;
 };
 
-type SAMUserData = {
+export type SAMUserData = {
   uei: string;
-  // ...other fields...
+  eft: string;
+  cage: string;
+  entityName: string;
 };
 
 type UserData = {

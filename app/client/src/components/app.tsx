@@ -13,12 +13,13 @@ import { serverBasePath, serverUrl, fetchData } from "../config";
 import Loading from "components/loading";
 import Login from "components/login";
 import Dashboard from "components/dashboard";
-import RebateForms from "routes/rebateForms";
-import RebateForm from "routes/rebateForm";
+import AllRebateForms from "routes/allRebateForms";
+import NewRebateForm from "routes/newRebateForm";
+import ExistingRebateForm from "routes/existingRebateForm";
 import NotFound from "routes/notFound";
 import { useUserState, useUserDispatch } from "contexts/user";
 
-function ProtectedRoutes({ children }: { children: JSX.Element }) {
+function ProtectedRoute({ children }: { children: JSX.Element }) {
   const { pathname } = useLocation();
   const { isAuthenticating, isAuthenticated } = useUserState();
   const dispatch = useUserDispatch();
@@ -62,13 +63,14 @@ export default function App() {
         <Route
           path="/"
           element={
-            <ProtectedRoutes>
+            <ProtectedRoute>
               <Dashboard />
-            </ProtectedRoutes>
+            </ProtectedRoute>
           }
         >
-          <Route index element={<RebateForms />} />
-          <Route path="rebate/:id" element={<RebateForm />} />
+          <Route index element={<AllRebateForms />} />
+          <Route path="rebate/new" element={<NewRebateForm />} />
+          <Route path="rebate/:id" element={<ExistingRebateForm />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
