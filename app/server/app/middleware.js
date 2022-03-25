@@ -40,10 +40,8 @@ const rejectRequest = (req, res) => {
     // Send JSON Unauthorized message if request is for an API endpoint
     return res.status(401).json({ message: "Unauthorized" });
   }
-  // For non-API requests (e.g. on logout), redirect to base URL if token is non-existent or invalid
-  return res.redirect(
-    `${process.env.CLIENT_URL || ""}/login?RelayState=${req.originalUrl}`
-  );
+  // For non-API requests (e.g. on logout), redirect to login route if token is non-existent or invalid
+  return res.redirect(`/login?RelayState=${req.originalUrl}`);
 };
 
 module.exports = { ensureAuthenticated };

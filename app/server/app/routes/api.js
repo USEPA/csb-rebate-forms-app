@@ -9,20 +9,16 @@ const formioFormId = process.env.FORMIO_FORM_ID;
 const fetchOptions = { headers: { "x-token": process.env.FORMIO_API_KEY } };
 
 router.get("/user", ensureAuthenticated, function (req, res) {
-  // Call BAP/SAM API for UEI data to add onto user data
-  // TODO: Integrate salesforce
-  const samUserData = [
-    { uei: "056143447853" },
-    { uei: "779442964145" },
-    { uei: "960885252143" },
-    { uei: "549203627426" },
-    { uei: "569160091719" },
-  ];
+  // samUserData is stored in the req.user object via JWT - map through to clean up fieldnames before returning
+  const samUserData = req.user.samUserData.map((samRecord) => ({
+    uei: samRecord.UEI__c,
+    eft: samRecord.Entity_EFT_Indicator__c,
+    cage: samRecord.CAGE_Code__c,
+    entityName: samRecord.Name,
+  }));
 
-  res.json({
-    epaUserData: req.user,
-    samUserData,
-  });
+  // req.user includes both epaUserData (object) and samUserData (array)
+  res.json({ epaUserData: req.user.epaUserData, samUserData });
 });
 
 // TODO: Add log info when admin/helpdesk changes submission back to draft
