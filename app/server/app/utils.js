@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken");
 
 const createJwt = (userObject) => {
   return jwt.sign(userObject, process.env.JWT_PRIVATE_KEY, {
+    algorithm: "RS256",
     expiresIn: process.env.JWT_EXPIRE || "15m",
   });
 };
