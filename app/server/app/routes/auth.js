@@ -2,7 +2,7 @@ const express = require("express");
 const passport = require("passport");
 const samlStrategy = require("../config/samlStrategy");
 const { ensureAuthenticated } = require("../middleware");
-const { createJwt } = require("../utils");
+const { createJwt } = require("../utilities/createJwt");
 const logger = require("../utilities/logger");
 
 const log = logger.logger;
