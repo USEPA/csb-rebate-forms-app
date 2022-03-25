@@ -42,7 +42,9 @@ const rejectRequest = (req, res) => {
   }
   // For non-API requests (e.g. on logout), redirect to base URL if token is non-existent or invalid
   return res.redirect(
-    `${process.env.CLIENT_URL || ""}/login?RelayState=${req.originalUrl}`
+    `${process.env.CLIENT_URL || process.env.SERVER_URL}/login?RelayState=${
+      req.originalUrl
+    }`
   );
 };
 
