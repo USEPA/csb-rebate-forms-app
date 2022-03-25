@@ -1,13 +1,5 @@
 const jwt = require("jsonwebtoken");
-
-const jwtAlgorithm = process.env.NODE_ENV === "development" ? "HS256" : "RS256";
-
-const createJwt = (userObject) => {
-  return jwt.sign(userObject, process.env.JWT_PRIVATE_KEY, {
-    algorithm: jwtAlgorithm,
-    expiresIn: process.env.JWT_EXPIRE || "15m",
-  });
-};
+const { createJwt, jwtAlgorithm } = require("./utilities/createJwt");
 
 // Middleware to check for JWT, add user object to request, and create new JWT to keep alive for 15 minutes from request
 const ensureAuthenticated = (req, res, next) => {
