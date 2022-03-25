@@ -19,7 +19,7 @@ import ExistingRebateForm from "routes/existingRebateForm";
 import NotFound from "routes/notFound";
 import { useUserState, useUserDispatch } from "contexts/user";
 
-function ProtectedRoutes({ children }: { children: JSX.Element }) {
+function ProtectedRoute({ children }: { children: JSX.Element }) {
   const { pathname } = useLocation();
   const { isAuthenticating, isAuthenticated } = useUserState();
   const dispatch = useUserDispatch();
@@ -63,9 +63,9 @@ export default function App() {
         <Route
           path="/"
           element={
-            <ProtectedRoutes>
+            <ProtectedRoute>
               <Dashboard />
-            </ProtectedRoutes>
+            </ProtectedRoute>
           }
         >
           <Route index element={<AllRebateForms />} />

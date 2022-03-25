@@ -11,8 +11,6 @@ Formio.use(uswds);
 export default function Dashboard() {
   const { userData } = useUserState();
 
-  if (userData.status !== "success") return null;
-
   return (
     <div>
       <h1>Clean School Bus Data Collection System</h1>
@@ -50,7 +48,11 @@ export default function Dashboard() {
 
         <nav className="display-flex flex-align-center">
           <p className="margin-bottom-0 margin-right-1">
-            <span>{userData.data.epaUserData.mail}</span>
+            <span>
+              {userData.status === "success"
+                ? userData.data.epaUserData.mail
+                : ""}
+            </span>
           </p>
 
           <a
