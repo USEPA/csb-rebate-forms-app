@@ -57,12 +57,10 @@ function FormioForm({ samData }: { samData: SAMUserData | null }) {
     return <Message type="error" text="Error loading rebate form" />;
   }
 
-  return (
-    <Form
-      form={formSchema.data}
-      // TODO: pass samData into hidden form fields
-    />
-  );
+  // TODO: pass samData into hidden form fields
+  console.log(samData);
+
+  return <Form form={formSchema.data} />;
 }
 
 export default function NewRebateForm() {
@@ -92,7 +90,8 @@ export default function NewRebateForm() {
     <div className="margin-top-2">
       <button
         ref={buttonRef}
-        className="usa-button display-none"
+        style={{ display: "none" }}
+        className="usa-button font-sans-2xs margin-bottom-2"
         aria-controls="csb-new-rebate-modal"
         data-open-modal
       >
