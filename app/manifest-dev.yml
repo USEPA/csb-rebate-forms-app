@@ -12,5 +12,6 @@ applications:
     command: node app/index.js
     env:
       CLOUD_SPACE: development
+      NODE_ENV: production
       LOGGER_LEVEL: DEBUG
       OPTIMIZE_MEMORY: true

@@ -14,5 +14,6 @@ applications:
     path: /
     env:
       CLOUD_SPACE: production
+      NODE_ENV: production
       LOGGER_LEVEL: INFO
       OPTIMIZE_MEMORY: true
