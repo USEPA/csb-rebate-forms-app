@@ -38,7 +38,7 @@ jobs:
       SAML_ENTITY_ID: ${{ secrets.SAML_ENTITY_ID }}
       SAML_IDP_CERT: ${{ secrets.SAML_IDP_CERT }}
       SAML_PUBLIC_KEY: ${{ secrets.SAML_PUBLIC_KEY }}
-      SAML_PRIVATE_KEY: ${{ secrets.SAML_PRIVATE_KEY }}
+      # SAML_PRIVATE_KEY: ${{ secrets.SAML_PRIVATE_KEY }}
       JWT_PUBLIC_KEY: ${{ secrets.JWT_PUBLIC_KEY }}
       JWT_PRIVATE_KEY: ${{ secrets.JWT_PRIVATE_KEY }}
       FORMIO_PROJECT_URL: ${{ secrets.FORMIO_PROJECT_URL }}
