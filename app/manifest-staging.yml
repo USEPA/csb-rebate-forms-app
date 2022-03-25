@@ -13,5 +13,6 @@ applications:
     path: /
     env:
       CLOUD_SPACE: staging
+      NODE_ENV: production
       LOGGER_LEVEL: INFO
       OPTIMIZE_MEMORY: true
