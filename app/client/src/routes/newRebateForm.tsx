@@ -83,12 +83,10 @@ export default function NewRebateForm() {
     return function cleanup() {
       modal.off(modalEl);
     };
-  }, [modalRef, buttonRef]);
+  }, []);
 
   // samData set when user selects table row in modal
   const [samData, setSamData] = useState<SAMUserData | null>(null);
-
-  if (userData.status !== "success") return null;
 
   return (
     <div className="margin-top-2">
@@ -136,34 +134,35 @@ export default function NewRebateForm() {
                   </tr>
                 </thead>
                 <tbody>
-                  {userData.data.samUserData.map((samData, index) => {
-                    return (
-                      <tr key={index}>
-                        <th scope="row">
-                          <button
-                            className="usa-button usa-button--base font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-                            data-close-modal
-                            onClick={(ev) => setSamData(samData)}
-                          >
-                            <span className="display-flex flex-align-center">
-                              <svg
-                                className="usa-icon"
-                                aria-hidden="true"
-                                focusable="false"
-                                role="img"
-                              >
-                                <use href={`${icons}#arrow_forward`} />
-                              </svg>
-                            </span>
-                          </button>
-                        </th>
-                        <th>{samData.uei}</th>
-                        <th>{samData.eft}</th>
-                        <th>{samData.cage}</th>
-                        <th>{samData.entityName}</th>
-                      </tr>
-                    );
-                  })}
+                  {userData.status === "success" &&
+                    userData.data.samUserData.map((samData, index) => {
+                      return (
+                        <tr key={index}>
+                          <th scope="row">
+                            <button
+                              className="usa-button usa-button--base font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
+                              data-close-modal
+                              onClick={(ev) => setSamData(samData)}
+                            >
+                              <span className="display-flex flex-align-center">
+                                <svg
+                                  className="usa-icon"
+                                  aria-hidden="true"
+                                  focusable="false"
+                                  role="img"
+                                >
+                                  <use href={`${icons}#arrow_forward`} />
+                                </svg>
+                              </span>
+                            </button>
+                          </th>
+                          <th>{samData.uei}</th>
+                          <th>{samData.eft}</th>
+                          <th>{samData.cage}</th>
+                          <th>{samData.entityName}</th>
+                        </tr>
+                      );
+                    })}
                 </tbody>
               </table>
             </div>
