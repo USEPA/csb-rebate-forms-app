@@ -1,0 +1,14 @@
+/* --- EPA/USWDS style overrides --- */
+.usa-radio__label {
+  text-indent: 0;
+}
+
+/* --- Formio style overrides --- */
+.formio-form-group {
+  margin-bottom: 20px;
+}
+
+.field-required:after {
+  content: " *";
+  color: red;
+}
