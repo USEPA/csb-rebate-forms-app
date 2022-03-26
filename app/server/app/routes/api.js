@@ -74,8 +74,10 @@ router.get("/rebate-form-submissions", ensureAuthenticated, (req, res) => {
     .get(`${formioProjectUrl}/${formioFormId}/submission`, formioHeaders)
     .then((axiosRes) => axiosRes.data)
     .then((submissions) => {
-      return submissions.map((sub) => {
-        const { _id, _fid, form, project, created, modified, data } = sub;
+      return submissions.map((submission) => {
+        const { _id, _fid, form, project, state, created, modified, data } =
+          submission;
+
         return {
           // --- metadata fields ---
           _id,
@@ -84,14 +86,14 @@ router.get("/rebate-form-submissions", ensureAuthenticated, (req, res) => {
           project,
           created,
           // --- form fields ---
-          formType: "rebate-application", // predefined form types: "rebate-application" | "payment-request" | "close-out" ?
-          uei: "############", // 12 digits?
-          eft: "#########", // 9 digits?
-          ueiEntityName: "(Some Business Name Here)",
-          schoolDistrictName: "(School District Name Here)",
-          lastUpdatedBy: data.name,
+          formType: "rebate-application", // TODO: hard-coded for now. where does this come from?
+          uei: data.applicantUEI,
+          eft: "#########", // TODO: this needs to be in the form
+          ueiEntityName: data.applicantOrganizationName,
+          schoolDistrictName: data.ncesName,
+          lastUpdatedBy: data.sam_hidden_name,
           lastUpdatedDate: modified,
-          status: "draft", // predefined set of states: "submitted" | "draft" ?
+          status: state, // TODO: get full list of predefined set of states: "submitted" | "draft" ?
         };
       });
     })

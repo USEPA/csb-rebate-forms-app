@@ -4,7 +4,7 @@ import { modal } from "uswds/src/js/components";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, fetchData } from "../config";
-import { SAMUserData, useUserState } from "contexts/user";
+import { EPAUserData, SAMUserData, useUserState } from "contexts/user";
 import Loading from "components/loading";
 import Message from "components/message";
 
@@ -14,7 +14,12 @@ type FormSchemaState =
   | { status: "success"; data: object }
   | { status: "failure"; data: null };
 
-function FormioForm({ samData }: { samData: SAMUserData | null }) {
+type FormioFormProps = {
+  samData: SAMUserData | null;
+  epaData: EPAUserData | null;
+};
+
+function FormioForm({ samData, epaData }: FormioFormProps) {
   const [formSchema, setFormSchema] = useState<FormSchemaState>({
     status: "idle",
     data: null,
@@ -41,7 +46,7 @@ function FormioForm({ samData }: { samData: SAMUserData | null }) {
       });
   }, []);
 
-  if (!samData) {
+  if (!samData || !epaData) {
     return null;
   }
 
@@ -57,10 +62,24 @@ function FormioForm({ samData }: { samData: SAMUserData | null }) {
     return <Message type="error" text="Error loading rebate form" />;
   }
 
-  // TODO: pass samData into hidden form fields
-  console.log(samData);
-
-  return <Form form={formSchema.data} />;
+  return (
+    <Form
+      form={formSchema.data}
+      submission={{
+        data: {
+          sam_hidden_name: epaData.mail,
+          applicantUEI: samData.uei,
+          applicantOrganizationName: samData.ueiEntityName,
+        },
+      }}
+      onChange={(submission: object) => {
+        console.log("change", submission); // TODO: temporary for debugging purposes
+      }}
+      onSubmit={(submission: object) => {
+        console.log("submitted", submission); // TODO: post submission back to forms.gov through our internal API
+      }}
+    />
+  );
 }
 
 export default function NewRebateForm() {
@@ -177,7 +196,12 @@ export default function NewRebateForm() {
         </div>
       </div>
 
-      <FormioForm samData={samData} />
+      <FormioForm
+        samData={samData}
+        epaData={
+          userData.status === "success" ? userData.data.epaUserData : null
+        }
+      />
     </div>
   );
 }
