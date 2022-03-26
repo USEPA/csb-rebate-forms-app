@@ -125,11 +125,18 @@ export default function NewRebateForm() {
               <table className="usa-table usa-table--borderless usa-table--striped width-full">
                 <thead>
                   <tr>
-                    <th scope="col">&nbsp;</th>
-                    <th scope="col">UEI</th>
-                    <th scope="col">EFT</th>
-                    <th scope="col">CAGE</th>
-                    <th scope="col">Entity Name</th>
+                    <th scope="col" className="font-sans-2xs">
+                      &nbsp;
+                    </th>
+                    <th scope="col" className="font-sans-2xs">
+                      UEI
+                    </th>
+                    <th scope="col" className="font-sans-2xs">
+                      EFT
+                    </th>
+                    <th scope="col" className="font-sans-2xs">
+                      UEI Entity Name
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -137,9 +144,9 @@ export default function NewRebateForm() {
                     userData.data.samUserData.map((samData, index) => {
                       return (
                         <tr key={index}>
-                          <th scope="row">
+                          <th scope="row" className="font-sans-2xs">
                             <button
-                              className="usa-button usa-button--base font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
+                              className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
                               data-close-modal
                               onClick={(ev) => setSamData(samData)}
                             >
@@ -155,10 +162,11 @@ export default function NewRebateForm() {
                               </span>
                             </button>
                           </th>
-                          <th>{samData.uei}</th>
-                          <th>{samData.eft}</th>
-                          <th>{samData.cage}</th>
-                          <th>{samData.entityName}</th>
+                          <th className="font-sans-2xs">{samData.uei}</th>
+                          <th className="font-sans-2xs">{samData.eft}</th>
+                          <th className="font-sans-2xs">
+                            {samData.ueiEntityName}
+                          </th>
                         </tr>
                       );
                     })}

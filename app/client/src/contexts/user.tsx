@@ -19,8 +19,7 @@ type EPAUserData = {
 export type SAMUserData = {
   uei: string;
   eft: string;
-  cage: string;
-  entityName: string;
+  ueiEntityName: string;
 };
 
 type UserData = {

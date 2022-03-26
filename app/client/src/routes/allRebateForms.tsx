@@ -43,7 +43,7 @@ export default function AllRebateForms() {
   // TODO: add tooltips for all acronymns
 
   return (
-    <table className="usa-table usa-table--borderless usa-table--striped usa-table--stacked width-full">
+    <table className="usa-table usa-table--borderless usa-table--striped width-full">
       <thead>
         <tr>
           <th scope="col" className="font-sans-2xs">
