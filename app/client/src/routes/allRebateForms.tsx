@@ -46,21 +46,48 @@ export default function AllRebateForms() {
     <table className="usa-table usa-table--borderless usa-table--striped width-full">
       <thead>
         <tr>
-          <th scope="col">&nbsp;</th>
-          <th scope="col">UEI</th>
-          <th scope="col">EFT</th>
-          <th scope="col">CAGE</th>
-          <th scope="col">Entity Name</th>
-          <th scope="col">Last Updated By</th>
-          <th scope="col" className="text-right">
-            Last Updated Date
+          <th scope="col" className="font-sans-2xs">
+            &nbsp;
+          </th>
+          <th scope="col" className="font-sans-2xs">
+            Form Type
+          </th>
+          <th scope="col" className="font-sans-2xs">
+            UEI
+          </th>
+          <th scope="col" className="font-sans-2xs">
+            EFT
+          </th>
+          <th scope="col" className="font-sans-2xs">
+            UEI Entity Name
+          </th>
+          <th scope="col" className="font-sans-2xs">
+            School District Name
+          </th>
+          <th scope="col" className="font-sans-2xs">
+            Updated By
+          </th>
+          <th scope="col" className="font-sans-2xs text-right">
+            Updated Date
+          </th>
+          <th scope="col" className="font-sans-2xs">
+            Status
           </th>
         </tr>
       </thead>
       <tbody>
         {rebateFormSubmissions.data.map((submission) => {
-          const { _id, uei, eft, cage, entityName, lastUpdatedBy, modified } =
-            submission;
+          const {
+            _id,
+            formType,
+            uei,
+            eft,
+            ueiEntityName,
+            schoolDistrictName,
+            lastUpdatedBy,
+            lastUpdatedDate,
+            status,
+          } = submission;
 
           return (
             <tr key={_id}>
@@ -81,13 +108,29 @@ export default function AllRebateForms() {
                   </span>
                 </Link>
               </th>
+              <th>
+                {formType === "rebate-application"
+                  ? "Application"
+                  : formType === "payment-request"
+                  ? "Payment Request"
+                  : formType === "close-out"
+                  ? "Close-Out"
+                  : ""}
+              </th>
               <th>{uei}</th>
               <td>{eft}</td>
-              <td>{cage}</td>
-              <td>{entityName}</td>
+              <td>{ueiEntityName}</td>
+              <td>{schoolDistrictName}</td>
               <td>{lastUpdatedBy}</td>
               <td className="text-right">
-                {new Date(modified).toLocaleDateString()}
+                {new Date(lastUpdatedDate).toLocaleDateString()}
+              </td>
+              <td>
+                {status === "draft"
+                  ? "Draft"
+                  : status === "submitted"
+                  ? "Submitted"
+                  : ""}
               </td>
             </tr>
           );

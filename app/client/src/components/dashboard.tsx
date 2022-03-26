@@ -13,7 +13,7 @@ export default function Dashboard() {
 
   return (
     <div>
-      <h1>Clean School Bus Data Collection System</h1>
+      <h1>Clean School Bus Rebate Forms</h1>
 
       <div className="display-flex flex-justify border-bottom padding-bottom-1">
         <nav>
