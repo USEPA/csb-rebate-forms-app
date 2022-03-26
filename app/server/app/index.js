@@ -6,7 +6,6 @@ const cors = require("cors");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 const history = require("connect-history-api-fallback");
-const basicAuth = require("express-basic-auth");
 const passport = require("passport");
 // ---
 const logger = require("./utilities/logger");
@@ -39,24 +38,6 @@ requiredEnvVars.forEach((envVar) => {
 });
 
 app.disable("x-powered-by");
-
-// Set up browser basic auth for Cloud.gov development and staging sites
-if (
-  process.env.CLOUD_SPACE === "development" ||
-  process.env.CLOUD_SPACE === "staging"
-) {
-  const unauthorizedResponse = (req) => {
-    return req.auth ? "Invalid credentials" : "No credentials provided";
-  };
-
-  app.use(
-    basicAuth({
-      users: { [process.env.BASIC_AUTH_USER]: process.env.BASIC_AUTH_PASSWORD },
-      challenge: true,
-      unauthorizedResponse,
-    })
-  );
-}
 
 // Enable CORS and logging with morgan for local development only
 // NOTE: process.env.NODE_ENV set to "development" below to match value defined
