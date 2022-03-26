@@ -10,10 +10,11 @@ type Props = {
   children: ReactNode;
 };
 
-type EPAUserData = {
+export type EPAUserData = {
   givenname: string;
   mail: string;
   memberof: string;
+  uid: string;
 };
 
 export type SAMUserData = {
