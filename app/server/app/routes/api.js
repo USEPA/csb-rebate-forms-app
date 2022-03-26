@@ -88,14 +88,15 @@ router.get("/rebate-form-submissions", ensureAuthenticated, (req, res) => {
           form,
           project,
           created,
-          modified,
           // --- form fields ---
-          uei: "(TODO)", // 12 digits
-          eft: "(TODO)", // 9 digits
-          cage: "(TODO)", // 5 dights
-          entityName: "(TODO)",
-          applicationName: "(TODO)",
+          formType: "rebate-application", // predefined form types: "rebate-application" | "payment-request" | "close-out" ?
+          uei: "############", // 12 digits?
+          eft: "#########", // 9 digits?
+          ueiEntityName: "(Some Business Name Here)",
+          schoolDistrictName: "(School District Name Here)",
           lastUpdatedBy: data.name,
+          lastUpdatedDate: modified,
+          status: "draft", // predefined set of states: "submitted" | "draft" ?
         };
       });
     })
