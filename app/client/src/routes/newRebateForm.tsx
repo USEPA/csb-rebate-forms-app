@@ -1,4 +1,5 @@
 import { useRef, useLayoutEffect, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Form } from "@formio/react";
 import { modal } from "uswds/src/js/components";
 import icons from "uswds/img/sprite.svg";
@@ -20,6 +21,8 @@ type FormioFormProps = {
 };
 
 function FormioForm({ samData, epaData }: FormioFormProps) {
+  const navigate = useNavigate();
+
   const [formSchema, setFormSchema] = useState<FormSchemaState>({
     status: "idle",
     data: null,
@@ -46,6 +49,8 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
       });
   }, []);
 
+  const [formSubmissionFailed, setformSubmissionFailed] = useState(false);
+
   if (!samData || !epaData) {
     return null;
   }
@@ -59,26 +64,37 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
   }
 
   if (formSchema.status === "failure") {
-    return <Message type="error" text="Error loading rebate form" />;
+    return <Message type="error" text="Error loading rebate form." />;
   }
 
   return (
-    <Form
-      form={formSchema.data}
-      submission={{
-        data: {
-          sam_hidden_name: epaData.mail,
-          applicantUEI: samData.uei,
-          applicantOrganizationName: samData.ueiEntityName,
-        },
-      }}
-      onChange={(submission: object) => {
-        console.log("change", submission); // TODO: temporary for debugging purposes
-      }}
-      onSubmit={(submission: object) => {
-        console.log("submitted", submission); // TODO: post submission back to forms.gov through our internal API
-      }}
-    />
+    <>
+      {formSubmissionFailed && (
+        <Message type="error" text="Error submitting rebate form." />
+      )}
+
+      <Form
+        form={formSchema.data}
+        submission={{
+          data: {
+            sam_hidden_name: epaData.mail,
+            applicantUEI: samData.uei,
+            applicantOrganizationName: samData.ueiEntityName,
+          },
+        }}
+        onSubmit={(submission: object) => {
+          setformSubmissionFailed(false);
+
+          fetchData(`${serverUrl}/api/v1/rebate-form-submission/`, submission)
+            .then((formSubmission) => {
+              navigate("/");
+            })
+            .catch((err) => {
+              setformSubmissionFailed(true);
+            });
+        }}
+      />
+    </>
   );
 }
 

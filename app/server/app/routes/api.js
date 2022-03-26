@@ -6,7 +6,9 @@ const router = express.Router();
 
 const formioProjectUrl = process.env.FORMIO_PROJECT_URL;
 const formioFormId = process.env.FORMIO_FORM_ID;
-const formioHeaders = { headers: { "x-token": process.env.FORMIO_API_KEY } };
+const formioApiKey = process.env.FORMIO_API_KEY;
+
+const formioHeaders = { headers: { "x-token": formioApiKey } };
 
 router.get("/user", ensureAuthenticated, function (req, res) {
   // Call BAP/SAM API for UEI data to add onto user data
@@ -59,7 +61,27 @@ router.get("/rebate-form-schema", ensureAuthenticated, (req, res) => {
 
       res
         .status(error?.response?.status || 500)
-        .json({ message: "Error fetching Forms.gov form schema" });
+        .json({ message: "Error getting Forms.gov rebate form schema" });
+    });
+});
+
+router.post("/rebate-form-submission", ensureAuthenticated, (req, res) => {
+  axios
+    .post(
+      `${formioProjectUrl}/${formioFormId}/submission`,
+      req.body,
+      formioHeaders
+    )
+    .then((axiosRes) => axiosRes.data)
+    .then((submission) => res.json(submission))
+    .catch((error) => {
+      if (typeof error.toJSON === "function") {
+        console.error(error.toJSON());
+      }
+
+      res
+        .status(error?.response?.status || 500)
+        .json({ message: "Error posting Forms.gov rebate form submission" });
     });
 });
 
@@ -105,7 +127,7 @@ router.get("/rebate-form-submissions", ensureAuthenticated, (req, res) => {
 
       res
         .status(error?.response?.status || 500)
-        .json({ message: "Error fetching Forms.gov submissions" });
+        .json({ message: "Error getting Forms.gov rebate form submissions" });
     });
 });
 
@@ -131,9 +153,9 @@ router.get("/rebate-form-submission/:id", ensureAuthenticated, (req, res) => {
         console.error(error.toJSON());
       }
 
-      res
-        .status(error?.response?.status || 500)
-        .json({ message: `Error fetching Forms.gov submission ${id}` });
+      res.status(error?.response?.status || 500).json({
+        message: `Error getting Forms.gov rebate form submission ${id}`,
+      });
     });
 });
 
