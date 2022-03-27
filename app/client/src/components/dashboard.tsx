@@ -8,24 +8,28 @@ import { useUserState } from "contexts/user";
 
 Formio.use(uswds);
 
-function AllRebatesText() {
-  return (
-    <span className="display-flex flex-align-center">
-      <svg className="usa-icon" aria-hidden="true" focusable="false" role="img">
-        <use href={`${icons}#list`} />
-      </svg>
-      <span className="margin-left-1">All Rebates</span>
+type IconTextProps = {
+  order: "icon-text" | "text-icon";
+  icon: string;
+  text: string;
+};
+
+function IconText({ order, icon, text }: IconTextProps) {
+  const Icon = (
+    <svg className="usa-icon" aria-hidden="true" focusable="false" role="img">
+      <use href={`${icons}#${icon}`} />
+    </svg>
+  );
+
+  const Text = (
+    <span className={`margin-${order === "icon-text" ? "left" : "right"}-1`}>
+      {text}
     </span>
   );
-}
 
-function NewRebateText() {
   return (
     <span className="display-flex flex-align-center">
-      <svg className="usa-icon" aria-hidden="true" focusable="false" role="img">
-        <use href={`${icons}#add_circle`} />
-      </svg>
-      <span className="margin-left-1">New Rebate</span>
+      {order === "icon-text" ? [Icon, Text] : [Text, Icon]}
     </span>
   );
 }
@@ -42,21 +46,21 @@ export default function Dashboard() {
         {pathname === "/" ? (
           <nav>
             <button className="usa-button font-sans-2xs" disabled>
-              <AllRebatesText />
+              <IconText order="icon-text" icon="list" text="All Rebates" />
             </button>
 
             <Link to="/rebate/new" className="usa-button font-sans-2xs">
-              <NewRebateText />
+              <IconText order="icon-text" icon="add_circle" text="New Rebate" />
             </Link>
           </nav>
         ) : (
           <nav>
             <Link to="/" className="usa-button font-sans-2xs">
-              <AllRebatesText />
+              <IconText order="icon-text" icon="list" text="All Rebates" />
             </Link>
 
             <button className="usa-button font-sans-2xs" disabled>
-              <NewRebateText />
+              <IconText order="icon-text" icon="add_circle" text="New Rebate" />
             </button>
           </nav>
         )}
@@ -72,17 +76,7 @@ export default function Dashboard() {
             className="usa-button font-sans-2xs margin-right-0"
             href={`${serverUrl}/logout`}
           >
-            <span className="display-flex flex-align-center">
-              <span className="margin-right-1">Sign out</span>
-              <svg
-                className="usa-icon"
-                aria-hidden="true"
-                focusable="false"
-                role="img"
-              >
-                <use href={`${icons}#logout`} />
-              </svg>
-            </span>
+            <IconText order="text-icon" icon="logout" text="Sign out" />
           </a>
         </nav>
       </div>
