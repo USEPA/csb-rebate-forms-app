@@ -109,14 +109,6 @@ export default function NewRebateForm() {
 
   return (
     <div className="margin-top-2">
-      <button
-        style={{ display: "none" }}
-        className="usa-button font-sans-2xs margin-bottom-2"
-        onClick={(ev) => setDialogShown(true)}
-      >
-        Select Record
-      </button>
-
       <DialogOverlay isOpen={dialogShown}>
         <DialogContent
           className="usa-modal usa-modal--lg"
