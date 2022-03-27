@@ -1,8 +1,9 @@
-import { useRef, useLayoutEffect, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { DialogOverlay, DialogContent } from "@reach/dialog";
 import { Form } from "@formio/react";
-import { modal } from "uswds/src/js/components";
 import icons from "uswds/img/sprite.svg";
+import "@reach/dialog/styles.css";
 // ---
 import { serverUrl, fetchData } from "../config";
 import { EPAUserData, SAMUserData, useUserState } from "contexts/user";
@@ -101,45 +102,18 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
 export default function NewRebateForm() {
   const { userData } = useUserState();
 
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const modalRef = useRef<HTMLDivElement>(null);
-
-  // trigger modal on component route load (button is hidden)
-  useLayoutEffect(() => {
-    const buttonEl = buttonRef.current;
-    const modalEl = modalRef.current;
-    if (!buttonEl || !modalEl) return;
-
-    modal.on(modalEl);
-    buttonEl.click();
-
-    return function cleanup() {
-      modal.off(modalEl);
-    };
-  }, []);
+  const [dialogShown, setDialogShown] = useState(true);
 
   // samData set when user selects table row in modal
   const [samData, setSamData] = useState<SAMUserData | null>(null);
 
   return (
     <div className="margin-top-2">
-      <button
-        ref={buttonRef}
-        style={{ display: "none" }}
-        className="usa-button font-sans-2xs margin-bottom-2"
-        aria-controls="csb-new-rebate-modal"
-        data-open-modal
-      >
-        Select Record
-      </button>
-
-      <div ref={modalRef}>
-        <div
-          id="csb-new-rebate-modal"
+      <DialogOverlay isOpen={dialogShown}>
+        <DialogContent
           className="usa-modal usa-modal--lg"
           aria-labelledby="csb-new-rebate-modal-heading"
           aria-describedby="csb-new-rebate-modal-description"
-          data-force-action
         >
           <div className="usa-modal__content">
             <div className="usa-modal__main">
@@ -183,7 +157,10 @@ export default function NewRebateForm() {
                             <button
                               className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
                               data-close-modal
-                              onClick={(ev) => setSamData(samData)}
+                              onClick={(ev) => {
+                                setSamData(samData);
+                                setDialogShown(false);
+                              }}
                             >
                               <span className="display-flex flex-align-center">
                                 <svg
@@ -209,8 +186,8 @@ export default function NewRebateForm() {
               </table>
             </div>
           </div>
-        </div>
-      </div>
+        </DialogContent>
+      </DialogOverlay>
 
       <FormioForm
         samData={samData}
