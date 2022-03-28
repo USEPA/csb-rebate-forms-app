@@ -6,6 +6,7 @@ import {
   Route,
   useLocation,
 } from "react-router-dom";
+import "@reach/dialog/styles.css";
 import "uswds/css/uswds.css";
 import "uswds/js/uswds.js";
 // ---
