@@ -55,19 +55,19 @@ export default function AllRebateForms() {
           <th scope="col">
             <TextWithTooltip
               text="UEI"
-              tooltip="“Unique Entity ID” from SAM.gov."
+              tooltip="“Unique Entity ID” from SAM.gov"
             />
           </th>
           <th scope="col">
             <TextWithTooltip
               text="EFT"
-              tooltip="“Electronic Funds Transfer” indicator from SAM.gov."
+              tooltip="“Electronic Funds Transfer” indicator from SAM.gov"
             />
           </th>
           <th scope="col">
             <TextWithTooltip
               text="UEI Entity Name"
-              tooltip="Entity Name from SAM.gov."
+              tooltip="Entity Name from SAM.gov"
             />
           </th>
           <th scope="col">School District Name</th>
@@ -78,7 +78,7 @@ export default function AllRebateForms() {
           <th scope="col">
             <TextWithTooltip
               text="Status"
-              tooltip="Each submission is either in a “Submitted” or “Draft” state."
+              tooltip="Each submission is either in a “Submitted” or “Draft” state"
             />
           </th>
         </tr>
