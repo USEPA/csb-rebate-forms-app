@@ -11,7 +11,6 @@ const samlStrategy = new Strategy(
     privateKey: process.env.SAML_PRIVATE_KEY || null,
     signatureAlgorithm: "sha256",
     acceptedClockSkewMs: process.env.SAML_CLOCK_SKEW || 0,
-    identifierFormat: "urn:oasis:names:tc:SAML:2.0:nameid-format:transient",
   },
   // login
   function (profile, done) {
