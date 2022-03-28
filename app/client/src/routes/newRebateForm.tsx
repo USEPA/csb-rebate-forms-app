@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { DialogOverlay, DialogContent } from "@reach/dialog";
 import { Form } from "@formio/react";
 import icons from "uswds/img/sprite.svg";
-import "@reach/dialog/styles.css";
 // ---
 import { serverUrl, fetchData } from "../config";
 import { EPAUserData, SAMUserData, useUserState } from "contexts/user";
