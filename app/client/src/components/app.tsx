@@ -8,6 +8,7 @@ import {
 } from "react-router-dom";
 import "@reach/dialog/styles.css";
 import "uswds/css/uswds.css";
+import "uswds/js/uswds.js";
 import "choices.js/public/assets/styles/choices.min.css";
 // ---
 import { serverBasePath, serverUrl, fetchData } from "../config";
