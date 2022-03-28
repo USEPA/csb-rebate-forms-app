@@ -1,10 +1,12 @@
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Formio } from "formiojs";
 import uswds from "@formio/uswds";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl } from "../config";
+import ConfirmationDialog from "components/confirmationDialog";
 import { useUserState } from "contexts/user";
+import { Action, useDialogDispatch } from "contexts/dialog";
 
 Formio.use(uswds);
 
@@ -16,13 +18,22 @@ type IconTextProps = {
 
 function IconText({ order, icon, text }: IconTextProps) {
   const Icon = (
-    <svg className="usa-icon" aria-hidden="true" focusable="false" role="img">
+    <svg
+      key="icon"
+      className="usa-icon"
+      aria-hidden="true"
+      focusable="false"
+      role="img"
+    >
       <use href={`${icons}#${icon}`} />
     </svg>
   );
 
   const Text = (
-    <span className={`margin-${order === "icon-text" ? "left" : "right"}-1`}>
+    <span
+      key="text"
+      className={`margin-${order === "icon-text" ? "left" : "right"}-1`}
+    >
       {text}
     </span>
   );
@@ -36,7 +47,29 @@ function IconText({ order, icon, text }: IconTextProps) {
 
 export default function Dashboard() {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+
   const { userData } = useUserState();
+  const dispatch = useDialogDispatch();
+
+  /**
+   * When provided a destination location to navigate to, creates an action
+   * object that can be dispatched to the `DialogProvider` context component,
+   * which the `ConfirmationDialog` component uses to display the provided info.
+   */
+  function createDialogNavAction(destination: string): Action {
+    return {
+      type: "DISPLAY_DIALOG",
+      payload: {
+        heading: "Are you sure you want to navigate away from this page?",
+        description:
+          "If you haven’t saved the current form, any changes you’ve made will be lost.",
+        confirmText: "Yes",
+        cancelText: "Cancel",
+        confirmedAction: () => navigate(destination),
+      },
+    };
+  }
 
   return (
     <div>
@@ -55,9 +88,17 @@ export default function Dashboard() {
           </nav>
         ) : (
           <nav>
-            <Link to="/" className="usa-button font-sans-2xs">
+            <a
+              href="/"
+              className="usa-button font-sans-2xs"
+              onClick={(ev) => {
+                ev.preventDefault();
+                const action = createDialogNavAction("/");
+                dispatch(action);
+              }}
+            >
               <IconText order="icon-text" icon="list" text="All Rebates" />
-            </Link>
+            </a>
 
             <button className="usa-button font-sans-2xs" disabled>
               <IconText order="icon-text" icon="add_circle" text="New Rebate" />
@@ -80,6 +121,8 @@ export default function Dashboard() {
           </a>
         </nav>
       </div>
+
+      <ConfirmationDialog />
 
       <Outlet />
     </div>
