@@ -34,7 +34,7 @@
 
 [data-reach-dialog-content] {
   /* match USWDS modal */
-  overflow-x: scroll;
+  overflow-x: auto;
   margin: 1.25rem auto;
   padding: 0;
   width: 100%;
