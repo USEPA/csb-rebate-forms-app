@@ -3,6 +3,10 @@
   text-indent: 0;
 }
 
+.usa-modal--lg .usa-modal__main {
+  max-width: 48rem;
+}
+
 /* --- Formio --- */
 .formio-form-group {
   margin-bottom: 20px;
@@ -30,6 +34,7 @@
 
 [data-reach-dialog-content] {
   /* match USWDS modal */
+  overflow-x: scroll;
   margin: 1.25rem auto;
   padding: 0;
   width: 100%;

@@ -119,17 +119,15 @@ export default function NewRebateForm() {
             <div className="usa-modal__main">
               <h2
                 id="csb-new-rebate-modal-heading"
-                className="usa-modal__heading"
+                className="usa-modal__heading text-center"
               >
                 Start a new rebate application
               </h2>
 
-              <div className="usa-prose">
-                <p id="csb-new-rebate-modal-description">
+              <p id="csb-new-rebate-modal-description" className="text-center">
                   Please select a record below to begin your new rebate
                   application.
                 </p>
-              </div>
 
               <table className="usa-table usa-table--borderless usa-table--striped width-full">
                 <thead>
@@ -138,19 +136,19 @@ export default function NewRebateForm() {
                     <th scope="col">
                       <TextWithTooltip
                         text="UEI"
-                        tooltip="“Unique Entity ID” from SAM.gov."
+                        tooltip="“Unique Entity ID” from SAM.gov"
                       />
                     </th>
                     <th scope="col">
                       <TextWithTooltip
                         text="EFT"
-                        tooltip="“Electronic Funds Transfer” indicator from SAM.gov."
+                        tooltip="“Electronic Funds Transfer” indicator from SAM.gov"
                       />
                     </th>
                     <th scope="col">
                       <TextWithTooltip
                         text="UEI Entity Name"
-                        tooltip="Entity Name from SAM.gov."
+                        tooltip="Entity Name from SAM.gov"
                       />
                     </th>
                   </tr>
