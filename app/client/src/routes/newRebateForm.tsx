@@ -5,9 +5,10 @@ import { Form } from "@formio/react";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, fetchData } from "../config";
-import { EPAUserData, SAMUserData, useUserState } from "contexts/user";
 import Loading from "components/loading";
 import Message from "components/message";
+import { TextWithTooltip } from "components/infoTooltip";
+import { EPAUserData, SAMUserData, useUserState } from "contexts/user";
 
 type FormSchemaState =
   | { status: "idle"; data: null }
@@ -132,18 +133,25 @@ export default function NewRebateForm() {
 
               <table className="usa-table usa-table--borderless usa-table--striped width-full">
                 <thead>
-                  <tr>
-                    <th scope="col" className="font-sans-2xs">
-                      &nbsp;
+                  <tr className="font-sans-2xs text-no-wrap">
+                    <th scope="col">&nbsp;</th>
+                    <th scope="col">
+                      <TextWithTooltip
+                        text="UEI"
+                        tooltip="“Unique Entity ID” from SAM.gov."
+                      />
                     </th>
-                    <th scope="col" className="font-sans-2xs">
-                      UEI
+                    <th scope="col">
+                      <TextWithTooltip
+                        text="EFT"
+                        tooltip="“Electronic Funds Transfer” indicator from SAM.gov."
+                      />
                     </th>
-                    <th scope="col" className="font-sans-2xs">
-                      EFT
-                    </th>
-                    <th scope="col" className="font-sans-2xs">
-                      UEI Entity Name
+                    <th scope="col">
+                      <TextWithTooltip
+                        text="UEI Entity Name"
+                        tooltip="Entity Name from SAM.gov."
+                      />
                     </th>
                   </tr>
                 </thead>

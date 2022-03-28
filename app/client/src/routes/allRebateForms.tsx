@@ -5,6 +5,7 @@ import icons from "uswds/img/sprite.svg";
 import { serverUrl, fetchData } from "../config";
 import Loading from "components/loading";
 import Message from "components/message";
+import { TextWithTooltip } from "components/infoTooltip";
 import { useFormsState, useFormsDispatch } from "contexts/forms";
 
 export default function AllRebateForms() {
@@ -40,38 +41,45 @@ export default function AllRebateForms() {
     );
   }
 
-  // TODO: add tooltips for all acronymns
-
   return (
     <table className="usa-table usa-table--borderless usa-table--striped width-full">
       <thead>
-        <tr>
-          <th scope="col" className="font-sans-2xs">
-            &nbsp;
+        <tr className="font-sans-2xs text-no-wrap">
+          <th scope="col">&nbsp;</th>
+          <th scope="col">
+            <TextWithTooltip
+              text="Form Type"
+              tooltip="Either a “Rebate Application,” “Payment Request,” or “Close-Out” form"
+            />
           </th>
-          <th scope="col" className="font-sans-2xs">
-            Form Type
+          <th scope="col">
+            <TextWithTooltip
+              text="UEI"
+              tooltip="“Unique Entity ID” from SAM.gov."
+            />
           </th>
-          <th scope="col" className="font-sans-2xs">
-            UEI
+          <th scope="col">
+            <TextWithTooltip
+              text="EFT"
+              tooltip="“Electronic Funds Transfer” indicator from SAM.gov."
+            />
           </th>
-          <th scope="col" className="font-sans-2xs">
-            EFT
+          <th scope="col">
+            <TextWithTooltip
+              text="UEI Entity Name"
+              tooltip="Entity Name from SAM.gov."
+            />
           </th>
-          <th scope="col" className="font-sans-2xs">
-            UEI Entity Name
-          </th>
-          <th scope="col" className="font-sans-2xs">
-            School District Name
-          </th>
-          <th scope="col" className="font-sans-2xs">
-            Updated By
-          </th>
-          <th scope="col" className="font-sans-2xs text-right">
+          <th scope="col">School District Name</th>
+          <th scope="col">Updated By</th>
+          <th scope="col" className="text-right">
             Updated Date
           </th>
-          <th scope="col" className="font-sans-2xs">
-            Status
+          <th scope="col">
+            <TextWithTooltip
+              text="Status"
+              tooltip="Each submission is either in a “Submitted” or “Draft” state."
+            />
           </th>
         </tr>
       </thead>
@@ -110,7 +118,7 @@ export default function AllRebateForms() {
               </th>
               <th>
                 {formType === "rebate-application"
-                  ? "Application"
+                  ? "Rebate Application"
                   : formType === "payment-request"
                   ? "Payment Request"
                   : formType === "close-out"
