@@ -11,6 +11,7 @@ const samlStrategy = new Strategy(
     privateKey: process.env.SAML_PRIVATE_KEY || null,
     signatureAlgorithm: "sha256",
     acceptedClockSkewMs: process.env.SAML_CLOCK_SKEW || 0,
+    disableRequestedAuthnContext: true,
   },
   // login
   function (profile, done) {
