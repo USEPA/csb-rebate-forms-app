@@ -10,7 +10,6 @@ applications:
     buildpacks:
       - nodejs_buildpack
     command: node app/index.js
-    path: /
     env:
       CLOUD_SPACE: staging
       NODE_ENV: production
