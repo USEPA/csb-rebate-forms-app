@@ -1,3 +1,3 @@
 ## Your Rebate Forms
 
-(Your rebate forms intro paragraph)...
+Select the pencil icon to open an existing rebate form.
