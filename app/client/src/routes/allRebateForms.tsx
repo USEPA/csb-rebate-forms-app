@@ -158,6 +158,15 @@ export default function AllRebateForms() {
           })}
         </tbody>
       </table>
+
+      {content.status === "success" && (
+        <div className="margin-top-4 padding-2 border-1px border-base-lighter bg-base-lightest">
+          <ReactMarkdown
+            children={content.data.allRebateFormsOutro}
+            remarkPlugins={[remarkGfm]}
+          />
+        </div>
+      )}
     </>
   );
 }

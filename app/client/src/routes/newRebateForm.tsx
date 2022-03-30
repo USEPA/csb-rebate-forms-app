@@ -113,6 +113,7 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
 
 export default function NewRebateForm() {
   const { userData } = useUserState();
+  const { content } = useContentState();
 
   const [dialogShown, setDialogShown] = useState(true);
 
@@ -129,17 +130,31 @@ export default function NewRebateForm() {
         >
           <div className="usa-modal__content">
             <div className="usa-modal__main">
+              {content.status === "success" && (
+                <ReactMarkdown
+                  className="margin-top-4"
+                  children={content.data.newRebateFormDialog}
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    h2: (props) => (
               <h2
                 id="csb-new-rebate-modal-heading"
                 className="usa-modal__heading text-center"
               >
-                Start a new rebate application
+                        {props.children}
               </h2>
-
-              <p id="csb-new-rebate-modal-description" className="text-center">
-                  Please select a record below to begin your new rebate
-                  application.
+                    ),
+                    p: (props) => (
+                      <p
+                        id="csb-new-rebate-modal-description"
+                        className="text-center"
+                      >
+                        {props.children}
                 </p>
+                    ),
+                  }}
+                />
+              )}
 
               <table className="usa-table usa-table--borderless usa-table--striped width-full">
                 <thead>
