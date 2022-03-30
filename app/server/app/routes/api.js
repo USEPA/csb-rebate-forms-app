@@ -1,5 +1,8 @@
+const { resolve } = require("path");
+const { readFile } = require("fs/promises");
 const express = require("express");
 const axios = require("axios").default;
+// ---
 const { ensureAuthenticated } = require("../middleware");
 
 const router = express.Router();
@@ -48,6 +51,29 @@ router.get("/user", ensureAuthenticated, function (req, res) {
 });
 
 // TODO: Add log info when admin/helpdesk changes submission back to draft
+
+router.get("/content", ensureAuthenticated, (req, res) => {
+  function getContentPath(filename) {
+    return resolve(__dirname, `../content/${filename}`);
+  }
+
+  const fileNames = [
+    "all-rebate-forms-intro.md",
+    "existing-rebate-form-intro.md",
+    "new-rebate-form-intro.md",
+  ];
+
+  Promise.all(fileNames.map((fileName) => readFile(getContentPath(fileName))))
+    .then((buffers) => buffers.map((buffer) => buffer.toString()))
+    .then((data) => {
+      res.json({
+        allRebateFormsIntro: data[0],
+        newRebateFormIntro: data[1],
+        existingRebateFormIntro: data[2],
+      });
+    })
+    .catch((error) => console.error(error));
+});
 
 router.get("/rebate-form-schema", ensureAuthenticated, (req, res) => {
   axios
