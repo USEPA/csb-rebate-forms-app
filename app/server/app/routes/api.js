@@ -1,50 +1,162 @@
 const express = require("express");
+const axios = require("axios").default;
 const { ensureAuthenticated } = require("../middleware");
 
 const router = express.Router();
 
-router.get("/user", ensureAuthenticated, function (req, res) {
-  res.json(req.user);
-});
+const formioProjectUrl = process.env.FORMIO_PROJECT_URL;
+const formioFormId = process.env.FORMIO_FORM_ID;
+const formioApiKey = process.env.FORMIO_API_KEY;
 
-router.get("/login", (req, res, next) => {
-  // throw new Error("TODO: implement EPA gateway integration");
+const formioHeaders = { headers: { "x-token": formioApiKey } };
+
+router.get("/user", ensureAuthenticated, function (req, res) {
+  // Call BAP/SAM API for UEI data to add onto user data
+  // TODO: Integrate salesforce
+  const samUserData = [
+    {
+      uei: "056143447853",
+      eft: "436988994",
+      ueiEntityName: "Metro Buslines",
+    },
+    {
+      uei: "779442964145",
+      eft: "398640677",
+      ueiEntityName: "Highway Logistics, LLC",
+    },
+    {
+      uei: "960885252143",
+      eft: "381191934",
+      ueiEntityName: "Fleet Services, Inc.",
+    },
+    {
+      uei: "549203627426",
+      eft: "555409114",
+      ueiEntityName: "Green Transport",
+    },
+    {
+      uei: "569160091719",
+      eft: "330109015",
+      ueiEntityName: "SmartBus Co.",
+    },
+  ];
+
   res.json({
-    firstName: "George",
-    lastName: "Washington",
-    email: "george.washington@epa.gov",
+    epaUserData: req.user,
+    samUserData,
   });
 });
 
-router.get("/logout", (req, res, next) => {
-  // throw new Error("TODO: implement EPA gateway integration");
-  res.sendStatus(200);
+// TODO: Add log info when admin/helpdesk changes submission back to draft
+
+router.get("/rebate-form-schema", ensureAuthenticated, (req, res) => {
+  axios
+    .get(`${formioProjectUrl}/${formioFormId}`, formioHeaders)
+    .then((axiosRes) => axiosRes.data)
+    .then((schema) => res.json(schema))
+    .catch((error) => {
+      if (typeof error.toJSON === "function") {
+        console.error(error.toJSON());
+      }
+
+      res
+        .status(error?.response?.status || 500)
+        .json({ message: "Error getting Forms.gov rebate form schema" });
+    });
 });
 
-router.get("/bap", (req, res, next) => {
-  // throw new Error("TODO: implement BAP API integration");
-  res.json([
-    { uei: "056143447853" },
-    { uei: "779442964145" },
-    { uei: "960885252143" },
-    { uei: "549203627426" },
-    { uei: "569160091719" },
-  ]);
+router.post("/rebate-form-submission", ensureAuthenticated, (req, res) => {
+  axios
+    .post(
+      `${formioProjectUrl}/${formioFormId}/submission`,
+      req.body,
+      formioHeaders
+    )
+    .then((axiosRes) => axiosRes.data)
+    .then((submission) => res.json(submission))
+    .catch((error) => {
+      if (typeof error.toJSON === "function") {
+        console.error(error.toJSON());
+      }
+
+      res
+        .status(error?.response?.status || 500)
+        .json({ message: "Error posting Forms.gov rebate form submission" });
+    });
 });
 
-router.get("/form-schema", (req, res, next) => {
-  // throw new Error("TODO: implement Forms.gov integration");
-  res.json({ schema: "TODO" });
+router.get("/rebate-form-submissions", ensureAuthenticated, (req, res) => {
+  // TODO: pull UEIs from JWT, and store in an `ueis` array, for building up
+  // `query` string, which is appended to the `url` string
+
+  // const query = ueis.join("&data.uei=");
+  // const url = `${formioBaseUrl}/submission?data.uei=${query}`;
+
+  axios
+    .get(`${formioProjectUrl}/${formioFormId}/submission`, formioHeaders)
+    .then((axiosRes) => axiosRes.data)
+    .then((submissions) => {
+      return submissions.map((submission) => {
+        const { _id, _fid, form, project, state, created, modified, data } =
+          submission;
+
+        return {
+          // --- metadata fields ---
+          _id,
+          _fid,
+          form,
+          project,
+          created,
+          // --- form fields ---
+          formType: "rebate-application", // TODO: hard-coded for now. where does this come from?
+          uei: data.applicantUEI,
+          eft: "#########", // TODO: this needs to be in the form
+          ueiEntityName: data.applicantOrganizationName,
+          schoolDistrictName: data.ncesName,
+          lastUpdatedBy: data.sam_hidden_name,
+          lastUpdatedDate: modified,
+          status: state, // TODO: get full list of predefined set of states: "submitted" | "draft" ?
+        };
+      });
+    })
+    .then((submissions) => res.json(submissions))
+    .catch((error) => {
+      if (typeof error.toJSON === "function") {
+        console.error(error.toJSON());
+      }
+
+      res
+        .status(error?.response?.status || 500)
+        .json({ message: "Error getting Forms.gov rebate form submissions" });
+    });
 });
 
-router.post("/form-submissions", (req, res, next) => {
-  // throw new Error("TODO: implement Forms.gov integration");
-  console.log(req.body);
-  res.json([
-    { uei: "779442964145", name: "Form One" },
-    { uei: "779442964145", name: "Form Two" },
-    { uei: "960885252143", name: "Form Three" },
-  ]);
+router.get("/rebate-form-submission/:id", ensureAuthenticated, (req, res) => {
+  const id = req.params.id;
+
+  axios
+    .get(`${formioProjectUrl}/${formioFormId}/submission/${id}`, formioHeaders)
+    .then((axiosRes) => axiosRes.data)
+    .then((submission) => {
+      axios
+        .get(`${formioProjectUrl}/form/${submission.form}`, formioHeaders)
+        .then((axiosRes) => axiosRes.data)
+        .then((schema) => {
+          res.json({
+            formSchema: schema,
+            submissionData: submission,
+          });
+        });
+    })
+    .catch((error) => {
+      if (typeof error.toJSON === "function") {
+        console.error(error.toJSON());
+      }
+
+      res.status(error?.response?.status || 500).json({
+        message: `Error getting Forms.gov rebate form submission ${id}`,
+      });
+    });
 });
 
 module.exports = router;

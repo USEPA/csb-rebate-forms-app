@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const { createJwt } = require("./utils");
+const { createJwt, jwtAlgorithm } = require("./utilities/createJwt");
 
 // Middleware to check for JWT, add user object to request, and create new JWT to keep alive for 15 minutes from request
 const ensureAuthenticated = (req, res, next) => {
@@ -10,7 +10,7 @@ const ensureAuthenticated = (req, res, next) => {
   jwt.verify(
     req.cookies.token,
     process.env.JWT_PUBLIC_KEY,
-    {},
+    { algorithms: [jwtAlgorithm] },
     function (err, user) {
       if (err) {
         console.error(err);
@@ -42,7 +42,9 @@ const rejectRequest = (req, res) => {
   }
   // For non-API requests (e.g. on logout), redirect to base URL if token is non-existent or invalid
   return res.redirect(
-    `${process.env.CLIENT_URL || ""}/login?RelayState=${req.originalUrl}`
+    `${process.env.CLIENT_URL || process.env.SERVER_URL}/login?RelayState=${
+      req.originalUrl
+    }`
   );
 };
 

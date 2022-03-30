@@ -1,68 +1,128 @@
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Formio } from "formiojs";
+import uswds from "@formio/uswds";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { useApiState, fetchData } from "contexts/api";
-import { useUserState, useUserDispatch } from "contexts/user";
+import { serverUrl } from "../config";
+import ConfirmationDialog from "components/confirmationDialog";
+import { useUserState } from "contexts/user";
+import { Action, useDialogDispatch } from "contexts/dialog";
+
+Formio.use(uswds);
+
+type IconTextProps = {
+  order: "icon-text" | "text-icon";
+  icon: string;
+  text: string;
+};
+
+function IconText({ order, icon, text }: IconTextProps) {
+  const Icon = (
+    <svg
+      key="icon"
+      className="usa-icon"
+      aria-hidden="true"
+      focusable="false"
+      role="img"
+    >
+      <use href={`${icons}#${icon}`} />
+    </svg>
+  );
+
+  const Text = (
+    <span
+      key="text"
+      className={`margin-${order === "icon-text" ? "left" : "right"}-1`}
+    >
+      {text}
+    </span>
+  );
+
+  return (
+    <span className="display-flex flex-align-center">
+      {order === "icon-text" ? [Icon, Text] : [Text, Icon]}
+    </span>
+  );
+}
 
 export default function Dashboard() {
-  const { apiUrl } = useApiState();
-  const { epaUserData } = useUserState();
-  const dispatch = useUserDispatch();
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
 
-  if (epaUserData.status !== "success") return null;
+  const { userData } = useUserState();
+  const dispatch = useDialogDispatch();
+
+  /**
+   * When provided a destination location to navigate to, creates an action
+   * object that can be dispatched to the `DialogProvider` context component,
+   * which the `ConfirmationDialog` component uses to display the provided info.
+   */
+  function createDialogNavAction(destination: string): Action {
+    return {
+      type: "DISPLAY_DIALOG",
+      payload: {
+        heading: "Are you sure you want to navigate away from this page?",
+        description:
+          "If you haven’t saved the current form, any changes you’ve made will be lost.",
+        confirmText: "Yes",
+        cancelText: "Cancel",
+        confirmedAction: () => navigate(destination),
+      },
+    };
+  }
 
   return (
     <div>
-      <h1>Clean School Bus Data Collection System</h1>
+      <h1>Clean School Bus Rebate Forms</h1>
 
       <div className="display-flex flex-justify border-bottom padding-bottom-1">
-        <nav>
-          <Link to="/" className="usa-button usa-button--outline font-sans-2xs">
-            <span className="display-flex flex-align-center">
-              <svg
-                className="usa-icon"
-                aria-hidden="true"
-                focusable="false"
-                role="img"
-              >
-                <use href={`${icons}#list`} />
-              </svg>
-              <span className="margin-left-1">Dashboard</span>
-            </span>
-          </Link>
-        </nav>
+        {pathname === "/" ? (
+          <nav>
+            <button className="usa-button font-sans-2xs" disabled>
+              <IconText order="icon-text" icon="list" text="All Rebates" />
+            </button>
+
+            <Link to="/rebate/new" className="usa-button font-sans-2xs">
+              <IconText order="icon-text" icon="add_circle" text="New Rebate" />
+            </Link>
+          </nav>
+        ) : (
+          <nav>
+            <a
+              href="/"
+              className="usa-button font-sans-2xs"
+              onClick={(ev) => {
+                ev.preventDefault();
+                const action = createDialogNavAction("/");
+                dispatch(action);
+              }}
+            >
+              <IconText order="icon-text" icon="list" text="All Rebates" />
+            </a>
+
+            <button className="usa-button font-sans-2xs" disabled>
+              <IconText order="icon-text" icon="add_circle" text="New Rebate" />
+            </button>
+          </nav>
+        )}
 
         <nav className="display-flex flex-align-center">
           <p className="margin-bottom-0 margin-right-1">
-            <span>{epaUserData.data.email}</span>
+            <span>
+              {userData.status === "success" && userData.data.epaUserData.mail}
+            </span>
           </p>
 
-          <button
-            className="usa-button usa-button--outline font-sans-2xs margin-right-0"
-            onClick={(ev) => {
-              fetchData(`${apiUrl}/api/v1/logout`)
-                .then((logoutRes) => {
-                  dispatch({ type: "USER_SIGN_OUT" });
-                })
-                .catch((logoutErr) => {
-                  console.error("Error logging user out");
-                });
-            }}
+          <a
+            className="usa-button font-sans-2xs margin-right-0"
+            href={`${serverUrl}/logout`}
           >
-            <span className="display-flex flex-align-center">
-              <span className="margin-right-1">Sign out</span>
-              <svg
-                className="usa-icon"
-                aria-hidden="true"
-                focusable="false"
-                role="img"
-              >
-                <use href={`${icons}#logout`} />
-              </svg>
-            </span>
-          </button>
+            <IconText order="text-icon" icon="logout" text="Sign out" />
+          </a>
         </nav>
       </div>
+
+      <ConfirmationDialog />
 
       <Outlet />
     </div>

@@ -1,0 +1,17 @@
+---
+applications:
+  - name: csb-dev
+    routes:
+      - route: app-dev.app.cloud.gov/csb
+    instances: 2
+    memory: 128M
+    disk_quota: 512MB
+    timeout: 180
+    buildpacks:
+      - nodejs_buildpack
+    command: node app/index.js
+    env:
+      CLOUD_SPACE: development
+      NODE_ENV: production
+      LOGGER_LEVEL: DEBUG
+      OPTIMIZE_MEMORY: true

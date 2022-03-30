@@ -1,62 +1,41 @@
+import { useLocation } from "react-router-dom";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { useApiState, fetchData } from "contexts/api";
-import { useUserDispatch } from "contexts/user";
+import { serverUrl } from "../config";
+
+type LocationState = {
+  redirectedFrom: string;
+};
 
 export default function Login() {
-  const { apiUrl } = useApiState();
-  const dispatch = useUserDispatch();
+  const location = useLocation();
+
+  // page user was previously on before they were redirected to "/login"
+  const destination = (location.state as LocationState).redirectedFrom || "/";
+
+  // TODO: append the destination url to the login link's href as a query string
+  // param, so it could be used in the server app's /login controller
+  // (change the `successRedirect` value of '/' to the destination url)
+  console.log("previous url", destination);
 
   return (
-    <div className="margin-top-2 bg-base-lightest">
-      <div className="padding-9 text-center">
-        <button
-          className="usa-button font-sans-2xs"
-          onClick={(ev) => {
-            dispatch({ type: "FETCH_EPA_USER_DATA_REQUEST" });
-
-            fetchData(`${apiUrl}/api/v1/login`)
-              .then((loginRes) => {
-                dispatch({
-                  type: "FETCH_EPA_USER_DATA_SUCCESS",
-                  payload: { epaUserData: loginRes },
-                });
-
-                dispatch({ type: "FETCH_SAM_USER_DATA_REQUEST" });
-
-                fetchData(`${apiUrl}/api/v1/bap`)
-                  .then((bapRes) => {
-                    dispatch({
-                      type: "FETCH_SAM_USER_DATA_SUCCESS",
-                      payload: { samUserData: bapRes },
-                    });
-
-                    dispatch({ type: "USER_SIGN_IN" });
-                  })
-                  .catch((bapErr) => {
-                    console.error("Error fetching SAM user data");
-                    dispatch({ type: "FETCH_SAM_USER_DATA_FAILURE" });
-                  });
-              })
-              .catch((loginErr) => {
-                console.error("Error fetching EPA user data");
-                dispatch({ type: "FETCH_EPA_USER_DATA_FAILURE" });
-              });
-          }}
-        >
-          <span className="display-flex flex-align-center">
-            <span className="margin-right-1">Sign in</span>
-            <svg
-              className="usa-icon"
-              aria-hidden="true"
-              focusable="false"
-              role="img"
-            >
-              <use href={`${icons}#login`} />
-            </svg>
-          </span>
-        </button>
-      </div>
+    <div className="padding-9 text-center bg-base-lightest">
+      <a
+        className="usa-button margin-0 font-sans-2xs"
+        href={`${serverUrl}/login`}
+      >
+        <span className="display-flex flex-align-center">
+          <span className="margin-right-1">Sign in</span>
+          <svg
+            className="usa-icon"
+            aria-hidden="true"
+            focusable="false"
+            role="img"
+          >
+            <use href={`${icons}#login`} />
+          </svg>
+        </span>
+      </a>
     </div>
   );
 }

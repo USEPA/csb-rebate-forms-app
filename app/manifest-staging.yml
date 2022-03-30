@@ -1,0 +1,17 @@
+---
+applications:
+  - name: csb-staging
+    routes:
+      - route: app-stage.app.cloud.gov/csb
+    instances: 2
+    memory: 128M
+    disk_quota: 512MB
+    timeout: 180
+    buildpacks:
+      - nodejs_buildpack
+    command: node app/index.js
+    env:
+      CLOUD_SPACE: staging
+      NODE_ENV: production
+      LOGGER_LEVEL: INFO
+      OPTIMIZE_MEMORY: true
