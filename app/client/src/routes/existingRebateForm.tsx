@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { Form } from "@formio/react";
 // ---
 import { serverUrl, fetchData } from "../config";
 import Loading from "components/loading";
 import Message from "components/message";
+import { useContentState } from "contexts/content";
 
 type SubmissionsState =
   | { status: "idle"; data: { formSchema: null; submissionData: null } }
@@ -14,6 +17,7 @@ type SubmissionsState =
 
 export default function ExistingRebateForm() {
   const { id } = useParams<"id">();
+  const { content } = useContentState();
 
   const [rebateFormSubmission, setRebateFormSubmission] =
     useState<SubmissionsState>({
@@ -67,6 +71,18 @@ export default function ExistingRebateForm() {
 
   return (
     <div className="margin-top-2">
+      {content.status === "success" && (
+        <ReactMarkdown
+          children={content.data.existingRebateFormIntro}
+          remarkPlugins={[remarkGfm]}
+          components={{
+            h2: (props) => {
+              return <h2 className="margin-top-4">{props.children[0]}</h2>;
+            },
+          }}
+        />
+      )}
+
       <Form form={formSchema} submission={submissionData} />
     </div>
   );

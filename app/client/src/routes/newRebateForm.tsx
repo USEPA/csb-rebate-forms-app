@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { DialogOverlay, DialogContent } from "@reach/dialog";
 import { Form } from "@formio/react";
 import icons from "uswds/img/sprite.svg";
@@ -8,6 +10,7 @@ import { serverUrl, fetchData } from "../config";
 import Loading from "components/loading";
 import Message from "components/message";
 import { TextWithTooltip } from "components/infoTooltip";
+import { useContentState } from "contexts/content";
 import { EPAUserData, SAMUserData, useUserState } from "contexts/user";
 
 type FormSchemaState =
@@ -23,6 +26,7 @@ type FormioFormProps = {
 
 function FormioForm({ samData, epaData }: FormioFormProps) {
   const navigate = useNavigate();
+  const { content } = useContentState();
 
   const [formSchema, setFormSchema] = useState<FormSchemaState>({
     status: "idle",
@@ -70,6 +74,18 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
 
   return (
     <>
+      {content.status === "success" && (
+        <ReactMarkdown
+          children={content.data.newRebateFormIntro}
+          remarkPlugins={[remarkGfm]}
+          components={{
+            h2: (props) => {
+              return <h2 className="margin-top-4">{props.children[0]}</h2>;
+            },
+          }}
+        />
+      )}
+
       {formSubmissionFailed && (
         <Message type="error" text="Error submitting rebate form." />
       )}
