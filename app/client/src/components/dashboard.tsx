@@ -1,14 +1,43 @@
+import { useEffect } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Formio } from "formiojs";
 import uswds from "@formio/uswds";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl } from "../config";
+import { serverUrl, fetchData } from "../config";
 import ConfirmationDialog from "components/confirmationDialog";
 import { useUserState } from "contexts/user";
+import { useContentDispatch } from "contexts/content";
 import { Action, useDialogDispatch } from "contexts/dialog";
 
 Formio.use(uswds);
+
+function useFetchedContent() {
+  const dispatch = useContentDispatch();
+
+  useEffect(() => {
+    fetchData(`${serverUrl}/api/v1/content`)
+      .then((res) => {
+        const {
+          allRebateFormsIntro,
+          newRebateFormIntro,
+          existingRebateFormIntro,
+        } = res;
+        dispatch({ type: "FETCH_CONTENT_REQUEST" });
+        dispatch({
+          type: "FETCH_CONTENT_SUCCESS",
+          payload: {
+            allRebateFormsIntro,
+            newRebateFormIntro,
+            existingRebateFormIntro,
+          },
+        });
+      })
+      .catch((err) => {
+        dispatch({ type: "FETCH_CONTENT_FAILURE" });
+      });
+  }, [dispatch]);
+}
 
 type IconTextProps = {
   order: "icon-text" | "text-icon";
@@ -51,6 +80,8 @@ export default function Dashboard() {
 
   const { userData } = useUserState();
   const dispatch = useDialogDispatch();
+
+  useFetchedContent();
 
   /**
    * When provided a destination location to navigate to, creates an action

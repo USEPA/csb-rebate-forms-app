@@ -3,6 +3,7 @@ import { render } from "react-dom";
 import reportWebVitals from "./reportWebVitals";
 // ---
 import { UserProvider } from "contexts/user";
+import { ContentProvider } from "contexts/content";
 import { FormsProvider } from "contexts/forms";
 import { DialogProvider } from "contexts/dialog";
 import ErrorBoundary from "components/errorBoundary";
@@ -15,11 +16,13 @@ render(
   <StrictMode>
     <ErrorBoundary>
       <UserProvider>
-        <FormsProvider>
-          <DialogProvider>
-            <App />
-          </DialogProvider>
-        </FormsProvider>
+        <ContentProvider>
+          <FormsProvider>
+            <DialogProvider>
+              <App />
+            </DialogProvider>
+          </FormsProvider>
+        </ContentProvider>
       </UserProvider>
     </ErrorBoundary>
   </StrictMode>,
