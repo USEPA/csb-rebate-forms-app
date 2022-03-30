@@ -110,7 +110,11 @@ export default function Dashboard() {
         {pathname === "/" ? (
           <nav>
             <button className="usa-button font-sans-2xs" disabled>
-              <IconText order="icon-text" icon="list" text="All Rebates" />
+              <IconText
+                order="icon-text"
+                icon="list"
+                text="Your Rebate Forms"
+              />
             </button>
 
             <Link to="/rebate/new" className="usa-button font-sans-2xs">
