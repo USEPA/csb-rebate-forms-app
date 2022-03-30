@@ -136,7 +136,11 @@ export default function Dashboard() {
                 dispatch(action);
               }}
             >
-              <IconText order="icon-text" icon="list" text="All Rebates" />
+              <IconText
+                order="icon-text"
+                icon="list"
+                text="Your Rebate Forms"
+              />
             </a>
 
             <button className="usa-button font-sans-2xs" disabled>
