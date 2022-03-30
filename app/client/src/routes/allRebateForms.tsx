@@ -49,13 +49,9 @@ export default function AllRebateForms() {
     <>
       {content.status === "success" && (
         <ReactMarkdown
+          className="margin-top-4"
           children={content.data.allRebateFormsIntro}
           remarkPlugins={[remarkGfm]}
-          components={{
-            h2: (props) => {
-              return <h2 className="margin-top-4">{props.children[0]}</h2>;
-            },
-          }}
         />
       )}
 
