@@ -139,14 +139,14 @@ router.get("/rebate-form-submissions", ensureAuthenticated, (req, res) => {
           project,
           created,
           // --- form fields ---
-          formType: "rebate-application", // TODO: hard-coded for now. where does this come from?
+          formType: "Rebate",
           uei: data.applicantUEI,
-          eft: "#########", // TODO: this needs to be in the form
+          eft: "####", // TODO: this needs to be in the form
           ueiEntityName: data.applicantOrganizationName,
           schoolDistrictName: data.ncesName,
           lastUpdatedBy: data.sam_hidden_name,
           lastUpdatedDate: modified,
-          status: state, // TODO: get full list of predefined set of states: "submitted" | "draft" ?
+          status: state,
         };
       });
     })

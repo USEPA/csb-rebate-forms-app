@@ -126,15 +126,7 @@ export default function AllRebateForms() {
                     </span>
                   </Link>
                 </th>
-                <th>
-                  {formType === "rebate-application"
-                    ? "Rebate Application"
-                    : formType === "payment-request"
-                    ? "Payment Request"
-                    : formType === "close-out"
-                    ? "Close-Out"
-                    : ""}
-                </th>
+                <th>{formType}</th>
                 <th>{uei}</th>
                 <td>{eft}</td>
                 <td>{ueiEntityName}</td>
