@@ -112,6 +112,7 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
 }
 
 export default function NewRebateForm() {
+  const navigate = useNavigate();
   const { userData } = useUserState();
   const { content } = useContentState();
 
@@ -122,7 +123,13 @@ export default function NewRebateForm() {
 
   return (
     <div className="margin-top-2">
-      <DialogOverlay isOpen={dialogShown}>
+      <DialogOverlay
+        isOpen={dialogShown}
+        onDismiss={(ev) => {
+          setDialogShown(false);
+          navigate("/");
+        }}
+      >
         <DialogContent
           className="usa-modal usa-modal--lg"
           aria-labelledby="csb-new-rebate-modal-heading"
@@ -217,6 +224,24 @@ export default function NewRebateForm() {
                 </tbody>
               </table>
             </div>
+
+            <button
+              className="usa-button usa-modal__close"
+              aria-label="Close this window"
+              onClick={(ev) => {
+                setDialogShown(false);
+                navigate("/");
+              }}
+            >
+              <svg
+                className="usa-icon"
+                aria-hidden="true"
+                focusable="false"
+                role="img"
+              >
+                <use href={`${icons}#close`} />
+              </svg>
+            </button>
           </div>
         </DialogContent>
       </DialogOverlay>
