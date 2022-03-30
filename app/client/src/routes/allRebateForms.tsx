@@ -62,19 +62,19 @@ export default function AllRebateForms() {
             <th scope="col">
               <TextWithTooltip
                 text="Form Type"
-                tooltip="Either a “Rebate Application,” “Payment Request,” or “Close-Out” form"
+                tooltip="Rebate Application, Payment Request, or Close-Out form"
               />
             </th>
             <th scope="col">
               <TextWithTooltip
                 text="UEI"
-                tooltip="“Unique Entity ID” from SAM.gov"
+                tooltip="Unique Entity ID from SAM.gov"
               />
             </th>
             <th scope="col">
               <TextWithTooltip
                 text="EFT"
-                tooltip="“Electronic Funds Transfer” indicator from SAM.gov"
+                tooltip="Electronic Funds Transfer indicator from SAM.gov"
               />
             </th>
             <th scope="col">
@@ -89,10 +89,7 @@ export default function AllRebateForms() {
               Updated Date
             </th>
             <th scope="col">
-              <TextWithTooltip
-                text="Status"
-                tooltip="Each submission is either in a “Submitted” or “Draft” state"
-              />
+              <TextWithTooltip text="Status" tooltip="submitted or draft" />
             </th>
           </tr>
         </thead>
@@ -146,13 +143,7 @@ export default function AllRebateForms() {
                 <td className="text-right">
                   {new Date(lastUpdatedDate).toLocaleDateString()}
                 </td>
-                <td>
-                  {status === "draft"
-                    ? "Draft"
-                    : status === "submitted"
-                    ? "Submitted"
-                    : ""}
-                </td>
+                <td>{status}</td>
               </tr>
             );
           })}
