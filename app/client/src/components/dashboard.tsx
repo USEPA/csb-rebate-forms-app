@@ -1,14 +1,49 @@
+import { useEffect } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Formio } from "formiojs";
 import uswds from "@formio/uswds";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl } from "../config";
+import { serverUrl, fetchData } from "../config";
 import ConfirmationDialog from "components/confirmationDialog";
 import { useUserState } from "contexts/user";
+import { useContentDispatch } from "contexts/content";
 import { Action, useDialogDispatch } from "contexts/dialog";
 
 Formio.use(uswds);
+
+function useFetchedContent() {
+  const dispatch = useContentDispatch();
+
+  useEffect(() => {
+    fetchData(`${serverUrl}/api/v1/content`)
+      .then((res) => {
+        const {
+          allRebateFormsIntro,
+          allRebateFormsOutro,
+          newRebateFormIntro,
+          newRebateFormDialog,
+          existingDraftRebateFormIntro,
+          existingSubmittedRebateFormIntro,
+        } = res;
+        dispatch({ type: "FETCH_CONTENT_REQUEST" });
+        dispatch({
+          type: "FETCH_CONTENT_SUCCESS",
+          payload: {
+            allRebateFormsIntro,
+            allRebateFormsOutro,
+            newRebateFormIntro,
+            newRebateFormDialog,
+            existingDraftRebateFormIntro,
+            existingSubmittedRebateFormIntro,
+          },
+        });
+      })
+      .catch((err) => {
+        dispatch({ type: "FETCH_CONTENT_FAILURE" });
+      });
+  }, [dispatch]);
+}
 
 type IconTextProps = {
   order: "icon-text" | "text-icon";
@@ -52,6 +87,8 @@ export default function Dashboard() {
   const { userData } = useUserState();
   const dispatch = useDialogDispatch();
 
+  useFetchedContent();
+
   /**
    * When provided a destination location to navigate to, creates an action
    * object that can be dispatched to the `DialogProvider` context component,
@@ -79,7 +116,11 @@ export default function Dashboard() {
         {pathname === "/" ? (
           <nav>
             <button className="usa-button font-sans-2xs" disabled>
-              <IconText order="icon-text" icon="list" text="All Rebates" />
+              <IconText
+                order="icon-text"
+                icon="list"
+                text="Your Rebate Forms"
+              />
             </button>
 
             <Link to="/rebate/new" className="usa-button font-sans-2xs">
@@ -97,7 +138,11 @@ export default function Dashboard() {
                 dispatch(action);
               }}
             >
-              <IconText order="icon-text" icon="list" text="All Rebates" />
+              <IconText
+                order="icon-text"
+                icon="list"
+                text="Your Rebate Forms"
+              />
             </a>
 
             <button className="usa-button font-sans-2xs" disabled>

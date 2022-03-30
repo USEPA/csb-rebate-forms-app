@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { DialogOverlay, DialogContent } from "@reach/dialog";
 import { Form } from "@formio/react";
 import icons from "uswds/img/sprite.svg";
@@ -8,6 +10,7 @@ import { serverUrl, fetchData } from "../config";
 import Loading from "components/loading";
 import Message from "components/message";
 import { TextWithTooltip } from "components/infoTooltip";
+import { useContentState } from "contexts/content";
 import { EPAUserData, SAMUserData, useUserState } from "contexts/user";
 
 type FormSchemaState =
@@ -23,6 +26,7 @@ type FormioFormProps = {
 
 function FormioForm({ samData, epaData }: FormioFormProps) {
   const navigate = useNavigate();
+  const { content } = useContentState();
 
   const [formSchema, setFormSchema] = useState<FormSchemaState>({
     status: "idle",
@@ -70,6 +74,14 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
 
   return (
     <>
+      {content.status === "success" && (
+        <ReactMarkdown
+          className="margin-top-4"
+          children={content.data.newRebateFormIntro}
+          remarkPlugins={[remarkGfm]}
+        />
+      )}
+
       {formSubmissionFailed && (
         <Message type="error" text="Error submitting rebate form." />
       )}
@@ -101,6 +113,7 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
 
 export default function NewRebateForm() {
   const { userData } = useUserState();
+  const { content } = useContentState();
 
   const [dialogShown, setDialogShown] = useState(true);
 
@@ -117,17 +130,31 @@ export default function NewRebateForm() {
         >
           <div className="usa-modal__content">
             <div className="usa-modal__main">
+              {content.status === "success" && (
+                <ReactMarkdown
+                  className="margin-top-4"
+                  children={content.data.newRebateFormDialog}
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    h2: (props) => (
               <h2
                 id="csb-new-rebate-modal-heading"
                 className="usa-modal__heading text-center"
               >
-                Start a new rebate application
+                        {props.children}
               </h2>
-
-              <p id="csb-new-rebate-modal-description" className="text-center">
-                  Please select a record below to begin your new rebate
-                  application.
+                    ),
+                    p: (props) => (
+                      <p
+                        id="csb-new-rebate-modal-description"
+                        className="text-center"
+                      >
+                        {props.children}
                 </p>
+                    ),
+                  }}
+                />
+              )}
 
               <table className="usa-table usa-table--borderless usa-table--striped width-full">
                 <thead>

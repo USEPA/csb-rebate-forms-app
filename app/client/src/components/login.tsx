@@ -19,9 +19,14 @@ export default function Login() {
   console.log("previous url", destination);
 
   return (
-    <div className="padding-9 text-center bg-base-lightest">
+    <div className="padding-9 border-1px border-base-lighter text-center bg-base-lightest">
+      <p>
+        Click the <strong>Sign in</strong> button below to log into the{" "}
+        <em>Clean School Bus Rebate Forms</em> application.
+      </p>
+
       <a
-        className="usa-button margin-0 font-sans-2xs"
+        className="usa-button margin-top-1 margin-right-0 font-sans-2xs"
         href={`${serverUrl}/login`}
       >
         <span className="display-flex flex-align-center">
