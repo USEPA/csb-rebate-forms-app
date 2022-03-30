@@ -20,7 +20,9 @@ function useFetchedContent() {
       .then((res) => {
         const {
           allRebateFormsIntro,
+          allRebateFormsOutro,
           newRebateFormIntro,
+          newRebateFormDialog,
           existingRebateFormIntro,
         } = res;
         dispatch({ type: "FETCH_CONTENT_REQUEST" });
@@ -28,7 +30,9 @@ function useFetchedContent() {
           type: "FETCH_CONTENT_SUCCESS",
           payload: {
             allRebateFormsIntro,
+            allRebateFormsOutro,
             newRebateFormIntro,
+            newRebateFormDialog,
             existingRebateFormIntro,
           },
         });

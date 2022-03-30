@@ -1,5 +1,5 @@
-const { resolve } = require("path");
-const { readFile } = require("fs/promises");
+const { resolve } = require("node:path");
+const { readFile } = require("node:fs/promises");
 const express = require("express");
 const axios = require("axios").default;
 // ---
@@ -54,22 +54,25 @@ router.get("/user", ensureAuthenticated, function (req, res) {
 
 router.get("/content", ensureAuthenticated, (req, res) => {
   function getContentPath(filename) {
-    return resolve(__dirname, `../content/${filename}`);
+    return resolve(__dirname, "../content", filename);
   }
 
   const fileNames = [
     "all-rebate-forms-intro.md",
+    "all-rebate-forms-outro.md",
     "new-rebate-form-intro.md",
+    "new-rebate-form-dialog.md",
     "existing-rebate-form-intro.md",
   ];
 
-  Promise.all(fileNames.map((fileName) => readFile(getContentPath(fileName))))
-    .then((buffers) => buffers.map((buffer) => buffer.toString()))
+  Promise.all(fileNames.map((fname) => readFile(getContentPath(fname), "utf8")))
     .then((data) => {
       res.json({
         allRebateFormsIntro: data[0],
-        newRebateFormIntro: data[1],
-        existingRebateFormIntro: data[2],
+        allRebateFormsOutro: data[1],
+        newRebateFormIntro: data[2],
+        newRebateFormDialog: data[3],
+        existingRebateFormIntro: data[4],
       });
     })
     .catch((error) => console.error(error));

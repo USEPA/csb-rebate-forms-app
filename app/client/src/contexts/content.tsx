@@ -12,7 +12,9 @@ type Props = {
 
 type Content = {
   allRebateFormsIntro: string;
+  allRebateFormsOutro: string;
   newRebateFormIntro: string;
+  newRebateFormDialog: string;
   existingRebateFormIntro: string;
 };
 
@@ -28,11 +30,7 @@ export type Action =
   | { type: "FETCH_CONTENT_REQUEST" }
   | {
       type: "FETCH_CONTENT_SUCCESS";
-      payload: {
-        allRebateFormsIntro: string;
-        newRebateFormIntro: string;
-        existingRebateFormIntro: string;
-      };
+      payload: Content;
     }
   | { type: "FETCH_CONTENT_FAILURE" };
 
@@ -54,7 +52,9 @@ function reducer(state: State, action: Action): State {
     case "FETCH_CONTENT_SUCCESS": {
       const {
         allRebateFormsIntro,
+        allRebateFormsOutro,
         newRebateFormIntro,
+        newRebateFormDialog,
         existingRebateFormIntro,
       } = action.payload;
 
@@ -64,7 +64,9 @@ function reducer(state: State, action: Action): State {
           status: "success",
           data: {
             allRebateFormsIntro,
+            allRebateFormsOutro,
             newRebateFormIntro,
+            newRebateFormDialog,
             existingRebateFormIntro,
           },
         },
