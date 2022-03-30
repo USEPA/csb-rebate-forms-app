@@ -59,8 +59,8 @@ router.get("/content", ensureAuthenticated, (req, res) => {
 
   const fileNames = [
     "all-rebate-forms-intro.md",
-    "existing-rebate-form-intro.md",
     "new-rebate-form-intro.md",
+    "existing-rebate-form-intro.md",
   ];
 
   Promise.all(fileNames.map((fileName) => readFile(getContentPath(fileName))))
