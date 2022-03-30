@@ -62,7 +62,8 @@ router.get("/content", ensureAuthenticated, (req, res) => {
     "all-rebate-forms-outro.md",
     "new-rebate-form-intro.md",
     "new-rebate-form-dialog.md",
-    "existing-rebate-form-intro.md",
+    "existing-draft-rebate-form-intro.md",
+    "existing-submitted-rebate-form-intro.md",
   ];
 
   Promise.all(fileNames.map((fname) => readFile(getContentPath(fname), "utf8")))
@@ -72,7 +73,8 @@ router.get("/content", ensureAuthenticated, (req, res) => {
         allRebateFormsOutro: data[1],
         newRebateFormIntro: data[2],
         newRebateFormDialog: data[3],
-        existingRebateFormIntro: data[4],
+        existingDraftRebateFormIntro: data[4],
+        existingSubmittedRebateFormIntro: data[5],
       });
     })
     .catch((error) => console.error(error));

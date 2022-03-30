@@ -15,7 +15,8 @@ type Content = {
   allRebateFormsOutro: string;
   newRebateFormIntro: string;
   newRebateFormDialog: string;
-  existingRebateFormIntro: string;
+  existingDraftRebateFormIntro: string;
+  existingSubmittedRebateFormIntro: string;
 };
 
 type State = {
@@ -55,7 +56,8 @@ function reducer(state: State, action: Action): State {
         allRebateFormsOutro,
         newRebateFormIntro,
         newRebateFormDialog,
-        existingRebateFormIntro,
+        existingDraftRebateFormIntro,
+        existingSubmittedRebateFormIntro,
       } = action.payload;
 
       return {
@@ -67,7 +69,8 @@ function reducer(state: State, action: Action): State {
             allRebateFormsOutro,
             newRebateFormIntro,
             newRebateFormDialog,
-            existingRebateFormIntro,
+            existingDraftRebateFormIntro,
+            existingSubmittedRebateFormIntro,
           },
         },
       };

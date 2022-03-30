@@ -23,7 +23,8 @@ function useFetchedContent() {
           allRebateFormsOutro,
           newRebateFormIntro,
           newRebateFormDialog,
-          existingRebateFormIntro,
+          existingDraftRebateFormIntro,
+          existingSubmittedRebateFormIntro,
         } = res;
         dispatch({ type: "FETCH_CONTENT_REQUEST" });
         dispatch({
@@ -33,7 +34,8 @@ function useFetchedContent() {
             allRebateFormsOutro,
             newRebateFormIntro,
             newRebateFormDialog,
-            existingRebateFormIntro,
+            existingDraftRebateFormIntro,
+            existingSubmittedRebateFormIntro,
           },
         });
       })

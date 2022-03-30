@@ -10,10 +10,34 @@ import Message from "components/message";
 import { useContentState } from "contexts/content";
 
 type SubmissionsState =
-  | { status: "idle"; data: { formSchema: null; submissionData: null } }
-  | { status: "pending"; data: { formSchema: null; submissionData: null } }
-  | { status: "success"; data: { formSchema: object; submissionData: object } }
-  | { status: "failure"; data: { formSchema: null; submissionData: null } };
+  | {
+      status: "idle";
+      data: {
+        formSchema: null;
+        submissionData: null;
+      };
+    }
+  | {
+      status: "pending";
+      data: {
+        formSchema: null;
+        submissionData: null;
+      };
+    }
+  | {
+      status: "success";
+      data: {
+        formSchema: object;
+        submissionData: { data: object; state: "submitted" | "draft" };
+      };
+    }
+  | {
+      status: "failure";
+      data: {
+        formSchema: null;
+        submissionData: null;
+      };
+    };
 
 export default function ExistingRebateForm() {
   const { id } = useParams<"id">();
@@ -74,7 +98,13 @@ export default function ExistingRebateForm() {
       {content.status === "success" && (
         <ReactMarkdown
           className="margin-top-4"
-          children={content.data.existingRebateFormIntro}
+          children={
+            submissionData.state === "draft"
+              ? content.data.existingDraftRebateFormIntro
+              : submissionData.state === "submitted"
+              ? content.data.existingSubmittedRebateFormIntro
+              : ""
+          }
           remarkPlugins={[remarkGfm]}
         />
       )}

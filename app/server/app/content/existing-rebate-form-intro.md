@@ -1,3 +1,0 @@
-## Your Rebate Form
-
-(Existing rebate forms intro paragraph)...
