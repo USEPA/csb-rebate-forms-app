@@ -1,7 +1,9 @@
-[
-  {
-    "AllowedOrigins": ["*"],
-    "AllowedHeaders": ["*"],
-    "AllowedMethods": ["GET"]
-  }
-]
+{
+  "CORSRules": [
+    {
+      "AllowedOrigins": ["*"],
+      "AllowedHeaders": ["*"],
+      "AllowedMethods": ["GET"]
+    }
+  ]
+}
