@@ -4,9 +4,9 @@ const log = logger.logger;
 const errorHandler = (err, req, res, next) => {
   log.error(err);
   // If user was trying to log in and an error occurred, return them back to front-end login page to display a message
-  if (req.originalUrl.includes("/auth/login")) {
+  if (req.originalUrl.includes("/login")) {
     return res.redirect(
-      `${process.env.CLIENT_URL || process.env.SERVER_URL}/login?error=saml`
+      `${process.env.CLIENT_URL || process.env.SERVER_URL}/welcome?error=saml`
     );
   }
   // For API errors, return error message in JSON format

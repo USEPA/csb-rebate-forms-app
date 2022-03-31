@@ -76,7 +76,7 @@ const getSamData = (email) => {
 
 // TODO: pass RelayState from front-end if necessary?
 router.get(
-  "/auth/login",
+  "/login",
   passport.authenticate("saml", {
     successRedirect: "/",
     failureRedirect: "/login/fail",
@@ -97,7 +97,7 @@ router.post(
       .then((samUserData) => {
         // First check if user has at least one associated UEI before completing login process
         if (samUserData && !samUserData.length) {
-          res.redirect(`${baseUrl}/login?error=uei`);
+          res.redirect(`${baseUrl}/welcome?error=uei`);
         }
 
         // Create JWT, set as cookie, then redirect to client
@@ -116,7 +116,7 @@ router.post(
       })
       .catch((err) => {
         log.error(err);
-        res.redirect(`${baseUrl}/login?error=bap`);
+        res.redirect(`${baseUrl}/welcome?error=bap`);
       });
   }
 );
@@ -125,7 +125,7 @@ router.get("/login/fail", (req, res) => {
   res.status(401).json({ message: "Login failed" });
 });
 
-router.get("/auth/logout", ensureAuthenticated, (req, res) => {
+router.get("/logout", ensureAuthenticated, (req, res) => {
   samlStrategy.logout(req, function (err, requestUrl) {
     if (err) {
       log.error(err);

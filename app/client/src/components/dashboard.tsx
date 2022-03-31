@@ -160,7 +160,7 @@ export default function Dashboard() {
 
           <a
             className="usa-button font-sans-2xs margin-right-0"
-            href={`${serverUrl}/auth/logout`}
+            href={`${serverUrl}/logout`}
           >
             <IconText order="text-icon" icon="logout" text="Sign out" />
           </a>
