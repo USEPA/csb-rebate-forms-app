@@ -29,7 +29,7 @@ const requiredEnvVars = [
   "FORMIO_FORM_ID",
   "FORMIO_API_KEY",
   "S3_PUBLIC_BUCKET",
-  "s3_PUBLIC_REGION",
+  "S3_PUBLIC_REGION",
 ];
 
 requiredEnvVars.forEach((envVar) => {
