@@ -73,7 +73,7 @@ const getSamData = (email) => {
 
 // TODO: pass RelayState from front-end if necessary?
 router.get(
-  "/login",
+  "auth/login",
   passport.authenticate("saml", {
     successRedirect: "/",
     failureRedirect: "/login/fail",
@@ -122,7 +122,7 @@ router.get("/login/fail", (req, res) => {
   res.status(401).json({ message: "Login failed" });
 });
 
-router.get("/logout", ensureAuthenticated, (req, res) => {
+router.get("/auth/logout", ensureAuthenticated, (req, res) => {
   samlStrategy.logout(req, function (err, requestUrl) {
     if (err) {
       console.error(err);

@@ -27,7 +27,7 @@ export default function Login() {
 
       <a
         className="usa-button margin-top-1 margin-right-0 font-sans-2xs"
-        href={`${serverUrl}/login`}
+        href={`${serverUrl}/auth/login`}
       >
         <span className="display-flex flex-align-center">
           <span className="margin-right-1">Sign in</span>
