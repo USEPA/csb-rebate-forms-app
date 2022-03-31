@@ -61,12 +61,12 @@ const getSamData = (email) => {
           return res.records;
         })
         .catch((err) => {
-          console.error(err);
+          log.error(err);
           throw err;
         });
     })
     .catch((err) => {
-      console.error(err);
+      log.error(err);
       throw err;
     });
 };
@@ -111,9 +111,8 @@ router.post(
         );
       })
       .catch((err) => {
-        console.error(err);
-        // TODO: Create front-end page to explain that user does not have access
-        res.redirect(`${process.env.CLIENT_URL || ""}/login?accessError=true`);
+        log.error(err);
+        res.redirect(`${process.env.CLIENT_URL || ""}/login?error=bap`);
       });
   }
 );
@@ -125,7 +124,7 @@ router.get("/login/fail", (req, res) => {
 router.get("/auth/logout", ensureAuthenticated, (req, res) => {
   samlStrategy.logout(req, function (err, requestUrl) {
     if (err) {
-      console.error(err);
+      log.error(err);
       res.redirect(`${process.env.CLIENT_URL || process.env.SERVER_URL}/`);
     } else {
       // Send request to SAML logout url
