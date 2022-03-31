@@ -2,32 +2,28 @@ import { StrictMode } from "react";
 import { render } from "react-dom";
 import reportWebVitals from "./reportWebVitals";
 // ---
-import { ApiProvider } from "contexts/api";
 import { UserProvider } from "contexts/user";
+import { ContentProvider } from "contexts/content";
 import { FormsProvider } from "contexts/forms";
+import { DialogProvider } from "contexts/dialog";
 import ErrorBoundary from "components/errorBoundary";
 import App from "components/app";
-
-const { NODE_ENV, REACT_APP_SUB_PATH } = process.env;
-
-export const serverUrl =
-  NODE_ENV === "development" ? "http://localhost:3001" : window.location.origin;
-
-export const serverBasePath =
-  NODE_ENV === "development" ? "" : REACT_APP_SUB_PATH || "/csb";
+import "./styles.css";
 
 const rootElement = document.getElementById("root");
 
 render(
   <StrictMode>
     <ErrorBoundary>
-      <ApiProvider>
-        <UserProvider>
+      <UserProvider>
+        <ContentProvider>
           <FormsProvider>
-            <App />
+            <DialogProvider>
+              <App />
+            </DialogProvider>
           </FormsProvider>
-        </UserProvider>
-      </ApiProvider>
+        </ContentProvider>
+      </UserProvider>
     </ErrorBoundary>
   </StrictMode>,
   rootElement

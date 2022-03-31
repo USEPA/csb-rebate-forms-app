@@ -3,7 +3,7 @@ applications:
   - name: csb-dev
     routes:
       - route: app-dev.app.cloud.gov/csb
-    instances: 4
+    instances: 2
     memory: 128M
     disk_quota: 512MB
     timeout: 180
@@ -12,6 +12,8 @@ applications:
     command: node app/index.js
     env:
       CLOUD_SPACE: development
+      NODE_ENV: production
       LOGGER_LEVEL: DEBUG
       OPTIMIZE_MEMORY: true
-      SUB_PATH: /csb
+    services:
+      - s3-pub-csb-dev

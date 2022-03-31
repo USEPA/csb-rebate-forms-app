@@ -24,10 +24,14 @@ type RebateFormSubmission = {
   created: string; // datetime string created
   modified: string; // datetime string modified
   // --- form fields ---
+  formType: "Rebate" | "Payment Request" | "Close-Out";
   uei: string;
-  entityName: string;
-  applicationName: string;
+  eft: string;
+  ueiEntityName: string;
+  schoolDistrictName: string;
   lastUpdatedBy: string;
+  lastUpdatedDate: string;
+  status: "submitted" | "draft";
 };
 
 type State = {

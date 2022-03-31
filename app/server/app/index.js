@@ -6,7 +6,6 @@ const cors = require("cors");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 const history = require("connect-history-api-fallback");
-const basicAuth = require("express-basic-auth");
 const passport = require("passport");
 // ---
 const logger = require("./utilities/logger");
@@ -40,24 +39,6 @@ requiredEnvVars.forEach((envVar) => {
 
 app.disable("x-powered-by");
 
-// Set up browser basic auth for development and staging sites
-const unauthorizedResponse = (req) => {
-  return req.auth ? "Invalid credentials" : "No credentials provided";
-};
-
-if (
-  process.env.CLOUD_SPACE === "development" ||
-  process.env.CLOUD_SPACE === "staging"
-) {
-  app.use(
-    basicAuth({
-      users: { [process.env.BASIC_AUTH_USER]: process.env.BASIC_AUTH_PASSWORD },
-      challenge: true,
-      unauthorizedResponse,
-    })
-  );
-}
-
 // Enable CORS and logging with morgan for local development only
 // NOTE: process.env.NODE_ENV set to "development" below to match value defined
 // in create-react-app when client app is run locally via `npm start`
@@ -73,12 +54,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
 passport.use("saml", samlStrategy);
 
-// If SUB_PATH is provided, server routes and static files from there (e.g. /csb)
-const basePath = `${process.env.SUB_PATH || ""}/`;
+// If SERVER_BASE_PATH is provided, serve routes and static files from there (e.g. /csb)
+const basePath = `${process.env.SERVER_BASE_PATH || ""}/`;
 app.use(basePath, routes);
 
 // Use regex to add trailing slash on static requests (required when using sub path)
-const pathRegex = new RegExp(`^\\${process.env.SUB_PATH || ""}$`);
+const pathRegex = new RegExp(`^\\${process.env.SERVER_BASE_PATH || ""}$`);
 app.all(pathRegex, (req, res) => res.redirect(`${basePath}`));
 
 /*
