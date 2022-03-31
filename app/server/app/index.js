@@ -3,6 +3,7 @@ require("dotenv").config();
 const { resolve } = require("node:path");
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 const history = require("connect-history-api-fallback");
@@ -15,6 +16,17 @@ const routes = require("./routes");
 const app = express();
 const port = process.env.PORT || 3001;
 const log = logger.logger;
+
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+  })
+);
+app.use(
+  helmet.hsts({
+    maxAge: 31536000,
+  })
+);
 
 const requiredEnvVars = [
   "SERVER_URL",
