@@ -14,16 +14,10 @@ const formioApiKey = process.env.FORMIO_API_KEY;
 const formioHeaders = { headers: { "x-token": formioApiKey } };
 
 router.get("/user", ensureAuthenticated, function (req, res) {
-  // samUserData is stored in the req.user object via JWT - map through to clean up fieldnames before returning
-  const samUserData = req.user.samUserData.map((samRecord) => ({
-    uei: samRecord.UEI__c,
-    eft: samRecord.Entity_EFT_Indicator__c,
-    cage: samRecord.CAGE_Code__c,
-    entityName: samRecord.Name,
-  }));
+  // TODO: map through samUserData to clean up field names if needed
 
   // req.user includes both epaUserData (object) and samUserData (array)
-  res.json({ epaUserData: req.user.epaUserData, samUserData });
+  res.json(req.user);
 });
 
 // TODO: Add log info when admin/helpdesk changes submission back to draft

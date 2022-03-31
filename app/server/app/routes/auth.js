@@ -10,7 +10,7 @@ const log = logger.logger;
 
 const router = express.Router();
 
-const getSamData = async (email) => {
+const getSamData = (email) => {
   const conn = new jsforce.Connection({
     oauth2: {
       // you can change loginUrl to connect to sandbox or prerelease env.
@@ -28,15 +28,33 @@ const getSamData = async (email) => {
       return conn
         .query(
           `
-          SELECT UEI__c, ENTITY_EFT_INDICATOR__c, CAGE_CODE__c, Name, Id
-          FROM Account
-          WHERE RecordType.Name = 'SAM.gov'
-            AND Id IN (
-              SELECT AccountId
-              FROM contact
-              WHERE RecordType.Name = 'SAM.gov'
-                AND email = '${email}'
-            )
+            SELECT
+                ENTITY_COMBO_KEY__c,
+                ENTITY_STATUS__c,
+                UNIQUE_ENTITY_ID__c,
+                ENTITY_EFT_INDICATOR__c,
+                CAGE_CODE__c,
+                NAME,
+                GOVT_BUS_POC_NAME__c,
+                GOVT_BUS_POC_EMAIL__c,
+                ALT_GOVT_BUS_POC_NAME__c,
+                ALT_GOVT_BUS_POC_EMAIL__c,
+                ELEC_BUS_POC_NAME__c,
+                ELEC_BUS_POC_EMAIL__c,
+                ALT_ELEC_BUS_POC_NAME__c,
+                ALT_ELEC_BUS_POC_EMAIL__c,
+                PHYSICAL_ADDRESS_LINE_1__c,
+                PHYSICAL_ADDRESS_LINE_2__c,
+                PHYSICAL_ADDRESS_CITY__c,
+                PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
+                PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
+                PHYSICAL_ADDRESS_ZIP_CODE_4__c
+            FROM ${process.env.BAP_TABLE}
+            WHERE
+                ALT_ELEC_BUS_POC_EMAIL__c = '${email}' or
+                GOVT_BUS_POC_EMAIL__c = '${email}' or
+                ALT_GOVT_BUS_POC_EMAIL__c = '${email}' or
+                ELEC_BUS_POC_EMAIL__c = '${email}'
           `
         )
         .then((res) => {
@@ -95,7 +113,7 @@ router.post(
       .catch((err) => {
         console.error(err);
         // TODO: Create front-end page to explain that user does not have access
-        res.redirect(`${process.env.CLIENT_URL || ""}/access-error`);
+        res.redirect(`${process.env.CLIENT_URL || ""}/login?accessError=true`);
       });
   }
 );
