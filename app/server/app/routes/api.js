@@ -8,7 +8,7 @@ const { ensureAuthenticated } = require("../middleware");
 const router = express.Router();
 
 const s3Bucket = process.env.S3_PUBLIC_BUCKET;
-const s3Region = process.env.s3_PUBLIC_REGION;
+const s3Region = process.env.S3_PUBLIC_REGION;
 
 const formioProjectUrl = process.env.FORMIO_PROJECT_URL;
 const formioFormId = process.env.FORMIO_FORM_ID;
