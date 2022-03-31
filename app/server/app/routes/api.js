@@ -7,6 +7,9 @@ const { ensureAuthenticated } = require("../middleware");
 
 const router = express.Router();
 
+const s3Bucket = process.env.S3_PUBLIC_BUCKET;
+const s3Region = process.env.s3_PUBLIC_REGION;
+
 const formioProjectUrl = process.env.FORMIO_PROJECT_URL;
 const formioFormId = process.env.FORMIO_FORM_ID;
 const formioApiKey = process.env.FORMIO_API_KEY;
@@ -53,11 +56,8 @@ router.get("/user", ensureAuthenticated, function (req, res) {
 // TODO: Add log info when admin/helpdesk changes submission back to draft
 
 router.get("/content", ensureAuthenticated, (req, res) => {
-  function getContentPath(filename) {
-    return resolve(__dirname, "../content", filename);
-  }
-
-  const fileNames = [
+  // NOTE: static content files found in `app/server/app/config/` directory
+  const filenames = [
     "all-rebate-forms-intro.md",
     "all-rebate-forms-outro.md",
     "new-rebate-form-intro.md",
@@ -66,7 +66,24 @@ router.get("/content", ensureAuthenticated, (req, res) => {
     "existing-submitted-rebate-form-intro.md",
   ];
 
-  Promise.all(fileNames.map((fname) => readFile(getContentPath(fname), "utf8")))
+  const s3BucketUrl = `https://${s3Bucket}.s3-${s3Region}.amazonaws.com`;
+
+  Promise.all(
+    filenames.map((filename) => {
+      // local development: read files directly from disk
+      // production: fetch files from the public s3 bucket
+      return process.env.NODE_ENV === "development"
+        ? readFile(resolve(__dirname, "../content", filename), "utf8")
+        : axios.get(`${s3BucketUrl}/content/${filename}`);
+    })
+  )
+    .then((stringsOrResponses) => {
+      // local development: no further processing of strings needed
+      // production: get data from responses
+      return process.env.NODE_ENV === "development"
+        ? stringsOrResponses
+        : stringsOrResponses.map((axiosRes) => axiosRes.data);
+    })
     .then((data) => {
       res.json({
         allRebateFormsIntro: data[0],
@@ -77,7 +94,15 @@ router.get("/content", ensureAuthenticated, (req, res) => {
         existingSubmittedRebateFormIntro: data[5],
       });
     })
-    .catch((error) => console.error(error));
+    .catch((error) => {
+      if (typeof error.toJSON === "function") {
+        console.error(error.toJSON());
+      }
+
+      res
+        .status(error?.response?.status || 500)
+        .json({ message: "Error getting static content from S3 bucket" });
+    });
 });
 
 router.get("/rebate-form-schema", ensureAuthenticated, (req, res) => {
