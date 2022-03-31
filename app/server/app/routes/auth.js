@@ -10,6 +10,9 @@ const log = logger.logger;
 
 const router = express.Router();
 
+// For redirects below, set const for base url (SERVER_URL is needed as fallback when using sub path, e.g. /csb)
+const baseUrl = process.env.CLIENT_URL || process.env.SERVER_URL;
+
 const getSamData = (email) => {
   const conn = new jsforce.Connection({
     oauth2: {
@@ -92,6 +95,11 @@ router.post(
 
     getSamData(req.user.mail)
       .then((samUserData) => {
+        // First check if user has at least one associated UEI before completing login process
+        if (samUserData && !samUserData.length) {
+          res.redirect(`${baseUrl}/login?error=uei`);
+        }
+
         // Create JWT, set as cookie, then redirect to client
         const token = createJwt({ epaUserData, samUserData });
         res.cookie("token", token, { httpOnly: true });
@@ -104,15 +112,11 @@ router.post(
         );
 
         // "RelayState" will be the path that the user initially tried to access before being sent to /login
-        res.redirect(
-          `${process.env.CLIENT_URL || process.env.SERVER_URL}${
-            req.body.RelayState || "/"
-          }`
-        );
+        res.redirect(`${baseUrl}${req.body.RelayState || "/"}`);
       })
       .catch((err) => {
         log.error(err);
-        res.redirect(`${process.env.CLIENT_URL || ""}/login?error=bap`);
+        res.redirect(`${baseUrl}/login?error=bap`);
       });
   }
 );
@@ -125,7 +129,7 @@ router.get("/auth/logout", ensureAuthenticated, (req, res) => {
   samlStrategy.logout(req, function (err, requestUrl) {
     if (err) {
       log.error(err);
-      res.redirect(`${process.env.CLIENT_URL || process.env.SERVER_URL}/`);
+      res.redirect(`${baseUrl}/`);
     } else {
       // Send request to SAML logout url
       res.redirect(requestUrl);
@@ -136,7 +140,7 @@ router.get("/auth/logout", ensureAuthenticated, (req, res) => {
 const logoutCallback = (req, res) => {
   // Clear token cookie so client no longer passes JWT after logout
   res.clearCookie("token");
-  res.redirect(`${process.env.CLIENT_URL || process.env.SERVER_URL}/`);
+  res.redirect(`${baseUrl}/`);
 };
 
 // Local saml config sends GET for logout callback, while EPA config sends POST. Handle both
