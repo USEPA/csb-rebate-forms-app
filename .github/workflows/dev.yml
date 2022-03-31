@@ -42,6 +42,10 @@ jobs:
       FORMIO_PROJECT_URL: ${{ secrets.FORMIO_PROJECT_URL }}
       FORMIO_FORM_ID: ${{ secrets.FORMIO_FORM_ID }}
       FORMIO_API_KEY: ${{ secrets.FORMIO_API_KEY }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.S3_PUBLIC_ACCESS_KEY_ID_DEV }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_PUBLIC_SECRET_ACCESS_KEY_DEV }}
+      AWS_DEFAULT_REGION: ${{ secrets.S3_PUBLIC_REGION_DEV }}
+      S3_BUCKET: ${{ secrets.S3_PUBLIC_BUCKET_DEV }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -96,6 +100,16 @@ jobs:
           cf set-env $APP_NAME "FORMIO_PROJECT_URL" "$FORMIO_PROJECT_URL" > /dev/null
           cf set-env $APP_NAME "FORMIO_FORM_ID" "$FORMIO_FORM_ID" > /dev/null
           cf set-env $APP_NAME "FORMIO_API_KEY" "$FORMIO_API_KEY" > /dev/null
+
+      # Sync static content to public S3 bucket
+      - name: Sync static content to S3
+        run: aws s3 sync . s3://$S3_BUCKET/content
+        working-directory: app/server/app/content
+
+      # Set CORS configuration for public S3 bucket
+      - name: Set S3 CORS configuration
+        run: aws s3api put-bucket-cors --bucket $S3_BUCKET --cors-configuration file://s3CORS.json
+        working-directory: app/server/app/config
 
       # Now that front-end is built in server/dist, only push server dir to Cloud.gov
       - name: Deploy application to Cloud.gov
