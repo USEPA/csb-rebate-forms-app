@@ -42,6 +42,12 @@ jobs:
       FORMIO_PROJECT_URL: ${{ secrets.FORMIO_PROJECT_URL }}
       FORMIO_FORM_ID: ${{ secrets.FORMIO_FORM_ID }}
       FORMIO_API_KEY: ${{ secrets.FORMIO_API_KEY }}
+      BAP_CLIENT_ID: ${{ secrets.BAP_CLIENT_ID }}
+      BAP_CLIENT_SECRET: ${{ secrets.BAP_CLIENT_SECRET }}
+      BAP_URL: ${{ secrets.BAP_URL }}
+      BAP_USER: ${{ secrets.BAP_USER }}
+      BAP_PASSWORD: ${{ secrets.BAP_PASSWORD }}
+      BAP_TABLE: ${{ secrets.BAP_TABLE }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -96,6 +102,12 @@ jobs:
           cf set-env $APP_NAME "FORMIO_PROJECT_URL" "$FORMIO_PROJECT_URL" > /dev/null
           cf set-env $APP_NAME "FORMIO_FORM_ID" "$FORMIO_FORM_ID" > /dev/null
           cf set-env $APP_NAME "FORMIO_API_KEY" "$FORMIO_API_KEY" > /dev/null
+          cf set-env $APP_NAME "BAP_CLIENT_ID" "$BAP_CLIENT_ID" > /dev/null
+          cf set-env $APP_NAME "BAP_CLIENT_SECRET" "$BAP_CLIENT_SECRET" > /dev/null
+          cf set-env $APP_NAME "BAP_URL" "$BAP_URL" > /dev/null
+          cf set-env $APP_NAME "BAP_USER" "$BAP_USER" > /dev/null
+          cf set-env $APP_NAME "BAP_PASSWORD" "$BAP_PASSWORD" > /dev/null
+          cf set-env $APP_NAME "BAP_TABLE" "$BAP_TABLE" > /dev/null
 
       # Now that front-end is built in server/dist, only push server dir to Cloud.gov
       - name: Deploy application to Cloud.gov
