@@ -114,7 +114,7 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
 
 export default function NewRebateForm() {
   const navigate = useNavigate();
-  const { userData } = useUserState();
+  const { epaUserData, samUserData } = useUserState();
   const { content } = useContentState();
 
   const [dialogShown, setDialogShown] = useState(true);
@@ -123,8 +123,8 @@ export default function NewRebateForm() {
   const [samData, setSamData] = useState<SAMUserData | null>(null);
 
   const activeSamData =
-    userData.status === "success" &&
-    userData.data.samUserData.filter((d) => d.ENTITY_STATUS__c === "Active");
+    samUserData.status === "success" &&
+    samUserData.data.filter((data) => data.ENTITY_STATUS__c === "Active");
 
   return (
     <div className="margin-top-2">
@@ -255,9 +255,7 @@ export default function NewRebateForm() {
 
       <FormioForm
         samData={samData}
-        epaData={
-          userData.status === "success" ? userData.data.epaUserData : null
-        }
+        epaData={epaUserData.status === "success" ? epaUserData.data : null}
       />
     </div>
   );

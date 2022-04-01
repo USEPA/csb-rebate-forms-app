@@ -29,18 +29,28 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
 
   // check if user is already logged in or needs to be redirected to /welcome route
   useEffect(() => {
-    dispatch({ type: "FETCH_USER_DATA_REQUEST" });
+    dispatch({ type: "FETCH_EPA_USER_DATA_REQUEST" });
     fetchData(`${serverUrl}/api/v1/user`)
       .then((res) => {
-        const { epaUserData, samUserData } = res;
-        dispatch({ type: "USER_SIGN_IN" });
         dispatch({
-          type: "FETCH_USER_DATA_SUCCESS",
-          payload: { epaUserData, samUserData },
+          type: "FETCH_EPA_USER_DATA_SUCCESS",
+          payload: { epaUserData: res },
         });
+        dispatch({ type: "USER_SIGN_IN" });
+        dispatch({ type: "FETCH_SAM_USER_DATA_REQUEST" });
+        fetchData(`${serverUrl}/api/v1/sam-data`)
+          .then((res) => {
+            dispatch({
+              type: "FETCH_SAM_USER_DATA_SUCCESS",
+              payload: { samUserData: res },
+            });
+          })
+          .catch((err) => {
+            dispatch({ type: "FETCH_SAM_USER_DATA_FAILURE" });
+          });
       })
       .catch((err) => {
-        dispatch({ type: "FETCH_USER_DATA_FAILURE" });
+        dispatch({ type: "FETCH_EPA_USER_DATA_FAILURE" });
         dispatch({ type: "USER_SIGN_OUT" });
       });
   }, [dispatch, pathname]);

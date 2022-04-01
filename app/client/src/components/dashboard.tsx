@@ -84,7 +84,7 @@ export default function Dashboard() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
-  const { userData } = useUserState();
+  const { epaUserData } = useUserState();
   const dispatch = useDialogDispatch();
 
   useFetchedContent();
@@ -154,7 +154,7 @@ export default function Dashboard() {
         <nav className="display-flex flex-align-center">
           <p className="margin-bottom-0 margin-right-1">
             <span>
-              {userData.status === "success" && userData.data.epaUserData.mail}
+              {epaUserData.status === "success" && epaUserData.data.mail}
             </span>
           </p>
 
