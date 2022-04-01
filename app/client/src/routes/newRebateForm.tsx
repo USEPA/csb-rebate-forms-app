@@ -114,7 +114,7 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
 
 export default function NewRebateForm() {
   const navigate = useNavigate();
-  const { userData } = useUserState();
+  const { epaUserData, samUserData } = useUserState();
   const { content } = useContentState();
 
   const [dialogShown, setDialogShown] = useState(true);
@@ -123,8 +123,8 @@ export default function NewRebateForm() {
   const [samData, setSamData] = useState<SAMUserData | null>(null);
 
   const activeSamData =
-    userData.status === "success" &&
-    userData.data.samUserData.filter((d) => d.ENTITY_STATUS__c === "Active");
+    samUserData.status === "success" &&
+    samUserData.data.filter((data) => data.ENTITY_STATUS__c === "Active");
 
   return (
     <div className="margin-top-2">
@@ -193,14 +193,21 @@ export default function NewRebateForm() {
                   </tr>
                 </thead>
                 <tbody>
-                  {activeSamData &&
+                  {!activeSamData ? (
+                    <tr>
+                      <td colSpan={4}>
+                        <div className="margin-bottom-2">
+                          <Loading />
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
                     activeSamData.map((samData, index) => {
                       return (
                         <tr key={index}>
                           <th scope="row" className="font-sans-2xs">
                             <button
                               className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-                              data-close-modal
                               onClick={(ev) => {
                                 setSamData(samData);
                                 setDialogShown(false);
@@ -227,7 +234,8 @@ export default function NewRebateForm() {
                           <th className="font-sans-2xs">{samData.Name}</th>
                         </tr>
                       );
-                    })}
+                    })
+                  )}
                 </tbody>
               </table>
             </div>
@@ -255,9 +263,7 @@ export default function NewRebateForm() {
 
       <FormioForm
         samData={samData}
-        epaData={
-          userData.status === "success" ? userData.data.epaUserData : null
-        }
+        epaData={epaUserData.status === "success" ? epaUserData.data : null}
       />
     </div>
   );

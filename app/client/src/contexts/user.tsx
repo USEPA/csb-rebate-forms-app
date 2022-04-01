@@ -14,7 +14,6 @@ export type EPAUserData = {
   givenname: string;
   mail: string;
   memberof: string;
-  uid: string;
 };
 
 export type SAMUserData = {
@@ -41,33 +40,40 @@ export type SAMUserData = {
   attributes: { type: string; url: string };
 };
 
-type UserData = {
-  epaUserData: EPAUserData;
-  samUserData: SAMUserData[];
-};
-
 type State = {
   isAuthenticating: boolean;
   isAuthenticated: boolean;
-  userData:
+  epaUserData:
     | { status: "idle"; data: {} }
     | { status: "pending"; data: {} }
-    | { status: "success"; data: UserData }
+    | { status: "success"; data: EPAUserData }
+    | { status: "failure"; data: {} };
+  samUserData:
+    | { status: "idle"; data: {} }
+    | { status: "pending"; data: {} }
+    | { status: "success"; data: SAMUserData[] }
     | { status: "failure"; data: {} };
 };
 
 type Action =
   | { type: "USER_SIGN_IN" }
   | { type: "USER_SIGN_OUT" }
-  | { type: "FETCH_USER_DATA_REQUEST" }
+  | { type: "FETCH_EPA_USER_DATA_REQUEST" }
   | {
-      type: "FETCH_USER_DATA_SUCCESS";
+      type: "FETCH_EPA_USER_DATA_SUCCESS";
       payload: {
         epaUserData: EPAUserData;
+      };
+    }
+  | { type: "FETCH_EPA_USER_DATA_FAILURE" }
+  | { type: "FETCH_SAM_USER_DATA_REQUEST" }
+  | {
+      type: "FETCH_SAM_USER_DATA_SUCCESS";
+      payload: {
         samUserData: SAMUserData[];
       };
     }
-  | { type: "FETCH_USER_DATA_FAILURE" };
+  | { type: "FETCH_SAM_USER_DATA_FAILURE" };
 
 const StateContext = createContext<State | undefined>(undefined);
 const DispatchContext = createContext<Dispatch<Action> | undefined>(undefined);
@@ -87,38 +93,73 @@ function reducer(state: State, action: Action): State {
         ...state,
         isAuthenticating: false,
         isAuthenticated: false,
-        userData: {
+        epaUserData: {
+          status: "idle",
+          data: {},
+        },
+        samUserData: {
           status: "idle",
           data: {},
         },
       };
     }
 
-    case "FETCH_USER_DATA_REQUEST": {
+    case "FETCH_EPA_USER_DATA_REQUEST": {
       return {
         ...state,
-        userData: {
+        epaUserData: {
           status: "pending",
           data: {},
         },
       };
     }
 
-    case "FETCH_USER_DATA_SUCCESS": {
-      const { epaUserData, samUserData } = action.payload;
+    case "FETCH_EPA_USER_DATA_SUCCESS": {
+      const { epaUserData } = action.payload;
       return {
         ...state,
-        userData: {
+        epaUserData: {
           status: "success",
-          data: { epaUserData, samUserData },
+          data: epaUserData,
         },
       };
     }
 
-    case "FETCH_USER_DATA_FAILURE": {
+    case "FETCH_EPA_USER_DATA_FAILURE": {
       return {
         ...state,
-        userData: {
+        epaUserData: {
+          status: "failure",
+          data: {},
+        },
+      };
+    }
+
+    case "FETCH_SAM_USER_DATA_REQUEST": {
+      return {
+        ...state,
+        samUserData: {
+          status: "pending",
+          data: {},
+        },
+      };
+    }
+
+    case "FETCH_SAM_USER_DATA_SUCCESS": {
+      const { samUserData } = action.payload;
+      return {
+        ...state,
+        samUserData: {
+          status: "success",
+          data: samUserData,
+        },
+      };
+    }
+
+    case "FETCH_SAM_USER_DATA_FAILURE": {
+      return {
+        ...state,
+        samUserData: {
           status: "failure",
           data: {},
         },
@@ -135,7 +176,11 @@ export function UserProvider({ children }: Props) {
   const initialState: State = {
     isAuthenticating: true,
     isAuthenticated: false,
-    userData: {
+    epaUserData: {
+      status: "idle",
+      data: {},
+    },
+    samUserData: {
       status: "idle",
       data: {},
     },
