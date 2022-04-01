@@ -20,6 +20,7 @@ const log = logger.logger;
 
 app.use(
   helmet({
+    crossOriginEmbedderPolicy: false,
     contentSecurityPolicy: false,
   })
 );
