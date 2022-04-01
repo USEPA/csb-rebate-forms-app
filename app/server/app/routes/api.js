@@ -6,7 +6,6 @@ const jsforce = require("jsforce");
 // ---
 const { ensureAuthenticated } = require("../middleware");
 const logger = require("../utilities/logger");
-const { createJwt } = require("../utilities/createJwt");
 
 const log = logger.logger;
 
