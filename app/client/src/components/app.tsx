@@ -37,17 +37,6 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
           payload: { epaUserData: res },
         });
         dispatch({ type: "USER_SIGN_IN" });
-        dispatch({ type: "FETCH_SAM_USER_DATA_REQUEST" });
-        fetchData(`${serverUrl}/api/v1/sam-data`)
-          .then((res) => {
-            dispatch({
-              type: "FETCH_SAM_USER_DATA_SUCCESS",
-              payload: { samUserData: res },
-            });
-          })
-          .catch((err) => {
-            dispatch({ type: "FETCH_SAM_USER_DATA_FAILURE" });
-          });
       })
       .catch((err) => {
         dispatch({ type: "FETCH_EPA_USER_DATA_FAILURE" });

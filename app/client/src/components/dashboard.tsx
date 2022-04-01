@@ -6,16 +6,35 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, fetchData } from "../config";
 import ConfirmationDialog from "components/confirmationDialog";
-import { useUserState } from "contexts/user";
+import { useUserState, useUserDispatch } from "contexts/user";
 import { useContentDispatch } from "contexts/content";
 import { Action, useDialogDispatch } from "contexts/dialog";
 
 Formio.use(uswds);
 
+function useFetchedSamData() {
+  const dispatch = useUserDispatch();
+
+  useEffect(() => {
+    dispatch({ type: "FETCH_SAM_USER_DATA_REQUEST" });
+    fetchData(`${serverUrl}/api/v1/sam-data`)
+      .then((res) => {
+        dispatch({
+          type: "FETCH_SAM_USER_DATA_SUCCESS",
+          payload: { samUserData: res },
+        });
+      })
+      .catch((err) => {
+        dispatch({ type: "FETCH_SAM_USER_DATA_FAILURE" });
+      });
+  }, [dispatch]);
+}
+
 function useFetchedContent() {
   const dispatch = useContentDispatch();
 
   useEffect(() => {
+    dispatch({ type: "FETCH_CONTENT_REQUEST" });
     fetchData(`${serverUrl}/api/v1/content`)
       .then((res) => {
         const {
@@ -26,7 +45,6 @@ function useFetchedContent() {
           existingDraftRebateFormIntro,
           existingSubmittedRebateFormIntro,
         } = res;
-        dispatch({ type: "FETCH_CONTENT_REQUEST" });
         dispatch({
           type: "FETCH_CONTENT_SUCCESS",
           payload: {
@@ -87,6 +105,7 @@ export default function Dashboard() {
   const { epaUserData } = useUserState();
   const dispatch = useDialogDispatch();
 
+  useFetchedSamData();
   useFetchedContent();
 
   /**
