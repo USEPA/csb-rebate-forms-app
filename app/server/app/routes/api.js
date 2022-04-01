@@ -20,7 +20,7 @@ const formioApiKey = process.env.FORMIO_API_KEY;
 
 const formioHeaders = { headers: { "x-token": formioApiKey } };
 
-const getSamData = (email) => {
+function getSamData(email) {
   const conn = new jsforce.Connection({
     oauth2: {
       loginUrl: process.env.BAP_URL,
@@ -78,11 +78,11 @@ const getSamData = (email) => {
       log.error(err);
       throw err;
     });
-};
+}
 
 router.use(ensureAuthenticated);
 
-router.get("/user", (req, res) => {
+router.get("/epa-data", (req, res) => {
   res.json(req.user);
 });
 

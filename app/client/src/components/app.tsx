@@ -30,7 +30,7 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
   // check if user is already logged in or needs to be redirected to /welcome route
   useEffect(() => {
     dispatch({ type: "FETCH_EPA_USER_DATA_REQUEST" });
-    fetchData(`${serverUrl}/api/v1/user`)
+    fetchData(`${serverUrl}/api/v1/epa-data`)
       .then((res) => {
         dispatch({
           type: "FETCH_EPA_USER_DATA_SUCCESS",
