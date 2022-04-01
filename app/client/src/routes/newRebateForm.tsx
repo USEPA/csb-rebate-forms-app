@@ -91,7 +91,7 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
             // TODO: update to only populate the `last_updated_by` and hidden fields (GSA will populate the rest)
             sam_hidden_name: epaData.mail,
             applicantUEI: samData.UNIQUE_ENTITY_ID__c,
-            applicantOrganizationName: samData.Name,
+            applicantOrganizationName: samData.LEGAL_BUSINESS_NAME__c,
           },
         }}
         onSubmit={(submission: object) => {
@@ -228,7 +228,9 @@ export default function NewRebateForm() {
                           <th className="font-sans-2xs">
                             {samData.ENTITY_EFT_INDICATOR__c}
                           </th>
-                          <th className="font-sans-2xs">{samData.Name}</th>
+                          <th className="font-sans-2xs">
+                            {samData.LEGAL_BUSINESS_NAME__c}
+                          </th>
                         </tr>
                       );
                     })
