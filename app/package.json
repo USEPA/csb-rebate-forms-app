@@ -10,17 +10,31 @@
     "Devin Galloway <devin.galloway@erg.com>"
   ],
   "devDependencies": {
+    "@cypress/code-coverage": "3.9.12",
+    "@testing-library/cypress": "8.0.2",
     "concurrently": "7.0.0",
+    "cypress": "9.5.3",
+    "eslint-plugin-cypress": "2.12.1",
     "husky": "7.0.4",
+    "istanbul-lib-coverage": "3.2.0",
     "lint-staged": "12.3.4",
+    "nyc": "15.1.0",
     "prettier": "2.5.1"
   },
   "scripts": {
     "client": "cd client && npm start",
+    "client:coverage": "cd client && npm run coverage",
     "server": "cd server && npm start",
-    "start": "concurrently -kc \"blue.dim,green.dim\" \"npm:server\" \"npm:client\""
+    "start": "concurrently -kc \"blue.dim,green.dim\" \"npm:server\" \"npm:client\"",
+    "cypress": "concurrently -kc \"blue.dim,green.dim\" \"npm:server\" \"npm:client\" \"cypress open\"",
+    "coverage": "concurrently -kc \"blue.dim,green.dim\" \"npm:server\" \"npm:client:coverage\" \"cypress open\""
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,json,css,scss,md}": "prettier --write"
+  },
+  "eslintConfig": {
+    "extends": [
+      "plugin:cypress/recommended"
+    ]
   }
 }
