@@ -1,10 +1,14 @@
 const jwt = require("jsonwebtoken");
 const { createJwt, jwtAlgorithm } = require("./utilities/createJwt");
+const logger = require("./utilities/logger");
+
+const log = logger.logger;
 
 // Middleware to check for JWT, add user object to request, and create new JWT to keep alive for 15 minutes from request
 const ensureAuthenticated = (req, res, next) => {
   // If no JWT passed in token cookie, send Unauthorized response or redirect
   if (!req.cookies.token) {
+    log.error("No jwt cookie present in request");
     return rejectRequest(req, res);
   }
   jwt.verify(
@@ -13,7 +17,7 @@ const ensureAuthenticated = (req, res, next) => {
     { algorithms: [jwtAlgorithm] },
     function (err, user) {
       if (err) {
-        console.error(err);
+        log.error(err);
         return rejectRequest(req, res);
       }
 
