@@ -83,7 +83,12 @@ function getSamData(email) {
 router.use(ensureAuthenticated);
 
 router.get("/epa-data", (req, res) => {
-  res.json(req.user);
+  // Explicitly return only required attributes from user info
+  res.json({
+    mail: req.user.mail,
+    memberof: req.user.memberof,
+    exp: req.user.exp,
+  });
 });
 
 router.get("/sam-data", (req, res) => {

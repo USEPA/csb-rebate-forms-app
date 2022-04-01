@@ -24,9 +24,7 @@ const ensureAuthenticated = (req, res, next) => {
       // Add user to the request object
       req.user = user;
 
-      // Create new token to update expiration to 15 min from now (delete JWT-specific fields before creating new)
-      delete user.iat;
-      delete user.exp;
+      // Create new token to update expiration to 15 min from now
       const newToken = createJwt(user);
 
       // Add JWT in cookie and proceed with request
