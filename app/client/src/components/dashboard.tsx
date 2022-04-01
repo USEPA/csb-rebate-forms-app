@@ -180,6 +180,7 @@ export default function Dashboard() {
           <a
             className="usa-button font-sans-2xs margin-right-0"
             href={`${serverUrl}/logout`}
+            data-testid="csb-sign-in-button"
           >
             <IconText order="text-icon" icon="logout" text="Sign out" />
           </a>

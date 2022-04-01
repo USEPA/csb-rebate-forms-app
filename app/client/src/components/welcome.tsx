@@ -20,7 +20,7 @@ export default function Welcome() {
 
   return (
     <div className="padding-9 border-1px border-base-lighter text-center bg-base-lightest">
-      <p>
+      <p data-testid="csb-sign-in-text">
         Click the <strong>Sign in</strong> button below to log into the{" "}
         <em>Clean School Bus Rebate Forms</em> application.
       </p>

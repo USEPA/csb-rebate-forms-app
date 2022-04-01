@@ -1,9 +1,15 @@
-describe('Main', () => {
-    beforeEach(() => {
-        cy.visit('/');
-    });
+describe('Authentication', () => {
+  // Leave the user logged in to prevent logging in for every test
+  Cypress.Cookies.defaults({
+    preserve: 'csb-token',
+  });
 
-    it('Test', () => {
-        cy.findByTestId('csb-sign-in-button');
-    });
-})
+  beforeEach(() => {
+    cy.loginToCSB('csbtest');
+  });
+
+  it('Check table', () => {
+    cy.findByText('csb-test@erg.com');
+    cy.findByText('School District Name');
+  });
+});
