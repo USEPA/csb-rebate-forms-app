@@ -14,7 +14,7 @@ import "uswds/js/uswds.js";
 // ---
 import { serverBasePath, serverUrl, fetchData } from "../config";
 import Loading from "components/loading";
-import Login from "components/login";
+import Welcome from "components/welcome";
 import Dashboard from "components/dashboard";
 import AllRebateForms from "routes/allRebateForms";
 import NewRebateForm from "routes/newRebateForm";
@@ -27,7 +27,7 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
   const { isAuthenticating, isAuthenticated } = useUserState();
   const dispatch = useUserDispatch();
 
-  // check if user is already logged in or needs to be redirected to /login route
+  // check if user is already logged in or needs to be redirected to /welcome route
   useEffect(() => {
     dispatch({ type: "FETCH_USER_DATA_REQUEST" });
     fetchData(`${serverUrl}/api/v1/user`)
@@ -51,7 +51,7 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
 
   if (!isAuthenticated) {
     return (
-      <Navigate to="/login" state={{ redirectedFrom: pathname }} replace />
+      <Navigate to="/welcome" state={{ redirectedFrom: pathname }} replace />
     );
   }
 
@@ -62,7 +62,7 @@ export default function App() {
   return (
     <BrowserRouter basename={serverBasePath}>
       <Routes>
-        <Route path="/login" element={<Login />} />
+        <Route path="/welcome" element={<Welcome />} />
         <Route
           path="/"
           element={
