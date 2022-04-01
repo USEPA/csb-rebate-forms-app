@@ -18,9 +18,27 @@ export type EPAUserData = {
 };
 
 export type SAMUserData = {
-  uei: string;
-  eft: string;
-  ueiEntityName: string;
+  ALT_ELEC_BUS_POC_EMAIL__c: string | null;
+  ALT_ELEC_BUS_POC_NAME__c: string | null;
+  ALT_GOVT_BUS_POC_EMAIL__c: string | null;
+  ALT_GOVT_BUS_POC_NAME__c: string | null;
+  CAGE_CODE__c: string;
+  ELEC_BUS_POC_EMAIL__c: string | null;
+  ELEC_BUS_POC_NAME__c: string | null;
+  ENTITY_COMBO_KEY__c: string;
+  ENTITY_EFT_INDICATOR__c: string;
+  ENTITY_STATUS__c: string;
+  GOVT_BUS_POC_EMAIL__c: string;
+  GOVT_BUS_POC_NAME__c: string;
+  Name: string;
+  PHYSICAL_ADDRESS_CITY__c: string;
+  PHYSICAL_ADDRESS_LINE_1__c: string;
+  PHYSICAL_ADDRESS_LINE_2__c: string | null;
+  PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c: string;
+  PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c: string;
+  PHYSICAL_ADDRESS_ZIP_CODE_4__c: string;
+  UNIQUE_ENTITY_ID__c: string;
+  attributes: { type: string; url: string };
 };
 
 type UserData = {

@@ -90,9 +90,10 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
         form={formSchema.data}
         submission={{
           data: {
+            // TODO: update to only populate the `last_updated_by` and hidden fields (GSA will populate the rest)
             sam_hidden_name: epaData.mail,
-            applicantUEI: samData.uei,
-            applicantOrganizationName: samData.ueiEntityName,
+            applicantUEI: samData.UNIQUE_ENTITY_ID__c,
+            applicantOrganizationName: samData.Name,
           },
         }}
         onSubmit={(submission: object) => {
@@ -121,6 +122,10 @@ export default function NewRebateForm() {
   // samData set when user selects table row in modal
   const [samData, setSamData] = useState<SAMUserData | null>(null);
 
+  const activeSamData =
+    userData.status === "success" &&
+    userData.data.samUserData.filter((d) => d.ENTITY_STATUS__c === "Active");
+
   return (
     <div className="margin-top-2">
       <DialogOverlay
@@ -144,12 +149,12 @@ export default function NewRebateForm() {
                   remarkPlugins={[remarkGfm]}
                   components={{
                     h2: (props) => (
-              <h2
-                id="csb-new-rebate-modal-heading"
-                className="usa-modal__heading text-center"
-              >
+                      <h2
+                        id="csb-new-rebate-modal-heading"
+                        className="usa-modal__heading text-center"
+                      >
                         {props.children}
-              </h2>
+                      </h2>
                     ),
                     p: (props) => (
                       <p
@@ -157,7 +162,7 @@ export default function NewRebateForm() {
                         className="text-center"
                       >
                         {props.children}
-                </p>
+                      </p>
                     ),
                   }}
                 />
@@ -188,8 +193,8 @@ export default function NewRebateForm() {
                   </tr>
                 </thead>
                 <tbody>
-                  {userData.status === "success" &&
-                    userData.data.samUserData.map((samData, index) => {
+                  {activeSamData &&
+                    activeSamData.map((samData, index) => {
                       return (
                         <tr key={index}>
                           <th scope="row" className="font-sans-2xs">
@@ -213,11 +218,13 @@ export default function NewRebateForm() {
                               </span>
                             </button>
                           </th>
-                          <th className="font-sans-2xs">{samData.uei}</th>
-                          <th className="font-sans-2xs">{samData.eft}</th>
                           <th className="font-sans-2xs">
-                            {samData.ueiEntityName}
+                            {samData.UNIQUE_ENTITY_ID__c}
                           </th>
+                          <th className="font-sans-2xs">
+                            {samData.ENTITY_EFT_INDICATOR__c}
+                          </th>
+                          <th className="font-sans-2xs">{samData.Name}</th>
                         </tr>
                       );
                     })}

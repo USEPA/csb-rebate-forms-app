@@ -16,46 +16,18 @@ const formioApiKey = process.env.FORMIO_API_KEY;
 
 const formioHeaders = { headers: { "x-token": formioApiKey } };
 
-router.get("/user", ensureAuthenticated, function (req, res) {
-  // Call BAP/SAM API for UEI data to add onto user data
-  // TODO: Integrate salesforce
-  const samUserData = [
-    {
-      uei: "056143447853",
-      eft: "436988994",
-      ueiEntityName: "Metro Buslines",
-    },
-    {
-      uei: "779442964145",
-      eft: "398640677",
-      ueiEntityName: "Highway Logistics, LLC",
-    },
-    {
-      uei: "960885252143",
-      eft: "381191934",
-      ueiEntityName: "Fleet Services, Inc.",
-    },
-    {
-      uei: "549203627426",
-      eft: "555409114",
-      ueiEntityName: "Green Transport",
-    },
-    {
-      uei: "569160091719",
-      eft: "330109015",
-      ueiEntityName: "SmartBus Co.",
-    },
-  ];
+router.use(ensureAuthenticated);
 
-  res.json({
-    epaUserData: req.user,
-    samUserData,
-  });
+router.get("/user", function (req, res) {
+  // TODO: map through samUserData to clean up field names if needed
+
+  // req.user includes both epaUserData (object) and samUserData (array)
+  res.json(req.user);
 });
 
 // TODO: Add log info when admin/helpdesk changes submission back to draft
 
-router.get("/content", ensureAuthenticated, (req, res) => {
+router.get("/content", (req, res) => {
   // NOTE: static content files found in `app/server/app/config/` directory
   const filenames = [
     "all-rebate-forms-intro.md",
@@ -105,7 +77,7 @@ router.get("/content", ensureAuthenticated, (req, res) => {
     });
 });
 
-router.get("/rebate-form-schema", ensureAuthenticated, (req, res) => {
+router.get("/rebate-form-schema", (req, res) => {
   axios
     .get(`${formioProjectUrl}/${formioFormId}`, formioHeaders)
     .then((axiosRes) => axiosRes.data)
@@ -121,7 +93,7 @@ router.get("/rebate-form-schema", ensureAuthenticated, (req, res) => {
     });
 });
 
-router.post("/rebate-form-submission", ensureAuthenticated, (req, res) => {
+router.post("/rebate-form-submission", (req, res) => {
   axios
     .post(
       `${formioProjectUrl}/${formioFormId}/submission`,
@@ -141,7 +113,7 @@ router.post("/rebate-form-submission", ensureAuthenticated, (req, res) => {
     });
 });
 
-router.get("/rebate-form-submissions", ensureAuthenticated, (req, res) => {
+router.get("/rebate-form-submissions", (req, res) => {
   // TODO: pull UEIs from JWT, and store in an `ueis` array, for building up
   // `query` string, which is appended to the `url` string
 
@@ -187,7 +159,7 @@ router.get("/rebate-form-submissions", ensureAuthenticated, (req, res) => {
     });
 });
 
-router.get("/rebate-form-submission/:id", ensureAuthenticated, (req, res) => {
+router.get("/rebate-form-submission/:id", (req, res) => {
   const id = req.params.id;
 
   axios

@@ -8,6 +8,7 @@ const cookieParser = require("cookie-parser");
 const history = require("connect-history-api-fallback");
 const passport = require("passport");
 // ---
+const errorHandler = require("./utilities/errorHandler");
 const logger = require("./utilities/logger");
 const samlStrategy = require("./config/samlStrategy");
 const routes = require("./routes");
@@ -74,6 +75,8 @@ app.use(basePath, history());
 // NOTE: client app's `build` directory contents copied into server app's
 // `public` directory in CI/CD step
 app.use(basePath, express.static(resolve(__dirname, "public")));
+
+app.use(errorHandler);
 
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
