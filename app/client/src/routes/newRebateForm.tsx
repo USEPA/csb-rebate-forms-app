@@ -193,14 +193,21 @@ export default function NewRebateForm() {
                   </tr>
                 </thead>
                 <tbody>
-                  {activeSamData &&
+                  {!activeSamData ? (
+                    <tr>
+                      <td colSpan={4}>
+                        <div className="margin-bottom-2">
+                          <Loading />
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
                     activeSamData.map((samData, index) => {
                       return (
                         <tr key={index}>
                           <th scope="row" className="font-sans-2xs">
                             <button
                               className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-                              data-close-modal
                               onClick={(ev) => {
                                 setSamData(samData);
                                 setDialogShown(false);
@@ -227,7 +234,8 @@ export default function NewRebateForm() {
                           <th className="font-sans-2xs">{samData.Name}</th>
                         </tr>
                       );
-                    })}
+                    })
+                  )}
                 </tbody>
               </table>
             </div>
