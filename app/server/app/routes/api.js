@@ -2,8 +2,12 @@ const { resolve } = require("node:path");
 const { readFile } = require("node:fs/promises");
 const express = require("express");
 const axios = require("axios").default;
+const jsforce = require("jsforce");
 // ---
 const { ensureAuthenticated } = require("../middleware");
+const logger = require("../utilities/logger");
+
+const log = logger.logger;
 
 const router = express.Router();
 
@@ -16,46 +20,103 @@ const formioApiKey = process.env.FORMIO_API_KEY;
 
 const formioHeaders = { headers: { "x-token": formioApiKey } };
 
-router.get("/user", ensureAuthenticated, function (req, res) {
-  // Call BAP/SAM API for UEI data to add onto user data
-  // TODO: Integrate salesforce
-  const samUserData = [
-    {
-      uei: "056143447853",
-      eft: "436988994",
-      ueiEntityName: "Metro Buslines",
+function getSamData(email) {
+  const conn = new jsforce.Connection({
+    oauth2: {
+      loginUrl: process.env.BAP_URL,
+      clientId: process.env.BAP_CLIENT_ID,
+      clientSecret: process.env.BAP_CLIENT_SECRET,
+      redirectUri: process.env.SERVER_URL,
     },
-    {
-      uei: "779442964145",
-      eft: "398640677",
-      ueiEntityName: "Highway Logistics, LLC",
-    },
-    {
-      uei: "960885252143",
-      eft: "381191934",
-      ueiEntityName: "Fleet Services, Inc.",
-    },
-    {
-      uei: "549203627426",
-      eft: "555409114",
-      ueiEntityName: "Green Transport",
-    },
-    {
-      uei: "569160091719",
-      eft: "330109015",
-      ueiEntityName: "SmartBus Co.",
-    },
-  ];
-
-  res.json({
-    epaUserData: req.user,
-    samUserData,
   });
+
+  return conn
+    .login(process.env.BAP_USER, process.env.BAP_PASSWORD)
+    .then(() => {
+      // After successful login, query for SAM data
+      return conn
+        .query(
+          `
+            SELECT
+                ENTITY_COMBO_KEY__c,
+                ENTITY_STATUS__c,
+                UNIQUE_ENTITY_ID__c,
+                ENTITY_EFT_INDICATOR__c,
+                CAGE_CODE__c,
+                NAME,
+                GOVT_BUS_POC_NAME__c,
+                GOVT_BUS_POC_EMAIL__c,
+                ALT_GOVT_BUS_POC_NAME__c,
+                ALT_GOVT_BUS_POC_EMAIL__c,
+                ELEC_BUS_POC_NAME__c,
+                ELEC_BUS_POC_EMAIL__c,
+                ALT_ELEC_BUS_POC_NAME__c,
+                ALT_ELEC_BUS_POC_EMAIL__c,
+                PHYSICAL_ADDRESS_LINE_1__c,
+                PHYSICAL_ADDRESS_LINE_2__c,
+                PHYSICAL_ADDRESS_CITY__c,
+                PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
+                PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
+                PHYSICAL_ADDRESS_ZIP_CODE_4__c
+            FROM ${process.env.BAP_TABLE}
+            WHERE
+                ALT_ELEC_BUS_POC_EMAIL__c = '${email}' or
+                GOVT_BUS_POC_EMAIL__c = '${email}' or
+                ALT_GOVT_BUS_POC_EMAIL__c = '${email}' or
+                ELEC_BUS_POC_EMAIL__c = '${email}'
+          `
+        )
+        .then((res) => {
+          return res.records;
+        })
+        .catch((err) => {
+          log.error(err);
+          throw err;
+        });
+    })
+    .catch((err) => {
+      log.error(err);
+      throw err;
+    });
+}
+
+router.use(ensureAuthenticated);
+
+router.get("/epa-data", (req, res) => {
+  // Explicitly return only required attributes from user info
+  res.json({
+    mail: req.user.mail,
+    memberof: req.user.memberof,
+    exp: req.user.exp,
+  });
+});
+
+router.get("/sam-data", (req, res) => {
+  getSamData(req.user.mail)
+    .then((samUserData) => {
+      // First check if user has at least one associated UEI before completing login process
+      if (samUserData && !samUserData.length) {
+        log.error(
+          `User ${req.user.mail} tried to use app without any associated SAM records`
+        );
+        return res
+          .status(401)
+          .json({ message: "No SAM data available for user." });
+      }
+
+      res.json(samUserData);
+    })
+    .catch((err) => {
+      log.error(err);
+      res
+        .status(401)
+        .json({ message: "There was an error retrieving SAM data." });
+    });
 });
 
 // TODO: Add log info when admin/helpdesk changes submission back to draft
 
-router.get("/content", ensureAuthenticated, (req, res) => {
+router.get("/content", (req, res) => {
   // NOTE: static content files found in `app/server/app/config/` directory
   const filenames = [
     "all-rebate-forms-intro.md",
@@ -105,7 +166,7 @@ router.get("/content", ensureAuthenticated, (req, res) => {
     });
 });
 
-router.get("/rebate-form-schema", ensureAuthenticated, (req, res) => {
+router.get("/rebate-form-schema", (req, res) => {
   axios
     .get(`${formioProjectUrl}/${formioFormId}`, formioHeaders)
     .then((axiosRes) => axiosRes.data)
@@ -121,7 +182,7 @@ router.get("/rebate-form-schema", ensureAuthenticated, (req, res) => {
     });
 });
 
-router.post("/rebate-form-submission", ensureAuthenticated, (req, res) => {
+router.post("/rebate-form-submission", (req, res) => {
   axios
     .post(
       `${formioProjectUrl}/${formioFormId}/submission`,
@@ -141,7 +202,7 @@ router.post("/rebate-form-submission", ensureAuthenticated, (req, res) => {
     });
 });
 
-router.get("/rebate-form-submissions", ensureAuthenticated, (req, res) => {
+router.get("/rebate-form-submissions", (req, res) => {
   // TODO: pull UEIs from JWT, and store in an `ueis` array, for building up
   // `query` string, which is appended to the `url` string
 
@@ -187,7 +248,7 @@ router.get("/rebate-form-submissions", ensureAuthenticated, (req, res) => {
     });
 });
 
-router.get("/rebate-form-submission/:id", ensureAuthenticated, (req, res) => {
+router.get("/rebate-form-submission/:id", (req, res) => {
   const id = req.params.id;
 
   axios

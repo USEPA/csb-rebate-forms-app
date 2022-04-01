@@ -9,6 +9,9 @@ const log = logger.logger;
 
 const router = express.Router();
 
+// For redirects below, set const for base url (SERVER_URL is needed as fallback when using sub path, e.g. /csb)
+const baseUrl = process.env.CLIENT_URL || process.env.SERVER_URL;
+
 // TODO: pass RelayState from front-end if necessary?
 router.get(
   "/login",
@@ -40,23 +43,20 @@ router.post(
     );
 
     // "RelayState" will be the path that the user initially tried to access before being sent to /login
-    res.redirect(
-      `${process.env.CLIENT_URL || process.env.SERVER_URL}${
-        req.body.RelayState || "/"
-      }`
-    );
+    res.redirect(`${baseUrl}${req.body.RelayState || "/"}`);
   }
 );
 
 router.get("/login/fail", (req, res) => {
-  res.status(401).json({ message: "Login failed" });
+  log.error("SAML login failed");
+  res.redirect(`${baseUrl}/welcome?error=auth`);
 });
 
 router.get("/logout", ensureAuthenticated, (req, res) => {
   samlStrategy.logout(req, function (err, requestUrl) {
     if (err) {
-      console.error(err);
-      res.redirect(`${process.env.CLIENT_URL || process.env.SERVER_URL}/`);
+      log.error(err);
+      res.redirect(`${baseUrl}/`);
     } else {
       // Send request to SAML logout url
       res.redirect(requestUrl);
@@ -67,7 +67,7 @@ router.get("/logout", ensureAuthenticated, (req, res) => {
 const logoutCallback = (req, res) => {
   // Clear token cookie so client no longer passes JWT after logout
   res.clearCookie("token");
-  res.redirect(`${process.env.CLIENT_URL || process.env.SERVER_URL}/`);
+  res.redirect(`${baseUrl}/`);
 };
 
 // Local saml config sends GET for logout callback, while EPA config sends POST. Handle both

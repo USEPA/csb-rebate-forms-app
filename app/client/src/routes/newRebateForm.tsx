@@ -90,9 +90,10 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
         form={formSchema.data}
         submission={{
           data: {
+            // TODO: update to only populate the `last_updated_by` and hidden fields (GSA will populate the rest)
             sam_hidden_name: epaData.mail,
-            applicantUEI: samData.uei,
-            applicantOrganizationName: samData.ueiEntityName,
+            applicantUEI: samData.UNIQUE_ENTITY_ID__c,
+            applicantOrganizationName: samData.Name,
           },
         }}
         onSubmit={(submission: object) => {
@@ -113,13 +114,17 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
 
 export default function NewRebateForm() {
   const navigate = useNavigate();
-  const { userData } = useUserState();
+  const { epaUserData, samUserData } = useUserState();
   const { content } = useContentState();
 
   const [dialogShown, setDialogShown] = useState(true);
 
   // samData set when user selects table row in modal
   const [samData, setSamData] = useState<SAMUserData | null>(null);
+
+  const activeSamData =
+    samUserData.status === "success" &&
+    samUserData.data.filter((data) => data.ENTITY_STATUS__c === "Active");
 
   return (
     <div className="margin-top-2">
@@ -144,12 +149,12 @@ export default function NewRebateForm() {
                   remarkPlugins={[remarkGfm]}
                   components={{
                     h2: (props) => (
-              <h2
-                id="csb-new-rebate-modal-heading"
-                className="usa-modal__heading text-center"
-              >
+                      <h2
+                        id="csb-new-rebate-modal-heading"
+                        className="usa-modal__heading text-center"
+                      >
                         {props.children}
-              </h2>
+                      </h2>
                     ),
                     p: (props) => (
                       <p
@@ -157,7 +162,7 @@ export default function NewRebateForm() {
                         className="text-center"
                       >
                         {props.children}
-                </p>
+                      </p>
                     ),
                   }}
                 />
@@ -188,14 +193,21 @@ export default function NewRebateForm() {
                   </tr>
                 </thead>
                 <tbody>
-                  {userData.status === "success" &&
-                    userData.data.samUserData.map((samData, index) => {
+                  {!activeSamData ? (
+                    <tr>
+                      <td colSpan={4}>
+                        <div className="margin-bottom-2">
+                          <Loading />
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    activeSamData.map((samData, index) => {
                       return (
                         <tr key={index}>
                           <th scope="row" className="font-sans-2xs">
                             <button
                               className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-                              data-close-modal
                               onClick={(ev) => {
                                 setSamData(samData);
                                 setDialogShown(false);
@@ -213,14 +225,17 @@ export default function NewRebateForm() {
                               </span>
                             </button>
                           </th>
-                          <th className="font-sans-2xs">{samData.uei}</th>
-                          <th className="font-sans-2xs">{samData.eft}</th>
                           <th className="font-sans-2xs">
-                            {samData.ueiEntityName}
+                            {samData.UNIQUE_ENTITY_ID__c}
                           </th>
+                          <th className="font-sans-2xs">
+                            {samData.ENTITY_EFT_INDICATOR__c}
+                          </th>
+                          <th className="font-sans-2xs">{samData.Name}</th>
                         </tr>
                       );
-                    })}
+                    })
+                  )}
                 </tbody>
               </table>
             </div>
@@ -248,9 +263,7 @@ export default function NewRebateForm() {
 
       <FormioForm
         samData={samData}
-        epaData={
-          userData.status === "success" ? userData.data.epaUserData : null
-        }
+        epaData={epaUserData.status === "success" ? epaUserData.data : null}
       />
     </div>
   );

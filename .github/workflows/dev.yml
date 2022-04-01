@@ -42,6 +42,12 @@ jobs:
       FORMIO_PROJECT_URL: ${{ secrets.FORMIO_PROJECT_URL }}
       FORMIO_FORM_ID: ${{ secrets.FORMIO_FORM_ID }}
       FORMIO_API_KEY: ${{ secrets.FORMIO_API_KEY }}
+      BAP_CLIENT_ID: ${{ secrets.BAP_CLIENT_ID }}
+      BAP_CLIENT_SECRET: ${{ secrets.BAP_CLIENT_SECRET }}
+      BAP_URL: ${{ secrets.BAP_URL }}
+      BAP_USER: ${{ secrets.BAP_USER }}
+      BAP_PASSWORD: ${{ secrets.BAP_PASSWORD }}
+      BAP_TABLE: ${{ secrets.BAP_TABLE }}
       AWS_ACCESS_KEY_ID: ${{ secrets.S3_PUBLIC_ACCESS_KEY_ID_DEV }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_PUBLIC_SECRET_ACCESS_KEY_DEV }}
       AWS_DEFAULT_REGION: ${{ secrets.S3_PUBLIC_REGION_DEV }}
@@ -100,6 +106,12 @@ jobs:
           cf set-env $APP_NAME "FORMIO_PROJECT_URL" "$FORMIO_PROJECT_URL" > /dev/null
           cf set-env $APP_NAME "FORMIO_FORM_ID" "$FORMIO_FORM_ID" > /dev/null
           cf set-env $APP_NAME "FORMIO_API_KEY" "$FORMIO_API_KEY" > /dev/null
+          cf set-env $APP_NAME "BAP_CLIENT_ID" "$BAP_CLIENT_ID" > /dev/null
+          cf set-env $APP_NAME "BAP_CLIENT_SECRET" "$BAP_CLIENT_SECRET" > /dev/null
+          cf set-env $APP_NAME "BAP_URL" "$BAP_URL" > /dev/null
+          cf set-env $APP_NAME "BAP_USER" "$BAP_USER" > /dev/null
+          cf set-env $APP_NAME "BAP_PASSWORD" "$BAP_PASSWORD" > /dev/null
+          cf set-env $APP_NAME "BAP_TABLE" "$BAP_TABLE" > /dev/null
           cf set-env $APP_NAME "S3_PUBLIC_BUCKET" "$S3_PUBLIC_BUCKET" > /dev/null
           cf set-env $APP_NAME "S3_PUBLIC_REGION" "$AWS_DEFAULT_REGION" > /dev/null
 
