@@ -4,15 +4,17 @@ const logger = require("./utilities/logger");
 
 const log = logger.logger;
 
+const cookieName = "csb-token";
+
 // Middleware to check for JWT, add user object to request, and create new JWT to keep alive for 15 minutes from request
 const ensureAuthenticated = (req, res, next) => {
   // If no JWT passed in token cookie, send Unauthorized response or redirect
-  if (!req.cookies.token) {
+  if (!req.cookies[cookieName]) {
     log.error("No jwt cookie present in request");
     return rejectRequest(req, res);
   }
   jwt.verify(
-    req.cookies.token,
+    req.cookies[cookieName],
     process.env.JWT_PUBLIC_KEY,
     { algorithms: [jwtAlgorithm] },
     function (err, user) {
@@ -28,7 +30,7 @@ const ensureAuthenticated = (req, res, next) => {
       const newToken = createJwt(user);
 
       // Add JWT in cookie and proceed with request
-      res.cookie("token", newToken, { httpOnly: true, overwrite: true });
+      res.cookie(cookieName, newToken, { httpOnly: true, overwrite: true });
       next();
     }
   );
@@ -36,7 +38,7 @@ const ensureAuthenticated = (req, res, next) => {
 
 const rejectRequest = (req, res) => {
   // Clear token cookie if there was an error verifying (e.g. expired)
-  res.clearCookie("token");
+  res.clearCookie(cookieName);
 
   if (req.originalUrl.includes("/api")) {
     // Send JSON Unauthorized message if request is for an API endpoint

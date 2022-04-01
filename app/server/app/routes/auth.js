@@ -11,6 +11,7 @@ const router = express.Router();
 
 // For redirects below, set const for base url (SERVER_URL is needed as fallback when using sub path, e.g. /csb)
 const baseUrl = process.env.CLIENT_URL || process.env.SERVER_URL;
+const cookieName = "csb-token";
 
 // TODO: pass RelayState from front-end if necessary?
 router.get(
@@ -33,7 +34,7 @@ router.post(
 
     // Create JWT, set as cookie, then redirect to client
     const token = createJwt(epaUserData);
-    res.cookie("token", token, { httpOnly: true });
+    res.cookie(cookieName, token, { httpOnly: true });
 
     // If user has Admin or Helpdesk role, log to INFO
     log.info(
@@ -66,7 +67,7 @@ router.get("/logout", ensureAuthenticated, (req, res) => {
 
 const logoutCallback = (req, res) => {
   // Clear token cookie so client no longer passes JWT after logout
-  res.clearCookie("token");
+  res.clearCookie(cookieName);
   res.redirect(`${baseUrl}/`);
 };
 
