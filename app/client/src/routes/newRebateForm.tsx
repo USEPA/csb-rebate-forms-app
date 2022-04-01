@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import { DialogOverlay, DialogContent } from "@reach/dialog";
 import { Form } from "@formio/react";
 import icons from "uswds/img/sprite.svg";
@@ -9,6 +7,7 @@ import icons from "uswds/img/sprite.svg";
 import { serverUrl, fetchData } from "../config";
 import Loading from "components/loading";
 import Message from "components/message";
+import MarkdownContent from "components/markdownContent";
 import { TextWithTooltip } from "components/infoTooltip";
 import { useContentState } from "contexts/content";
 import { EPAUserData, SAMUserData, useUserState } from "contexts/user";
@@ -75,10 +74,9 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
   return (
     <>
       {content.status === "success" && (
-        <ReactMarkdown
+        <MarkdownContent
           className="margin-top-4"
           children={content.data.newRebateFormIntro}
-          remarkPlugins={[remarkGfm]}
         />
       )}
 
@@ -143,10 +141,9 @@ export default function NewRebateForm() {
           <div className="usa-modal__content">
             <div className="usa-modal__main">
               {content.status === "success" && (
-                <ReactMarkdown
+                <MarkdownContent
                   className="margin-top-4"
                   children={content.data.newRebateFormDialog}
-                  remarkPlugins={[remarkGfm]}
                   components={{
                     h2: (props) => (
                       <h2
