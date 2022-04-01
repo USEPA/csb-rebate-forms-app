@@ -1,12 +1,11 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, fetchData } from "../config";
 import Loading from "components/loading";
 import Message from "components/message";
+import MarkdownContent from "components/markdownContent";
 import { TextWithTooltip } from "components/infoTooltip";
 import { useContentState } from "contexts/content";
 import { useFormsState, useFormsDispatch } from "contexts/forms";
@@ -48,10 +47,9 @@ export default function AllRebateForms() {
   return (
     <>
       {content.status === "success" && (
-        <ReactMarkdown
+        <MarkdownContent
           className="margin-top-4"
           children={content.data.allRebateFormsIntro}
-          remarkPlugins={[remarkGfm]}
         />
       )}
 
@@ -144,10 +142,7 @@ export default function AllRebateForms() {
 
       {content.status === "success" && (
         <div className="margin-top-4 padding-2 border-1px border-base-lighter bg-base-lightest">
-          <ReactMarkdown
-            children={content.data.allRebateFormsOutro}
-            remarkPlugins={[remarkGfm]}
-          />
+          <MarkdownContent children={content.data.allRebateFormsOutro} />
         </div>
       )}
     </>
