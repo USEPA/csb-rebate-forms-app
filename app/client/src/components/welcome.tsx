@@ -28,6 +28,7 @@ export default function Welcome() {
       <a
         className="usa-button margin-top-1 margin-right-0 font-sans-2xs"
         href={`${serverUrl}/login`}
+        data-testid="csb-sign-in-button"
       >
         <span className="display-flex flex-align-center">
           <span className="margin-right-1">Sign in</span>
