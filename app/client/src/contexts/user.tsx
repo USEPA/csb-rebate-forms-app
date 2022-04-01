@@ -19,17 +19,21 @@ export type EPAUserData = {
 export type SAMUserData = {
   ALT_ELEC_BUS_POC_EMAIL__c: string | null;
   ALT_ELEC_BUS_POC_NAME__c: string | null;
+  ALT_ELEC_BUS_POC_TITLE__c: string | null;
   ALT_GOVT_BUS_POC_EMAIL__c: string | null;
   ALT_GOVT_BUS_POC_NAME__c: string | null;
+  ALT_GOVT_BUS_POC_TITLE__c: string | null;
   CAGE_CODE__c: string;
   ELEC_BUS_POC_EMAIL__c: string | null;
   ELEC_BUS_POC_NAME__c: string | null;
+  ELEC_BUS_POC_TITLE__c: string | null;
   ENTITY_COMBO_KEY__c: string;
   ENTITY_EFT_INDICATOR__c: string;
   ENTITY_STATUS__c: string;
   GOVT_BUS_POC_EMAIL__c: string;
   GOVT_BUS_POC_NAME__c: string;
-  Name: string;
+  GOVT_BUS_POC_TITLE__c: string;
+  LEGAL_BUSINESS_NAME__c: string;
   PHYSICAL_ADDRESS_CITY__c: string;
   PHYSICAL_ADDRESS_LINE_1__c: string;
   PHYSICAL_ADDRESS_LINE_2__c: string | null;
