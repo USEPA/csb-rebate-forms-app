@@ -6,11 +6,56 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, fetchData } from "../config";
 import ConfirmationDialog from "components/confirmationDialog";
-import { useUserState, useUserDispatch } from "contexts/user";
+import { SAMUserData, useUserState, useUserDispatch } from "contexts/user";
 import { useContentDispatch } from "contexts/content";
 import { Action, useDialogDispatch } from "contexts/dialog";
 
 Formio.use(uswds);
+
+function useMatchedContactInfo() {
+  const { epaUserData, samUserData } = useUserState();
+
+  if (epaUserData.status !== "success" || samUserData.status !== "success") {
+    return [];
+  }
+
+  const samEmailFields = [
+    "ELEC_BUS_POC_EMAIL__c",
+    "ALT_ELEC_BUS_POC_EMAIL__c",
+    "GOVT_BUS_POC_EMAIL__c",
+    "ALT_GOVT_BUS_POC_EMAIL__c",
+  ];
+
+  // matchedPOCs will be an array of objects containing the name and title
+  // of SAM.gov POCs that share the same email address as the currently
+  // logged in user
+  const matchedPOCs = [];
+
+  for (const record of samUserData.data) {
+    let matchedEmailField;
+
+    for (const [field, value] of Object.entries(record)) {
+      if (!samEmailFields.includes(field)) continue;
+      // TODO: below takes the first match only – confirm there's never a case
+      // where the currently logged in user would be listed as multiple POCs
+      // for a single record, and if so, we'd ever not just take the first match
+      if (value === epaUserData.data.mail) {
+        matchedEmailField = field;
+        break;
+      }
+    }
+
+    const fieldPrefix = matchedEmailField?.split("_EMAIL__c").shift();
+    if (!fieldPrefix) continue;
+
+    matchedPOCs.push({
+      name: record[`${fieldPrefix}_NAME__c` as keyof SAMUserData] as string,
+      title: record[`${fieldPrefix}_TITLE__c` as keyof SAMUserData] as string,
+    });
+  }
+
+  return matchedPOCs;
+}
 
 function useFetchedSamData() {
   const dispatch = useUserDispatch();
@@ -107,6 +152,15 @@ export default function Dashboard() {
 
   useFetchedSamData();
   useFetchedContent();
+
+  // TODO: store this in React context, but first, get clarification...
+  // NOTE: there will be one matched contact info object for every SAM.gov record
+  // returned for the user, so determine if the contact info is the same for every
+  // one and if not, how to determine which to store. I'm not sure how SAM.gov
+  // records are created, but if another person adds you as a POC, using your email
+  // address and mistypes your name, that typo could display in this app.
+  const matchedContactInfo = useMatchedContactInfo();
+  console.log(matchedContactInfo);
 
   /**
    * When provided a destination location to navigate to, creates an action
