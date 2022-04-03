@@ -5,6 +5,12 @@ import icons from "uswds/img/sprite.svg";
 import { serverUrl } from "../config";
 import Message from "components/message";
 
+type MessageState = {
+  displayed: boolean;
+  type: "error" | "info" | "success" | "warning";
+  text: string;
+};
+
 type LocationState = {
   redirectedFrom: string;
 };
@@ -13,17 +19,27 @@ export default function Welcome() {
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [errorMessage, setErrorMessage] = useState("");
+  const [message, setMessage] = useState<MessageState>({
+    displayed: false,
+    type: "info",
+    text: "",
+  });
 
   useEffect(() => {
-    if (!searchParams.has("error")) return;
-
     if (searchParams.get("error") === "auth") {
-      setErrorMessage("Auth error message here"); // TODO: update message
+      setMessage({
+        displayed: true,
+        type: "error",
+        text: "Auth error message here", // TODO: update message
+      });
     }
 
     if (searchParams.get("error") === "saml") {
-      setErrorMessage("SAML error message here"); // TODO: update message
+      setMessage({
+        displayed: true,
+        type: "error",
+        text: "SAML error message here", // TODO: update message
+      });
     }
 
     setSearchParams("");
@@ -39,7 +55,7 @@ export default function Welcome() {
 
   return (
     <>
-      {errorMessage && <Message type="error" text={errorMessage} />}
+      {message.displayed && <Message type={message.type} text={message.text} />}
 
       <div className="padding-9 border-1px border-base-lighter text-center bg-base-lightest">
         <p>
