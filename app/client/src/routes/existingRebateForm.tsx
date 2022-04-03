@@ -12,6 +12,7 @@ type SubmissionsState =
   | {
       status: "idle";
       data: {
+        userAccess: false;
         formSchema: null;
         submissionData: null;
       };
@@ -19,20 +20,29 @@ type SubmissionsState =
   | {
       status: "pending";
       data: {
+        userAccess: false;
         formSchema: null;
         submissionData: null;
       };
     }
   | {
       status: "success";
-      data: {
-        formSchema: { url: string; json: object };
-        submissionData: { data: object; state: "submitted" | "draft" };
-      };
+      data:
+        | {
+            userAccess: true;
+            formSchema: { url: string; json: object };
+            submissionData: { data: object; state: "submitted" | "draft" };
+          }
+        | {
+            userAccess: false;
+            formSchema: null;
+            submissionData: null;
+          };
     }
   | {
       status: "failure";
       data: {
+        userAccess: false;
         formSchema: null;
         submissionData: null;
       };
@@ -46,6 +56,7 @@ export default function ExistingRebateForm() {
     useState<SubmissionsState>({
       status: "idle",
       data: {
+        userAccess: false,
         formSchema: null,
         submissionData: null,
       },
@@ -55,6 +66,7 @@ export default function ExistingRebateForm() {
     setRebateFormSubmission({
       status: "pending",
       data: {
+        userAccess: false,
         formSchema: null,
         submissionData: null,
       },
@@ -71,6 +83,7 @@ export default function ExistingRebateForm() {
         setRebateFormSubmission({
           status: "failure",
           data: {
+            userAccess: false,
             formSchema: null,
             submissionData: null,
           },
@@ -90,7 +103,16 @@ export default function ExistingRebateForm() {
     return <Message type="error" text={`Error loading rebate form ${id}.`} />;
   }
 
-  const { formSchema, submissionData } = rebateFormSubmission.data;
+  const { userAccess, formSchema, submissionData } = rebateFormSubmission.data;
+
+  if (!userAccess) {
+    return (
+      <Message
+        type="warning"
+        text="You don’t have access to this form. Please contact support if you believe this is a mistake."
+      />
+    );
+  }
 
   return (
     <div className="margin-top-2">
@@ -98,9 +120,9 @@ export default function ExistingRebateForm() {
         <MarkdownContent
           className="margin-top-4"
           children={
-            submissionData.state === "draft"
+            submissionData?.state === "draft"
               ? content.data.existingDraftRebateFormIntro
-              : submissionData.state === "submitted"
+              : submissionData?.state === "submitted"
               ? content.data.existingSubmittedRebateFormIntro
               : ""
           }
@@ -108,8 +130,8 @@ export default function ExistingRebateForm() {
       )}
 
       <Form
-        form={formSchema.json}
-        url={formSchema.url} // NOTE: used for file uploads
+        form={formSchema?.json}
+        url={formSchema?.url} // NOTE: used for file uploads
         submission={submissionData}
       />
     </div>

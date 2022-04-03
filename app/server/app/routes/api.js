@@ -268,13 +268,23 @@ router.get("/rebate-form-submission/:id", (req, res) => {
         .get(`${formioProjectUrl}/form/${submission.form}`, formioHeaders)
         .then((axiosRes) => axiosRes.data)
         .then((schema) => {
-          res.json({
-            formSchema: {
-              url: `${formioProjectUrl}/form/${submission.form}`,
-              json: schema,
-            },
-            submissionData: submission,
-          });
+          // TODO: check user's access to the form
+          if (false) {
+            res.json({
+              userAccess: false,
+              formSchema: null,
+              submissionData: null,
+            });
+          } else {
+            res.json({
+              userAccess: true,
+              formSchema: {
+                url: `${formioProjectUrl}/form/${submission.form}`,
+                json: schema,
+              },
+              submissionData: submission,
+            });
+          }
         });
     })
     .catch((error) => {
