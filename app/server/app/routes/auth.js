@@ -68,7 +68,7 @@ router.get("/logout", ensureAuthenticated, (req, res) => {
 const logoutCallback = (req, res) => {
   // Clear token cookie so client no longer passes JWT after logout
   res.clearCookie(cookieName);
-  res.redirect(`${baseUrl}/`);
+  res.redirect(`${baseUrl}/welcome?success=logout`);
 };
 
 // Local saml config sends GET for logout callback, while EPA config sends POST. Handle both

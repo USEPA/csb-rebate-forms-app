@@ -30,7 +30,7 @@ export default function Welcome() {
       setMessage({
         displayed: true,
         type: "error",
-        text: "Auth error message here", // TODO: update message
+        text: "(Authentication error message.)", // TODO: update message
       });
     }
 
@@ -38,7 +38,15 @@ export default function Welcome() {
       setMessage({
         displayed: true,
         type: "error",
-        text: "SAML error message here", // TODO: update message
+        text: "(SAML error message here.)", // TODO: update message
+      });
+    }
+
+    if (searchParams.get("success") === "logout") {
+      setMessage({
+        displayed: true,
+        type: "success",
+        text: "You’ve succesfully logged out.", // TODO: update message
       });
     }
 
