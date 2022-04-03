@@ -46,99 +46,110 @@ export default function AllRebateForms() {
 
   return (
     <>
-      {content.status === "success" && (
-        <MarkdownContent
-          className="margin-top-4"
-          children={content.data.allRebateFormsIntro}
-        />
-      )}
+      {rebateFormSubmissions.data.length === 0 ? (
+        <div className="margin-top-4">
+          <Message
+            type="info"
+            text="Please select the “New Rebate” button above to create your first rebate application."
+          />
+        </div>
+      ) : (
+        <>
+          {content.status === "success" && (
+            <MarkdownContent
+              className="margin-top-4"
+              children={content.data.allRebateFormsIntro}
+            />
+          )}
 
-      <table className="usa-table usa-table--borderless usa-table--striped width-full">
-        <thead>
-          <tr className="font-sans-2xs text-no-wrap">
-            <th scope="col">&nbsp;</th>
-            <th scope="col">
-              <TextWithTooltip
-                text="Form Type"
-                tooltip="Rebate Application, Payment Request, or Close-Out form"
-              />
-            </th>
-            <th scope="col">
-              <TextWithTooltip
-                text="UEI"
-                tooltip="Unique Entity ID from SAM.gov"
-              />
-            </th>
-            <th scope="col">
-              <TextWithTooltip
-                text="EFT"
-                tooltip="Electronic Funds Transfer indicator from SAM.gov"
-              />
-            </th>
-            <th scope="col">
-              <TextWithTooltip
-                text="UEI Entity Name"
-                tooltip="Entity Name from SAM.gov"
-              />
-            </th>
-            <th scope="col">School District Name</th>
-            <th scope="col">Updated By</th>
-            <th scope="col" className="text-right">
-              Updated Date
-            </th>
-            <th scope="col">
-              <TextWithTooltip text="Status" tooltip="submitted or draft" />
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {rebateFormSubmissions.data.map((submission) => {
-            const {
-              _id,
-              formType,
-              uei,
-              eft,
-              ueiEntityName,
-              schoolDistrictName,
-              lastUpdatedBy,
-              lastUpdatedDate,
-              status,
-            } = submission;
-
-            return (
-              <tr key={_id}>
-                <th scope="row">
-                  <Link
-                    to={`/rebate/${_id}`}
-                    className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-                  >
-                    <span className="display-flex flex-align-center">
-                      <svg
-                        className="usa-icon"
-                        aria-hidden="true"
-                        focusable="false"
-                        role="img"
-                      >
-                        <use href={`${icons}#edit`} />
-                      </svg>
-                    </span>
-                  </Link>
+          <table className="usa-table usa-table--borderless usa-table--striped width-full">
+            <thead>
+              <tr className="font-sans-2xs text-no-wrap">
+                <th scope="col">&nbsp;</th>
+                <th scope="col">
+                  <TextWithTooltip
+                    text="Form Type"
+                    tooltip="Rebate Application, Payment Request, or Close-Out form"
+                  />
                 </th>
-                <th>{formType}</th>
-                <th>{uei}</th>
-                <td>{eft}</td>
-                <td>{ueiEntityName}</td>
-                <td>{schoolDistrictName}</td>
-                <td>{lastUpdatedBy}</td>
-                <td className="text-right">
-                  {new Date(lastUpdatedDate).toLocaleDateString()}
-                </td>
-                <td>{status}</td>
+                <th scope="col">
+                  <TextWithTooltip
+                    text="UEI"
+                    tooltip="Unique Entity ID from SAM.gov"
+                  />
+                </th>
+                <th scope="col">
+                  <TextWithTooltip
+                    text="EFT"
+                    tooltip="Electronic Funds Transfer indicator from SAM.gov"
+                  />
+                </th>
+                <th scope="col">
+                  <TextWithTooltip
+                    text="UEI Entity Name"
+                    tooltip="Entity Name from SAM.gov"
+                  />
+                </th>
+                <th scope="col">School District Name</th>
+                <th scope="col">Updated By</th>
+                <th scope="col" className="text-right">
+                  Updated Date
+                </th>
+                <th scope="col">
+                  <TextWithTooltip text="Status" tooltip="submitted or draft" />
+                </th>
               </tr>
-            );
-          })}
-        </tbody>
-      </table>
+            </thead>
+            <tbody>
+              {rebateFormSubmissions.data.map((submission) => {
+                const {
+                  _id,
+                  formType,
+                  uei,
+                  eft,
+                  ueiEntityName,
+                  schoolDistrictName,
+                  lastUpdatedBy,
+                  lastUpdatedDate,
+                  status,
+                } = submission;
+
+                return (
+                  <tr key={_id}>
+                    <th scope="row">
+                      <Link
+                        to={`/rebate/${_id}`}
+                        className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
+                      >
+                        <span className="display-flex flex-align-center">
+                          <svg
+                            className="usa-icon"
+                            aria-hidden="true"
+                            focusable="false"
+                            role="img"
+                          >
+                            <use href={`${icons}#edit`} />
+                          </svg>
+                        </span>
+                      </Link>
+                    </th>
+                    <th>{formType}</th>
+                    <th>{uei}</th>
+                    <td>{eft}</td>
+                    <td>{ueiEntityName}</td>
+                    <td>{schoolDistrictName}</td>
+                    <td>{lastUpdatedBy}</td>
+                    <td className="text-right">
+                      {new Date(lastUpdatedDate).toLocaleDateString()}
+                    </td>
+                    <td>{status}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </>
+      )}
 
       {content.status === "success" && (
         <div className="margin-top-4 padding-2 border-1px border-base-lighter bg-base-lightest">
