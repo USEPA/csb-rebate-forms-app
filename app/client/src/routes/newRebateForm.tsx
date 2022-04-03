@@ -9,8 +9,8 @@ import Loading from "components/loading";
 import Message from "components/message";
 import MarkdownContent from "components/markdownContent";
 import { TextWithTooltip } from "components/infoTooltip";
-import { useContentState } from "contexts/content";
 import { EPAUserData, SAMUserData, useUserState } from "contexts/user";
+import { useContentState } from "contexts/content";
 
 type FormSchemaState =
   | { status: "idle"; data: null }
@@ -123,7 +123,7 @@ export default function NewRebateForm() {
 
   const activeSamData =
     samUserData.status === "success" &&
-    samUserData.data.filter((data) => data.ENTITY_STATUS__c === "Active");
+    samUserData.data.filter((entity) => entity.ENTITY_STATUS__c === "Active");
 
   return (
     <div className="margin-top-2">
