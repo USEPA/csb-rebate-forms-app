@@ -26,7 +26,7 @@ type SubmissionsState =
   | {
       status: "success";
       data: {
-        formSchema: object;
+        formSchema: { url: string; json: object };
         submissionData: { data: object; state: "submitted" | "draft" };
       };
     }
@@ -107,7 +107,11 @@ export default function ExistingRebateForm() {
         />
       )}
 
-      <Form form={formSchema} submission={submissionData} />
+      <Form
+        form={formSchema.json}
+        url={formSchema.url} // NOTE: used for file uploads
+        submission={submissionData}
+      />
     </div>
   );
 }
