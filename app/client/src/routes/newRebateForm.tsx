@@ -15,7 +15,7 @@ import { EPAUserData, SAMUserData, useUserState } from "contexts/user";
 type FormSchemaState =
   | { status: "idle"; data: null }
   | { status: "pending"; data: null }
-  | { status: "success"; data: object }
+  | { status: "success"; data: { url: string; json: object } }
   | { status: "failure"; data: null };
 
 type FormioFormProps = {
@@ -85,7 +85,8 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
       )}
 
       <Form
-        form={formSchema.data}
+        form={formSchema.data.json}
+        url={formSchema.data.url} // NOTE: used for file uploads
         submission={{
           data: {
             // TODO: update to only populate the `last_updated_by` and hidden fields (GSA will populate the rest)
@@ -98,7 +99,7 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
           setformSubmissionFailed(false);
 
           fetchData(`${serverUrl}/api/v1/rebate-form-submission/`, submission)
-            .then((formSubmission) => {
+            .then((res) => {
               navigate("/");
             })
             .catch((err) => {

@@ -174,7 +174,12 @@ router.get("/rebate-form-schema", (req, res) => {
   axios
     .get(`${formioProjectUrl}/${formioFormId}`, formioHeaders)
     .then((axiosRes) => axiosRes.data)
-    .then((schema) => res.json(schema))
+    .then((schema) =>
+      res.json({
+        url: `${formioProjectUrl}/${formioFormId}`,
+        json: schema,
+      })
+    )
     .catch((error) => {
       if (typeof error.toJSON === "function") {
         console.error(error.toJSON());
@@ -264,7 +269,10 @@ router.get("/rebate-form-submission/:id", (req, res) => {
         .then((axiosRes) => axiosRes.data)
         .then((schema) => {
           res.json({
-            formSchema: schema,
+            formSchema: {
+              url: `${formioProjectUrl}/form/${submission.form}`,
+              json: schema,
+            },
             submissionData: submission,
           });
         });
