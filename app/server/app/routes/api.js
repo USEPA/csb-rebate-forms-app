@@ -257,7 +257,7 @@ router.get("/rebate-form-submissions", (req, res) => {
     });
 });
 
-router.get("/rebate-form-submission/:id", (req, res) => {
+router.post("/rebate-form-submission/:id", (req, res) => {
   const id = req.params.id;
 
   axios
@@ -268,13 +268,28 @@ router.get("/rebate-form-submission/:id", (req, res) => {
         .get(`${formioProjectUrl}/form/${submission.form}`, formioHeaders)
         .then((axiosRes) => axiosRes.data)
         .then((schema) => {
-          res.json({
-            formSchema: {
-              url: `${formioProjectUrl}/form/${submission.form}`,
-              json: schema,
-            },
-            submissionData: submission,
-          });
+          const { bap_hidden_entity_combo_key } = submission.data;
+
+          // TODO: swap out if (false) for if statement below once form has been
+          // updated to include "bap_hidden_entity_combo_key"
+
+          // if (!req.body.bapComboKeys.includes(bap_hidden_entity_combo_key)) {
+          if (false) {
+            res.json({
+              userAccess: false,
+              formSchema: null,
+              submissionData: null,
+            });
+          } else {
+            res.json({
+              userAccess: true,
+              formSchema: {
+                url: `${formioProjectUrl}/form/${submission.form}`,
+                json: schema,
+              },
+              submissionData: submission,
+            });
+          }
         });
     })
     .catch((error) => {
