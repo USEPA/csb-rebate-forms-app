@@ -26,6 +26,7 @@
 }
 
 [data-reach-dialog-overlay]::before {
+  /* match USWDS modal */
   content: "";
   display: inline-block;
   height: 100%;
