@@ -6,6 +6,7 @@ import { serverUrl, fetchData } from "../config";
 import Loading from "components/loading";
 import Message from "components/message";
 import MarkdownContent from "components/markdownContent";
+import { useUserState } from "contexts/user";
 import { useContentState } from "contexts/content";
 
 type SubmissionsState =
@@ -50,6 +51,7 @@ type SubmissionsState =
 
 export default function ExistingRebateForm() {
   const { id } = useParams<"id">();
+  const { samUserData } = useUserState();
   const { content } = useContentState();
 
   const [rebateFormSubmission, setRebateFormSubmission] =
@@ -63,6 +65,10 @@ export default function ExistingRebateForm() {
     });
 
   useEffect(() => {
+    if (samUserData.status !== "success") return;
+
+    const bapComboKeys = samUserData.data.map((e) => e.ENTITY_COMBO_KEY__c);
+
     setRebateFormSubmission({
       status: "pending",
       data: {
@@ -72,7 +78,9 @@ export default function ExistingRebateForm() {
       },
     });
 
-    fetchData(`${serverUrl}/api/v1/rebate-form-submission/${id}`)
+    fetchData(`${serverUrl}/api/v1/rebate-form-submission/${id}`, {
+      bapComboKeys,
+    })
       .then((res) => {
         setRebateFormSubmission({
           status: "success",
@@ -89,7 +97,7 @@ export default function ExistingRebateForm() {
           },
         });
       });
-  }, [id]);
+  }, [samUserData, id]);
 
   if (rebateFormSubmission.status === "idle") {
     return null;
