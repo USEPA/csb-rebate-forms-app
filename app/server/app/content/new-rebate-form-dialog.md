@@ -1,3 +1,3 @@
-## Start a new rebate application
+## Start a New Rebate Application
 
-Please select a row below to begin your new rebate application.
+Please select a row (arrow icon) below to begin your rebate form.
