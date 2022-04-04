@@ -1,16 +1,17 @@
 import { useEffect } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Formio } from "formiojs";
+import { Formio } from "@formio/react";
 import uswds from "@formio/uswds";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl, fetchData } from "../config";
+import { serverUrl, formioProjectUrl, fetchData } from "../config";
 import ConfirmationDialog from "components/confirmationDialog";
 import { useUserState, useUserDispatch } from "contexts/user";
 import { useContentDispatch } from "contexts/content";
 import { Action, useDialogDispatch } from "contexts/dialog";
 
 Formio.use(uswds);
+Formio.setProjectUrl(formioProjectUrl);
 
 function useFetchedSamData() {
   const dispatch = useUserDispatch();
