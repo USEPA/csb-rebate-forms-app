@@ -71,7 +71,7 @@ jobs:
 
       - name: Build front-end files and move to server
         run: |
-          PUBLIC_URL="$SERVER_URL" REACT_APP_SERVER_BASE_PATH="$SERVER_BASE_PATH" npm run build
+          PUBLIC_URL="$SERVER_URL" REACT_APP_SERVER_BASE_PATH="$SERVER_BASE_PATH" REACT_APP_FORMIO_PROJECT_URL="$FORMIO_PROJECT_URL" npm run build
           rm ../server/app/public/index.html
           cd build
           mv * ../../server/app/public
