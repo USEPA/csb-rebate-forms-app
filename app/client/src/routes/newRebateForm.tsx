@@ -89,7 +89,8 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
         url={formSchema.data.url} // NOTE: used for file uploads
         submission={{
           data: {
-            // TODO: update to only populate the `last_updated_by` and hidden fields (GSA will populate the rest)
+            last_updated_by: epaData.mail,
+            // TODO: update fields below only populate the hidden fields (GSA will populate the rest)
             sam_hidden_name: epaData.mail,
             applicantUEI: samData.UNIQUE_ENTITY_ID__c,
             applicantOrganizationName: samData.LEGAL_BUSINESS_NAME__c,
