@@ -19,10 +19,13 @@ export default function Welcome() {
   console.log("previous url", destination);
 
   return (
+    <>
+      <h1>Clean School Bus Rebate Forms: Applicant Login</h1>
+
     <div className="padding-9 border-1px border-base-lighter text-center bg-base-lightest">
       <p data-testid="csb-sign-in-text">
         Click the <strong>Sign in</strong> button below to log into the{" "}
-        <em>Clean School Bus Rebate Forms</em> application.
+          <em>Clean School Bus Rebate Dashboard</em> using Login.gov.
       </p>
 
       <a
@@ -43,5 +46,6 @@ export default function Welcome() {
         </span>
       </a>
     </div>
+    </>
   );
 }

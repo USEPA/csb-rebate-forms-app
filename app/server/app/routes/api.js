@@ -43,15 +43,19 @@ function getSamData(email) {
                 UNIQUE_ENTITY_ID__c,
                 ENTITY_EFT_INDICATOR__c,
                 CAGE_CODE__c,
-                NAME,
+                LEGAL_BUSINESS_NAME__c,
                 GOVT_BUS_POC_NAME__c,
                 GOVT_BUS_POC_EMAIL__c,
+                GOVT_BUS_POC_TITLE__c,
                 ALT_GOVT_BUS_POC_NAME__c,
                 ALT_GOVT_BUS_POC_EMAIL__c,
+                ALT_GOVT_BUS_POC_TITLE__c,
                 ELEC_BUS_POC_NAME__c,
                 ELEC_BUS_POC_EMAIL__c,
+                ELEC_BUS_POC_TITLE__c,
                 ALT_ELEC_BUS_POC_NAME__c,
                 ALT_ELEC_BUS_POC_EMAIL__c,
+                ALT_ELEC_BUS_POC_TITLE__c,
                 PHYSICAL_ADDRESS_LINE_1__c,
                 PHYSICAL_ADDRESS_LINE_2__c,
                 PHYSICAL_ADDRESS_CITY__c,
@@ -170,7 +174,12 @@ router.get("/rebate-form-schema", (req, res) => {
   axios
     .get(`${formioProjectUrl}/${formioFormId}`, formioHeaders)
     .then((axiosRes) => axiosRes.data)
-    .then((schema) => res.json(schema))
+    .then((schema) =>
+      res.json({
+        url: `${formioProjectUrl}/${formioFormId}`,
+        json: schema,
+      })
+    )
     .catch((error) => {
       if (typeof error.toJSON === "function") {
         console.error(error.toJSON());
@@ -225,7 +234,7 @@ router.get("/rebate-form-submissions", (req, res) => {
           project,
           created,
           // --- form fields ---
-          formType: "Rebate",
+          formType: "Application",
           uei: data.applicantUEI,
           eft: "####", // TODO: this needs to be in the form
           ueiEntityName: data.applicantOrganizationName,
@@ -248,7 +257,7 @@ router.get("/rebate-form-submissions", (req, res) => {
     });
 });
 
-router.get("/rebate-form-submission/:id", (req, res) => {
+router.post("/rebate-form-submission/:id", (req, res) => {
   const id = req.params.id;
 
   axios
@@ -259,10 +268,28 @@ router.get("/rebate-form-submission/:id", (req, res) => {
         .get(`${formioProjectUrl}/form/${submission.form}`, formioHeaders)
         .then((axiosRes) => axiosRes.data)
         .then((schema) => {
-          res.json({
-            formSchema: schema,
-            submissionData: submission,
-          });
+          const { bap_hidden_entity_combo_key } = submission.data;
+
+          // TODO: swap out if (false) for if statement below once form has been
+          // updated to include "bap_hidden_entity_combo_key"
+
+          // if (!req.body.bapComboKeys.includes(bap_hidden_entity_combo_key)) {
+          if (false) {
+            res.json({
+              userAccess: false,
+              formSchema: null,
+              submissionData: null,
+            });
+          } else {
+            res.json({
+              userAccess: true,
+              formSchema: {
+                url: `${formioProjectUrl}/form/${submission.form}`,
+                json: schema,
+              },
+              submissionData: submission,
+            });
+          }
         });
     })
     .catch((error) => {

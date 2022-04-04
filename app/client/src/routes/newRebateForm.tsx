@@ -9,13 +9,13 @@ import Loading from "components/loading";
 import Message from "components/message";
 import MarkdownContent from "components/markdownContent";
 import { TextWithTooltip } from "components/infoTooltip";
-import { useContentState } from "contexts/content";
 import { EPAUserData, SAMUserData, useUserState } from "contexts/user";
+import { useContentState } from "contexts/content";
 
 type FormSchemaState =
   | { status: "idle"; data: null }
   | { status: "pending"; data: null }
-  | { status: "success"; data: object }
+  | { status: "success"; data: { url: string; json: object } }
   | { status: "failure"; data: null };
 
 type FormioFormProps = {
@@ -85,20 +85,22 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
       )}
 
       <Form
-        form={formSchema.data}
+        form={formSchema.data.json}
+        url={formSchema.data.url} // NOTE: used for file uploads
         submission={{
           data: {
-            // TODO: update to only populate the `last_updated_by` and hidden fields (GSA will populate the rest)
+            last_updated_by: epaData.mail,
+            // TODO: update fields below only populate the hidden fields (GSA will populate the rest)
             sam_hidden_name: epaData.mail,
             applicantUEI: samData.UNIQUE_ENTITY_ID__c,
-            applicantOrganizationName: samData.Name,
+            applicantOrganizationName: samData.LEGAL_BUSINESS_NAME__c,
           },
         }}
         onSubmit={(submission: object) => {
           setformSubmissionFailed(false);
 
           fetchData(`${serverUrl}/api/v1/rebate-form-submission/`, submission)
-            .then((formSubmission) => {
+            .then((res) => {
               navigate("/");
             })
             .catch((err) => {
@@ -122,7 +124,7 @@ export default function NewRebateForm() {
 
   const activeSamData =
     samUserData.status === "success" &&
-    samUserData.data.filter((data) => data.ENTITY_STATUS__c === "Active");
+    samUserData.data.filter((entity) => entity.ENTITY_STATUS__c === "Active");
 
   return (
     <div className="margin-top-2">
@@ -172,19 +174,19 @@ export default function NewRebateForm() {
                     <th scope="col">
                       <TextWithTooltip
                         text="UEI"
-                        tooltip="“Unique Entity ID” from SAM.gov"
+                        tooltip="Unique Entity ID from SAM.gov"
                       />
                     </th>
                     <th scope="col">
                       <TextWithTooltip
                         text="EFT"
-                        tooltip="“Electronic Funds Transfer” indicator from SAM.gov"
+                        tooltip="Electronic Funds Transfer indicator listing the associated bank account from SAM.gov"
                       />
                     </th>
                     <th scope="col">
                       <TextWithTooltip
-                        text="UEI Entity Name"
-                        tooltip="Entity Name from SAM.gov"
+                        text="Organization"
+                        tooltip="Legal Business Name from SAM.gov for this UEI"
                       />
                     </th>
                   </tr>
@@ -228,7 +230,9 @@ export default function NewRebateForm() {
                           <th className="font-sans-2xs">
                             {samData.ENTITY_EFT_INDICATOR__c}
                           </th>
-                          <th className="font-sans-2xs">{samData.Name}</th>
+                          <th className="font-sans-2xs">
+                            {samData.LEGAL_BUSINESS_NAME__c}
+                          </th>
                         </tr>
                       );
                     })
