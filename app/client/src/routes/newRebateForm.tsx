@@ -174,19 +174,19 @@ export default function NewRebateForm() {
                     <th scope="col">
                       <TextWithTooltip
                         text="UEI"
-                        tooltip="“Unique Entity ID” from SAM.gov"
+                        tooltip="Unique Entity ID from SAM.gov"
                       />
                     </th>
                     <th scope="col">
                       <TextWithTooltip
                         text="EFT"
-                        tooltip="“Electronic Funds Transfer” indicator from SAM.gov"
+                        tooltip="Electronic Funds Transfer indicator listing the associated bank account from SAM.gov"
                       />
                     </th>
                     <th scope="col">
                       <TextWithTooltip
-                        text="UEI Entity Name"
-                        tooltip="Entity Name from SAM.gov"
+                        text="Organization"
+                        tooltip="Legal Business Name from SAM.gov for this UEI"
                       />
                     </th>
                   </tr>

@@ -234,7 +234,7 @@ router.get("/rebate-form-submissions", (req, res) => {
           project,
           created,
           // --- form fields ---
-          formType: "Rebate",
+          formType: "Application",
           uei: data.applicantUEI,
           eft: "####", // TODO: this needs to be in the form
           ueiEntityName: data.applicantOrganizationName,

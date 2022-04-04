@@ -24,7 +24,7 @@ type RebateFormSubmission = {
   created: string; // datetime string created
   modified: string; // datetime string modified
   // --- form fields ---
-  formType: "Rebate" | "Payment Request" | "Close-Out";
+  formType: "Application" | "Payment Request" | "Close-Out";
   uei: string;
   eft: string;
   ueiEntityName: string;
