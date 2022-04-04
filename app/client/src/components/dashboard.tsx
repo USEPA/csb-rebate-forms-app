@@ -164,7 +164,11 @@ export default function Dashboard() {
             </button>
 
             <Link to="/rebate/new" className="usa-button font-sans-2xs">
-              <IconText order="icon-text" icon="add_circle" text="New Rebate" />
+              <IconText
+                order="icon-text"
+                icon="add_circle"
+                text="New Application"
+              />
             </Link>
           </nav>
         ) : (
@@ -186,7 +190,11 @@ export default function Dashboard() {
             </a>
 
             <button className="usa-button font-sans-2xs" disabled>
-              <IconText order="icon-text" icon="add_circle" text="New Rebate" />
+              <IconText
+                order="icon-text"
+                icon="add_circle"
+                text="New Application"
+              />
             </button>
           </nav>
         )}
