@@ -115,7 +115,12 @@ export default function AllRebateForms() {
                 } = submission;
 
                 return (
-                  <tr key={_id}>
+                  <tr
+                    key={_id}
+                    className={
+                      status === "submitted" ? "text-italic text-base-dark" : ""
+                    }
+                  >
                     <th scope="row">
                       <Link
                         to={`/rebate/${_id}`}
