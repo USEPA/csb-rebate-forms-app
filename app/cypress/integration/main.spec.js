@@ -1,4 +1,4 @@
-describe('Authentication', () => {
+describe('Main', () => {
   // Leave the user logged in to prevent logging in for every test
   Cypress.Cookies.defaults({
     preserve: 'csb-token',

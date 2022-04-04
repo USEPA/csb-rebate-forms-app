@@ -1,5 +1,7 @@
-describe('Main', () => {
+describe('Authentication', () => {
   beforeEach(() => {
+    cy.clearCookie('csb-token')
+
     cy.loginToCSB('csbtest');
   });
 
@@ -17,7 +19,7 @@ describe('Main', () => {
 
     // verify sign out was completed
     cy.findByTestId('csb-sign-in-text').contains(
-      'Click the Sign in button below to log into the Clean School Bus Rebate Forms application.',
+      'Click the Sign in button below to log into the Clean School Bus Rebate Dashboard using Login.gov.',
     );
   });
 });

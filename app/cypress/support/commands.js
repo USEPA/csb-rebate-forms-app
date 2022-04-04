@@ -11,7 +11,7 @@ Cypress.Commands.add('loginToCSB', (username, password = 'password') => {
   cy.visit('/');
 
   // wait for loading to complete. This text is available on the SignIn page and the post sign in page
-  cy.findByText('Clean School Bus Rebate Forms');
+  cy.findAllByText('Clean School Bus Rebate', { exact: false });
 
   cy.get('body').then(($body) => {
     if ($body.find('a[data-testid=csb-sign-in-button]').length) {
