@@ -12,6 +12,7 @@ const passport = require("passport");
 const errorHandler = require("./utilities/errorHandler");
 const logger = require("./utilities/logger");
 const samlStrategy = require("./config/samlStrategy");
+const { appScan } = require("./middleware");
 const routes = require("./routes");
 
 const app = express();
@@ -61,6 +62,14 @@ app.disable("x-powered-by");
 if (process.env.NODE_ENV === "development") {
   app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
   app.use(morgan("dev"));
+}
+
+// Apply global middleware on dev/staging in order for scan to receive 200 status on all endpoints
+if (
+  process.env.CLOUD_SPACE === "development" ||
+  process.env.CLOUD_SPACE === "staging"
+) {
+  app.use(appScan);
 }
 
 app.use(express.json());
