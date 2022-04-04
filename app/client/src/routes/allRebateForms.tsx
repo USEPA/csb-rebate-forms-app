@@ -157,7 +157,7 @@ export default function AllRebateForms() {
       )}
 
       {content.status === "success" && (
-        <div className="margin-top-4 padding-2 border-1px border-base-lighter bg-base-lightest">
+        <div className="margin-top-4 padding-2 padding-bottom-0 border-1px border-base-lighter bg-base-lightest">
           <MarkdownContent children={content.data.allRebateFormsOutro} />
         </div>
       )}
