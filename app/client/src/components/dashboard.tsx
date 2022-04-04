@@ -129,7 +129,28 @@ export default function Dashboard() {
 
   return (
     <div>
-      <h1>Clean School Bus Rebate Forms</h1>
+      <h1 className="margin-bottom-2">Clean School Bus Rebate Forms</h1>
+
+      <ul className="margin-bottom-4">
+        <li>
+          <a
+            href="https://www.epa.gov/cleanschoolbus/school-bus-rebates-clean-school-bus-program"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Clean School Bus Rebate Program
+          </a>
+        </li>
+        <li>
+          <a
+            href="https://www.epa.gov/cleanschoolbus/online-rebate-application-information-clean-school-bus-program"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Online Rebate Application Information
+          </a>
+        </li>
+      </ul>
 
       <div className="display-flex flex-justify border-bottom padding-bottom-1">
         {pathname === "/" ? (
