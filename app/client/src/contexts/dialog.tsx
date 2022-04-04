@@ -15,7 +15,8 @@ type State = {
   heading: string;
   description: string;
   confirmText: string;
-  cancelText: string;
+  cancelText?: string;
+  forceConfirm?: boolean;
   confirmedAction: () => void;
 };
 
@@ -26,11 +27,16 @@ export type Action =
         heading: string;
         description: string;
         confirmText: string;
-        cancelText: string;
+        cancelText?: string;
+        forceConfirm?: boolean;
         confirmedAction: () => void;
       };
     }
-  | { type: "RESET_DIALOG" };
+  | { type: "RESET_DIALOG" }
+  | {
+      type: "UPDATE_DESCRIPTION";
+      payload: string;
+    };
 
 const StateContext = createContext<State | undefined>(undefined);
 const DispatchContext = createContext<Dispatch<Action> | undefined>(undefined);
@@ -38,8 +44,14 @@ const DispatchContext = createContext<Dispatch<Action> | undefined>(undefined);
 function reducer(state: State, action: Action): State {
   switch (action.type) {
     case "DISPLAY_DIALOG": {
-      const { heading, description, confirmText, cancelText, confirmedAction } =
-        action.payload;
+      const {
+        heading,
+        description,
+        confirmText,
+        cancelText,
+        forceConfirm,
+        confirmedAction,
+      } = action.payload;
 
       return {
         dialogShown: true,
@@ -47,6 +59,7 @@ function reducer(state: State, action: Action): State {
         description,
         confirmText,
         cancelText,
+        forceConfirm,
         confirmedAction,
       };
     }
@@ -58,7 +71,15 @@ function reducer(state: State, action: Action): State {
         description: "",
         confirmText: "",
         cancelText: "",
+        forceConfirm: false,
         confirmedAction: () => {},
+      };
+    }
+
+    case "UPDATE_DESCRIPTION": {
+      return {
+        ...state,
+        description: action.payload,
       };
     }
 
@@ -75,6 +96,7 @@ export function DialogProvider({ children }: Props) {
     description: "",
     confirmText: "",
     cancelText: "",
+    forceConfirm: false,
     confirmedAction: () => {},
   };
 
