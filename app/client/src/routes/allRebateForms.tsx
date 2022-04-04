@@ -86,13 +86,13 @@ export default function AllRebateForms() {
                 </th>
                 <th scope="col">
                   <TextWithTooltip
-                    text="Organization"
+                    text="Applicant"
                     tooltip="Legal Business Name from SAM.gov for this UEI"
                   />
                 </th>
                 <th scope="col">
                   <TextWithTooltip
-                    text="School District Name"
+                    text="School District"
                     tooltip="School district represented by applicant"
                   />
                 </th>

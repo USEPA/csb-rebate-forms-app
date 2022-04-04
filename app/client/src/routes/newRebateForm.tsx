@@ -185,7 +185,7 @@ export default function NewRebateForm() {
                     </th>
                     <th scope="col">
                       <TextWithTooltip
-                        text="Organization"
+                        text="Applicant"
                         tooltip="Legal Business Name from SAM.gov for this UEI"
                       />
                     </th>
