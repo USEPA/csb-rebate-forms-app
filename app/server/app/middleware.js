@@ -50,6 +50,21 @@ const rejectRequest = (req, res) => {
   );
 };
 
+// Auto-redirect to SAML login for any non-logged-in user on any route except base "/" or "/welcome"
+const protectClientRoutes = (req, res, next) => {
+  const subPath = process.env.SERVER_BASE_PATH || "";
+  const unprotectedRoutes = ["/", "/welcome"].map(
+    (route) => `${subPath}${route}`
+  );
+  if (!unprotectedRoutes.includes(req.path)) {
+    // Redirect to /login with RelayState if user arrives directly at protected client-side route
+    return res.redirect(
+      `${process.env.SERVER_URL}/login?RelayState=${req.originalUrl}`
+    );
+  }
+  next();
+};
+
 // Global middleware on dev/staging to send 200 status on all server endpoints (required for ZAP scan)
 const appScan = (req, res, next) => {
   // OpenAPI def must use global "scan" param and enum to "true"
@@ -59,4 +74,4 @@ const appScan = (req, res, next) => {
   next();
 };
 
-module.exports = { ensureAuthenticated, appScan };
+module.exports = { ensureAuthenticated, appScan, protectClientRoutes };
