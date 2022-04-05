@@ -11,11 +11,14 @@ import { useContentState } from "contexts/content";
 import { useFormsState, useFormsDispatch } from "contexts/forms";
 
 export default function AllRebateForms() {
+  const { samUserData } = useUserState();
   const { content } = useContentState();
   const { rebateFormSubmissions } = useFormsState();
   const dispatch = useFormsDispatch();
 
   useEffect(() => {
+    if (samUserData.status !== "success" || !samUserData.data.results) return;
+
     dispatch({ type: "FETCH_REBATE_FORM_SUBMISSIONS_REQUEST" });
 
     fetchData(`${serverUrl}/api/v1/rebate-form-submissions`)
@@ -28,13 +31,12 @@ export default function AllRebateForms() {
       .catch((err) => {
         dispatch({ type: "FETCH_REBATE_FORM_SUBMISSIONS_FAILURE" });
       });
-  }, [dispatch]);
+  }, [samUserData, dispatch]);
 
-  if (rebateFormSubmissions.status === "idle") {
-    return null;
-  }
-
-  if (rebateFormSubmissions.status === "pending") {
+  if (
+    rebateFormSubmissions.status === "idle" ||
+    rebateFormSubmissions.status === "pending"
+  ) {
     return <Loading />;
   }
 
