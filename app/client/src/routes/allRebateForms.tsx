@@ -7,15 +7,19 @@ import Loading from "components/loading";
 import Message from "components/message";
 import MarkdownContent from "components/markdownContent";
 import { TextWithTooltip } from "components/infoTooltip";
+import { useUserState } from "contexts/user";
 import { useContentState } from "contexts/content";
 import { useFormsState, useFormsDispatch } from "contexts/forms";
 
 export default function AllRebateForms() {
+  const { samUserData } = useUserState();
   const { content } = useContentState();
   const { rebateFormSubmissions } = useFormsState();
   const dispatch = useFormsDispatch();
 
   useEffect(() => {
+    if (samUserData.status !== "success" || !samUserData.data.results) return;
+
     dispatch({ type: "FETCH_REBATE_FORM_SUBMISSIONS_REQUEST" });
 
     fetchData(`${serverUrl}/api/v1/rebate-form-submissions`)
@@ -28,13 +32,12 @@ export default function AllRebateForms() {
       .catch((err) => {
         dispatch({ type: "FETCH_REBATE_FORM_SUBMISSIONS_FAILURE" });
       });
-  }, [dispatch]);
+  }, [samUserData, dispatch]);
 
-  if (rebateFormSubmissions.status === "idle") {
-    return null;
-  }
-
-  if (rebateFormSubmissions.status === "pending") {
+  if (
+    rebateFormSubmissions.status === "idle" ||
+    rebateFormSubmissions.status === "pending"
+  ) {
     return <Loading />;
   }
 
@@ -80,19 +83,19 @@ export default function AllRebateForms() {
                 </th>
                 <th scope="col">
                   <TextWithTooltip
-                    text="EFT"
-                    tooltip="Electronic Funds Transfer indicator listing the associated bank account from SAM.gov"
+                    text="EFT Indicator"
+                    tooltip="Electronic Funds Transfer Indicator listing the associated bank account from SAM.gov"
                   />
                 </th>
                 <th scope="col">
                   <TextWithTooltip
-                    text="Organization"
+                    text="Applicant"
                     tooltip="Legal Business Name from SAM.gov for this UEI"
                   />
                 </th>
                 <th scope="col">
                   <TextWithTooltip
-                    text="School District Name"
+                    text="School District"
                     tooltip="School district represented by applicant"
                   />
                 </th>
@@ -120,10 +123,10 @@ export default function AllRebateForms() {
                   formType,
                   uei,
                   eft,
-                  ueiEntityName,
-                  schoolDistrictName,
+                  applicant,
+                  schoolDistrict,
                   lastUpdatedBy,
-                  lastUpdatedDate,
+                  lastUpdatedDatetime,
                   status,
                 } = submission;
 
@@ -154,10 +157,12 @@ export default function AllRebateForms() {
                     <th>{formType}</th>
                     <th>{uei}</th>
                     <td>{eft}</td>
-                    <td>{ueiEntityName}</td>
-                    <td>{schoolDistrictName}</td>
+                    <td>{applicant}</td>
+                    <td>{schoolDistrict}</td>
                     <td>{lastUpdatedBy}</td>
-                    <td>{new Date(lastUpdatedDate).toLocaleDateString()}</td>
+                    <td>
+                      {new Date(lastUpdatedDatetime).toLocaleDateString()}
+                    </td>
                     <td>{status}</td>
                   </tr>
                 );

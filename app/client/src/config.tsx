@@ -1,4 +1,11 @@
-const { NODE_ENV, REACT_APP_SERVER_BASE_PATH } = process.env;
+const { NODE_ENV, REACT_APP_SERVER_BASE_PATH, REACT_APP_FORMIO_PROJECT_URL } =
+  process.env;
+
+if (!REACT_APP_FORMIO_PROJECT_URL) {
+  throw new Error(
+    "Required REACT_APP_FORMIO_PROJECT_URL environment variable not found."
+  );
+}
 
 export const serverBasePath =
   NODE_ENV === "development" ? "" : REACT_APP_SERVER_BASE_PATH || "";
@@ -7,6 +14,8 @@ export const serverUrl =
   NODE_ENV === "development"
     ? "http://localhost:3001"
     : window.location.origin + serverBasePath;
+
+export const formioProjectUrl = REACT_APP_FORMIO_PROJECT_URL;
 
 /**
  * Returns a promise containing JSON fetched from a provided web service URL

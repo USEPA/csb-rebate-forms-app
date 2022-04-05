@@ -11,36 +11,41 @@ type Props = {
 };
 
 export type EPAUserData = {
-  givenname: string;
   mail: string;
   memberof: string;
+  exp: number;
 };
 
 export type SAMUserData = {
-  ALT_ELEC_BUS_POC_EMAIL__c: string | null;
-  ALT_ELEC_BUS_POC_NAME__c: string | null;
-  ALT_ELEC_BUS_POC_TITLE__c: string | null;
-  ALT_GOVT_BUS_POC_EMAIL__c: string | null;
-  ALT_GOVT_BUS_POC_NAME__c: string | null;
-  ALT_GOVT_BUS_POC_TITLE__c: string | null;
-  CAGE_CODE__c: string;
-  ELEC_BUS_POC_EMAIL__c: string | null;
-  ELEC_BUS_POC_NAME__c: string | null;
-  ELEC_BUS_POC_TITLE__c: string | null;
   ENTITY_COMBO_KEY__c: string;
+  UNIQUE_ENTITY_ID__c: string;
   ENTITY_EFT_INDICATOR__c: string;
-  ENTITY_STATUS__c: string;
-  GOVT_BUS_POC_EMAIL__c: string;
-  GOVT_BUS_POC_NAME__c: string;
-  GOVT_BUS_POC_TITLE__c: string;
+  CAGE_CODE__c: string;
+  ENTITY_STATUS__c: "Active" | string;
   LEGAL_BUSINESS_NAME__c: string;
-  PHYSICAL_ADDRESS_CITY__c: string;
   PHYSICAL_ADDRESS_LINE_1__c: string;
   PHYSICAL_ADDRESS_LINE_2__c: string | null;
+  PHYSICAL_ADDRESS_CITY__c: string;
   PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c: string;
   PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c: string;
   PHYSICAL_ADDRESS_ZIP_CODE_4__c: string;
-  UNIQUE_ENTITY_ID__c: string;
+  // contacts
+  ELEC_BUS_POC_EMAIL__c: string | null;
+  ELEC_BUS_POC_NAME__c: string | null;
+  ELEC_BUS_POC_TITLE__c: string | null;
+  //
+  ALT_ELEC_BUS_POC_EMAIL__c: string | null;
+  ALT_ELEC_BUS_POC_NAME__c: string | null;
+  ALT_ELEC_BUS_POC_TITLE__c: string | null;
+  //
+  GOVT_BUS_POC_EMAIL__c: string | null;
+  GOVT_BUS_POC_NAME__c: string | null;
+  GOVT_BUS_POC_TITLE__c: string | null;
+  //
+  ALT_GOVT_BUS_POC_EMAIL__c: string | null;
+  ALT_GOVT_BUS_POC_NAME__c: string | null;
+  ALT_GOVT_BUS_POC_TITLE__c: string | null;
+  //
   attributes: { type: string; url: string };
 };
 
@@ -55,7 +60,12 @@ type State = {
   samUserData:
     | { status: "idle"; data: {} }
     | { status: "pending"; data: {} }
-    | { status: "success"; data: SAMUserData[] }
+    | {
+        status: "success";
+        data:
+          | { results: true; records: SAMUserData[] }
+          | { results: false; records: [] };
+      }
     | { status: "failure"; data: {} };
 };
 
@@ -74,7 +84,9 @@ type Action =
   | {
       type: "FETCH_SAM_USER_DATA_SUCCESS";
       payload: {
-        samUserData: SAMUserData[];
+        samUserData:
+          | { results: true; records: SAMUserData[] }
+          | { results: false; records: [] };
       };
     }
   | { type: "FETCH_SAM_USER_DATA_FAILURE" };

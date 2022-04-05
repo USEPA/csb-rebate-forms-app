@@ -1,15 +1,17 @@
 import { useEffect } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Formio } from "formiojs";
+import { Formio } from "@formio/react";
+import premium from "@formio/premium";
 import uswds from "@formio/uswds";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl, fetchData } from "../config";
-import ConfirmationDialog from "components/confirmationDialog";
+import { serverUrl, formioProjectUrl, fetchData } from "../config";
 import { useUserState, useUserDispatch } from "contexts/user";
 import { useContentDispatch } from "contexts/content";
 import { Action, useDialogDispatch } from "contexts/dialog";
 
+Formio.setProjectUrl(formioProjectUrl);
+Formio.use(premium);
 Formio.use(uswds);
 
 function useFetchedSamData() {
@@ -19,13 +21,18 @@ function useFetchedSamData() {
     dispatch({ type: "FETCH_SAM_USER_DATA_REQUEST" });
     fetchData(`${serverUrl}/api/v1/sam-data`)
       .then((res) => {
-        dispatch({
-          type: "FETCH_SAM_USER_DATA_SUCCESS",
-          payload: { samUserData: res },
-        });
+        if (res.results) {
+          dispatch({
+            type: "FETCH_SAM_USER_DATA_SUCCESS",
+            payload: { samUserData: res },
+          });
+        } else {
+          window.location.href = `${serverUrl}/logout?RelayState=/welcome?info=sam-results`;
+        }
       })
       .catch((err) => {
         dispatch({ type: "FETCH_SAM_USER_DATA_FAILURE" });
+        window.location.href = `${serverUrl}/logout?RelayState=/welcome?error=sam-fetch`;
       });
   }, [dispatch]);
 }
@@ -111,12 +118,14 @@ export default function Dashboard() {
   /**
    * When provided a destination location to navigate to, creates an action
    * object that can be dispatched to the `DialogProvider` context component,
-   * which the `ConfirmationDialog` component uses to display the provided info.
+   * which the `ConfirmationDialog` component (rendered in the `App` component's
+   * `ProtectedRoute` component) uses to display the provided info.
    */
   function createDialogNavAction(destination: string): Action {
     return {
       type: "DISPLAY_DIALOG",
       payload: {
+        dismissable: true,
         heading: "Are you sure you want to navigate away from this page?",
         description:
           "If you haven’t saved the current form, any changes you’ve made will be lost.",
@@ -214,8 +223,6 @@ export default function Dashboard() {
           </a>
         </nav>
       </div>
-
-      <ConfirmationDialog />
 
       <Outlet />
     </div>

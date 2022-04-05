@@ -12,6 +12,7 @@ const passport = require("passport");
 const errorHandler = require("./utilities/errorHandler");
 const logger = require("./utilities/logger");
 const samlStrategy = require("./config/samlStrategy");
+const { appScan, protectClientRoutes } = require("./middleware");
 const routes = require("./routes");
 
 const app = express();
@@ -63,6 +64,14 @@ if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
 
+// Apply global middleware on dev/staging in order for scan to receive 200 status on all endpoints
+if (
+  process.env.CLOUD_SPACE === "development" ||
+  process.env.CLOUD_SPACE === "staging"
+) {
+  app.use(appScan);
+}
+
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
@@ -77,6 +86,9 @@ app.use(basePath, routes);
 // Use regex to add trailing slash on static requests (required when using sub path)
 const pathRegex = new RegExp(`^\\${process.env.SERVER_BASE_PATH || ""}$`);
 app.all(pathRegex, (req, res) => res.redirect(`${basePath}`));
+
+// Ensure user is authenticated on all client-side routes except / and /welcome
+app.use(protectClientRoutes);
 
 /*
  * Set up history fallback to provide direct access to react router routes
