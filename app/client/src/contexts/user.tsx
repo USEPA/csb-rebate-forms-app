@@ -60,7 +60,12 @@ type State = {
   samUserData:
     | { status: "idle"; data: {} }
     | { status: "pending"; data: {} }
-    | { status: "success"; data: SAMUserData[] }
+    | {
+        status: "success";
+        data:
+          | { results: true; records: SAMUserData[] }
+          | { results: false; records: [] };
+      }
     | { status: "failure"; data: {} };
 };
 
@@ -79,7 +84,9 @@ type Action =
   | {
       type: "FETCH_SAM_USER_DATA_SUCCESS";
       payload: {
-        samUserData: SAMUserData[];
+        samUserData:
+          | { results: true; records: SAMUserData[] }
+          | { results: false; records: [] };
       };
     }
   | { type: "FETCH_SAM_USER_DATA_FAILURE" };

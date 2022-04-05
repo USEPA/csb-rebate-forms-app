@@ -42,6 +42,21 @@ export default function Welcome() {
       });
     }
 
+    if (searchParams.get("error") === "sam-fetch") {
+      setMessage({
+        displayed: true,
+        type: "error",
+        text: "Error retrieving SAM.gov data. Please contact support.",
+      });
+    }
+
+    if (searchParams.get("info") === "sam-results") {
+      setMessage({
+        displayed: true,
+        type: "info",
+        text: "No SAM.gov records found. Please refer to the help documentation to add data to SAM.gov.",
+      });
+    }
 
     if (searchParams.get("info") === "timeout") {
       setMessage({

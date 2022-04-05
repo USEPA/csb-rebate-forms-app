@@ -21,13 +21,18 @@ function useFetchedSamData() {
     dispatch({ type: "FETCH_SAM_USER_DATA_REQUEST" });
     fetchData(`${serverUrl}/api/v1/sam-data`)
       .then((res) => {
-        dispatch({
-          type: "FETCH_SAM_USER_DATA_SUCCESS",
-          payload: { samUserData: res },
-        });
+        if (res.results) {
+          dispatch({
+            type: "FETCH_SAM_USER_DATA_SUCCESS",
+            payload: { samUserData: res },
+          });
+        } else {
+          window.location.href = `${serverUrl}/logout?RelayState=/welcome?info=sam-results`;
+        }
       })
       .catch((err) => {
         dispatch({ type: "FETCH_SAM_USER_DATA_FAILURE" });
+        window.location.href = `${serverUrl}/logout?RelayState=/welcome?error=sam-fetch`;
       });
   }, [dispatch]);
 }
