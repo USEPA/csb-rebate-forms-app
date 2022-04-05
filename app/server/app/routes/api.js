@@ -277,7 +277,7 @@ router.post("/rebate-form-submission/:id", (req, res) => {
           // updated to include "bap_hidden_entity_combo_key"
 
           // if (!req.body.bapComboKeys.includes(bap_hidden_entity_combo_key)) {
-          if (true) {
+          if (false) {
             res.json({
               userAccess: false,
               formSchema: null,
