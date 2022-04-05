@@ -1,15 +1,17 @@
 import { useEffect } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Formio } from "formiojs";
+import { Formio } from "@formio/react";
+import premium from "@formio/premium";
 import uswds from "@formio/uswds";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl, fetchData } from "../config";
-import ConfirmationDialog from "components/confirmationDialog";
+import { serverUrl, formioProjectUrl, fetchData } from "../config";
 import { useUserState, useUserDispatch } from "contexts/user";
 import { useContentDispatch } from "contexts/content";
 import { Action, useDialogDispatch } from "contexts/dialog";
 
+Formio.setProjectUrl(formioProjectUrl);
+Formio.use(premium);
 Formio.use(uswds);
 
 function useFetchedSamData() {
@@ -111,12 +113,14 @@ export default function Dashboard() {
   /**
    * When provided a destination location to navigate to, creates an action
    * object that can be dispatched to the `DialogProvider` context component,
-   * which the `ConfirmationDialog` component uses to display the provided info.
+   * which the `ConfirmationDialog` component (rendered in the `App` component's
+   * `ProtectedRoute` component) uses to display the provided info.
    */
   function createDialogNavAction(destination: string): Action {
     return {
       type: "DISPLAY_DIALOG",
       payload: {
+        dismissable: true,
         heading: "Are you sure you want to navigate away from this page?",
         description:
           "If you haven’t saved the current form, any changes you’ve made will be lost.",
@@ -129,7 +133,28 @@ export default function Dashboard() {
 
   return (
     <div>
-      <h1>Clean School Bus Rebate Forms</h1>
+      <h1 className="margin-bottom-2">Clean School Bus Rebate Forms</h1>
+
+      <ul className="margin-bottom-4">
+        <li>
+          <a
+            href="https://www.epa.gov/cleanschoolbus/school-bus-rebates-clean-school-bus-program"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Clean School Bus Rebate Program
+          </a>
+        </li>
+        <li>
+          <a
+            href="https://www.epa.gov/cleanschoolbus/online-rebate-application-information-clean-school-bus-program"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Online Rebate Application Information
+          </a>
+        </li>
+      </ul>
 
       <div className="display-flex flex-justify border-bottom padding-bottom-1">
         {pathname === "/" ? (
@@ -143,7 +168,11 @@ export default function Dashboard() {
             </button>
 
             <Link to="/rebate/new" className="usa-button font-sans-2xs">
-              <IconText order="icon-text" icon="add_circle" text="New Rebate" />
+              <IconText
+                order="icon-text"
+                icon="add_circle"
+                text="New Application"
+              />
             </Link>
           </nav>
         ) : (
@@ -165,7 +194,11 @@ export default function Dashboard() {
             </a>
 
             <button className="usa-button font-sans-2xs" disabled>
-              <IconText order="icon-text" icon="add_circle" text="New Rebate" />
+              <IconText
+                order="icon-text"
+                icon="add_circle"
+                text="New Application"
+              />
             </button>
           </nav>
         )}
@@ -185,8 +218,6 @@ export default function Dashboard() {
           </a>
         </nav>
       </div>
-
-      <ConfirmationDialog />
 
       <Outlet />
     </div>

@@ -51,7 +51,7 @@ type SubmissionsState =
 
 export default function ExistingRebateForm() {
   const { id } = useParams<"id">();
-  const { samUserData } = useUserState();
+  const { epaUserData, samUserData } = useUserState();
   const { content } = useContentState();
 
   const [rebateFormSubmission, setRebateFormSubmission] =
@@ -122,6 +122,10 @@ export default function ExistingRebateForm() {
     );
   }
 
+  if (epaUserData.status !== "success") {
+    return <Loading />;
+  }
+
   return (
     <div className="margin-top-2">
       {content.status === "success" && (
@@ -140,7 +144,13 @@ export default function ExistingRebateForm() {
       <Form
         form={formSchema?.json}
         url={formSchema?.url} // NOTE: used for file uploads
-        submission={submissionData}
+        submission={{
+          ...submissionData,
+          data: {
+            ...submissionData?.data,
+            last_updated_by: epaUserData.data.mail,
+          },
+        }}
       />
     </div>
   );

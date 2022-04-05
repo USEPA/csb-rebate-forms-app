@@ -69,7 +69,7 @@ export default function AllRebateForms() {
                 <th scope="col">
                   <TextWithTooltip
                     text="Form Type"
-                    tooltip="Rebate Application, Payment Request, or Close-Out form"
+                    tooltip="Application, Payment Request, or Close-Out form"
                   />
                 </th>
                 <th scope="col">
@@ -81,19 +81,32 @@ export default function AllRebateForms() {
                 <th scope="col">
                   <TextWithTooltip
                     text="EFT"
-                    tooltip="Electronic Funds Transfer indicator from SAM.gov"
+                    tooltip="Electronic Funds Transfer indicator listing the associated bank account from SAM.gov"
                   />
                 </th>
                 <th scope="col">
                   <TextWithTooltip
-                    text="UEI Entity Name"
-                    tooltip="Entity Name from SAM.gov"
+                    text="Applicant"
+                    tooltip="Legal Business Name from SAM.gov for this UEI"
                   />
                 </th>
-                <th scope="col">School District Name</th>
-                <th scope="col">Updated By</th>
-                <th scope="col" className="text-right">
-                  Updated Date
+                <th scope="col">
+                  <TextWithTooltip
+                    text="School District"
+                    tooltip="School district represented by applicant"
+                  />
+                </th>
+                <th scope="col">
+                  <TextWithTooltip
+                    text="Updated By"
+                    tooltip="Last person that updated this form"
+                  />
+                </th>
+                <th scope="col">
+                  <TextWithTooltip
+                    text="Date Updated"
+                    tooltip="Last date this form was updated"
+                  />
                 </th>
                 <th scope="col">
                   <TextWithTooltip text="Status" tooltip="submitted or draft" />
@@ -107,15 +120,20 @@ export default function AllRebateForms() {
                   formType,
                   uei,
                   eft,
-                  ueiEntityName,
-                  schoolDistrictName,
+                  applicant,
+                  schoolDistrict,
                   lastUpdatedBy,
-                  lastUpdatedDate,
+                  lastUpdatedDatetime,
                   status,
                 } = submission;
 
                 return (
-                  <tr key={_id}>
+                  <tr
+                    key={_id}
+                    className={
+                      status === "submitted" ? "text-italic text-base-dark" : ""
+                    }
+                  >
                     <th scope="row">
                       <Link
                         to={`/rebate/${_id}`}
@@ -136,11 +154,11 @@ export default function AllRebateForms() {
                     <th>{formType}</th>
                     <th>{uei}</th>
                     <td>{eft}</td>
-                    <td>{ueiEntityName}</td>
-                    <td>{schoolDistrictName}</td>
+                    <td>{applicant}</td>
+                    <td>{schoolDistrict}</td>
                     <td>{lastUpdatedBy}</td>
-                    <td className="text-right">
-                      {new Date(lastUpdatedDate).toLocaleDateString()}
+                    <td>
+                      {new Date(lastUpdatedDatetime).toLocaleDateString()}
                     </td>
                     <td>{status}</td>
                   </tr>
@@ -152,7 +170,7 @@ export default function AllRebateForms() {
       )}
 
       {content.status === "success" && (
-        <div className="margin-top-4 padding-2 border-1px border-base-lighter bg-base-lightest">
+        <div className="margin-top-4 padding-2 padding-bottom-0 border-1px border-base-lighter bg-base-lightest">
           <MarkdownContent children={content.data.allRebateFormsOutro} />
         </div>
       )}

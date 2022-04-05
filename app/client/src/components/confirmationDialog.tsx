@@ -12,6 +12,7 @@ import { useDialogState, useDialogDispatch } from "contexts/dialog";
 export default function ConfirmationDialog() {
   const {
     dialogShown,
+    dismissable,
     heading,
     description,
     confirmText,
@@ -25,7 +26,7 @@ export default function ConfirmationDialog() {
   return (
     <AlertDialogOverlay
       isOpen={dialogShown}
-      onDismiss={(ev) => dispatch({ type: "RESET_DIALOG" })}
+      onDismiss={(ev) => dismissable && dispatch({ type: "RESET_DIALOG" })}
       leastDestructiveRef={cancelRef}
     >
       <AlertDialogContent className="usa-modal">
@@ -55,33 +56,37 @@ export default function ConfirmationDialog() {
                   </button>
                 </li>
 
-                <li className="usa-button-group__item">
-                  <button
-                    ref={cancelRef}
-                    className="usa-button"
-                    onClick={(ev) => dispatch({ type: "RESET_DIALOG" })}
-                  >
-                    {cancelText}
-                  </button>
-                </li>
+                {dismissable && cancelText && (
+                  <li className="usa-button-group__item">
+                    <button
+                      ref={cancelRef}
+                      className="usa-button"
+                      onClick={(ev) => dispatch({ type: "RESET_DIALOG" })}
+                    >
+                      {cancelText}
+                    </button>
+                  </li>
+                )}
               </ul>
             </div>
           </div>
 
-          <button
-            className="usa-button usa-modal__close"
-            aria-label="Close this window"
-            onClick={(ev) => dispatch({ type: "RESET_DIALOG" })}
-          >
-            <svg
-              className="usa-icon"
-              aria-hidden="true"
-              focusable="false"
-              role="img"
+          {dismissable && (
+            <button
+              className="usa-button usa-modal__close"
+              aria-label="Close this window"
+              onClick={(ev) => dispatch({ type: "RESET_DIALOG" })}
             >
-              <use href={`${icons}#close`} />
-            </svg>
-          </button>
+              <svg
+                className="usa-icon"
+                aria-hidden="true"
+                focusable="false"
+                role="img"
+              >
+                <use href={`${icons}#close`} />
+              </svg>
+            </button>
+          )}
         </div>
       </AlertDialogContent>
     </AlertDialogOverlay>

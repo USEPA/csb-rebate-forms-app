@@ -23,6 +23,39 @@ type FormioFormProps = {
   epaData: EPAUserData | null;
 };
 
+type ContactInfoProps = {
+  samData: SAMUserData;
+  epaData: EPAUserData;
+};
+
+function getMatchedContactInfo({ samData, epaData }: ContactInfoProps) {
+  const samEmailFields = [
+    "ELEC_BUS_POC_EMAIL__c",
+    "ALT_ELEC_BUS_POC_EMAIL__c",
+    "GOVT_BUS_POC_EMAIL__c",
+    "ALT_GOVT_BUS_POC_EMAIL__c",
+  ];
+
+  let matchedEmailField;
+
+  for (const [field, value] of Object.entries(samData)) {
+    if (!samEmailFields.includes(field)) continue;
+    // NOTE: take the first match only – there shouldn't be a case where the
+    // currently logged in user would be listed as multiple POCs for a single record
+    if (value === epaData.mail) {
+      matchedEmailField = field;
+      break;
+    }
+  }
+
+  const fieldPrefix = matchedEmailField?.split("_EMAIL__c").shift();
+
+  return {
+    title: samData[`${fieldPrefix}_TITLE__c` as keyof SAMUserData] as string,
+    name: samData[`${fieldPrefix}_NAME__c` as keyof SAMUserData] as string,
+  };
+}
+
 function FormioForm({ samData, epaData }: FormioFormProps) {
   const navigate = useNavigate();
   const { content } = useContentState();
@@ -71,6 +104,20 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
     return <Message type="error" text="Error loading rebate form." />;
   }
 
+  const {
+    ENTITY_COMBO_KEY__c,
+    ENTITY_EFT_INDICATOR__c,
+    UNIQUE_ENTITY_ID__c,
+    LEGAL_BUSINESS_NAME__c,
+    PHYSICAL_ADDRESS_LINE_1__c,
+    PHYSICAL_ADDRESS_LINE_2__c,
+    PHYSICAL_ADDRESS_CITY__c,
+    PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
+    PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
+  } = samData;
+
+  const { title, name } = getMatchedContactInfo({ samData, epaData });
+
   return (
     <>
       {content.status === "success" && (
@@ -89,10 +136,19 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
         url={formSchema.data.url} // NOTE: used for file uploads
         submission={{
           data: {
-            // TODO: update to only populate the `last_updated_by` and hidden fields (GSA will populate the rest)
-            sam_hidden_name: epaData.mail,
-            applicantUEI: samData.UNIQUE_ENTITY_ID__c,
-            applicantOrganizationName: samData.LEGAL_BUSINESS_NAME__c,
+            last_updated_by: epaData.mail,
+            bap_hidden_entity_combo_key: ENTITY_COMBO_KEY__c,
+            sam_hidden_applicant_email: epaData.mail,
+            sam_hidden_applicant_title: title,
+            sam_hidden_applicant_name: name,
+            sam_hidden_applicant_efti: ENTITY_EFT_INDICATOR__c,
+            sam_hidden_applicant_uei: UNIQUE_ENTITY_ID__c,
+            sam_hidden_applicant_organization_name: LEGAL_BUSINESS_NAME__c,
+            sam_hidden_applicant_street_address_1: PHYSICAL_ADDRESS_LINE_1__c,
+            sam_hidden_applicant_street_address_2: PHYSICAL_ADDRESS_LINE_2__c,
+            sam_hidden_applicant_city: PHYSICAL_ADDRESS_CITY__c,
+            sam_hidden_applicant_state: PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
+            sam_hidden_applicant_zip_code: PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
           },
         }}
         onSubmit={(submission: object) => {
@@ -173,19 +229,19 @@ export default function NewRebateForm() {
                     <th scope="col">
                       <TextWithTooltip
                         text="UEI"
-                        tooltip="“Unique Entity ID” from SAM.gov"
+                        tooltip="Unique Entity ID from SAM.gov"
                       />
                     </th>
                     <th scope="col">
                       <TextWithTooltip
                         text="EFT"
-                        tooltip="“Electronic Funds Transfer” indicator from SAM.gov"
+                        tooltip="Electronic Funds Transfer indicator listing the associated bank account from SAM.gov"
                       />
                     </th>
                     <th scope="col">
                       <TextWithTooltip
-                        text="UEI Entity Name"
-                        tooltip="Entity Name from SAM.gov"
+                        text="Applicant"
+                        tooltip="Legal Business Name from SAM.gov for this UEI"
                       />
                     </th>
                   </tr>
