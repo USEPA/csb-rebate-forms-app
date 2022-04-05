@@ -72,9 +72,9 @@ export default function Welcome() {
 
   return (
     <>
-      {message.displayed && <Message type={message.type} text={message.text} />}
-
       <h1>Clean School Bus Rebate Forms: Applicant Login</h1>
+
+      {message.displayed && <Message type={message.type} text={message.text} />}
 
       <div className="padding-9 border-1px border-base-lighter text-center bg-base-lightest">
         <p>
