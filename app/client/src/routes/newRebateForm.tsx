@@ -148,8 +148,7 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
             sam_hidden_applicant_street_address_2: PHYSICAL_ADDRESS_LINE_2__c,
             sam_hidden_applicant_city: PHYSICAL_ADDRESS_CITY__c,
             sam_hidden_applicant_state: PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
-            sam_hidden_applicant_zip_code: PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c, // TODO: confirm we don't need the additional 4-digit zip code
-            sam_hidden_authorized_rep: "(TODO)", // TODO: get clarification on where this comes form
+            sam_hidden_applicant_zip_code: PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
           },
         }}
         onSubmit={(submission: object) => {

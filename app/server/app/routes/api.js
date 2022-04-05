@@ -235,12 +235,12 @@ router.get("/rebate-form-submissions", (req, res) => {
           created,
           // --- form fields ---
           formType: "Application",
-          uei: data.sam_hidden_applicant_uei,
-          eft: data.sam_hidden_applicant_efti,
-          applicant: data.sam_hidden_applicant_organization_name,
-          schoolDistrict: "TODO", // TODO: get this from the submission (and double check if we should use the "sam_hidden_applicant" fields above)
+          uei: data.applicantUEI,
+          eft: data.applicantEfti,
+          applicant: data.applicantOrganizationName,
+          schoolDistrict: data.schoolDistrictName,
           lastUpdatedBy: data.last_updated_by,
-          lastUpdatedDate: modified,
+          lastUpdatedDatetime: modified,
           status: state,
         };
       });

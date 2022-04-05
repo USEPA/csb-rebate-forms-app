@@ -30,7 +30,7 @@ type RebateFormSubmission = {
   applicant: string;
   schoolDistrict: string;
   lastUpdatedBy: string;
-  lastUpdatedDate: string;
+  lastUpdatedDatetime: string;
   status: "submitted" | "draft";
 };
 

@@ -123,7 +123,7 @@ export default function AllRebateForms() {
                   applicant,
                   schoolDistrict,
                   lastUpdatedBy,
-                  lastUpdatedDate,
+                  lastUpdatedDatetime,
                   status,
                 } = submission;
 
@@ -157,7 +157,9 @@ export default function AllRebateForms() {
                     <td>{applicant}</td>
                     <td>{schoolDistrict}</td>
                     <td>{lastUpdatedBy}</td>
-                    <td>{new Date(lastUpdatedDate).toLocaleDateString()}</td>
+                    <td>
+                      {new Date(lastUpdatedDatetime).toLocaleDateString()}
+                    </td>
                     <td>{status}</td>
                   </tr>
                 );
