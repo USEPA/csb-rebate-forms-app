@@ -11,9 +11,9 @@ type Props = {
 };
 
 export type EPAUserData = {
-  givenname: string;
   mail: string;
   memberof: string;
+  exp: number;
 };
 
 export type SAMUserData = {

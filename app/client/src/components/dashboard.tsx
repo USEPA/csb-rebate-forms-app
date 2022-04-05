@@ -6,7 +6,6 @@ import uswds from "@formio/uswds";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, formioProjectUrl, fetchData } from "../config";
-import ConfirmationDialog from "components/confirmationDialog";
 import { useUserState, useUserDispatch } from "contexts/user";
 import { useContentDispatch } from "contexts/content";
 import { Action, useDialogDispatch } from "contexts/dialog";
@@ -114,12 +113,14 @@ export default function Dashboard() {
   /**
    * When provided a destination location to navigate to, creates an action
    * object that can be dispatched to the `DialogProvider` context component,
-   * which the `ConfirmationDialog` component uses to display the provided info.
+   * which the `ConfirmationDialog` component (rendered in the `App` component's
+   * `ProtectedRoute` component) uses to display the provided info.
    */
   function createDialogNavAction(destination: string): Action {
     return {
       type: "DISPLAY_DIALOG",
       payload: {
+        dismissable: true,
         heading: "Are you sure you want to navigate away from this page?",
         description:
           "If you haven’t saved the current form, any changes you’ve made will be lost.",
@@ -217,8 +218,6 @@ export default function Dashboard() {
           </a>
         </nav>
       </div>
-
-      <ConfirmationDialog />
 
       <Outlet />
     </div>
