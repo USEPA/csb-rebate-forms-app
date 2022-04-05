@@ -51,11 +51,12 @@ const rejectRequest = (req, res) => {
 };
 
 // Global middleware on dev/staging to send 200 status on all server endpoints (required for ZAP scan)
-const appScan = (req, res) => {
+const appScan = (req, res, next) => {
   // OpenAPI def must use global "scan" param and enum to "true"
   if (req.query.scan === "true") {
     return res.json({ status: 200 });
   }
+  next();
 };
 
 module.exports = { ensureAuthenticated, appScan };
