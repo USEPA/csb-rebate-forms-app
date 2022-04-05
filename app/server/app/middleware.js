@@ -62,10 +62,10 @@ const rejectRequest = (req, res) => {
 // Auto-redirect to SAML login for any non-logged-in user on any route except base "/" or "/welcome"
 const protectClientRoutes = (req, res, next) => {
   const subPath = process.env.SERVER_BASE_PATH || "";
-  const unprotectedRoutes = ["/", "/welcome"].map(
+  const unprotectedRoutes = ["/", "/welcome", "/manifest.json"].map(
     (route) => `${subPath}${route}`
   );
-  if (!unprotectedRoutes.includes(req.path)) {
+  if (!unprotectedRoutes.includes(req.path) || req.path.includes("/static")) {
     return ensureAuthenticated(req, res, next, (req, res) => {
       // If ensureAuthenticated does not find valid jwt, this redirect will occur so user is auto-redirected to SAML
       return res.redirect(
