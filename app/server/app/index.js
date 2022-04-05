@@ -12,7 +12,7 @@ const passport = require("passport");
 const errorHandler = require("./utilities/errorHandler");
 const logger = require("./utilities/logger");
 const samlStrategy = require("./config/samlStrategy");
-const { appScan } = require("./middleware");
+const { appScan, protectClientRoutes } = require("./middleware");
 const routes = require("./routes");
 
 const app = express();
@@ -86,6 +86,9 @@ app.use(basePath, routes);
 // Use regex to add trailing slash on static requests (required when using sub path)
 const pathRegex = new RegExp(`^\\${process.env.SERVER_BASE_PATH || ""}$`);
 app.all(pathRegex, (req, res) => res.redirect(`${basePath}`));
+
+// Ensure user is authenticated on all client-side routes except / and /welcome
+app.use(protectClientRoutes);
 
 /*
  * Set up history fallback to provide direct access to react router routes
