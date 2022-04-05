@@ -17,6 +17,7 @@
     "eject": "react-scripts eject"
   },
   "dependencies": {
+    "@formio/premium": "1.18.1",
     "@formio/react": "5.2.0",
     "@formio/uswds": "2.4.5",
     "@reach/alert-dialog": "0.16.2",
