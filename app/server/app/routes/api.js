@@ -99,22 +99,25 @@ router.get("/sam-data", (req, res) => {
   getSamData(req.user.mail)
     .then((samUserData) => {
       // First check if user has at least one associated UEI before completing login process
-      if (samUserData && !samUserData.length) {
+      if (samUserData && samUserData.length === 0) {
         log.error(
           `User ${req.user.mail} tried to use app without any associated SAM records`
         );
-        return res
-          .status(401)
-          .json({ message: "No SAM data available for user." });
+
+        return res.json({
+          results: false,
+          records: [],
+        });
       }
 
-      res.json(samUserData);
+      res.json({
+        results: true,
+        records: samUserData,
+      });
     })
     .catch((err) => {
       log.error(err);
-      res
-        .status(401)
-        .json({ message: "There was an error retrieving SAM data." });
+      res.status(401).json({ message: "Error getting SAM.gov data" });
     });
 });
 

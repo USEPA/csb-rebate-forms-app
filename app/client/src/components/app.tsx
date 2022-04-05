@@ -107,7 +107,7 @@ function useInactivityDialog(callback: () => void) {
 
     // Log user out from server if inactivity countdown reaches 0
     if (logoutTimer === 0) {
-      window.location.href = `${serverUrl}/logout?RelayState=/welcome?error=timeout`;
+      window.location.href = `${serverUrl}/logout?RelayState=/welcome?info=timeout`;
     }
   }, [dialogShown, heading, logoutTimer, dispatch]);
 }

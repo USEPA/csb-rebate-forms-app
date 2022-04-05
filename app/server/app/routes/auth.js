@@ -50,7 +50,7 @@ router.post(
 
 router.get("/login/fail", (req, res) => {
   log.error("SAML login failed");
-  res.redirect(`${baseUrl}/welcome?error=auth`);
+  res.redirect(`${baseUrl}/welcome?error=saml`);
 });
 
 router.get("/logout", ensureAuthenticated, (req, res) => {
@@ -71,7 +71,7 @@ const logoutCallback = (req, res) => {
 
   // If "RelayState" was passed in original logout request (either querystring or post body), redirect to below
   const { RelayState } = req.query || req.body;
-  res.redirect(`${baseUrl}${RelayState || "/"}`);
+  res.redirect(`${baseUrl}${RelayState || "/welcome?success=logout"}`);
 };
 
 // Local saml config sends GET for logout callback, while EPA config sends POST. Handle both

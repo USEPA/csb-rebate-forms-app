@@ -179,7 +179,10 @@ export default function NewRebateForm() {
 
   const activeSamData =
     samUserData.status === "success" &&
-    samUserData.data.filter((entity) => entity.ENTITY_STATUS__c === "Active");
+    samUserData.data.results &&
+    samUserData.data.records.filter((entity) => {
+      return entity.ENTITY_STATUS__c === "Active";
+    });
 
   return (
     <div className="margin-top-2">

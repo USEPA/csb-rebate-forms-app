@@ -65,9 +65,11 @@ export default function ExistingRebateForm() {
     });
 
   useEffect(() => {
-    if (samUserData.status !== "success") return;
+    if (samUserData.status !== "success" || !samUserData.data.results) return;
 
-    const bapComboKeys = samUserData.data.map((e) => e.ENTITY_COMBO_KEY__c);
+    const bapComboKeys = samUserData.data.records.map((entity) => {
+      return entity.ENTITY_COMBO_KEY__c;
+    });
 
     setRebateFormSubmission({
       status: "pending",
