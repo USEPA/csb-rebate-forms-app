@@ -65,7 +65,7 @@ const protectClientRoutes = (req, res, next) => {
   const unprotectedRoutes = ["/", "/welcome", "/manifest.json"].map(
     (route) => `${subPath}${route}`
   );
-  if (!unprotectedRoutes.includes(req.path) || req.path.includes("/static")) {
+  if (!unprotectedRoutes.includes(req.path) && !req.path.includes("/static")) {
     return ensureAuthenticated(req, res, next, (req, res) => {
       // If ensureAuthenticated does not find valid jwt, this redirect will occur so user is auto-redirected to SAML
       return res.redirect(
