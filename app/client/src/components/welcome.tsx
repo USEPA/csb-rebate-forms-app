@@ -42,6 +42,15 @@ export default function Welcome() {
       });
     }
 
+
+    if (searchParams.get("info") === "timeout") {
+      setMessage({
+        displayed: true,
+        type: "info",
+        text: "For security reasons, you have been logged out due to 15 minutes of inactivity.",
+      });
+    }
+
     if (searchParams.get("success") === "logout") {
       setMessage({
         displayed: true,
