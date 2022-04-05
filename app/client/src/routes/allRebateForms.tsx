@@ -83,8 +83,8 @@ export default function AllRebateForms() {
                 </th>
                 <th scope="col">
                   <TextWithTooltip
-                    text="EFT"
-                    tooltip="Electronic Funds Transfer indicator listing the associated bank account from SAM.gov"
+                    text="EFT Indicator"
+                    tooltip="Electronic Funds Transfer Indicator listing the associated bank account from SAM.gov"
                   />
                 </th>
                 <th scope="col">
