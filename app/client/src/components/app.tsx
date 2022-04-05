@@ -9,9 +9,12 @@ import {
 import { useIdleTimer } from "react-idle-timer";
 import "@reach/dialog/styles.css";
 import "@reach/tooltip/styles.css";
-import "choices.js/public/assets/styles/choices.min.css";
 import "uswds/css/uswds.css";
 import "uswds/js/uswds.js";
+import "formiojs/dist/formio.full.min.css";
+import "@formio/premium/dist/premium.css";
+import "@formio/uswds/dist/uswds.min.css";
+import "@formio/choices.js/public/assets/styles/choices.min.css";
 // ---
 import { serverBasePath, serverUrl, fetchData } from "../config";
 import Loading from "components/loading";

@@ -19,28 +19,32 @@ export default function Welcome() {
   console.log("previous url", destination);
 
   return (
-    <div className="padding-9 border-1px border-base-lighter text-center bg-base-lightest">
-      <p>
-        Click the <strong>Sign in</strong> button below to log into the{" "}
-        <em>Clean School Bus Rebate Forms</em> application.
-      </p>
+    <>
+      <h1>Clean School Bus Rebate Forms: Applicant Login</h1>
 
-      <a
-        className="usa-button margin-top-1 margin-right-0 font-sans-2xs"
-        href={`${serverUrl}/login`}
-      >
-        <span className="display-flex flex-align-center">
-          <span className="margin-right-1">Sign in</span>
-          <svg
-            className="usa-icon"
-            aria-hidden="true"
-            focusable="false"
-            role="img"
-          >
-            <use href={`${icons}#login`} />
-          </svg>
-        </span>
-      </a>
-    </div>
+      <div className="padding-9 border-1px border-base-lighter text-center bg-base-lightest">
+        <p>
+          Click the <strong>Sign in</strong> button below to login to the{" "}
+          <em>Clean School Bus Rebate Dashboard</em> using Login.gov.
+        </p>
+
+        <a
+          className="usa-button margin-top-1 margin-right-0 font-sans-2xs"
+          href={`${serverUrl}/login`}
+        >
+          <span className="display-flex flex-align-center">
+            <span className="margin-right-1">Sign in</span>
+            <svg
+              className="usa-icon"
+              aria-hidden="true"
+              focusable="false"
+              role="img"
+            >
+              <use href={`${icons}#login`} />
+            </svg>
+          </span>
+        </a>
+      </div>
+    </>
   );
 }

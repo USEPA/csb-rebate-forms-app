@@ -174,7 +174,12 @@ router.get("/rebate-form-schema", (req, res) => {
   axios
     .get(`${formioProjectUrl}/${formioFormId}`, formioHeaders)
     .then((axiosRes) => axiosRes.data)
-    .then((schema) => res.json(schema))
+    .then((schema) =>
+      res.json({
+        url: `${formioProjectUrl}/${formioFormId}`,
+        json: schema,
+      })
+    )
     .catch((error) => {
       if (typeof error.toJSON === "function") {
         console.error(error.toJSON());
@@ -229,13 +234,13 @@ router.get("/rebate-form-submissions", (req, res) => {
           project,
           created,
           // --- form fields ---
-          formType: "Rebate",
+          formType: "Application",
           uei: data.applicantUEI,
-          eft: "####", // TODO: this needs to be in the form
-          ueiEntityName: data.applicantOrganizationName,
-          schoolDistrictName: data.ncesName,
-          lastUpdatedBy: data.sam_hidden_name,
-          lastUpdatedDate: modified,
+          eft: data.applicantEfti,
+          applicant: data.applicantOrganizationName,
+          schoolDistrict: data.schoolDistrictName,
+          lastUpdatedBy: data.last_updated_by,
+          lastUpdatedDatetime: modified,
           status: state,
         };
       });
@@ -252,7 +257,7 @@ router.get("/rebate-form-submissions", (req, res) => {
     });
 });
 
-router.get("/rebate-form-submission/:id", (req, res) => {
+router.post("/rebate-form-submission/:id", (req, res) => {
   const id = req.params.id;
 
   axios
@@ -263,10 +268,28 @@ router.get("/rebate-form-submission/:id", (req, res) => {
         .get(`${formioProjectUrl}/form/${submission.form}`, formioHeaders)
         .then((axiosRes) => axiosRes.data)
         .then((schema) => {
-          res.json({
-            formSchema: schema,
-            submissionData: submission,
-          });
+          const { bap_hidden_entity_combo_key } = submission.data;
+
+          // TODO: swap out if (false) for if statement below once form has been
+          // updated to include "bap_hidden_entity_combo_key"
+
+          // if (!req.body.bapComboKeys.includes(bap_hidden_entity_combo_key)) {
+          if (false) {
+            res.json({
+              userAccess: false,
+              formSchema: null,
+              submissionData: null,
+            });
+          } else {
+            res.json({
+              userAccess: true,
+              formSchema: {
+                url: `${formioProjectUrl}/form/${submission.form}`,
+                json: schema,
+              },
+              submissionData: submission,
+            });
+          }
         });
     })
     .catch((error) => {

@@ -7,6 +7,11 @@
   max-width: 48rem;
 }
 
+.usa-table--striped tbody tr:nth-child(odd) td,
+.usa-table--striped tbody tr:nth-child(odd) th {
+  color: inherit;
+}
+
 /* --- Formio --- */
 .formio-form-group {
   margin-bottom: 20px;
@@ -26,6 +31,7 @@
 }
 
 [data-reach-dialog-overlay]::before {
+  /* match USWDS modal */
   content: "";
   display: inline-block;
   height: 100%;

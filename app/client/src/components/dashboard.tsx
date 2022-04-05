@@ -1,14 +1,18 @@
 import { useEffect } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Formio } from "formiojs";
+import { Formio } from "@formio/react";
+import premium from "@formio/premium";
 import uswds from "@formio/uswds";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, formioProjectUrl, fetchData } from "../config";
+import ConfirmationDialog from "components/confirmationDialog";
 import { useUserState, useUserDispatch } from "contexts/user";
 import { useContentDispatch } from "contexts/content";
 import { Action, useDialogDispatch } from "contexts/dialog";
 
+Formio.setProjectUrl(formioProjectUrl);
+Formio.use(premium);
 Formio.use(uswds);
 
 function useFetchedSamData() {
@@ -129,7 +133,28 @@ export default function Dashboard() {
 
   return (
     <div>
-      <h1>Clean School Bus Rebate Forms</h1>
+      <h1 className="margin-bottom-2">Clean School Bus Rebate Forms</h1>
+
+      <ul className="margin-bottom-4">
+        <li>
+          <a
+            href="https://www.epa.gov/cleanschoolbus/school-bus-rebates-clean-school-bus-program"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Clean School Bus Rebate Program
+          </a>
+        </li>
+        <li>
+          <a
+            href="https://www.epa.gov/cleanschoolbus/online-rebate-application-information-clean-school-bus-program"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Online Rebate Application Information
+          </a>
+        </li>
+      </ul>
 
       <div className="display-flex flex-justify border-bottom padding-bottom-1">
         {pathname === "/" ? (
@@ -143,7 +168,11 @@ export default function Dashboard() {
             </button>
 
             <Link to="/rebate/new" className="usa-button font-sans-2xs">
-              <IconText order="icon-text" icon="add_circle" text="New Rebate" />
+              <IconText
+                order="icon-text"
+                icon="add_circle"
+                text="New Application"
+              />
             </Link>
           </nav>
         ) : (
@@ -165,7 +194,11 @@ export default function Dashboard() {
             </a>
 
             <button className="usa-button font-sans-2xs" disabled>
-              <IconText order="icon-text" icon="add_circle" text="New Rebate" />
+              <IconText
+                order="icon-text"
+                icon="add_circle"
+                text="New Application"
+              />
             </button>
           </nav>
         )}
