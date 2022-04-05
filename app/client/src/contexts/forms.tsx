@@ -27,10 +27,10 @@ type RebateFormSubmission = {
   formType: "Application" | "Payment Request" | "Close-Out";
   uei: string;
   eft: string;
-  ueiEntityName: string;
-  schoolDistrictName: string;
+  applicant: string;
+  schoolDistrict: string;
   lastUpdatedBy: string;
-  lastUpdatedDate: string;
+  lastUpdatedDatetime: string;
   status: "submitted" | "draft";
 };
 

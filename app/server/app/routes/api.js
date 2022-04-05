@@ -236,11 +236,11 @@ router.get("/rebate-form-submissions", (req, res) => {
           // --- form fields ---
           formType: "Application",
           uei: data.applicantUEI,
-          eft: "####", // TODO: this needs to be in the form
-          ueiEntityName: data.applicantOrganizationName,
-          schoolDistrictName: data.ncesName,
-          lastUpdatedBy: data.sam_hidden_name,
-          lastUpdatedDate: modified,
+          eft: data.applicantEfti,
+          applicant: data.applicantOrganizationName,
+          schoolDistrict: data.schoolDistrictName,
+          lastUpdatedBy: data.last_updated_by,
+          lastUpdatedDatetime: modified,
           status: state,
         };
       });

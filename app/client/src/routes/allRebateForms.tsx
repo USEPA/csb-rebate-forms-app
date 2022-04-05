@@ -120,10 +120,10 @@ export default function AllRebateForms() {
                   formType,
                   uei,
                   eft,
-                  ueiEntityName,
-                  schoolDistrictName,
+                  applicant,
+                  schoolDistrict,
                   lastUpdatedBy,
-                  lastUpdatedDate,
+                  lastUpdatedDatetime,
                   status,
                 } = submission;
 
@@ -154,10 +154,12 @@ export default function AllRebateForms() {
                     <th>{formType}</th>
                     <th>{uei}</th>
                     <td>{eft}</td>
-                    <td>{ueiEntityName}</td>
-                    <td>{schoolDistrictName}</td>
+                    <td>{applicant}</td>
+                    <td>{schoolDistrict}</td>
                     <td>{lastUpdatedBy}</td>
-                    <td>{new Date(lastUpdatedDate).toLocaleDateString()}</td>
+                    <td>
+                      {new Date(lastUpdatedDatetime).toLocaleDateString()}
+                    </td>
                     <td>{status}</td>
                   </tr>
                 );

@@ -39,6 +39,7 @@ jobs:
       SAML_PRIVATE_KEY: ${{ secrets.SAML_PRIVATE_KEY }}
       JWT_PUBLIC_KEY: ${{ secrets.JWT_PUBLIC_KEY }}
       JWT_PRIVATE_KEY: ${{ secrets.JWT_PRIVATE_KEY }}
+      FORMIO_PKG_AUTH_TOKEN: ${{ secrets.FORMIO_PKG_AUTH_TOKEN }}
       FORMIO_PROJECT_URL: ${{ secrets.FORMIO_PROJECT_URL }}
       FORMIO_FORM_ID: ${{ secrets.FORMIO_FORM_ID }}
       FORMIO_API_KEY: ${{ secrets.FORMIO_API_KEY }}
@@ -56,6 +57,10 @@ jobs:
 
       # Set up node and npm
       - uses: actions/setup-node@master
+
+      - name: Add Formio private package repo auth token
+        run: echo "//pkg.form.io/:_authToken=${FORMIO_PKG_AUTH_TOKEN}" > .npmrc
+        working-directory: app/client
 
       # Run front-end processes (install, lint, test, bundle)
       - name: Cache node modules

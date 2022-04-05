@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Formio } from "@formio/react";
+import premium from "@formio/premium";
 import uswds from "@formio/uswds";
 import icons from "uswds/img/sprite.svg";
 // ---
@@ -10,8 +11,9 @@ import { useUserState, useUserDispatch } from "contexts/user";
 import { useContentDispatch } from "contexts/content";
 import { Action, useDialogDispatch } from "contexts/dialog";
 
-Formio.use(uswds);
 Formio.setProjectUrl(formioProjectUrl);
+Formio.use(premium);
+Formio.use(uswds);
 
 function useFetchedSamData() {
   const dispatch = useUserDispatch();
