@@ -6,12 +6,21 @@ const log = logger.logger;
 
 const cookieName = "csb-token";
 
-// Middleware to check for JWT, add user object to request, and create new JWT to keep alive for 15 minutes from request
-const ensureAuthenticated = (req, res, next) => {
+/**
+ * Middleware to check for JWT, add user object to request, and create new JWT to keep alive for 15 minutes from request
+ * Default to rejectRequest function if jwt is invalid, but allow for a custom override function on reject
+ * (required for auto-redirect to SAML)
+ */
+const ensureAuthenticated = (
+  req,
+  res,
+  next,
+  rejectCallback = rejectRequest
+) => {
   // If no JWT passed in token cookie, send Unauthorized response or redirect
   if (!req.cookies[cookieName]) {
     log.error("No jwt cookie present in request");
-    return rejectRequest(req, res);
+    return rejectCallback(req, res);
   }
   jwt.verify(
     req.cookies[cookieName],
@@ -20,7 +29,7 @@ const ensureAuthenticated = (req, res, next) => {
     function (err, user) {
       if (err) {
         log.error(err);
-        return rejectRequest(req, res);
+        return rejectCallback(req, res);
       }
 
       // Add user to the request object
@@ -53,17 +62,19 @@ const rejectRequest = (req, res) => {
 // Auto-redirect to SAML login for any non-logged-in user on any route except base "/" or "/welcome"
 const protectClientRoutes = (req, res, next) => {
   const subPath = process.env.SERVER_BASE_PATH || "";
-  const unprotectedRoutes = ["/", "/welcome"].map(
+  const unprotectedRoutes = ["/", "/welcome", "/manifest.json"].map(
     (route) => `${subPath}${route}`
   );
-  if (!unprotectedRoutes.includes(req.path)) {
-    // Redirect to /login with RelayState if user arrives directly at protected client-side route
-    return res.redirect(
-      `${process.env.SERVER_URL}/login?RelayState=${req.originalUrl.replace(
-        subPath,
-        ""
-      )}`
-    );
+  if (!unprotectedRoutes.includes(req.path) || req.path.includes("/static")) {
+    return ensureAuthenticated(req, res, next, (req, res) => {
+      // If ensureAuthenticated does not find valid jwt, this redirect will occur so user is auto-redirected to SAML
+      return res.redirect(
+        `${process.env.SERVER_URL}/login?RelayState=${req.originalUrl.replace(
+          subPath,
+          ""
+        )}`
+      );
+    });
   }
   next();
 };
