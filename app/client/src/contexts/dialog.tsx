@@ -12,11 +12,11 @@ type Props = {
 
 type State = {
   dialogShown: boolean;
+  dismissable: boolean;
   heading: string;
   description: string;
   confirmText: string;
   cancelText?: string;
-  forceConfirm?: boolean;
   confirmedAction: () => void;
 };
 
@@ -24,19 +24,21 @@ export type Action =
   | {
       type: "DISPLAY_DIALOG";
       payload: {
+        dismissable: boolean;
         heading: string;
         description: string;
         confirmText: string;
         cancelText?: string;
-        forceConfirm?: boolean;
         confirmedAction: () => void;
       };
     }
-  | { type: "RESET_DIALOG" }
   | {
-      type: "UPDATE_DESCRIPTION";
-      payload: string;
-    };
+      type: "UPDATE_DIALOG_DESCRIPTION";
+      payload: {
+        description: string;
+      };
+    }
+  | { type: "RESET_DIALOG" };
 
 const StateContext = createContext<State | undefined>(undefined);
 const DispatchContext = createContext<Dispatch<Action> | undefined>(undefined);
@@ -49,37 +51,38 @@ function reducer(state: State, action: Action): State {
         description,
         confirmText,
         cancelText,
-        forceConfirm,
+        dismissable,
         confirmedAction,
       } = action.payload;
 
       return {
         dialogShown: true,
+        dismissable,
         heading,
         description,
         confirmText,
         cancelText,
-        forceConfirm,
         confirmedAction,
+      };
+    }
+
+    case "UPDATE_DIALOG_DESCRIPTION": {
+      const { description } = action.payload;
+      return {
+        ...state,
+        description,
       };
     }
 
     case "RESET_DIALOG": {
       return {
         dialogShown: false,
+        dismissable: true,
         heading: "",
         description: "",
         confirmText: "",
         cancelText: "",
-        forceConfirm: false,
         confirmedAction: () => {},
-      };
-    }
-
-    case "UPDATE_DESCRIPTION": {
-      return {
-        ...state,
-        description: action.payload,
       };
     }
 
@@ -92,11 +95,11 @@ function reducer(state: State, action: Action): State {
 export function DialogProvider({ children }: Props) {
   const initialState: State = {
     dialogShown: false,
+    dismissable: true,
     heading: "",
     description: "",
     confirmText: "",
     cancelText: "",
-    forceConfirm: false,
     confirmedAction: () => {},
   };
 

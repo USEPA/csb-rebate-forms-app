@@ -12,11 +12,11 @@ import { useDialogState, useDialogDispatch } from "contexts/dialog";
 export default function ConfirmationDialog() {
   const {
     dialogShown,
+    dismissable,
     heading,
     description,
     confirmText,
     cancelText,
-    forceConfirm,
     confirmedAction,
   } = useDialogState();
   const dispatch = useDialogDispatch();
@@ -26,9 +26,7 @@ export default function ConfirmationDialog() {
   return (
     <AlertDialogOverlay
       isOpen={dialogShown}
-      onDismiss={
-        forceConfirm ? undefined : (ev) => dispatch({ type: "RESET_DIALOG" })
-      }
+      onDismiss={(ev) => dismissable && dispatch({ type: "RESET_DIALOG" })}
       leastDestructiveRef={cancelRef}
     >
       <AlertDialogContent className="usa-modal">
@@ -58,7 +56,7 @@ export default function ConfirmationDialog() {
                   </button>
                 </li>
 
-                {!forceConfirm && (
+                {dismissable && cancelText && (
                   <li className="usa-button-group__item">
                     <button
                       ref={cancelRef}
@@ -73,7 +71,7 @@ export default function ConfirmationDialog() {
             </div>
           </div>
 
-          {!forceConfirm && (
+          {dismissable && (
             <button
               className="usa-button usa-modal__close"
               aria-label="Close this window"
