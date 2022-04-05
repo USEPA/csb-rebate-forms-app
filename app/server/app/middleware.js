@@ -59,7 +59,10 @@ const protectClientRoutes = (req, res, next) => {
   if (!unprotectedRoutes.includes(req.path)) {
     // Redirect to /login with RelayState if user arrives directly at protected client-side route
     return res.redirect(
-      `${process.env.SERVER_URL}/login?RelayState=${req.originalUrl}`
+      `${process.env.SERVER_URL}/login?RelayState=${req.originalUrl.replace(
+        subPath,
+        ""
+      )}`
     );
   }
   next();
