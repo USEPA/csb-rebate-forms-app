@@ -119,7 +119,7 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
 
   // Check if user is already logged in or needs to be redirected to /welcome route
   const verifyUser = useCallback(() => {
-    fetchData(`${serverUrl}/api/v1/epa-data`)
+    fetchData(`${serverUrl}/api/epa-data`)
       .then((res) => {
         dispatch({
           type: "FETCH_EPA_USER_DATA_SUCCESS",

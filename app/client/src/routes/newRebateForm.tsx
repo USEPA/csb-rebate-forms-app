@@ -84,7 +84,7 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
       data: null,
     });
 
-    fetchData(`${serverUrl}/api/v1/rebate-form-schema/`)
+    fetchData(`${serverUrl}/api/rebate-form-schema/`)
       .then((res) => {
         setFormSchema({
           status: "success",
@@ -173,7 +173,7 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
           },
         }}
         onSubmit={(submission: FormioSubmission) => {
-          fetchData(`${serverUrl}/api/v1/rebate-form-submission/`, submission)
+          fetchData(`${serverUrl}/api/rebate-form-submission/`, submission)
             .then((res) => {
               setSavedSubmission(res);
 
@@ -202,7 +202,7 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
             });
         }}
         onNextPage={({ page, submission }: FormioOnNextParams) => {
-          fetchData(`${serverUrl}/api/v1/rebate-form-submission/`, {
+          fetchData(`${serverUrl}/api/rebate-form-submission/`, {
             ...submission,
             state: "draft",
           })

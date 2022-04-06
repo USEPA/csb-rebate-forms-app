@@ -92,7 +92,7 @@ export default function ExistingRebateForm() {
       },
     });
 
-    fetchData(`${serverUrl}/api/v1/rebate-form-submission/${id}`)
+    fetchData(`${serverUrl}/api/rebate-form-submission/${id}`)
       .then((res) => {
         setRebateFormSubmission({
           status: "success",
@@ -182,10 +182,7 @@ export default function ExistingRebateForm() {
         onSubmit={(submission: FormioSubmission) => {
           const id = submissionData._id;
 
-          fetchData(
-            `${serverUrl}/api/v1/rebate-form-submission/${id}`,
-            submission
-          )
+          fetchData(`${serverUrl}/api/rebate-form-submission/${id}`, submission)
             .then((res) => {
               setSavedSubmission(res);
 
@@ -211,7 +208,7 @@ export default function ExistingRebateForm() {
 
           const id = submissionData._id;
 
-          fetchData(`${serverUrl}/api/v1/rebate-form-submission/${id}`, {
+          fetchData(`${serverUrl}/api/rebate-form-submission/${id}`, {
             ...submission,
             state: "draft",
           })
