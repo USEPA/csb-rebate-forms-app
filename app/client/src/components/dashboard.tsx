@@ -45,6 +45,7 @@ function useFetchedContent() {
     fetchData(`${serverUrl}/api/content`)
       .then((res) => {
         const {
+          helpdeskIntro,
           allRebateFormsIntro,
           allRebateFormsOutro,
           newRebateFormIntro,
@@ -55,6 +56,7 @@ function useFetchedContent() {
         dispatch({
           type: "FETCH_CONTENT_SUCCESS",
           payload: {
+            helpdeskIntro,
             allRebateFormsIntro,
             allRebateFormsOutro,
             newRebateFormIntro,
