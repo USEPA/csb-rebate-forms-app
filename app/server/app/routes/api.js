@@ -234,7 +234,7 @@ router.get("/rebate-form-submissions", (req, res) => {
   // then replace the URL in the axios.get() with `formioUserSubmissionsUrl`
   const bapComboKeys = [];
   const queryString = bapComboKeys.join("&data.bap_hidden_entity_combo_key=");
-  const formioUserSubmissionsUrl = `${formioBaseUrl}/submission?data.bap_hidden_entity_combo_key=${queryString}`;
+  const formioUserSubmissionsUrl = `${formioProjectUrl}/${formioFormId}/submission?data.bap_hidden_entity_combo_key=${queryString}`;
 
   axios
     .get(`${formioProjectUrl}/${formioFormId}/submission`, formioHeaders)
