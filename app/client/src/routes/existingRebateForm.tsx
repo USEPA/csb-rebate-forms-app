@@ -172,19 +172,19 @@ export default function ExistingRebateForm() {
           )
             .then((res) => {
               if (submission.state === "submitted") {
-                displaySuccessMessage("Form succesfully submitted.");
-                setTimeout(() => navigate("/"), 10000);
+                // displaySuccessMessage("Form succesfully submitted.");
+                setTimeout(() => navigate("/"), 3000);
                 return;
               }
 
               if (submission.state === "draft") {
-                displaySuccessMessage("Draft succesfully saved.");
-                setTimeout(() => resetMessage(), 10000);
+                // displaySuccessMessage("Draft succesfully saved.");
+                // setTimeout(() => resetMessage(), 3000);
               }
             })
             .catch((err) => {
-              displayErrorMessage("Error submitting rebate form.");
-              setTimeout(() => resetMessage(), 10000);
+              // displayErrorMessage("Error submitting rebate form.");
+              // setTimeout(() => resetMessage(), 3000);
             });
         }}
       />

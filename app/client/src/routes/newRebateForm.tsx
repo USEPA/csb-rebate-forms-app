@@ -162,6 +162,7 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
               const id = res._id;
 
               if (submission.state === "submitted") {
+                // displaySuccessMessage("Form succesfully submitted.");
                 setTimeout(() => navigate("/"), 3000);
                 return;
               }
@@ -171,8 +172,8 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
               }
             })
             .catch((err) => {
-              displayErrorMessage("Error submitting rebate form.");
-              setTimeout(() => resetMessage(), 10000);
+              // displayErrorMessage("Error submitting rebate form.");
+              // setTimeout(() => resetMessage(), 3000);
             });
         }}
       />
