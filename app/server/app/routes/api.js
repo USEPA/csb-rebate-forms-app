@@ -204,7 +204,7 @@ router.post("/rebate-form-submission/:id", (req, res) => {
 
       res
         .status(error?.response?.status || 500)
-        .json({ message: "Error posting Forms.gov rebate form submission" });
+        .json({ message: "Error updating Forms.gov rebate form submission" });
     });
 });
 
