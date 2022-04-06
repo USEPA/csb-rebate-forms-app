@@ -65,7 +65,7 @@ export default function AllRebateForms() {
             />
           )}
 
-          <table className="usa-table usa-table--borderless usa-table--striped width-full">
+          <table className="usa-table usa-table--borderless usa-table--striped width-full" data-testid="csb-rebate-forms-thead">
             <thead>
               <tr className="font-sans-2xs text-no-wrap">
                 <th scope="col">&nbsp;</th>
