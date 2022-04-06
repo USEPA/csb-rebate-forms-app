@@ -95,6 +95,14 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
   const { message, displaySuccessMessage, displayErrorMessage, resetMessage } =
     useMessageState();
 
+  // NOTE: provided to the <Form /> component's submission prop. this being a
+  // new form, it will initially be empty, but we'll set it once the user
+  // submits the form – that way when the form re-renders after submission, the
+  // fields the user submitted will remain visible in the form
+  const [submissionData, setSubmissionData] = useState<{ data: object }>({
+    data: {},
+  });
+
   if (!samData || !epaData) {
     return null;
   }
@@ -154,26 +162,28 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
             sam_hidden_applicant_city: PHYSICAL_ADDRESS_CITY__c,
             sam_hidden_applicant_state: PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
             sam_hidden_applicant_zip_code: PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
+            ...submissionData.data,
           },
         }}
         onSubmit={(submission: FormioSubmission) => {
           fetchData(`${serverUrl}/api/v1/rebate-form-submission/`, submission)
             .then((res) => {
-              const id = res._id;
+              setSubmissionData(res);
 
               if (submission.state === "submitted") {
-                // displaySuccessMessage("Form succesfully submitted.");
+                displaySuccessMessage("Form succesfully submitted.");
                 setTimeout(() => navigate("/"), 3000);
                 return;
               }
 
               if (submission.state === "draft") {
-                navigate(`/rebate/${id}`);
+                navigate(`/rebate/${res._id}`);
               }
             })
             .catch((err) => {
-              // displayErrorMessage("Error submitting rebate form.");
-              // setTimeout(() => resetMessage(), 3000);
+              // TODO: capture form state, so it doesn't reset on error (maybe onChange)
+              displayErrorMessage("Error submitting rebate form.");
+              setTimeout(() => resetMessage(), 3000);
             });
         }}
       />
