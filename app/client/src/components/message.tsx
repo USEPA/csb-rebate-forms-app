@@ -15,7 +15,7 @@ export default function Message({ type, text }: Props) {
   );
 }
 
-export type MessageState = {
+type MessageState = {
   displayed: boolean;
   type: "info" | "success" | "warning" | "error";
   text: string;
