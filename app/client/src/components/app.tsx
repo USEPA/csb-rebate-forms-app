@@ -21,6 +21,7 @@ import Loading from "components/loading";
 import Welcome from "components/welcome";
 import Dashboard from "components/dashboard";
 import ConfirmationDialog from "components/confirmationDialog";
+import Helpdesk from "routes/helpdesk";
 import AllRebateForms from "routes/allRebateForms";
 import NewRebateForm from "routes/newRebateForm";
 import ExistingRebateForm from "routes/existingRebateForm";
@@ -172,6 +173,13 @@ export default function App() {
           }
         >
           <Route index element={<AllRebateForms />} />
+          {/*
+            TODO: temporarily rendering helpdesk here for initial development.
+            the `Helpdesk` component will need to be moved to its own dedicated
+            protected route, as we don't want to fetch SAM.gov data for helpdesk
+            users and they don't need to see the rebate form pages
+          */}
+          <Route path="helpdesk" element={<Helpdesk />} />
           <Route path="rebate/new" element={<NewRebateForm />} />
           <Route path="rebate/:id" element={<ExistingRebateForm />} />
           <Route path="*" element={<NotFound />} />
