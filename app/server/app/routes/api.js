@@ -231,11 +231,10 @@ router.post("/rebate-form-submission", (req, res) => {
 // --- get all rebate form submissions from Forms.gov
 router.get("/rebate-form-submissions", (req, res) => {
   // TODO: fetch BAP combo keys from SAM.gov and store in `bapComboKeys` array,
-  // then replate the URL in the axios.get() with url below, containing a query
-  // string constructed from the combo keys
-
-  // const query = bapComboKeys.join("&data.bap_hidden_entity_combo_key=");
-  // const url = `${formioBaseUrl}/submission?data.bap_hidden_entity_combo_key=${query}`;
+  // then replace the URL in the axios.get() with `formioUserSubmissionsUrl`
+  const bapComboKeys = [];
+  const queryString = bapComboKeys.join("&data.bap_hidden_entity_combo_key=");
+  const formioUserSubmissionsUrl = `${formioBaseUrl}/submission?data.bap_hidden_entity_combo_key=${queryString}`;
 
   axios
     .get(`${formioProjectUrl}/${formioFormId}/submission`, formioHeaders)
