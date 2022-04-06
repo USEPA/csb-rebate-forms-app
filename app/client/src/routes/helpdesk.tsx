@@ -8,6 +8,7 @@ import Message from "components/message";
 import MarkdownContent from "components/markdownContent";
 import { TextWithTooltip } from "components/infoTooltip";
 import { useContentState } from "contexts/content";
+import { useDialogDispatch } from "contexts/dialog";
 
 type SubmissionState =
   | {
@@ -35,12 +36,50 @@ type SubmissionState =
 export default function Helpdesk() {
   const [searchText, setSearchText] = useState("");
   const { content } = useContentState();
+  const dispatch = useDialogDispatch();
 
   const [rebateFormSubmission, setRebateFormSubmission] =
     useState<SubmissionState>({
       status: "idle",
       data: null,
     });
+
+  function confirmatSubmissionChange() {
+    dispatch({
+      type: "DISPLAY_DIALOG",
+      payload: {
+        dismissable: true,
+        heading:
+          "Are you sure you want to change this submission's state back to draft?",
+        description:
+          "Once the submission is back in a draft state, all users with access to this submission will be able to further edit it.",
+        confirmText: "Yes",
+        cancelText: "Cancel",
+        confirmedAction: () => {
+          console.log("TODO: change submission's state to draft");
+
+          setRebateFormSubmission({
+            status: "pending",
+            data: null,
+          });
+
+          fetchData(`${serverUrl}/help/rebate-form-submission/${searchText}`)
+            .then((res) => {
+              setRebateFormSubmission({
+                status: "success",
+                data: res,
+              });
+            })
+            .catch((err) => {
+              setRebateFormSubmission({
+                status: "failure",
+                data: null,
+              });
+            });
+        },
+      },
+    });
+  }
 
   return (
     <>
@@ -89,7 +128,11 @@ export default function Helpdesk() {
             onChange={(ev) => setSearchText(ev.target.value)}
             value={searchText}
           />
-          <button className="usa-button" type="submit">
+          <button
+            className="usa-button"
+            type="submit"
+            onClick={(ev) => confirmatSubmissionChange()}
+          >
             <span className="usa-search__submit-text">Search</span>
             <img className="usa-search__submit-icon" src={icon} alt="Search" />
           </button>
@@ -136,7 +179,13 @@ export default function Helpdesk() {
           <tbody>
             <tr>
               <th scope="row">
-                <button className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1">
+                <button
+                  className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
+                  disabled={rebateFormSubmission.data.status === "draft"}
+                  onClick={(ev) => {
+                    //
+                  }}
+                >
                   <span className="display-flex flex-align-center">
                     <svg
                       className="usa-icon"
@@ -144,7 +193,7 @@ export default function Helpdesk() {
                       focusable="false"
                       role="img"
                     >
-                      <use href={`${icons}#edit`} />
+                      <use href={`${icons}#update`} />
                     </svg>
                   </span>
                 </button>
