@@ -180,44 +180,39 @@ export default function ExistingRebateForm() {
           readOnly: submissionData.state === "submitted" ? true : false,
         }}
         onSubmit={(submission: FormioSubmission) => {
-          const id = submissionData._id;
-
-          fetchData(`${serverUrl}/api/rebate-form-submission/${id}`, submission)
+          setSavedSubmission(submission);
+          fetchData(
+            `${serverUrl}/api/rebate-form-submission/${submissionData._id}`,
+            submission
+          )
             .then((res) => {
-              setSavedSubmission(res);
-
               if (submission.state === "submitted") {
                 displaySuccessMessage("Form succesfully submitted.");
                 setTimeout(() => navigate("/"), 3000);
                 return;
               }
-
               if (submission.state === "draft") {
                 displaySuccessMessage("Draft succesfully saved.");
                 setTimeout(() => resetMessage(), 3000);
               }
             })
             .catch((err) => {
-              setSavedSubmission(submission);
               displayErrorMessage("Error submitting rebate form.");
               setTimeout(() => resetMessage(), 3000);
             });
         }}
         onNextPage={({ page, submission }: FormioOnNextParams) => {
           if (submissionData.state !== "draft") return;
-
-          const id = submissionData._id;
-
-          fetchData(`${serverUrl}/api/rebate-form-submission/${id}`, {
-            ...submission,
-            state: "draft",
-          })
+          setSavedSubmission(submission);
+          fetchData(
+            `${serverUrl}/api/rebate-form-submission/${submissionData._id}`,
+            { ...submission, state: "draft" }
+          )
             .then((res) => {
               displaySuccessMessage("Draft succesfully saved.");
               setTimeout(() => resetMessage(), 3000);
             })
             .catch((err) => {
-              setSavedSubmission(submission);
               displayErrorMessage("Error saving draft rebate form.");
               setTimeout(() => resetMessage(), 3000);
             });
