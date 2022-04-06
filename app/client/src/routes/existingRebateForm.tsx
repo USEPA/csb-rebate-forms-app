@@ -121,7 +121,7 @@ export default function ExistingRebateForm() {
 
   const { userAccess, formSchema, submissionData } = rebateFormSubmission.data;
 
-  if (!userAccess) {
+  if (!userAccess || !formSchema || !submissionData) {
     return (
       <Message
         type="warning"
@@ -140,9 +140,9 @@ export default function ExistingRebateForm() {
         <MarkdownContent
           className="margin-top-4"
           children={
-            submissionData?.state === "draft"
+            submissionData.state === "draft"
               ? content.data.existingDraftRebateFormIntro
-              : submissionData?.state === "submitted"
+              : submissionData.state === "submitted"
               ? content.data.existingSubmittedRebateFormIntro
               : ""
           }
@@ -152,39 +152,49 @@ export default function ExistingRebateForm() {
       {message.displayed && <Message type={message.type} text={message.text} />}
 
       <Form
-        form={formSchema?.json}
-        url={formSchema?.url} // NOTE: used for file uploads
+        form={formSchema.json}
+        url={formSchema.url} // NOTE: used for file uploads
         submission={{
           data: {
-            ...submissionData?.data,
+            ...submissionData.data,
             last_updated_by: epaUserData.data.mail,
           },
         }}
         options={{
-          readOnly: submissionData?.state === "submitted" ? true : false,
+          readOnly: submissionData.state === "submitted" ? true : false,
         }}
         onSubmit={(submission: FormioSubmission) => {
-          const id = submissionData?._id;
+          const id = submissionData._id;
 
           fetchData(
             `${serverUrl}/api/v1/rebate-form-submission/${id}`,
             submission
           )
             .then((res) => {
+              setRebateFormSubmission({
+                status: "success",
+                data: {
+                  userAccess: true,
+                  formSchema,
+                  submissionData: res,
+                },
+              });
+
               if (submission.state === "submitted") {
-                // displaySuccessMessage("Form succesfully submitted.");
+                displaySuccessMessage("Form succesfully submitted.");
                 setTimeout(() => navigate("/"), 3000);
                 return;
               }
 
               if (submission.state === "draft") {
-                // displaySuccessMessage("Draft succesfully saved.");
-                // setTimeout(() => resetMessage(), 3000);
+                displaySuccessMessage("Draft succesfully saved.");
+                setTimeout(() => resetMessage(), 3000);
               }
             })
             .catch((err) => {
-              // displayErrorMessage("Error submitting rebate form.");
-              // setTimeout(() => resetMessage(), 3000);
+              // TODO: capture form state, so it doesn't reset on error (maybe onChange)
+              displayErrorMessage("Error submitting rebate form.");
+              setTimeout(() => resetMessage(), 3000);
             });
         }}
       />
