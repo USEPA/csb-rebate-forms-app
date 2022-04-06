@@ -173,35 +173,30 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
           },
         }}
         onSubmit={(submission: FormioSubmission) => {
+          setSavedSubmission(submission);
           fetchData(`${serverUrl}/api/rebate-form-submission/`, submission)
             .then((res) => {
-              setSavedSubmission(res);
-
               if (submission.state === "submitted") {
                 displaySuccessMessage("Form succesfully submitted.");
                 setTimeout(() => navigate("/"), 3000);
                 return;
               }
-
               if (submission.state === "draft") {
                 navigate(`/rebate/${res._id}`);
               }
             })
             .catch((err) => {
-              setSavedSubmission(submission);
-
               if (submission.state === "submitted") {
                 displayErrorMessage("Error submitting rebate form.");
               }
-
               if (submission.state === "draft") {
                 displayErrorMessage("Error saving draft rebate form.");
               }
-
               setTimeout(() => resetMessage(), 3000);
             });
         }}
         onNextPage={({ page, submission }: FormioOnNextParams) => {
+          setSavedSubmission(submission);
           fetchData(`${serverUrl}/api/rebate-form-submission/`, {
             ...submission,
             state: "draft",
@@ -210,7 +205,6 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
               navigate(`/rebate/${res._id}`);
             })
             .catch((err) => {
-              setSavedSubmission(submission);
               displayErrorMessage("Error saving draft rebate form.");
               setTimeout(() => resetMessage(), 3000);
             });
