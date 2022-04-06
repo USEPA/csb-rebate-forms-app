@@ -6,11 +6,19 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, fetchData } from "../config";
 import Loading from "components/loading";
-import Message from "components/message";
+import Message, { useMessageState } from "components/message";
 import MarkdownContent from "components/markdownContent";
 import { TextWithTooltip } from "components/infoTooltip";
 import { EPAUserData, SAMUserData, useUserState } from "contexts/user";
 import { useContentState } from "contexts/content";
+
+type FormioSubmission = {
+  // NOTE: more fields are in a form.io submission,
+  // but we're only concerned with the fields below
+  data: object;
+  state: "submitted" | "draft";
+  // (other fields...)
+};
 
 type FormSchemaState =
   | { status: "idle"; data: null }
@@ -86,7 +94,16 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
       });
   }, []);
 
-  const [formSubmissionFailed, setformSubmissionFailed] = useState(false);
+  const { message, displaySuccessMessage, displayErrorMessage, resetMessage } =
+    useMessageState();
+
+  // NOTE: Provided to the <Form /> component's submission prop. Initially
+  // empty, it'll be set once the user attemts to submit the form (both
+  // succesfully and unsuccesfully) – that way when the form re-renders after
+  // the submission attempt, the fields the user filled out will not be lost
+  const [savedSubmission, setSavedSubmission] = useState<{ data: object }>({
+    data: {},
+  });
 
   if (!samData || !epaData) {
     return null;
@@ -127,9 +144,7 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
         />
       )}
 
-      {formSubmissionFailed && (
-        <Message type="error" text="Error submitting rebate form." />
-      )}
+      {message.displayed && <Message type={message.type} text={message.text} />}
 
       <Form
         form={formSchema.data.json}
@@ -149,17 +164,28 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
             sam_hidden_applicant_city: PHYSICAL_ADDRESS_CITY__c,
             sam_hidden_applicant_state: PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
             sam_hidden_applicant_zip_code: PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
+            ...savedSubmission.data,
           },
         }}
-        onSubmit={(submission: object) => {
-          setformSubmissionFailed(false);
-
+        onSubmit={(submission: FormioSubmission) => {
           fetchData(`${serverUrl}/api/v1/rebate-form-submission/`, submission)
             .then((res) => {
-              navigate("/");
+              setSavedSubmission(res);
+
+              if (submission.state === "submitted") {
+                displaySuccessMessage("Form succesfully submitted.");
+                setTimeout(() => navigate("/"), 3000);
+                return;
+              }
+
+              if (submission.state === "draft") {
+                navigate(`/rebate/${res._id}`);
+              }
             })
             .catch((err) => {
-              setformSubmissionFailed(true);
+              setSavedSubmission(submission);
+              displayErrorMessage("Error submitting rebate form.");
+              setTimeout(() => resetMessage(), 3000);
             });
         }}
       />

@@ -72,7 +72,7 @@ if (
   app.use(appScan);
 }
 
-app.use(express.json());
+app.use(express.json({ limit: process.env.JSON_PAYLOAD_LIMIT || "5mb" }));
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
