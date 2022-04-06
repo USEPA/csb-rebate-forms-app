@@ -159,15 +159,15 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
         onSubmit={(submission: FormioSubmission) => {
           fetchData(`${serverUrl}/api/v1/rebate-form-submission/`, submission)
             .then((res) => {
+              const id = res._id;
+
               if (submission.state === "submitted") {
-                displaySuccessMessage("Form succesfully submitted.");
-                setTimeout(() => navigate("/"), 10000);
+                setTimeout(() => navigate("/"), 3000);
                 return;
               }
 
               if (submission.state === "draft") {
-                displaySuccessMessage("Draft succesfully saved.");
-                setTimeout(() => resetMessage(), 10000);
+                navigate(`/rebate/${id}`);
               }
             })
             .catch((err) => {
