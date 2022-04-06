@@ -86,6 +86,7 @@ function getSamData(email) {
 
 router.use(ensureAuthenticated);
 
+// --- get EPA data from EPA Gateway/Login.gov
 router.get("/epa-data", (req, res) => {
   // Explicitly return only required attributes from user info
   res.json({
@@ -95,6 +96,7 @@ router.get("/epa-data", (req, res) => {
   });
 });
 
+// --- get SAM.gov data from BAP
 router.get("/sam-data", (req, res) => {
   getSamData(req.user.mail)
     .then((samUserData) => {
@@ -123,6 +125,7 @@ router.get("/sam-data", (req, res) => {
 
 // TODO: Add log info when admin/helpdesk changes submission back to draft
 
+// --- get static content from S3
 router.get("/content", (req, res) => {
   // NOTE: static content files found in `app/server/app/config/` directory
   const filenames = [
@@ -173,6 +176,7 @@ router.get("/content", (req, res) => {
     });
 });
 
+// --- get the rebate form schema from Forms.gov
 router.get("/rebate-form-schema", (req, res) => {
   axios
     .get(`${formioProjectUrl}/${formioFormId}`, formioHeaders)
@@ -194,74 +198,15 @@ router.get("/rebate-form-schema", (req, res) => {
     });
 });
 
-router.post("/rebate-form-submission", (req, res) => {
-  axios
-    .post(
-      `${formioProjectUrl}/${formioFormId}/submission`,
-      req.body,
-      formioHeaders
-    )
-    .then((axiosRes) => axiosRes.data)
-    .then((submission) => res.json(submission))
-    .catch((error) => {
-      if (typeof error.toJSON === "function") {
-        console.error(error.toJSON());
-      }
-
-      res
-        .status(error?.response?.status || 500)
-        .json({ message: "Error posting Forms.gov rebate form submission" });
-    });
-});
-
-router.get("/rebate-form-submissions", (req, res) => {
-  // TODO: pull UEIs from JWT, and store in an `ueis` array, for building up
-  // `query` string, which is appended to the `url` string
-
-  // const query = ueis.join("&data.uei=");
-  // const url = `${formioBaseUrl}/submission?data.uei=${query}`;
-
-  axios
-    .get(`${formioProjectUrl}/${formioFormId}/submission`, formioHeaders)
-    .then((axiosRes) => axiosRes.data)
-    .then((submissions) => {
-      return submissions.map((submission) => {
-        const { _id, _fid, form, project, state, created, modified, data } =
-          submission;
-
-        return {
-          // --- metadata fields ---
-          _id,
-          _fid,
-          form,
-          project,
-          created,
-          // --- form fields ---
-          formType: "Application",
-          uei: data.applicantUEI,
-          eft: data.applicantEfti,
-          applicant: data.applicantOrganizationName,
-          schoolDistrict: data.schoolDistrictName,
-          lastUpdatedBy: data.last_updated_by,
-          lastUpdatedDatetime: modified,
-          status: state,
-        };
-      });
-    })
-    .then((submissions) => res.json(submissions))
-    .catch((error) => {
-      if (typeof error.toJSON === "function") {
-        console.error(error.toJSON());
-      }
-
-      res
-        .status(error?.response?.status || 500)
-        .json({ message: "Error getting Forms.gov rebate form submissions" });
-    });
-});
-
-router.post("/rebate-form-submission/:id", (req, res) => {
+// --- get an existing rebate form's schema and submission data from Forms.gov
+router.get("/rebate-form-submission/:id", (req, res) => {
   const id = req.params.id;
+
+  // TODO: fetch BAP combo keys from SAM.gov and store in `bapComboKeys` array,
+  // then replace the `if (false)` block in the inner axios.get() callback
+  // with the commented out line above checking that the `bapComboKeys` array
+  // includes the key from the submission the user is trying to access
+  const bapComboKeys = [];
 
   axios
     .get(`${formioProjectUrl}/${formioFormId}/submission/${id}`, formioHeaders)
@@ -273,10 +218,7 @@ router.post("/rebate-form-submission/:id", (req, res) => {
         .then((schema) => {
           const { bap_hidden_entity_combo_key } = submission.data;
 
-          // TODO: swap out if (false) for if statement below once form has been
-          // updated to include "bap_hidden_entity_combo_key"
-
-          // if (!req.body.bapComboKeys.includes(bap_hidden_entity_combo_key)) {
+          // if (!bapComboKeys.includes(bap_hidden_entity_combo_key)) {
           if (false) {
             res.json({
               userAccess: false,
@@ -303,6 +245,96 @@ router.post("/rebate-form-submission/:id", (req, res) => {
       res.status(error?.response?.status || 500).json({
         message: `Error getting Forms.gov rebate form submission ${id}`,
       });
+    });
+});
+
+// --- post an update to an existing draft rebate form submission to Forms.gov
+router.post("/rebate-form-submission/:id", (req, res) => {
+  const id = req.params.id;
+
+  axios
+    .put(
+      `${formioProjectUrl}/${formioFormId}/submission/${id}`,
+      req.body,
+      formioHeaders
+    )
+    .then((axiosRes) => axiosRes.data)
+    .then((submission) => res.json(submission))
+    .catch((error) => {
+      if (typeof error.toJSON === "function") {
+        console.error(error.toJSON());
+      }
+
+      res
+        .status(error?.response?.status || 500)
+        .json({ message: "Error posting Forms.gov rebate form submission" });
+    });
+});
+
+// --- post a new rebate form submission to Forms.gov
+router.post("/rebate-form-submission", (req, res) => {
+  axios
+    .post(
+      `${formioProjectUrl}/${formioFormId}/submission`,
+      req.body,
+      formioHeaders
+    )
+    .then((axiosRes) => axiosRes.data)
+    .then((submission) => res.json(submission))
+    .catch((error) => {
+      if (typeof error.toJSON === "function") {
+        console.error(error.toJSON());
+      }
+
+      res
+        .status(error?.response?.status || 500)
+        .json({ message: "Error posting Forms.gov rebate form submission" });
+    });
+});
+
+// --- get all rebate form submissions from Forms.gov
+router.get("/rebate-form-submissions", (req, res) => {
+  // TODO: fetch BAP combo keys from SAM.gov and store in `bapComboKeys` array,
+  // then replate the URL in the axios.get() with url below, containing a query
+  // string constructed from the combo keys
+
+  // const query = bapComboKeys.join("&data.bap_hidden_entity_combo_key=");
+  // const url = `${formioBaseUrl}/submission?data.bap_hidden_entity_combo_key=${query}`;
+
+  axios
+    .get(`${formioProjectUrl}/${formioFormId}/submission`, formioHeaders)
+    .then((axiosRes) => axiosRes.data)
+    .then((submissions) => {
+      return submissions.map((submission) => {
+        const { _id, _fid, form, project, state, created, modified, data } =
+          submission;
+
+        return {
+          _id,
+          _fid,
+          form,
+          project,
+          created,
+          formType: "Application",
+          uei: data.applicantUEI,
+          eft: data.applicantEfti,
+          applicant: data.applicantOrganizationName,
+          schoolDistrict: data.schoolDistrictName,
+          lastUpdatedBy: data.last_updated_by,
+          lastUpdatedDatetime: modified,
+          status: state,
+        };
+      });
+    })
+    .then((submissions) => res.json(submissions))
+    .catch((error) => {
+      if (typeof error.toJSON === "function") {
+        console.error(error.toJSON());
+      }
+
+      res
+        .status(error?.response?.status || 500)
+        .json({ message: "Error getting Forms.gov rebate form submissions" });
     });
 });
 
