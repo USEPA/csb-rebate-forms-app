@@ -1,13 +1,19 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Form } from "@formio/react";
 // ---
 import { serverUrl, fetchData } from "../config";
 import Loading from "components/loading";
-import Message from "components/message";
+import Message, { useMessageState } from "components/message";
 import MarkdownContent from "components/markdownContent";
 import { useUserState } from "contexts/user";
 import { useContentState } from "contexts/content";
+
+type FormioSubmission = {
+  // NOTE: more fields are in a form.io submission,
+  // but we're only concerned with 'state'
+  state: "submitted" | "draft";
+};
 
 type SubmissionsState =
   | {
@@ -32,7 +38,11 @@ type SubmissionsState =
         | {
             userAccess: true;
             formSchema: { url: string; json: object };
-            submissionData: { data: object; state: "submitted" | "draft" };
+            submissionData: {
+              _id: string;
+              data: object;
+              state: "submitted" | "draft";
+            };
           }
         | {
             userAccess: false;
@@ -50,8 +60,9 @@ type SubmissionsState =
     };
 
 export default function ExistingRebateForm() {
+  const navigate = useNavigate();
   const { id } = useParams<"id">();
-  const { epaUserData, samUserData } = useUserState();
+  const { epaUserData } = useUserState();
   const { content } = useContentState();
 
   const [rebateFormSubmission, setRebateFormSubmission] =
@@ -65,12 +76,6 @@ export default function ExistingRebateForm() {
     });
 
   useEffect(() => {
-    if (samUserData.status !== "success" || !samUserData.data.results) return;
-
-    const bapComboKeys = samUserData.data.records.map((entity) => {
-      return entity.ENTITY_COMBO_KEY__c;
-    });
-
     setRebateFormSubmission({
       status: "pending",
       data: {
@@ -80,9 +85,7 @@ export default function ExistingRebateForm() {
       },
     });
 
-    fetchData(`${serverUrl}/api/v1/rebate-form-submission/${id}`, {
-      bapComboKeys,
-    })
+    fetchData(`${serverUrl}/api/v1/rebate-form-submission/${id}`)
       .then((res) => {
         setRebateFormSubmission({
           status: "success",
@@ -99,7 +102,10 @@ export default function ExistingRebateForm() {
           },
         });
       });
-  }, [samUserData, id]);
+  }, [id]);
+
+  const { message, displaySuccessMessage, displayErrorMessage, resetMessage } =
+    useMessageState();
 
   if (rebateFormSubmission.status === "idle") {
     return null;
@@ -143,15 +149,43 @@ export default function ExistingRebateForm() {
         />
       )}
 
+      {message.displayed && <Message type={message.type} text={message.text} />}
+
       <Form
         form={formSchema?.json}
         url={formSchema?.url} // NOTE: used for file uploads
         submission={{
-          ...submissionData,
           data: {
             ...submissionData?.data,
             last_updated_by: epaUserData.data.mail,
           },
+        }}
+        options={{
+          readOnly: submissionData?.state === "submitted" ? true : false,
+        }}
+        onSubmit={(submission: FormioSubmission) => {
+          const id = submissionData?._id;
+
+          fetchData(
+            `${serverUrl}/api/v1/rebate-form-submission/${id}`,
+            submission
+          )
+            .then((res) => {
+              if (submission.state === "submitted") {
+                displaySuccessMessage("Form succesfully submitted.");
+                setTimeout(() => navigate("/"), 10000);
+                return;
+              }
+
+              if (submission.state === "draft") {
+                displaySuccessMessage("Draft succesfully saved.");
+                setTimeout(() => resetMessage(), 10000);
+              }
+            })
+            .catch((err) => {
+              displayErrorMessage("Error submitting rebate form.");
+              setTimeout(() => resetMessage(), 10000);
+            });
         }}
       />
     </div>
