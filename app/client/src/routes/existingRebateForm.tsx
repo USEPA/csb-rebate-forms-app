@@ -207,6 +207,8 @@ export default function ExistingRebateForm() {
             });
         }}
         onNextPage={({ page, submission }: FormioOnNextParams) => {
+          if (submissionData.state !== "draft") return;
+
           const id = submissionData._id;
 
           fetchData(`${serverUrl}/api/v1/rebate-form-submission/${id}`, {
