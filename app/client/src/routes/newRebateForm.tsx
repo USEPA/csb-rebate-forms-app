@@ -6,11 +6,17 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, fetchData } from "../config";
 import Loading from "components/loading";
-import Message from "components/message";
+import Message, { useMessageState } from "components/message";
 import MarkdownContent from "components/markdownContent";
 import { TextWithTooltip } from "components/infoTooltip";
 import { EPAUserData, SAMUserData, useUserState } from "contexts/user";
 import { useContentState } from "contexts/content";
+
+type FormioSubmission = {
+  // NOTE: more fields are in a form.io submission,
+  // but we're only concerned with 'state'
+  state: "submitted" | "draft";
+};
 
 type FormSchemaState =
   | { status: "idle"; data: null }
@@ -86,7 +92,8 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
       });
   }, []);
 
-  const [formSubmissionFailed, setformSubmissionFailed] = useState(false);
+  const { message, displaySuccessMessage, displayErrorMessage, resetMessage } =
+    useMessageState();
 
   if (!samData || !epaData) {
     return null;
@@ -127,9 +134,7 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
         />
       )}
 
-      {formSubmissionFailed && (
-        <Message type="error" text="Error submitting rebate form." />
-      )}
+      {message.displayed && <Message type={message.type} text={message.text} />}
 
       <Form
         form={formSchema.data.json}
@@ -151,15 +156,23 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
             sam_hidden_applicant_zip_code: PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
           },
         }}
-        onSubmit={(submission: object) => {
-          setformSubmissionFailed(false);
-
+        onSubmit={(submission: FormioSubmission) => {
           fetchData(`${serverUrl}/api/v1/rebate-form-submission/`, submission)
             .then((res) => {
-              navigate("/");
+              if (submission.state === "submitted") {
+                displaySuccessMessage("Form succesfully submitted.");
+                setTimeout(() => navigate("/"), 10000);
+                return;
+              }
+
+              if (submission.state === "draft") {
+                displaySuccessMessage("Draft succesfully saved.");
+                setTimeout(() => resetMessage(), 10000);
+              }
             })
             .catch((err) => {
-              setformSubmissionFailed(true);
+              displayErrorMessage("Error submitting rebate form.");
+              setTimeout(() => resetMessage(), 10000);
             });
         }}
       />
