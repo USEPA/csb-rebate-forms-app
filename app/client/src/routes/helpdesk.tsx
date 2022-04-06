@@ -22,11 +22,17 @@ type SubmissionState =
   | {
       status: "success";
       data: {
+        // NOTE: more fields are in a form.io submission,
+        // but we're only concerned with the fields below
         _id: string;
-        applicant: string;
-        lastUpdatedBy: string;
-        lastUpdatedDatetime: string;
-        status: "submitted" | "draft";
+        state: "submitted" | "draft";
+        modified: string;
+        data: {
+          applicantOrganizationName: string;
+          last_updated_by: string;
+          // (other fields...)
+        };
+        // (other fields...)
       };
     }
   | {
@@ -59,18 +65,25 @@ export default function Helpdesk() {
         confirmText: "Yes",
         cancelText: "Cancel",
         confirmedAction: () => {
-          console.log("TODO: change submission's state to draft");
+          const submissionUrl = `${serverUrl}/help/rebate-form-submission/${formId}`;
+          const submissionData = rebateFormSubmission.data;
+          if (!submissionData) return;
 
-          setRebateFormSubmission({
-            status: "pending",
-            data: null,
-          });
-
-          fetchData(`${serverUrl}/help/rebate-form-submission/${formId}`)
-            .then((res) => {
+          fetchData(submissionUrl, {
+            state: "draft",
+            data: { ...submissionData.data, last_updated_by: "test" },
+          })
+            .then((postRes) => {
               setRebateFormSubmission({
-                status: "success",
-                data: res,
+                status: "pending",
+                data: null,
+              });
+
+              fetchData(submissionUrl).then((getRes) => {
+                setRebateFormSubmission({
+                  status: "success",
+                  data: getRes,
+                });
               });
             })
             .catch((err) => {
@@ -190,7 +203,7 @@ export default function Helpdesk() {
               <th scope="row">
                 <button
                   className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-                  disabled={rebateFormSubmission.data.status === "draft"}
+                  disabled={rebateFormSubmission.data.state === "draft"}
                   onClick={(ev) => confirmatSubmissionChange()}
                 >
                   <span className="display-flex flex-align-center">
@@ -206,14 +219,16 @@ export default function Helpdesk() {
                 </button>
               </th>
               <td>{rebateFormSubmission.data._id}</td>
-              <td>{rebateFormSubmission.data.applicant}</td>
-              <td>{rebateFormSubmission.data.lastUpdatedBy}</td>
+              <td>
+                {rebateFormSubmission.data.data.applicantOrganizationName}
+              </td>
+              <td>{rebateFormSubmission.data.data.last_updated_by}</td>
               <td>
                 {new Date(
-                  rebateFormSubmission.data.lastUpdatedDatetime
+                  rebateFormSubmission.data.modified
                 ).toLocaleDateString()}
               </td>
-              <td>{rebateFormSubmission.data.status}</td>
+              <td>{rebateFormSubmission.data.state}</td>
             </tr>
           </tbody>
         </table>

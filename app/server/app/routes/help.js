@@ -17,15 +17,7 @@ router.get("/rebate-form-submission/:id", (req, res) => {
     .get(`${formioProjectUrl}/${formioFormId}/submission/${id}`, formioHeaders)
     .then((axiosRes) => axiosRes.data)
     .then((submission) => {
-      const { _id, state, modified, data } = submission;
-
-      res.json({
-        _id,
-        applicant: data.applicantOrganizationName,
-        lastUpdatedBy: data.last_updated_by,
-        lastUpdatedDatetime: modified,
-        status: state,
-      });
+      res.json(submission);
     })
     .catch((error) => {
       if (typeof error.toJSON === "function") {
@@ -35,6 +27,29 @@ router.get("/rebate-form-submission/:id", (req, res) => {
       res.status(error?.response?.status || 500).json({
         message: `Error getting Forms.gov rebate form submission ${id}`,
       });
+    });
+});
+
+// --- change a submitted Forms.gov rebate form's submission back to 'draft'
+router.post("/rebate-form-submission/:id", (req, res) => {
+  const id = req.params.id;
+
+  axios
+    .put(
+      `${formioProjectUrl}/${formioFormId}/submission/${id}`,
+      req.body,
+      formioHeaders
+    )
+    .then((axiosRes) => axiosRes.data)
+    .then((submission) => res.json(submission))
+    .catch((error) => {
+      if (typeof error.toJSON === "function") {
+        console.error(error.toJSON());
+      }
+
+      res
+        .status(error?.response?.status || 500)
+        .json({ message: "Error updating Forms.gov rebate form submission" });
     });
 });
 
