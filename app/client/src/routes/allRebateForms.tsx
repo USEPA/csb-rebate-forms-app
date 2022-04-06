@@ -22,7 +22,7 @@ export default function AllRebateForms() {
 
     dispatch({ type: "FETCH_REBATE_FORM_SUBMISSIONS_REQUEST" });
 
-    fetchData(`${serverUrl}/api/v1/rebate-form-submissions`)
+    fetchData(`${serverUrl}/api/rebate-form-submissions`)
       .then((res) => {
         dispatch({
           type: "FETCH_REBATE_FORM_SUBMISSIONS_SUCCESS",

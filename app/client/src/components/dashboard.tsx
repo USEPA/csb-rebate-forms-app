@@ -19,7 +19,7 @@ function useFetchedSamData() {
 
   useEffect(() => {
     dispatch({ type: "FETCH_SAM_USER_DATA_REQUEST" });
-    fetchData(`${serverUrl}/api/v1/sam-data`)
+    fetchData(`${serverUrl}/api/sam-data`)
       .then((res) => {
         if (res.results) {
           dispatch({
@@ -42,7 +42,7 @@ function useFetchedContent() {
 
   useEffect(() => {
     dispatch({ type: "FETCH_CONTENT_REQUEST" });
-    fetchData(`${serverUrl}/api/v1/content`)
+    fetchData(`${serverUrl}/api/content`)
       .then((res) => {
         const {
           allRebateFormsIntro,
