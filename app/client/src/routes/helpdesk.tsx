@@ -71,7 +71,10 @@ export default function Helpdesk() {
 
           fetchData(submissionUrl, {
             state: "draft",
-            data: { ...submissionData.data, last_updated_by: "test" },
+            data: {
+              ...submissionData.data,
+              last_updated_by: "(helpdesk)", // TODO: get logged in user and pass it here
+            },
           })
             .then((postRes) => {
               setRebateFormSubmission({
