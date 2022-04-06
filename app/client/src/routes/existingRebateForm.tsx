@@ -11,8 +11,10 @@ import { useContentState } from "contexts/content";
 
 type FormioSubmission = {
   // NOTE: more fields are in a form.io submission,
-  // but we're only concerned with 'state'
+  // but we're only concerned with the fields below
+  data: object;
   state: "submitted" | "draft";
+  // (other fields...)
 };
 
 type SubmissionsState =
@@ -107,6 +109,14 @@ export default function ExistingRebateForm() {
   const { message, displaySuccessMessage, displayErrorMessage, resetMessage } =
     useMessageState();
 
+  // NOTE: Provided to the <Form /> component's submission prop. Initially
+  // empty, it'll be set once the user attemts to submit the form (both
+  // succesfully and unsuccesfully) – that way when the form re-renders after
+  // the submission attempt, the fields the user filled out will not be lost
+  const [savedSubmission, setSavedSubmission] = useState<{ data: object }>({
+    data: {},
+  });
+
   if (rebateFormSubmission.status === "idle") {
     return null;
   }
@@ -158,6 +168,7 @@ export default function ExistingRebateForm() {
           data: {
             ...submissionData.data,
             last_updated_by: epaUserData.data.mail,
+            ...savedSubmission.data,
           },
         }}
         options={{
@@ -171,14 +182,7 @@ export default function ExistingRebateForm() {
             submission
           )
             .then((res) => {
-              setRebateFormSubmission({
-                status: "success",
-                data: {
-                  userAccess: true,
-                  formSchema,
-                  submissionData: res,
-                },
-              });
+              setSavedSubmission(res);
 
               if (submission.state === "submitted") {
                 displaySuccessMessage("Form succesfully submitted.");
@@ -192,7 +196,7 @@ export default function ExistingRebateForm() {
               }
             })
             .catch((err) => {
-              // TODO: capture form state, so it doesn't reset on error (maybe onChange)
+              setSavedSubmission(submission);
               displayErrorMessage("Error submitting rebate form.");
               setTimeout(() => resetMessage(), 3000);
             });

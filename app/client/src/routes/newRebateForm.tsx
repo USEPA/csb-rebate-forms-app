@@ -14,8 +14,10 @@ import { useContentState } from "contexts/content";
 
 type FormioSubmission = {
   // NOTE: more fields are in a form.io submission,
-  // but we're only concerned with 'state'
+  // but we're only concerned with the fields below
+  data: object;
   state: "submitted" | "draft";
+  // (other fields...)
 };
 
 type FormSchemaState =
@@ -95,11 +97,11 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
   const { message, displaySuccessMessage, displayErrorMessage, resetMessage } =
     useMessageState();
 
-  // NOTE: provided to the <Form /> component's submission prop. this being a
-  // new form, it will initially be empty, but we'll set it once the user
-  // submits the form – that way when the form re-renders after submission, the
-  // fields the user submitted will remain visible in the form
-  const [submissionData, setSubmissionData] = useState<{ data: object }>({
+  // NOTE: Provided to the <Form /> component's submission prop. Initially
+  // empty, it'll be set once the user attemts to submit the form (both
+  // succesfully and unsuccesfully) – that way when the form re-renders after
+  // the submission attempt, the fields the user filled out will not be lost
+  const [savedSubmission, setSavedSubmission] = useState<{ data: object }>({
     data: {},
   });
 
@@ -162,13 +164,13 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
             sam_hidden_applicant_city: PHYSICAL_ADDRESS_CITY__c,
             sam_hidden_applicant_state: PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
             sam_hidden_applicant_zip_code: PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
-            ...submissionData.data,
+            ...savedSubmission.data,
           },
         }}
         onSubmit={(submission: FormioSubmission) => {
           fetchData(`${serverUrl}/api/v1/rebate-form-submission/`, submission)
             .then((res) => {
-              setSubmissionData(res);
+              setSavedSubmission(res);
 
               if (submission.state === "submitted") {
                 displaySuccessMessage("Form succesfully submitted.");
@@ -181,7 +183,7 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
               }
             })
             .catch((err) => {
-              // TODO: capture form state, so it doesn't reset on error (maybe onChange)
+              setSavedSubmission(submission);
               displayErrorMessage("Error submitting rebate form.");
               setTimeout(() => resetMessage(), 3000);
             });
