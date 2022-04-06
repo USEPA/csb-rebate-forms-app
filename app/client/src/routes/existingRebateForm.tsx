@@ -17,6 +17,11 @@ type FormioSubmission = {
   // (other fields...)
 };
 
+type FormioOnNextParams = {
+  page: number;
+  submission: FormioSubmission;
+};
+
 type SubmissionsState =
   | {
       status: "idle";
@@ -198,6 +203,23 @@ export default function ExistingRebateForm() {
             .catch((err) => {
               setSavedSubmission(submission);
               displayErrorMessage("Error submitting rebate form.");
+              setTimeout(() => resetMessage(), 3000);
+            });
+        }}
+        onNextPage={({ page, submission }: FormioOnNextParams) => {
+          const id = submissionData._id;
+
+          fetchData(`${serverUrl}/api/v1/rebate-form-submission/${id}`, {
+            ...submission,
+            state: "draft",
+          })
+            .then((res) => {
+              displaySuccessMessage("Draft succesfully saved.");
+              setTimeout(() => resetMessage(), 3000);
+            })
+            .catch((err) => {
+              setSavedSubmission(submission);
+              displayErrorMessage("Error saving draft rebate form.");
               setTimeout(() => resetMessage(), 3000);
             });
         }}

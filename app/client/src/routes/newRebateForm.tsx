@@ -20,6 +20,11 @@ type FormioSubmission = {
   // (other fields...)
 };
 
+type FormioOnNextParams = {
+  page: number;
+  submission: FormioSubmission;
+};
+
 type FormSchemaState =
   | { status: "idle"; data: null }
   | { status: "pending"; data: null }
@@ -184,7 +189,29 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
             })
             .catch((err) => {
               setSavedSubmission(submission);
-              displayErrorMessage("Error submitting rebate form.");
+
+              if (submission.state === "submitted") {
+                displayErrorMessage("Error submitting rebate form.");
+              }
+
+              if (submission.state === "draft") {
+                displayErrorMessage("Error saving draft rebate form.");
+              }
+
+              setTimeout(() => resetMessage(), 3000);
+            });
+        }}
+        onNextPage={({ page, submission }: FormioOnNextParams) => {
+          fetchData(`${serverUrl}/api/v1/rebate-form-submission/`, {
+            ...submission,
+            state: "draft",
+          })
+            .then((res) => {
+              navigate(`/rebate/${res._id}`);
+            })
+            .catch((err) => {
+              setSavedSubmission(submission);
+              displayErrorMessage("Error saving draft rebate form.");
               setTimeout(() => resetMessage(), 3000);
             });
         }}
