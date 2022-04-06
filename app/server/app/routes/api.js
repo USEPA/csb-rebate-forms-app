@@ -3,6 +3,11 @@ const { readFile } = require("node:fs/promises");
 const express = require("express");
 const axios = require("axios").default;
 // ---
+const {
+  formioProjectUrl,
+  formioFormId,
+  formioHeaders,
+} = require("../config/formio");
 const { ensureAuthenticated } = require("../middleware");
 const getSamData = require("../utilities/getSamData");
 const logger = require("../utilities/logger");
@@ -13,12 +18,6 @@ const router = express.Router();
 
 const s3Bucket = process.env.S3_PUBLIC_BUCKET;
 const s3Region = process.env.S3_PUBLIC_REGION;
-
-const formioProjectUrl = process.env.FORMIO_PROJECT_URL;
-const formioFormId = process.env.FORMIO_FORM_ID;
-const formioApiKey = process.env.FORMIO_API_KEY;
-
-const formioHeaders = { headers: { "x-token": formioApiKey } };
 
 router.use(ensureAuthenticated);
 
@@ -65,6 +64,7 @@ router.get("/sam-data", (req, res) => {
 router.get("/content", (req, res) => {
   // NOTE: static content files found in `app/server/app/config/` directory
   const filenames = [
+    "helpdesk-intro.md",
     "all-rebate-forms-intro.md",
     "all-rebate-forms-outro.md",
     "new-rebate-form-intro.md",
@@ -93,12 +93,13 @@ router.get("/content", (req, res) => {
     })
     .then((data) => {
       res.json({
-        allRebateFormsIntro: data[0],
-        allRebateFormsOutro: data[1],
-        newRebateFormIntro: data[2],
-        newRebateFormDialog: data[3],
-        existingDraftRebateFormIntro: data[4],
-        existingSubmittedRebateFormIntro: data[5],
+        helpdeskIntro: data[0],
+        allRebateFormsIntro: data[1],
+        allRebateFormsOutro: data[2],
+        newRebateFormIntro: data[3],
+        newRebateFormDialog: data[4],
+        existingDraftRebateFormIntro: data[5],
+        existingSubmittedRebateFormIntro: data[6],
       });
     })
     .catch((error) => {
