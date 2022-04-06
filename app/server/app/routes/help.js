@@ -17,9 +17,10 @@ router.get("/rebate-form-submission/:id", (req, res) => {
     .get(`${formioProjectUrl}/${formioFormId}/submission/${id}`, formioHeaders)
     .then((axiosRes) => axiosRes.data)
     .then((submission) => {
-      const { state, modified, data } = submission;
+      const { _id, state, modified, data } = submission;
 
       res.json({
+        _id,
         applicant: data.applicantOrganizationName,
         lastUpdatedBy: data.last_updated_by,
         lastUpdatedDatetime: modified,

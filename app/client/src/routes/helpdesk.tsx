@@ -22,6 +22,7 @@ type SubmissionState =
   | {
       status: "success";
       data: {
+        _id: string;
         applicant: string;
         lastUpdatedBy: string;
         lastUpdatedDatetime: string;
@@ -35,6 +36,8 @@ type SubmissionState =
 
 export default function Helpdesk() {
   const [searchText, setSearchText] = useState("");
+  const [formId, setFormId] = useState("");
+
   const { content } = useContentState();
   const dispatch = useDialogDispatch();
 
@@ -63,7 +66,7 @@ export default function Helpdesk() {
             data: null,
           });
 
-          fetchData(`${serverUrl}/help/rebate-form-submission/${searchText}`)
+          fetchData(`${serverUrl}/help/rebate-form-submission/${formId}`)
             .then((res) => {
               setRebateFormSubmission({
                 status: "success",
@@ -97,6 +100,8 @@ export default function Helpdesk() {
           onSubmit={(ev) => {
             ev.preventDefault();
 
+            setFormId("");
+
             setRebateFormSubmission({
               status: "pending",
               data: null,
@@ -104,12 +109,14 @@ export default function Helpdesk() {
 
             fetchData(`${serverUrl}/help/rebate-form-submission/${searchText}`)
               .then((res) => {
+                setFormId(res._id);
                 setRebateFormSubmission({
                   status: "success",
                   data: res,
                 });
               })
               .catch((err) => {
+                setFormId("");
                 setRebateFormSubmission({
                   status: "failure",
                   data: null,
@@ -128,11 +135,7 @@ export default function Helpdesk() {
             onChange={(ev) => setSearchText(ev.target.value)}
             value={searchText}
           />
-          <button
-            className="usa-button"
-            type="submit"
-            onClick={(ev) => confirmatSubmissionChange()}
-          >
+          <button className="usa-button" type="submit">
             <span className="usa-search__submit-text">Search</span>
             <img className="usa-search__submit-icon" src={icon} alt="Search" />
           </button>
@@ -153,6 +156,12 @@ export default function Helpdesk() {
           <thead>
             <tr className="font-sans-2xs text-no-wrap">
               <th scope="col">&nbsp;</th>
+              <th scope="col">
+                <TextWithTooltip
+                  text="Form ID"
+                  tooltip="Form ID returned from Forms.gov"
+                />
+              </th>
               <th scope="col">
                 <TextWithTooltip
                   text="Applicant"
@@ -182,9 +191,7 @@ export default function Helpdesk() {
                 <button
                   className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
                   disabled={rebateFormSubmission.data.status === "draft"}
-                  onClick={(ev) => {
-                    //
-                  }}
+                  onClick={(ev) => confirmatSubmissionChange()}
                 >
                   <span className="display-flex flex-align-center">
                     <svg
@@ -198,6 +205,7 @@ export default function Helpdesk() {
                   </span>
                 </button>
               </th>
+              <td>{rebateFormSubmission.data._id}</td>
               <td>{rebateFormSubmission.data.applicant}</td>
               <td>{rebateFormSubmission.data.lastUpdatedBy}</td>
               <td>
