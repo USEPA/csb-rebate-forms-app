@@ -21,12 +21,28 @@ import Loading from "components/loading";
 import Welcome from "components/welcome";
 import Dashboard from "components/dashboard";
 import ConfirmationDialog from "components/confirmationDialog";
+import Helpdesk from "routes/helpdesk";
 import AllRebateForms from "routes/allRebateForms";
 import NewRebateForm from "routes/newRebateForm";
 import ExistingRebateForm from "routes/existingRebateForm";
 import NotFound from "routes/notFound";
 import { useUserState, useUserDispatch } from "contexts/user";
 import { useDialogDispatch, useDialogState } from "contexts/dialog";
+
+type HelpdeskAccess = "idle" | "pending" | "success" | "failure";
+
+export function useHelpdeskAccess() {
+  const [helpdeskAccess, setHelpdeskAccess] = useState<HelpdeskAccess>("idle");
+
+  useEffect(() => {
+    setHelpdeskAccess("pending");
+    fetchData(`${serverUrl}/api/helpdesk-access`)
+      .then((res) => setHelpdeskAccess("success"))
+      .catch((err) => setHelpdeskAccess("failure"));
+  }, []);
+
+  return helpdeskAccess;
+}
 
 // Set up inactivity timer to auto-logout if user is inactive for >15 minutes
 function useInactivityDialog(callback: () => void) {
@@ -172,6 +188,19 @@ export default function App() {
           }
         >
           <Route index element={<AllRebateForms />} />
+          {/*
+            NOTE: The helpdesk route is only accessible to users who should have
+            access to it. When a user tries to access the `Helpdesk` route, an
+            API call to the server is made (`/helpdesk-access`). Verification
+            happens on the server via the user's EPA WAA groups stored in the
+            JWT, and server responds appropriately. If user is a member of the
+            appropriate WAA groups, they'll have access to the route, otherwise
+            they'll be redirected to the index route (`AllRebateForms`).
+            This same API call happens inside the `Dashboard` component as well,
+            to determine whether a button/link to the helpdesk route should be
+            displayed.
+          */}
+          <Route path="helpdesk" element={<Helpdesk />} />
           <Route path="rebate/new" element={<NewRebateForm />} />
           <Route path="rebate/:id" element={<ExistingRebateForm />} />
           <Route path="*" element={<NotFound />} />

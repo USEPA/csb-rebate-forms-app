@@ -6,6 +6,8 @@ import uswds from "@formio/uswds";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, formioProjectUrl, fetchData } from "../config";
+import { useHelpdeskAccess } from "components/app";
+import Loading from "components/loading";
 import { useUserState, useUserDispatch } from "contexts/user";
 import { useContentDispatch } from "contexts/content";
 import { Action, useDialogDispatch } from "contexts/dialog";
@@ -45,6 +47,7 @@ function useFetchedContent() {
     fetchData(`${serverUrl}/api/content`)
       .then((res) => {
         const {
+          helpdeskIntro,
           allRebateFormsIntro,
           allRebateFormsOutro,
           newRebateFormIntro,
@@ -55,6 +58,7 @@ function useFetchedContent() {
         dispatch({
           type: "FETCH_CONTENT_SUCCESS",
           payload: {
+            helpdeskIntro,
             allRebateFormsIntro,
             allRebateFormsOutro,
             newRebateFormIntro,
@@ -109,8 +113,9 @@ export default function Dashboard() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
-  const { epaUserData } = useUserState();
+  const { epaUserData, samUserData } = useUserState();
   const dispatch = useDialogDispatch();
+  const helpdeskAccess = useHelpdeskAccess();
 
   useFetchedSamData();
   useFetchedContent();
@@ -134,6 +139,10 @@ export default function Dashboard() {
         confirmedAction: () => navigate(destination),
       },
     };
+  }
+
+  if (samUserData.status !== "success") {
+    return <Loading />;
   }
 
   return (
@@ -162,8 +171,8 @@ export default function Dashboard() {
       </ul>
 
       <div className="display-flex flex-justify border-bottom padding-bottom-1">
-        {pathname === "/" ? (
-          <nav>
+        <nav>
+          {pathname === "/" ? (
             <button className="usa-button font-sans-2xs" disabled>
               <IconText
                 order="icon-text"
@@ -171,17 +180,7 @@ export default function Dashboard() {
                 text="Your Rebate Forms"
               />
             </button>
-
-            <Link to="/rebate/new" className="usa-button font-sans-2xs">
-              <IconText
-                order="icon-text"
-                icon="add_circle"
-                text="New Application"
-              />
-            </Link>
-          </nav>
-        ) : (
-          <nav>
+          ) : (
             <a
               href="/"
               className="usa-button font-sans-2xs"
@@ -197,7 +196,9 @@ export default function Dashboard() {
                 text="Your Rebate Forms"
               />
             </a>
+          )}
 
+          {pathname.startsWith("/rebate") ? (
             <button className="usa-button font-sans-2xs" disabled>
               <IconText
                 order="icon-text"
@@ -205,8 +206,38 @@ export default function Dashboard() {
                 text="New Application"
               />
             </button>
-          </nav>
-        )}
+          ) : (
+            <Link to="/rebate/new" className="usa-button font-sans-2xs">
+              <IconText
+                order="icon-text"
+                icon="add_circle"
+                text="New Application"
+              />
+            </Link>
+          )}
+
+          {helpdeskAccess === "success" && (
+            <>
+              {pathname === "/helpdesk" ? (
+                <button className="usa-button font-sans-2xs" disabled>
+                  <IconText order="icon-text" icon="people" text="Helpdesk" />
+                </button>
+              ) : (
+                <a
+                  href="/"
+                  className="usa-button font-sans-2xs"
+                  onClick={(ev) => {
+                    ev.preventDefault();
+                    const action = createDialogNavAction("/helpdesk");
+                    dispatch(action);
+                  }}
+                >
+                  <IconText order="icon-text" icon="people" text="Helpdesk" />
+                </a>
+              )}
+            </>
+          )}
+        </nav>
 
         <nav className="display-flex flex-align-center">
           <p className="margin-bottom-0 margin-right-1">

@@ -66,4 +66,17 @@ const getSamData = (email) => {
     });
 };
 
-module.exports = getSamData;
+const getComboKeys = (email) => {
+  return getSamData(email)
+    .then((samUserData) => {
+      return samUserData.map((samObject) => samObject.ENTITY_COMBO_KEY__c);
+    })
+    .catch((err) => {
+      log.error(err);
+      const error = new Error("Error getting SAM.gov data");
+      error.statusCode = 401;
+      throw error;
+    });
+};
+
+module.exports = { getSamData, getComboKeys };

@@ -20,7 +20,7 @@ type FormioSubmission = {
   // (other fields...)
 };
 
-type FormioOnNextParams = {
+type FormioOnNextPageParams = {
   page: number;
   submission: FormioSubmission;
 };
@@ -195,7 +195,7 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
               setTimeout(() => resetMessage(), 3000);
             });
         }}
-        onNextPage={({ page, submission }: FormioOnNextParams) => {
+        onNextPage={({ page, submission }: FormioOnNextPageParams) => {
           setSavedSubmission(submission);
           fetchData(`${serverUrl}/api/rebate-form-submission/`, {
             ...submission,

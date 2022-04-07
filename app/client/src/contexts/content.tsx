@@ -11,6 +11,7 @@ type Props = {
 };
 
 type Content = {
+  helpdeskIntro: string;
   allRebateFormsIntro: string;
   allRebateFormsOutro: string;
   newRebateFormIntro: string;
@@ -52,6 +53,7 @@ function reducer(state: State, action: Action): State {
 
     case "FETCH_CONTENT_SUCCESS": {
       const {
+        helpdeskIntro,
         allRebateFormsIntro,
         allRebateFormsOutro,
         newRebateFormIntro,
@@ -65,6 +67,7 @@ function reducer(state: State, action: Action): State {
         content: {
           status: "success",
           data: {
+            helpdeskIntro,
             allRebateFormsIntro,
             allRebateFormsOutro,
             newRebateFormIntro,
