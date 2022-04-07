@@ -203,6 +203,9 @@ router.post("/rebate-form-submission/:id", checkBapComboKeys, (req, res) => {
 
   // Verify post data includes one of user's BAP combo keys
   if (!req.bapComboKeys.includes(req.body.data?.bap_hidden_entity_combo_key)) {
+    log.error(
+      `User with email ${req.user.mail} attempted to update existing form without a matching BAP combo key`
+    );
     return res.status(401).json({ message: "Unauthorized" });
   }
 
@@ -229,6 +232,9 @@ router.post("/rebate-form-submission/:id", checkBapComboKeys, (req, res) => {
 router.post("/rebate-form-submission", checkBapComboKeys, (req, res) => {
   // Verify post data includes one of user's BAP combo keys
   if (!req.bapComboKeys.includes(req.body.data?.bap_hidden_entity_combo_key)) {
+    log.error(
+      `User with email ${req.user.mail} attempted to post new form without a matching BAP combo key`
+    );
     return res.status(401).json({ message: "Unauthorized" });
   }
 
