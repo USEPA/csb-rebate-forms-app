@@ -17,7 +17,7 @@ type FormioSubmission = {
   // (other fields...)
 };
 
-type FormioOnNextParams = {
+type FormioOnNextPageParams = {
   page: number;
   submission: FormioSubmission;
 };
@@ -201,7 +201,7 @@ export default function ExistingRebateForm() {
               setTimeout(() => resetMessage(), 3000);
             });
         }}
-        onNextPage={({ page, submission }: FormioOnNextParams) => {
+        onNextPage={({ page, submission }: FormioOnNextPageParams) => {
           if (submissionData.state !== "draft") return;
           setSavedSubmission(submission);
           fetchData(
