@@ -178,6 +178,7 @@ export default function ExistingRebateForm() {
         }}
         options={{
           readOnly: submissionData.state === "submitted" ? true : false,
+          noAlerts: true,
         }}
         onSubmit={(submission: FormioSubmission) => {
           setSavedSubmission(submission);
