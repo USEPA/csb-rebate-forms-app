@@ -8,7 +8,7 @@ const {
   formioFormId,
   formioHeaders,
 } = require("../config/formio");
-const { ensureAuthenticated } = require("../middleware");
+const { ensureAuthenticated, ensureHelpdesk } = require("../middleware");
 const getSamData = require("../utilities/getSamData");
 const logger = require("../utilities/logger");
 
@@ -21,10 +21,8 @@ const s3Region = process.env.S3_PUBLIC_REGION;
 
 router.use(ensureAuthenticated);
 
-// --- verification used to check if user has access to the /helpdesk route
-router.get("/helpdesk-access", (req, res) => {
-  // TODO: return 200 if user is a member of the correct EPA WAA groups, else
-  // send an error status code that the client app's fetch will catch (401?)
+// --- verification used to check if user has access to the /helpdesk route (using ensureHelpdesk middleware)
+router.get("/helpdesk-access", ensureHelpdesk, (req, res) => {
   res.sendStatus(200);
 });
 
