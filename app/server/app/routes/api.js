@@ -42,10 +42,12 @@ router.get("/epa-data", (req, res) => {
 router.get("/sam-data", (req, res) => {
   getSamData(req.user.mail)
     .then((samUserData) => {
-      // TODO: set `helpdeskUser` to true if they're a member of the correct EPA WAA groups
-      const helpdeskUser = false;
+      const userRoles = req.user.memberof.split(",");
+      const helpdeskUser =
+        userRoles.includes("csb_admin") || userRoles.includes("csb_helpdesk");
 
       // First check if user has at least one associated UEI before completing login process
+      // If user has admin or helpdesk role, return empty array but still allow app use
       if (!helpdeskUser && samUserData?.length === 0) {
         log.error(
           `User with email ${req.user.mail} tried to use app without any associated SAM records.`
