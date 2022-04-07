@@ -21,6 +21,13 @@ const s3Region = process.env.S3_PUBLIC_REGION;
 
 router.use(ensureAuthenticated);
 
+// --- verification used to check if user has access to the /helpdesk route
+router.get("/helpdesk-access", (req, res) => {
+  // TODO: return 200 if user is a member of the correct EPA WAA groups, else
+  // send an error status code that the client app's fetch will catch (401?)
+  res.sendStatus(200);
+});
+
 // --- get EPA data from EPA Gateway/Login.gov
 router.get("/epa-data", (req, res) => {
   // Explicitly return only required attributes from user info

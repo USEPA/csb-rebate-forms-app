@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import icon from "uswds/img/usa-icons-bg/search--white.svg";
 import icons from "uswds/img/sprite.svg";
 // ---
@@ -10,6 +11,8 @@ import { TextWithTooltip } from "components/infoTooltip";
 import { useUserState } from "contexts/user";
 import { useContentState } from "contexts/content";
 import { useDialogDispatch } from "contexts/dialog";
+
+type HelpdeskAccess = "idle" | "pending" | "success" | "failure";
 
 type SubmissionState =
   | {
@@ -42,6 +45,8 @@ type SubmissionState =
     };
 
 export default function Helpdesk() {
+  const navigate = useNavigate();
+
   const [searchText, setSearchText] = useState("");
   const [formId, setFormId] = useState("");
 
@@ -55,8 +60,25 @@ export default function Helpdesk() {
       data: null,
     });
 
-  if (epaUserData.status !== "success") {
+  const [helpdeskAccess, setHelpdeskAccess] = useState<HelpdeskAccess>("idle");
+
+  useEffect(() => {
+    setHelpdeskAccess("pending");
+    fetchData(`${serverUrl}/api/helpdesk-access`)
+      .then((res) => setHelpdeskAccess("success"))
+      .catch((err) => setHelpdeskAccess("failure"));
+  }, []);
+
+  if (
+    epaUserData.status !== "success" ||
+    helpdeskAccess === "idle" ||
+    helpdeskAccess === "pending"
+  ) {
     return <Loading />;
+  }
+
+  if (helpdeskAccess === "failure") {
+    navigate("/", { replace: true });
   }
 
   return (
