@@ -1,3 +1,4 @@
+const { resolve } = require("node:path");
 const jwt = require("jsonwebtoken");
 const { createJwt, jwtAlgorithm } = require("./utilities/createJwt");
 const logger = require("./utilities/logger");
@@ -94,6 +95,17 @@ const protectClientRoutes = (req, res, next) => {
   next();
 };
 
+const checkClientRouteExists = (req, res, next) => {
+  const subPath = process.env.SERVER_BASE_PATH || "";
+  const clientRoutes = ["/", "/welcome", "/helpdesk", "/rebate/new"].map(
+    (route) => `${subPath}${route}`
+  );
+  if (!clientRoutes.includes(req.path) && !req.path.includes("/rebate/")) {
+    return res.status(404).sendFile(resolve(__dirname, "public/404.html"));
+  }
+  next();
+};
+
 // Global middleware on dev/staging to send 200 status on all server endpoints (required for ZAP scan)
 const appScan = (req, res, next) => {
   // OpenAPI def must use global "scan" param and enum to "true"
@@ -108,4 +120,5 @@ module.exports = {
   ensureHelpdesk,
   appScan,
   protectClientRoutes,
+  checkClientRouteExists,
 };
