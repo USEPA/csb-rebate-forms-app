@@ -15,3 +15,5 @@ applications:
       NODE_ENV: production
       LOGGER_LEVEL: INFO
       OPTIMIZE_MEMORY: true
+    services:
+      - s3-pub-csb-stage
