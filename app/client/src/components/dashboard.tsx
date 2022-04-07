@@ -6,6 +6,7 @@ import uswds from "@formio/uswds";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, formioProjectUrl, fetchData } from "../config";
+import Loading from "components/loading";
 import { useUserState, useUserDispatch } from "contexts/user";
 import { useContentDispatch } from "contexts/content";
 import { Action, useDialogDispatch } from "contexts/dialog";
@@ -111,7 +112,7 @@ export default function Dashboard() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
-  const { epaUserData } = useUserState();
+  const { epaUserData, samUserData } = useUserState();
   const dispatch = useDialogDispatch();
 
   useFetchedSamData();
@@ -136,6 +137,10 @@ export default function Dashboard() {
         confirmedAction: () => navigate(destination),
       },
     };
+  }
+
+  if (samUserData.status !== "success") {
+    return <Loading />;
   }
 
   return (
