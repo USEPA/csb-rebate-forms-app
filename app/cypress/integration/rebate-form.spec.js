@@ -231,40 +231,20 @@ describe('Rebate Form', () => {
       // go to next step
       cy.findByText('Submit Form').click();
 
-      // TODO this message will likely be removed in the future
-      cy.findByText('Submission Complete');
+      // verify the success message is displayed and goes away
+      cy.findByText('Form succesfully submitted.');
+      cy.findByText('Form succesfully submitted.').should('not.exist');
 
-      // TODO this test needs to be updated when submission issues are fixed
-      cy.findByText('Error submitting rebate form.');
-      cy.wait(3000);
-      cy.findByText('Error submitting rebate form.').should('not.exist');
+      // verify the app navigates back to the dashboard
+      cy.findByText(
+        'This collection of information is approved by OMB under the Paperwork Reduction Act',
+        { exact: false },
+      );
     }
   }
 
   function submitTests() {
     cy.log('Complete submission tests...');
-
-    cy.findByText('Your Rebate Forms').click();
-    cy.get('.usa-modal__main')
-      .filter(':visible')
-      .within(($el) => {
-        cy.findByText('Cancel').click();
-      });
-
-    cy.findByText('Your Rebate Forms').click();
-    cy.get('.usa-modal__content')
-      .filter(':visible')
-      .within(($el) => {
-        cy.get('button[aria-label="Close this window"]').click();
-      });
-
-    // go back to the dashboard
-    cy.findByText('Your Rebate Forms').click();
-    cy.get('.usa-modal__main')
-      .filter(':visible')
-      .within(($el) => {
-        cy.findByText('Yes').click();
-      });
 
     // TODO Uncomment the below tests when the submit code is fixed
     //      Currently there is an issue where the data is not saved on submit
@@ -364,5 +344,33 @@ describe('Rebate Form', () => {
     step5();
     step6();
     step7();
+  });
+
+  it('Modal cancel tests', () => {
+    startNewApplication();
+    step1();
+    step2();
+
+    cy.findByText('Your Rebate Forms').click();
+    cy.get('.usa-modal__main')
+      .filter(':visible')
+      .within(($el) => {
+        cy.findByText('Cancel').click();
+      });
+
+    cy.findByText('Your Rebate Forms').click();
+    cy.get('.usa-modal__content')
+      .filter(':visible')
+      .within(($el) => {
+        cy.get('button[aria-label="Close this window"]').click();
+      });
+
+    // go back to the dashboard
+    cy.findByText('Your Rebate Forms').click();
+    cy.get('.usa-modal__main')
+      .filter(':visible')
+      .within(($el) => {
+        cy.findByText('Yes').click();
+      });
   });
 });
