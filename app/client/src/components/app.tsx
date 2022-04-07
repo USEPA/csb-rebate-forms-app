@@ -29,6 +29,21 @@ import NotFound from "routes/notFound";
 import { useUserState, useUserDispatch } from "contexts/user";
 import { useDialogDispatch, useDialogState } from "contexts/dialog";
 
+type HelpdeskAccess = "idle" | "pending" | "success" | "failure";
+
+export function useHelpdeskAccess() {
+  const [helpdeskAccess, setHelpdeskAccess] = useState<HelpdeskAccess>("idle");
+
+  useEffect(() => {
+    setHelpdeskAccess("pending");
+    fetchData(`${serverUrl}/api/helpdesk-access`)
+      .then((res) => setHelpdeskAccess("success"))
+      .catch((err) => setHelpdeskAccess("failure"));
+  }, []);
+
+  return helpdeskAccess;
+}
+
 // Set up inactivity timer to auto-logout if user is inactive for >15 minutes
 function useInactivityDialog(callback: () => void) {
   const { epaUserData } = useUserState();

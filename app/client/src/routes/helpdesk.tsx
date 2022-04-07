@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import icon from "uswds/img/usa-icons-bg/search--white.svg";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, fetchData } from "../config";
+import { useHelpdeskAccess } from "components/app";
 import Loading from "components/loading";
 import Message from "components/message";
 import MarkdownContent from "components/markdownContent";
@@ -11,8 +12,6 @@ import { TextWithTooltip } from "components/infoTooltip";
 import { useUserState } from "contexts/user";
 import { useContentState } from "contexts/content";
 import { useDialogDispatch } from "contexts/dialog";
-
-type HelpdeskAccess = "idle" | "pending" | "success" | "failure";
 
 type SubmissionState =
   | {
@@ -53,21 +52,13 @@ export default function Helpdesk() {
   const { epaUserData } = useUserState();
   const { content } = useContentState();
   const dispatch = useDialogDispatch();
+  const helpdeskAccess = useHelpdeskAccess();
 
   const [rebateFormSubmission, setRebateFormSubmission] =
     useState<SubmissionState>({
       status: "idle",
       data: null,
     });
-
-  const [helpdeskAccess, setHelpdeskAccess] = useState<HelpdeskAccess>("idle");
-
-  useEffect(() => {
-    setHelpdeskAccess("pending");
-    fetchData(`${serverUrl}/api/helpdesk-access`)
-      .then((res) => setHelpdeskAccess("success"))
-      .catch((err) => setHelpdeskAccess("failure"));
-  }, []);
 
   if (
     epaUserData.status !== "success" ||
