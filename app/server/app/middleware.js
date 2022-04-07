@@ -96,7 +96,10 @@ const protectClientRoutes = (req, res, next) => {
 };
 
 const checkClientRouteExists = (req, res, next) => {
-  const clientRoutes = ["/", "/welcome", "/helpdesk", "/rebate/new"];
+  const subPath = process.env.SERVER_BASE_PATH || "";
+  const clientRoutes = ["/", "/welcome", "/helpdesk", "/rebate/new"].map(
+    (route) => `${subPath}${route}`
+  );
   if (!clientRoutes.includes(req.path) && !req.path.includes("/rebate/")) {
     return res.status(404).sendFile(resolve(__dirname, "public/404.html"));
   }
