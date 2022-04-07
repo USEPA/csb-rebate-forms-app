@@ -45,6 +45,21 @@ const ensureAuthenticated = (
   );
 };
 
+/**
+ * Confirm user has either "csb_admin" or "csb_helpdesk" role
+ * Log message and send 401 Unauthorized if user does not have either role
+ */
+const ensureHelpdesk = (req, res, next) => {
+  const userRoles = req.user.memberof ? req.user.memberof.split(",") : [];
+  if (!userRoles.includes("csb_admin") && !userRoles.includes("csb_helpdesk")) {
+    log.error(
+      `User with email ${req.user.mail} attempted to perform an admin/helpdesk action without correct privileges.`
+    );
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  next();
+};
+
 const rejectRequest = (req, res) => {
   // Clear token cookie if there was an error verifying (e.g. expired)
   res.clearCookie(cookieName);
@@ -88,4 +103,9 @@ const appScan = (req, res, next) => {
   next();
 };
 
-module.exports = { ensureAuthenticated, appScan, protectClientRoutes };
+module.exports = {
+  ensureAuthenticated,
+  ensureHelpdesk,
+  appScan,
+  protectClientRoutes,
+};

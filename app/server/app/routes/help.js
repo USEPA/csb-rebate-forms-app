@@ -6,15 +6,16 @@ const {
   formioFormId,
   formioHeaders,
 } = require("../config/formio");
-const { ensureAuthenticated } = require("../middleware");
+const { ensureAuthenticated, ensureHelpdesk } = require("../middleware");
 const logger = require("../utilities/logger");
 
 const log = logger.logger;
 
 const router = express.Router();
 
-// TODO: update authentication check to restrict these API calls to users in the correct EPA WAA groups
+// Confirm user is both authenticated and authorized with valid helpdesk roles
 router.use(ensureAuthenticated);
+router.use(ensureHelpdesk);
 
 // --- get an existing rebate form's submission data from Forms.gov
 router.get("/rebate-form-submission/:id", (req, res) => {
