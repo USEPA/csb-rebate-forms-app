@@ -34,20 +34,26 @@ describe('Authentication', () => {
 
   it('Verify error messages based on error parameter value', () => {
     cy.visit('/welcome?error=auth');
-    cy.findByText('Authentication error. Please log in again or contact support.');
-    
+    cy.findByText(
+      'Authentication error. Please log in again or contact support.',
+    );
+
     cy.visit('/welcome?error=saml');
     cy.findByText('Error logging in. Please try again or contact support.');
-    
+
     cy.visit('/welcome?error=sam-fetch');
     cy.findByText('Error retrieving SAM.gov data. Please contact support.');
-    
+
     cy.visit('/welcome?info=sam-results');
-    cy.findByText('No SAM.gov records found. Please refer to the help documentation to add data to SAM.gov.');
-    
+    cy.findByText(
+      'No SAM.gov records found. Please refer to the help documentation to add data to SAM.gov.',
+    );
+
     cy.visit('/welcome?info=timeout');
-    cy.findByText('For security reasons, you have been logged out due to 15 minutes of inactivity.');
-    
+    cy.findByText(
+      'For security reasons, you have been logged out due to 15 minutes of inactivity.',
+    );
+
     cy.visit('/welcome?success=logout');
     cy.findByText('You have succesfully logged out.');
   });
@@ -63,16 +69,39 @@ describe('Authentication', () => {
       location.hostname === 'localhost'
         ? `${location.protocol}//${location.hostname}:3001`
         : window.location.origin;
-    cy.intercept(
-      `${origin}/api/sam-data`,
-      {
-        statusCode: 500,
-        body: {},
-      },
-    ).as('sam-data');
+    cy.intercept(`${origin}/api/sam-data`, {
+      statusCode: 500,
+      body: {},
+    }).as('sam-data');
 
     // verify the appropriate error message is displayed
     cy.loginToCSB('csbtest');
     cy.findByText('Error retrieving SAM.gov data. Please contact support.');
+  });
+
+  it('Test SAM.gov service with no results', () => {
+    // sign out
+    cy.findByText('csb-test@erg.com');
+    cy.findByText('Sign out').click();
+    cy.findByText('You have succesfully logged out.');
+
+    // simulate the sam-data service with no results
+    const origin =
+      location.hostname === 'localhost'
+        ? `${location.protocol}//${location.hostname}:3001`
+        : window.location.origin;
+    cy.intercept(`${origin}/api/sam-data`, {
+      statusCode: 200,
+      body: {
+        records: [],
+        results: false,
+      },
+    }).as('sam-data');
+
+    // verify the appropriate message is displayed
+    cy.loginToCSB('csbtest');
+    cy.findByText(
+      'No SAM.gov records found. Please refer to the help documentation to add data to SAM.gov.',
+    );
   });
 });

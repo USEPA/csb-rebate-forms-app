@@ -6,7 +6,7 @@ describe('Routes', () => {
     debugger;
     return false;
   });
-  
+
   const formId = '624b92ede96cb08e5923392b';
   const loadingSpinnerId = 'csb-loading-spinner';
 
@@ -16,7 +16,7 @@ describe('Routes', () => {
 
   it('Test a route that is not found', () => {
     cy.findByText('Your Rebate Forms');
-    
+
     cy.visit('/testing-not-found');
 
     cy.findByText('(Not Found)');
@@ -24,7 +24,7 @@ describe('Routes', () => {
 
   it('Navigate directly to an existing application', () => {
     cy.findByText('Your Rebate Forms');
-    
+
     cy.visit(`/rebate/${formId}`);
 
     cy.findByTestId(loadingSpinnerId).should('be.visible');
@@ -38,7 +38,7 @@ describe('Routes', () => {
     // Sign out
     cy.findByText('Sign out').click();
     cy.findByText('You have succesfully logged out.');
-    
+
     // verify the appropriate error message is displayed
     cy.visit(`/rebate/${formId}`);
     cy.findByTestId('csb-sign-in-text').contains(
@@ -54,26 +54,25 @@ describe('Routes', () => {
       location.hostname === 'localhost'
         ? `${location.protocol}//${location.hostname}:3001`
         : window.location.origin;
-    cy.intercept(
-      `${origin}/api/rebate-form-submission/${formId}`,
-      {
-        statusCode: 200,
-        body: {
-          formSchema: {
-            json: {},
-            url: ""
-          },
-          submissionData: {
-            access: []
-          },
-          userAccess: false
+    cy.intercept(`${origin}/api/rebate-form-submission/${formId}`, {
+      statusCode: 200,
+      body: {
+        formSchema: {
+          json: {},
+          url: '',
         },
+        submissionData: {
+          access: [],
+        },
+        userAccess: false,
       },
-    ).as('rebate-form-submission');
-    
+    }).as('rebate-form-submission');
+
     // verify the appropriate message is displayed
     cy.visit(`/rebate/${formId}`);
-    cy.findByText('You don’t have access to this form. Please contact support if you believe this is a mistake.');
+    cy.findByText(
+      'You don’t have access to this form. Please contact support if you believe this is a mistake.',
+    );
   });
 
   it('Navigate directly to an existing application and simulate a service failure', () => {
@@ -84,14 +83,11 @@ describe('Routes', () => {
       location.hostname === 'localhost'
         ? `${location.protocol}//${location.hostname}:3001`
         : window.location.origin;
-    cy.intercept(
-      `${origin}/api/rebate-form-submission/${formId}`,
-      {
-        statusCode: 500,
-        body: {},
-      },
-    ).as('rebate-form-submission');
-    
+    cy.intercept(`${origin}/api/rebate-form-submission/${formId}`, {
+      statusCode: 500,
+      body: {},
+    }).as('rebate-form-submission');
+
     // verify the appropriate error message is displayed
     cy.visit(`/rebate/${formId}`);
     cy.findByText(`Error loading rebate form ${formId}.`);
