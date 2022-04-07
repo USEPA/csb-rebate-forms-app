@@ -49,6 +49,10 @@ jobs:
       BAP_USER: ${{ secrets.BAP_USER }}
       BAP_PASSWORD: ${{ secrets.BAP_PASSWORD }}
       BAP_TABLE: ${{ secrets.BAP_TABLE }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.S3_PUBLIC_ACCESS_KEY_ID_STAGING }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_PUBLIC_SECRET_ACCESS_KEY_STAGING }}
+      AWS_DEFAULT_REGION: ${{ secrets.S3_PUBLIC_REGION_STAGING }}
+      S3_PUBLIC_BUCKET: ${{ secrets.S3_PUBLIC_BUCKET_STAGING }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -58,10 +62,6 @@ jobs:
       # Set up node and npm
       - uses: actions/setup-node@master
 
-      - name: Add Formio private package repo auth token
-        run: echo "//pkg.form.io/:_authToken=${FORMIO_PKG_AUTH_TOKEN}" > .npmrc
-        working-directory: app/client
-
       # Run front-end processes (install, lint, test, bundle)
       - name: Cache node modules
         uses: actions/cache@v2
@@ -69,6 +69,10 @@ jobs:
           path: ~/client/.npm
           key: v1-npm-client-deps-${{ hashFiles('**/client/package-lock.json') }}
           restore-keys: v1-npm-client-deps-
+
+      - name: Add Formio private package repo auth token
+        run: echo "//pkg.form.io/:_authToken=${FORMIO_PKG_AUTH_TOKEN}" > .npmrc
+        working-directory: app/client
 
       - name: Install front-end dependencies
         run: npm install
@@ -113,6 +117,18 @@ jobs:
           cf set-env $APP_NAME "BAP_USER" "$BAP_USER" > /dev/null
           cf set-env $APP_NAME "BAP_PASSWORD" "$BAP_PASSWORD" > /dev/null
           cf set-env $APP_NAME "BAP_TABLE" "$BAP_TABLE" > /dev/null
+          cf set-env $APP_NAME "S3_PUBLIC_BUCKET" "$S3_PUBLIC_BUCKET" > /dev/null
+          cf set-env $APP_NAME "S3_PUBLIC_REGION" "$AWS_DEFAULT_REGION" > /dev/null
+
+      # Sync static content to public S3 bucket
+      - name: Sync static content to S3
+        run: aws s3 sync . s3://$S3_PUBLIC_BUCKET/content
+        working-directory: app/server/app/content
+
+      # Set CORS configuration for public S3 bucket
+      - name: Set S3 CORS configuration
+        run: aws s3api put-bucket-cors --bucket $S3_PUBLIC_BUCKET --cors-configuration file://s3CORS.json
+        working-directory: app/server/app/config
 
       # Now that front-end is built in server/dist, only push server dir to Cloud.gov
       - name: Deploy application to Cloud.gov
