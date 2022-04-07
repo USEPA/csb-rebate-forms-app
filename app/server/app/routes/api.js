@@ -41,7 +41,7 @@ router.get("/sam-data", (req, res) => {
       // First check if user has at least one associated UEI before completing login process
       if (!helpdeskUser && samUserData?.length === 0) {
         log.error(
-          `User ${req.user.mail} tried to use app without any associated SAM records`
+          `User with email ${req.user.mail} tried to use app without any associated SAM records.`
         );
 
         return res.json({
