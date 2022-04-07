@@ -1,4 +1,5 @@
 describe('Authentication', () => {
+  // TODO Remove this when the app is more stable
   Cypress.on('uncaught:exception', (err, runnable) => {
     // returning false here prevents Cypress from
     // failing the test
@@ -7,7 +8,7 @@ describe('Authentication', () => {
   });
 
   beforeEach(() => {
-    cy.clearCookie('csb-token')
+    cy.clearCookie('csb-token');
 
     cy.loginToCSB('csbtest');
   });
@@ -49,5 +50,29 @@ describe('Authentication', () => {
     
     cy.visit('/welcome?success=logout');
     cy.findByText('You have succesfully logged out.');
+  });
+
+  it('Test SAM.gov service failure', () => {
+    // sign out
+    cy.findByText('csb-test@erg.com');
+    cy.findByText('Sign out').click();
+    cy.findByText('You have succesfully logged out.');
+
+    // simulate the sam-data service failing
+    const origin =
+      location.hostname === 'localhost'
+        ? `${location.protocol}//${location.hostname}:3001`
+        : window.location.origin;
+    cy.intercept(
+      `${origin}/api/v1/sam-data`,
+      {
+        statusCode: 500,
+        body: {},
+      },
+    ).as('sam-data');
+
+    // verify the appropriate error message is displayed
+    cy.loginToCSB('csbtest');
+    cy.findByText('Error retrieving SAM.gov data. Please contact support.');
   });
 });
