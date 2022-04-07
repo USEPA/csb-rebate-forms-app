@@ -183,7 +183,10 @@ export default function ExistingRebateForm() {
           setSavedSubmission(submission);
           fetchData(
             `${serverUrl}/api/rebate-form-submission/${submissionData._id}`,
-            submission
+            {
+              ...submission,
+              data: { ...submission.data, ncesDataSource: "" },
+            }
           )
             .then((res) => {
               if (submission.state === "submitted") {
@@ -206,7 +209,11 @@ export default function ExistingRebateForm() {
           setSavedSubmission(submission);
           fetchData(
             `${serverUrl}/api/rebate-form-submission/${submissionData._id}`,
-            { ...submission, state: "draft" }
+            {
+              ...submission,
+              data: { ...submission.data, ncesDataSource: "" },
+              state: "draft",
+            }
           )
             .then((res) => {
               displaySuccessMessage("Draft succesfully saved.");

@@ -174,7 +174,10 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
         }}
         onSubmit={(submission: FormioSubmission) => {
           setSavedSubmission(submission);
-          fetchData(`${serverUrl}/api/rebate-form-submission/`, submission)
+          fetchData(`${serverUrl}/api/rebate-form-submission/`, {
+            ...submission,
+            data: { ...submission.data, ncesDataSource: "" },
+          })
             .then((res) => {
               if (submission.state === "submitted") {
                 displaySuccessMessage("Form succesfully submitted.");
@@ -199,6 +202,7 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
           setSavedSubmission(submission);
           fetchData(`${serverUrl}/api/rebate-form-submission/`, {
             ...submission,
+            data: { ...submission.data, ncesDataSource: "" },
             state: "draft",
           })
             .then((res) => {
