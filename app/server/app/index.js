@@ -6,13 +6,16 @@ const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
-const history = require("connect-history-api-fallback");
 const passport = require("passport");
 // ---
 const errorHandler = require("./utilities/errorHandler");
 const logger = require("./utilities/logger");
 const samlStrategy = require("./config/samlStrategy");
-const { appScan, protectClientRoutes } = require("./middleware");
+const {
+  appScan,
+  protectClientRoutes,
+  checkClientRouteExists,
+} = require("./middleware");
 const routes = require("./routes");
 
 const app = express();
@@ -101,19 +104,21 @@ app.use(basePath, routes);
 const pathRegex = new RegExp(`^\\${process.env.SERVER_BASE_PATH || ""}$`);
 app.all(pathRegex, (req, res) => res.redirect(`${basePath}`));
 
-// Ensure user is authenticated on all client-side routes except / and /welcome
-app.use(protectClientRoutes);
-
-/*
- * Set up history fallback to provide direct access to react router routes
- * Note: must come AFTER api routes and BEFORE static serve of react files
- */
-app.use(basePath, history());
-
 // Serve client app's static built files
 // NOTE: client app's `build` directory contents copied into server app's
 // `public` directory in CI/CD step
 app.use(basePath, express.static(resolve(__dirname, "public")));
+
+// Ensure that requested client route exists (otherwise send 404)
+app.use(checkClientRouteExists);
+
+// Ensure user is authenticated on all client-side routes except / and /welcome
+app.use(protectClientRoutes);
+
+// Serve client-side routes
+app.get("*", (req, res) => {
+  res.sendFile(resolve(__dirname, "public/index.html"));
+});
 
 app.use(errorHandler);
 
