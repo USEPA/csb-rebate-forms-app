@@ -99,8 +99,12 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
       });
   }, []);
 
-  const { message, displaySuccessMessage, displayErrorMessage, resetMessage } =
-    useMessageState();
+  const {
+    message,
+    displayInfoMessage,
+    displaySuccessMessage,
+    displayErrorMessage,
+  } = useMessageState();
 
   // NOTE: Provided to the <Form /> component's submission prop. Initially
   // empty, it'll be set once the user attemts to submit the form (both
@@ -151,70 +155,92 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
 
       {message.displayed && <Message type={message.type} text={message.text} />}
 
-      <Form
-        form={formSchema.data.json}
-        url={formSchema.data.url} // NOTE: used for file uploads
-        submission={{
-          data: {
-            last_updated_by: epaData.mail,
-            bap_hidden_entity_combo_key: ENTITY_COMBO_KEY__c,
-            sam_hidden_applicant_email: epaData.mail,
-            sam_hidden_applicant_title: title,
-            sam_hidden_applicant_name: name,
-            sam_hidden_applicant_efti: ENTITY_EFT_INDICATOR__c,
-            sam_hidden_applicant_uei: UNIQUE_ENTITY_ID__c,
-            sam_hidden_applicant_organization_name: LEGAL_BUSINESS_NAME__c,
-            sam_hidden_applicant_street_address_1: PHYSICAL_ADDRESS_LINE_1__c,
-            sam_hidden_applicant_street_address_2: PHYSICAL_ADDRESS_LINE_2__c,
-            sam_hidden_applicant_city: PHYSICAL_ADDRESS_CITY__c,
-            sam_hidden_applicant_state: PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
-            sam_hidden_applicant_zip_code: PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
-            ...savedSubmission.data,
-          },
-        }}
-        options={{ noAlerts: true }}
-        onSubmit={(submission: FormioSubmission) => {
-          setSavedSubmission(submission);
-          fetchData(`${serverUrl}/api/rebate-form-submission/`, {
-            ...submission,
-            data: { ...submission.data, ncesDataSource: "" },
-          })
-            .then((res) => {
-              if (submission.state === "submitted") {
-                displaySuccessMessage("Form succesfully submitted.");
-                setTimeout(() => navigate("/"), 3000);
-                return;
-              }
-              if (submission.state === "draft") {
+      <div className="csb-form">
+        <Form
+          form={formSchema.data.json}
+          url={formSchema.data.url} // NOTE: used for file uploads
+          submission={{
+            data: {
+              last_updated_by: epaData.mail,
+              bap_hidden_entity_combo_key: ENTITY_COMBO_KEY__c,
+              sam_hidden_applicant_email: epaData.mail,
+              sam_hidden_applicant_title: title,
+              sam_hidden_applicant_name: name,
+              sam_hidden_applicant_efti: ENTITY_EFT_INDICATOR__c,
+              sam_hidden_applicant_uei: UNIQUE_ENTITY_ID__c,
+              sam_hidden_applicant_organization_name: LEGAL_BUSINESS_NAME__c,
+              sam_hidden_applicant_street_address_1: PHYSICAL_ADDRESS_LINE_1__c,
+              sam_hidden_applicant_street_address_2: PHYSICAL_ADDRESS_LINE_2__c,
+              sam_hidden_applicant_city: PHYSICAL_ADDRESS_CITY__c,
+              sam_hidden_applicant_state: PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
+              sam_hidden_applicant_zip_code: PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
+              ...savedSubmission.data,
+            },
+          }}
+          options={{ noAlerts: true }}
+          onSubmit={(submission: FormioSubmission) => {
+            setSavedSubmission(submission);
+
+            if (submission.state === "submitted") {
+              displayInfoMessage("Submitting form...");
+            }
+
+            if (submission.state === "draft") {
+              displayInfoMessage("Saving form...");
+            }
+
+            fetchData(`${serverUrl}/api/rebate-form-submission/`, {
+              ...submission,
+              data: { ...submission.data, ncesDataSource: "" },
+            })
+              .then((res) => {
+                if (submission.state === "submitted") {
+                  displaySuccessMessage("Form succesfully submitted.");
+                  setTimeout(() => navigate("/"), 5000);
+                  return;
+                }
+
+                if (submission.state === "draft") {
+                  navigate(`/rebate/${res._id}`);
+                }
+              })
+              .catch((err) => {
+                if (submission.state === "submitted") {
+                  displayErrorMessage("Error submitting rebate form.");
+                }
+
+                if (submission.state === "draft") {
+                  displayErrorMessage("Error saving draft rebate form.");
+                }
+              });
+          }}
+          onNextPage={({ page, submission }: FormioOnNextPageParams) => {
+            setSavedSubmission(submission);
+
+            if (submission.state === "submitted") {
+              displayInfoMessage("Submitting form...");
+            }
+
+            if (submission.state === "draft") {
+              displayInfoMessage("Saving form...");
+            }
+
+            fetchData(`${serverUrl}/api/rebate-form-submission/`, {
+              ...submission,
+              data: { ...submission.data, ncesDataSource: "" },
+              state: "draft",
+            })
+              .then((res) => {
                 navigate(`/rebate/${res._id}`);
-              }
-            })
-            .catch((err) => {
-              if (submission.state === "submitted") {
-                displayErrorMessage("Error submitting rebate form.");
-              }
-              if (submission.state === "draft") {
+              })
+              .catch((err) => {
                 displayErrorMessage("Error saving draft rebate form.");
-              }
-              setTimeout(() => resetMessage(), 3000);
-            });
-        }}
-        onNextPage={({ page, submission }: FormioOnNextPageParams) => {
-          setSavedSubmission(submission);
-          fetchData(`${serverUrl}/api/rebate-form-submission/`, {
-            ...submission,
-            data: { ...submission.data, ncesDataSource: "" },
-            state: "draft",
-          })
-            .then((res) => {
-              navigate(`/rebate/${res._id}`);
-            })
-            .catch((err) => {
-              displayErrorMessage("Error saving draft rebate form.");
-              setTimeout(() => resetMessage(), 3000);
-            });
-        }}
-      />
+              });
+          }}
+        />
+      </div>
+
+      {message.displayed && <Message type={message.type} text={message.text} />}
     </>
   );
 }
