@@ -41,7 +41,12 @@ const ensureAuthenticated = (
       const newToken = createJwt(user);
 
       // Add JWT in cookie and proceed with request
-      res.cookie(cookieName, newToken, { httpOnly: true, overwrite: true });
+      res.cookie(cookieName, newToken, {
+        httpOnly: true,
+        overwrite: true,
+        sameSite: "strict",
+        secure: true,
+      });
       next();
     }
   );
