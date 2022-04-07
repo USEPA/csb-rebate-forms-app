@@ -13,6 +13,7 @@ const log = logger.logger;
 
 const router = express.Router();
 
+// TODO: update authentication check to restrict these API calls to users in the correct EPA WAA groups
 router.use(ensureAuthenticated);
 
 // --- get an existing rebate form's submission data from Forms.gov
