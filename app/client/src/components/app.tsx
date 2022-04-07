@@ -189,10 +189,16 @@ export default function App() {
         >
           <Route index element={<AllRebateForms />} />
           {/*
-            TODO: temporarily rendering helpdesk here for initial development.
-            the `Helpdesk` component will need to be moved to its own dedicated
-            protected route, as we don't want to fetch SAM.gov data for helpdesk
-            users and they don't need to see the rebate form pages
+            NOTE: The helpdesk route is only accessible to users who should have
+            access to it. When a user tries to access the `Helpdesk` route, an
+            API call to the server is made (`/helpdesk-access`). Verification
+            happens on the server via the user's EPA WAA groups stored in the
+            JWT, and server responds appropriately. If user is a member of the
+            appropriate WAA groups, they'll have access to the route, otherwise
+            they'll be redirected to the index route (`AllRebateForms`).
+            This same API call happens inside the `Dashboard` component as well,
+            to determine whether a button/link to the helpdesk route should be
+            displayed.
           */}
           <Route path="helpdesk" element={<Helpdesk />} />
           <Route path="rebate/new" element={<NewRebateForm />} />
