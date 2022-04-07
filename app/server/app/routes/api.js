@@ -58,8 +58,6 @@ router.get("/sam-data", (req, res) => {
     });
 });
 
-// TODO: Add log info when admin/helpdesk changes submission back to draft
-
 // --- get static content from S3
 router.get("/content", (req, res) => {
   // NOTE: static content files found in `app/server/app/config/` directory

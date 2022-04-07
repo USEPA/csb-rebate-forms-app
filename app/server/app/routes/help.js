@@ -6,8 +6,14 @@ const {
   formioFormId,
   formioHeaders,
 } = require("../config/formio");
+const { ensureAuthenticated } = require("../middleware");
+const logger = require("../utilities/logger");
+
+const log = logger.logger;
 
 const router = express.Router();
+
+router.use(ensureAuthenticated);
 
 // --- get an existing rebate form's submission data from Forms.gov
 router.get("/rebate-form-submission/:id", (req, res) => {
@@ -41,7 +47,13 @@ router.post("/rebate-form-submission/:id", (req, res) => {
       formioHeaders
     )
     .then((axiosRes) => axiosRes.data)
-    .then((submission) => res.json(submission))
+    .then((submission) => {
+      log.info(
+        `User with email ${req.user.mail} updated rebate form submission ${id} from submitted to draft.`
+      );
+
+      res.json(submission);
+    })
     .catch((error) => {
       if (typeof error.toJSON === "function") {
         console.error(error.toJSON());
