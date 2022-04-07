@@ -7,6 +7,7 @@ import Loading from "components/loading";
 import Message from "components/message";
 import MarkdownContent from "components/markdownContent";
 import { TextWithTooltip } from "components/infoTooltip";
+import { useUserState } from "contexts/user";
 import { useContentState } from "contexts/content";
 import { useDialogDispatch } from "contexts/dialog";
 
@@ -44,6 +45,7 @@ export default function Helpdesk() {
   const [searchText, setSearchText] = useState("");
   const [formId, setFormId] = useState("");
 
+  const { epaUserData } = useUserState();
   const { content } = useContentState();
   const dispatch = useDialogDispatch();
 
@@ -53,51 +55,8 @@ export default function Helpdesk() {
       data: null,
     });
 
-  function confirmatSubmissionChange() {
-    dispatch({
-      type: "DISPLAY_DIALOG",
-      payload: {
-        dismissable: true,
-        heading:
-          "Are you sure you want to change this submission's state back to draft?",
-        description:
-          "Once the submission is back in a draft state, all users with access to this submission will be able to further edit it.",
-        confirmText: "Yes",
-        cancelText: "Cancel",
-        confirmedAction: () => {
-          const submissionUrl = `${serverUrl}/help/rebate-form-submission/${formId}`;
-          const submissionData = rebateFormSubmission.data;
-          if (!submissionData) return;
-
-          fetchData(submissionUrl, {
-            state: "draft",
-            data: {
-              ...submissionData.data,
-              last_updated_by: "(helpdesk)", // TODO: get logged in user and pass it here
-            },
-          })
-            .then((postRes) => {
-              setRebateFormSubmission({
-                status: "pending",
-                data: null,
-              });
-
-              fetchData(submissionUrl).then((getRes) => {
-                setRebateFormSubmission({
-                  status: "success",
-                  data: getRes,
-                });
-              });
-            })
-            .catch((err) => {
-              setRebateFormSubmission({
-                status: "failure",
-                data: null,
-              });
-            });
-        },
-      },
-    });
+  if (epaUserData.status !== "success") {
+    return <Loading />;
   }
 
   return (
@@ -207,7 +166,52 @@ export default function Helpdesk() {
                 <button
                   className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
                   disabled={rebateFormSubmission.data.state === "draft"}
-                  onClick={(ev) => confirmatSubmissionChange()}
+                  onClick={(ev) => {
+                    dispatch({
+                      type: "DISPLAY_DIALOG",
+                      payload: {
+                        dismissable: true,
+                        heading:
+                          "Are you sure you want to change this submission's state back to draft?",
+                        description:
+                          "Once the submission is back in a draft state, all users with access to this submission will be able to further edit it.",
+                        confirmText: "Yes",
+                        cancelText: "Cancel",
+                        confirmedAction: () => {
+                          const submissionUrl = `${serverUrl}/help/rebate-form-submission/${formId}`;
+                          const submissionData = rebateFormSubmission.data;
+                          if (!submissionData) return;
+
+                          fetchData(submissionUrl, {
+                            state: "draft",
+                            data: {
+                              ...submissionData.data,
+                              last_updated_by: epaUserData.data.mail,
+                            },
+                          })
+                            .then((postRes) => {
+                              setRebateFormSubmission({
+                                status: "pending",
+                                data: null,
+                              });
+
+                              fetchData(submissionUrl).then((getRes) => {
+                                setRebateFormSubmission({
+                                  status: "success",
+                                  data: getRes,
+                                });
+                              });
+                            })
+                            .catch((err) => {
+                              setRebateFormSubmission({
+                                status: "failure",
+                                data: null,
+                              });
+                            });
+                        },
+                      },
+                    });
+                  }}
                 >
                   <span className="display-flex flex-align-center">
                     <svg
