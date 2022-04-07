@@ -166,6 +166,8 @@ export default function ExistingRebateForm() {
 
       {message.displayed && <Message type={message.type} text={message.text} />}
 
+      <h3>Application ID: {submissionData._id}</h3>
+
       <Form
         form={formSchema.json}
         url={formSchema.url} // NOTE: used for file uploads
