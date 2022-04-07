@@ -1,6 +1,6 @@
 const express = require("express");
 // ---
-const getSamData = require("../utilities/getSamData");
+const { getSamData } = require("../utilities/getSamData");
 const logger = require("../utilities/logger");
 const { default: axios } = require("axios");
 const log = logger.logger;
