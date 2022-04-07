@@ -10,17 +10,18 @@
     "Devin Galloway <devin.galloway@erg.com>"
   ],
   "scripts": {
-    "start": "nodemon app/index.js",
+    "start": "nodemon -w .env -w . app/index.js",
     "lint": "eslint ./ --fix"
   },
   "dependencies": {
     "axios": "0.26.1",
-    "connect-history-api-fallback": "1.6.0",
     "cookie-parser": "1.4.6",
     "cors": "2.8.5",
     "dotenv": "16.0.0",
     "express": "4.17.2",
     "express-session": "1.17.2",
+    "helmet": "5.0.2",
+    "jsforce": "1.11.0",
     "jsonwebtoken": "8.5.1",
     "log4js": "6.4.3",
     "morgan": "1.10.0",

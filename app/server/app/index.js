@@ -1,20 +1,52 @@
 require("dotenv").config();
 
-const path = require("path");
+const { resolve } = require("node:path");
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
-const history = require("connect-history-api-fallback");
 const passport = require("passport");
 // ---
+const errorHandler = require("./utilities/errorHandler");
 const logger = require("./utilities/logger");
 const samlStrategy = require("./config/samlStrategy");
+const {
+  appScan,
+  protectClientRoutes,
+  checkClientRouteExists,
+} = require("./middleware");
 const routes = require("./routes");
 
 const app = express();
 const port = process.env.PORT || 3001;
 const log = logger.logger;
+
+app.use(
+  helmet({
+    crossOriginEmbedderPolicy: false,
+    contentSecurityPolicy: false,
+  })
+);
+app.use(
+  helmet.hsts({
+    maxAge: 31536000,
+  })
+);
+
+/****************************************************************
+ Instruct web browsers to disable caching
+ ****************************************************************/
+app.use(function (req, res, next) {
+  res.setHeader("Surrogate-Control", "no-store");
+  res.setHeader(
+    "Cache-Control",
+    "no-store, no-cache, must-revalidate, proxy-revalidate"
+  );
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+  next();
+});
 
 const requiredEnvVars = [
   "SERVER_URL",
@@ -28,6 +60,8 @@ const requiredEnvVars = [
   "FORMIO_PROJECT_URL",
   "FORMIO_FORM_ID",
   "FORMIO_API_KEY",
+  "S3_PUBLIC_BUCKET",
+  "S3_PUBLIC_REGION",
 ];
 
 requiredEnvVars.forEach((envVar) => {
@@ -47,7 +81,15 @@ if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
 
-app.use(express.json());
+// Apply global middleware on dev/staging in order for scan to receive 200 status on all endpoints
+if (
+  process.env.CLOUD_SPACE === "development" ||
+  process.env.CLOUD_SPACE === "staging"
+) {
+  app.use(appScan);
+}
+
+app.use(express.json({ limit: process.env.JSON_PAYLOAD_LIMIT || "5mb" }));
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
@@ -62,16 +104,23 @@ app.use(basePath, routes);
 const pathRegex = new RegExp(`^\\${process.env.SERVER_BASE_PATH || ""}$`);
 app.all(pathRegex, (req, res) => res.redirect(`${basePath}`));
 
-/*
- * Set up history fallback to provide direct access to react router routes
- * Note: must come AFTER api routes and BEFORE static serve of react files
- */
-app.use(basePath, history());
-
 // Serve client app's static built files
 // NOTE: client app's `build` directory contents copied into server app's
 // `public` directory in CI/CD step
-app.use(basePath, express.static(path.resolve(__dirname, "public/")));
+app.use(basePath, express.static(resolve(__dirname, "public")));
+
+// Ensure that requested client route exists (otherwise send 404)
+app.use(checkClientRouteExists);
+
+// Ensure user is authenticated on all client-side routes except / and /welcome
+app.use(protectClientRoutes);
+
+// Serve client-side routes
+app.get("*", (req, res) => {
+  res.sendFile(resolve(__dirname, "public/index.html"));
+});
+
+app.use(errorHandler);
 
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);

@@ -39,9 +39,20 @@ jobs:
       SAML_PRIVATE_KEY: ${{ secrets.SAML_PRIVATE_KEY }}
       JWT_PUBLIC_KEY: ${{ secrets.JWT_PUBLIC_KEY }}
       JWT_PRIVATE_KEY: ${{ secrets.JWT_PRIVATE_KEY }}
+      FORMIO_PKG_AUTH_TOKEN: ${{ secrets.FORMIO_PKG_AUTH_TOKEN }}
       FORMIO_PROJECT_URL: ${{ secrets.FORMIO_PROJECT_URL }}
       FORMIO_FORM_ID: ${{ secrets.FORMIO_FORM_ID }}
       FORMIO_API_KEY: ${{ secrets.FORMIO_API_KEY }}
+      BAP_CLIENT_ID: ${{ secrets.BAP_CLIENT_ID }}
+      BAP_CLIENT_SECRET: ${{ secrets.BAP_CLIENT_SECRET }}
+      BAP_URL: ${{ secrets.BAP_URL }}
+      BAP_USER: ${{ secrets.BAP_USER }}
+      BAP_PASSWORD: ${{ secrets.BAP_PASSWORD }}
+      BAP_TABLE: ${{ secrets.BAP_TABLE }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.S3_PUBLIC_ACCESS_KEY_ID_STAGING }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_PUBLIC_SECRET_ACCESS_KEY_STAGING }}
+      AWS_DEFAULT_REGION: ${{ secrets.S3_PUBLIC_REGION_STAGING }}
+      S3_PUBLIC_BUCKET: ${{ secrets.S3_PUBLIC_BUCKET_STAGING }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -59,13 +70,17 @@ jobs:
           key: v1-npm-client-deps-${{ hashFiles('**/client/package-lock.json') }}
           restore-keys: v1-npm-client-deps-
 
+      - name: Add Formio private package repo auth token
+        run: echo "//pkg.form.io/:_authToken=${FORMIO_PKG_AUTH_TOKEN}" > .npmrc
+        working-directory: app/client
+
       - name: Install front-end dependencies
         run: npm install
         working-directory: app/client
 
       - name: Build front-end files and move to server
         run: |
-          PUBLIC_URL="$SERVER_URL" REACT_APP_SERVER_BASE_PATH="$SERVER_BASE_PATH" npm run build
+          PUBLIC_URL="$SERVER_URL" REACT_APP_SERVER_BASE_PATH="$SERVER_BASE_PATH" REACT_APP_FORMIO_PROJECT_URL="$FORMIO_PROJECT_URL" npm run build
           rm ../server/app/public/index.html
           cd build
           mv * ../../server/app/public
@@ -96,6 +111,24 @@ jobs:
           cf set-env $APP_NAME "FORMIO_PROJECT_URL" "$FORMIO_PROJECT_URL" > /dev/null
           cf set-env $APP_NAME "FORMIO_FORM_ID" "$FORMIO_FORM_ID" > /dev/null
           cf set-env $APP_NAME "FORMIO_API_KEY" "$FORMIO_API_KEY" > /dev/null
+          cf set-env $APP_NAME "BAP_CLIENT_ID" "$BAP_CLIENT_ID" > /dev/null
+          cf set-env $APP_NAME "BAP_CLIENT_SECRET" "$BAP_CLIENT_SECRET" > /dev/null
+          cf set-env $APP_NAME "BAP_URL" "$BAP_URL" > /dev/null
+          cf set-env $APP_NAME "BAP_USER" "$BAP_USER" > /dev/null
+          cf set-env $APP_NAME "BAP_PASSWORD" "$BAP_PASSWORD" > /dev/null
+          cf set-env $APP_NAME "BAP_TABLE" "$BAP_TABLE" > /dev/null
+          cf set-env $APP_NAME "S3_PUBLIC_BUCKET" "$S3_PUBLIC_BUCKET" > /dev/null
+          cf set-env $APP_NAME "S3_PUBLIC_REGION" "$AWS_DEFAULT_REGION" > /dev/null
+
+      # Sync static content to public S3 bucket
+      - name: Sync static content to S3
+        run: aws s3 sync . s3://$S3_PUBLIC_BUCKET/content
+        working-directory: app/server/app/content
+
+      # Set CORS configuration for public S3 bucket
+      - name: Set S3 CORS configuration
+        run: aws s3api put-bucket-cors --bucket $S3_PUBLIC_BUCKET --cors-configuration file://s3CORS.json
+        working-directory: app/server/app/config
 
       # Now that front-end is built in server/dist, only push server dir to Cloud.gov
       - name: Deploy application to Cloud.gov
