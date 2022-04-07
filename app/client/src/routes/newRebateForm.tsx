@@ -172,6 +172,7 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
             ...savedSubmission.data,
           },
         }}
+        options={{ noAlerts: true }}
         onSubmit={(submission: FormioSubmission) => {
           setSavedSubmission(submission);
           fetchData(`${serverUrl}/api/rebate-form-submission/`, {
