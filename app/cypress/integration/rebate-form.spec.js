@@ -51,74 +51,60 @@ describe('Rebate Form', () => {
     });
   }
 
-  beforeEach(() => {
-    cy.loginToCSB('csbtest');
-  });
+  function step1() {
+    cy.log('Perform step 1 tests...');
 
-  it('New application', () => {
-    // run the tests
-    startNewApplication();
-    step1();
-    step2();
-    step3();
-    step4();
-    step5();
-    step6();
-    step7();
-    submitTests();
+    verifyStepCounter('1', 'Introduction');
 
-    function step1() {
-      cy.log('Perform step 1 tests...');
+    cy.findByText(
+      'EPA is ready to assist fleets in purchasing new, cleaner school buses',
+      { exact: false },
+    );
 
-      verifyStepCounter('1', 'Introduction');
+    // go to next step
+    cy.findByText('Next').click();
+  }
 
-      cy.findByText(
-        'EPA is ready to assist fleets in purchasing new, cleaner school buses',
-        { exact: false },
-      );
+  function step2() {
+    cy.log('Perform step 2 tests...');
 
-      // go to next step
-      cy.findByText('Next').click();
-    }
+    verifyStepCounter('2', 'Welcome');
 
-    function step2() {
-      cy.log('Perform step 2 tests...');
+    cy.findByText(
+      'Begin your rebate application for the Clean School Bus (CSB) program here.',
+      { exact: false },
+    );
 
-      verifyStepCounter('2', 'Welcome');
+    // go to next step
+    cy.findByText('Next').click();
+  }
 
-      cy.findByText(
-        'Begin your rebate application for the Clean School Bus (CSB) program here.',
-        { exact: false },
-      );
+  function step3(fillOutForm = false) {
+    cy.log('Perform step 3 tests...');
 
-      // go to next step
-      cy.findByText('Next').click();
-    }
+    verifyStepCounter('3', 'Organization Type');
 
-    function step3() {
-      cy.log('Perform step 3 tests...');
+    cy.findByText('Applicant Organization Type');
 
-      verifyStepCounter('3', 'Organization Type');
-
-      cy.findByText('Applicant Organization Type');
-
-      // fill out the form
+    if (fillOutForm) {
       const orgInputQuery = 'select[name="data[applicantOrganizationType]"]';
       const replaceInputYesQuery =
         'input[name*="data[doesYourOrganizationOwnTheBusesToBeReplaced]"][value=yes]';
 
       cy.get(orgInputQuery).select('Local Education Agency (LEA)');
       cy.get(replaceInputYesQuery).click({ force: true });
-
-      // go to next step
-      cy.findByText('Next').click();
     }
 
-    function step4() {
-      cy.log('Perform step 4 tests...');
+    // go to next step
+    cy.findByText('Next').click();
+  }
 
-      verifyStepCounter('4', 'Applicant Information');
+  function step4(fillOutForm = false) {
+    cy.log('Perform step 4 tests...');
 
+    verifyStepCounter('4', 'Applicant Information');
+
+    if (fillOutForm) {
       // verify auto populated fields
       cy.get('input[name="data[applicantOrganizationName]"]').then(($el) =>
         cy.wrap($el).should('have.value', selectedOrganization),
@@ -158,16 +144,18 @@ describe('Rebate Form', () => {
       cy.get('input[name="data[alternateContactEmail]"]').type(
         'test2@test.com',
       );
-
-      // go to next step
-      cy.findByText('Next').click();
     }
 
-    function step5() {
-      cy.log('Perform step 5 tests...');
+    // go to next step
+    cy.findByText('Next').click();
+  }
 
-      verifyStepCounter('5', 'School District Information');
+  function step5(fillOutForm = false) {
+    cy.log('Perform step 5 tests...');
 
+    verifyStepCounter('5', 'School District Information');
+
+    if (fillOutForm) {
       // enter a district id
       cy.get('input[name="data[ncesDistrictId]"]').type('BIE0013');
 
@@ -204,25 +192,27 @@ describe('Rebate Form', () => {
       cy.get('input[name="data[schoolDistrictContactEmail]"]').type(
         'test3@test.com',
       );
-
-      // go to next step
-      cy.findByText('Next').click();
     }
 
-    function step6() {
-      cy.log('Perform step 6 tests...');
+    // go to next step
+    cy.findByText('Next').click();
+  }
 
-      verifyStepCounter('6', 'Bus Information');
+  function step6() {
+    cy.log('Perform step 6 tests...');
 
-      // go to next step
-      cy.findByText('Next').click();
-    }
+    verifyStepCounter('6', 'Bus Information');
 
-    function step7() {
-      cy.log('Perform step 7 tests...');
+    // go to next step
+    cy.findByText('Next').click();
+  }
 
-      verifyStepCounter('7', 'Review and Sign');
+  function step7(fillOutForm = false) {
+    cy.log('Perform step 7 tests...');
 
+    verifyStepCounter('7', 'Review and Sign');
+
+    if (fillOutForm) {
       // sign the application
       cy.get('canvas[class="signature-pad-canvas"]').then(($el) => {
         cy.wrap($el).click();
@@ -234,38 +224,55 @@ describe('Rebate Form', () => {
       cy.findByText('Submit Form').click();
       cy.findByText('Submission Complete');
     }
+  }
 
-    function submitTests() {
-      cy.log('Complete submission tests...');
+  function submitTests() {
+    cy.log('Complete submission tests...');
 
-      // go back to the dashboard
-      cy.findByText('Your Rebate Forms').click();
-      cy.get('.usa-modal__main')
-        .filter(':visible')
-        .within(($el) => {
-          cy.findByText('Yes').click();
-        });
+    // go back to the dashboard
+    cy.findByText('Your Rebate Forms').click();
+    cy.get('.usa-modal__main')
+      .filter(':visible')
+      .within(($el) => {
+        cy.findByText('Yes').click();
+      });
 
-      // TODO Uncomment the below tests when the submit code is fixed
-      //      Currently there is an issue where the data is not saved on submit
-      // // verify the new record is in the table
-      // cy.findByTestId('csb-rebate-forms-thead')
-      //   .get('tbody > tr')
-      //   .within(($rows) => {
-      //     const $firstRow = $rows[0];
-      //     cy.wrap($firstRow)
-      //       .get('th,td')
-      //       .then(($cols) => {
-      //         cy.wrap($cols[1].innerText).should('eq', 'Application');
-      //         cy.wrap($cols[2].innerText).should('eq', selectedUei);
-      //         cy.wrap($cols[3].innerText).should('eq', selectedEft);
-      //         cy.wrap($cols[4].innerText).should('eq', selectedOrganization);
-      //         cy.wrap($cols[5].innerText).should('eq', 'CODE RVA HIGH');
-      //         cy.wrap($cols[6].innerText).should('eq', 'csb-test@erg.com');
-      //         cy.wrap($cols[8].innerText).should('eq', 'submitted');
-      //       });
-      //   });
-    }
+    // TODO Uncomment the below tests when the submit code is fixed
+    //      Currently there is an issue where the data is not saved on submit
+    // // verify the new record is in the table
+    // cy.findByTestId('csb-rebate-forms-thead')
+    //   .get('tbody > tr')
+    //   .within(($rows) => {
+    //     const $firstRow = $rows[0];
+    //     cy.wrap($firstRow)
+    //       .get('th,td')
+    //       .then(($cols) => {
+    //         cy.wrap($cols[1].innerText).should('eq', 'Application');
+    //         cy.wrap($cols[2].innerText).should('eq', selectedUei);
+    //         cy.wrap($cols[3].innerText).should('eq', selectedEft);
+    //         cy.wrap($cols[4].innerText).should('eq', selectedOrganization);
+    //         cy.wrap($cols[5].innerText).should('eq', 'CODE RVA HIGH');
+    //         cy.wrap($cols[6].innerText).should('eq', 'csb-test@erg.com');
+    //         cy.wrap($cols[8].innerText).should('eq', 'submitted');
+    //       });
+    //   });
+  }
+
+  beforeEach(() => {
+    cy.loginToCSB('csbtest');
+  });
+
+  it('New application', () => {
+    // run the tests
+    startNewApplication();
+    step1();
+    step2();
+    step3(true);
+    step4(true);
+    step5(true);
+    step6();
+    step7(true);
+    submitTests();
   });
 
   it('New application service error', () => {
@@ -275,7 +282,7 @@ describe('Rebate Form', () => {
         ? `${location.protocol}//${location.hostname}:3001`
         : window.location.origin;
     cy.intercept(
-      `${origin}/api/v1/rebate-form-schema/`,
+      `${origin}/api/rebate-form-schema/`,
       {
         statusCode: 500,
         body: {},
@@ -308,77 +315,5 @@ describe('Rebate Form', () => {
     step5();
     step6();
     step7();
-
-    function step1() {
-      cy.log('Perform step 1 tests...');
-
-      verifyStepCounter('1', 'Introduction');
-
-      cy.findByText(
-        'EPA is ready to assist fleets in purchasing new, cleaner school buses',
-        { exact: false },
-      );
-
-      // go to next step
-      cy.findByText('Next').click();
-    }
-
-    function step2() {
-      cy.log('Perform step 2 tests...');
-
-      verifyStepCounter('2', 'Welcome');
-
-      cy.findByText(
-        'Begin your rebate application for the Clean School Bus (CSB) program here.',
-        { exact: false },
-      );
-
-      // go to next step
-      cy.findByText('Next').click();
-    }
-
-    function step3() {
-      cy.log('Perform step 3 tests...');
-
-      verifyStepCounter('3', 'Organization Type');
-
-      cy.findByText('Applicant Organization Type');
-
-      // go to next step
-      cy.findByText('Next').click();
-    }
-
-    function step4() {
-      cy.log('Perform step 4 tests...');
-
-      verifyStepCounter('4', 'Applicant Information');
-
-      // go to next step
-      cy.findByText('Next').click();
-    }
-
-    function step5() {
-      cy.log('Perform step 5 tests...');
-
-      verifyStepCounter('5', 'School District Information');
-
-      // go to next step
-      cy.findByText('Next').click();
-    }
-
-    function step6() {
-      cy.log('Perform step 6 tests...');
-
-      verifyStepCounter('6', 'Bus Information');
-
-      // go to next step
-      cy.findByText('Next').click();
-    }
-
-    function step7() {
-      cy.log('Perform step 7 tests...');
-
-      verifyStepCounter('7', 'Review and Sign');
-    }
   });
 });

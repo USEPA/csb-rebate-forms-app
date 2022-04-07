@@ -64,7 +64,7 @@ describe('Authentication', () => {
         ? `${location.protocol}//${location.hostname}:3001`
         : window.location.origin;
     cy.intercept(
-      `${origin}/api/v1/sam-data`,
+      `${origin}/api/sam-data`,
       {
         statusCode: 500,
         body: {},

@@ -55,7 +55,7 @@ describe('Routes', () => {
         ? `${location.protocol}//${location.hostname}:3001`
         : window.location.origin;
     cy.intercept(
-      `${origin}/api/v1/rebate-form-submission/${formId}`,
+      `${origin}/api/rebate-form-submission/${formId}`,
       {
         statusCode: 200,
         body: {
@@ -85,7 +85,7 @@ describe('Routes', () => {
         ? `${location.protocol}//${location.hostname}:3001`
         : window.location.origin;
     cy.intercept(
-      `${origin}/api/v1/rebate-form-submission/${formId}`,
+      `${origin}/api/rebate-form-submission/${formId}`,
       {
         statusCode: 500,
         body: {},
