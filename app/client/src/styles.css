@@ -22,6 +22,10 @@
   color: red;
 }
 
+.csb-form button[type="submit"] i {
+  display: none;
+}
+
 /* --- React UI --- */
 [data-reach-dialog-overlay] {
   /* match USWDS modal */

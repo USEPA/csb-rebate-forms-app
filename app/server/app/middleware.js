@@ -2,6 +2,7 @@ const { resolve } = require("node:path");
 const jwt = require("jsonwebtoken");
 const { createJwt, jwtAlgorithm } = require("./utilities/createJwt");
 const logger = require("./utilities/logger");
+const { getComboKeys } = require("./utilities/getSamData");
 
 const log = logger.logger;
 
@@ -40,7 +41,12 @@ const ensureAuthenticated = (
       const newToken = createJwt(user);
 
       // Add JWT in cookie and proceed with request
-      res.cookie(cookieName, newToken, { httpOnly: true, overwrite: true });
+      res.cookie(cookieName, newToken, {
+        httpOnly: true,
+        overwrite: true,
+        sameSite: "strict",
+        secure: true,
+      });
       next();
     }
   );
@@ -115,10 +121,23 @@ const appScan = (req, res, next) => {
   next();
 };
 
+// Get user's SAM.gov unique combo keys and add "bapComboKeys" to request object if successful
+const checkBapComboKeys = (req, res, next) => {
+  getComboKeys(req.user.mail)
+    .then((bapComboKeys) => {
+      req.bapComboKeys = bapComboKeys;
+      next();
+    })
+    .catch(() => {
+      return res.status(401).json({ message: "Error getting SAM.gov data" });
+    });
+};
+
 module.exports = {
   ensureAuthenticated,
   ensureHelpdesk,
   appScan,
   protectClientRoutes,
   checkClientRouteExists,
+  checkBapComboKeys,
 };

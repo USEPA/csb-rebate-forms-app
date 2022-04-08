@@ -34,7 +34,11 @@ router.post(
 
     // Create JWT, set as cookie, then redirect to client
     const token = createJwt(epaUserData);
-    res.cookie(cookieName, token, { httpOnly: true });
+    res.cookie(cookieName, token, {
+      httpOnly: true,
+      sameSite: "strict",
+      secure: true,
+    });
 
     // If user has Admin or Helpdesk role, log to INFO
     log.info(
