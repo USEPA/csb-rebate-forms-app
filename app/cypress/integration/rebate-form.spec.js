@@ -17,13 +17,6 @@ describe('Rebate Form', () => {
   let selectedEft = '';
   let selectedOrganization = '';
 
-  function verifyStepCounter(stepNumber, stepTitle) {
-    // verify the page step number and title
-    cy.get('.usa-step-indicator__heading').then(($elms) => {
-      cy.wrap($elms[0]).contains(`${stepNumber} of 7 ${stepTitle}`);
-    });
-  }
-
   function startNewApplication() {
     cy.log('Starting a new application...');
 
@@ -62,7 +55,7 @@ describe('Rebate Form', () => {
   function step1() {
     cy.log('Perform step 1 tests...');
 
-    verifyStepCounter('1', 'Introduction');
+    cy.contains('1 of 7 Introduction');
 
     cy.findByText(
       'EPA is ready to assist fleets in purchasing new, cleaner school buses',
@@ -76,7 +69,7 @@ describe('Rebate Form', () => {
   function step2() {
     cy.log('Perform step 2 tests...');
 
-    verifyStepCounter('2', 'Welcome');
+    cy.contains('2 of 7 Welcome');
 
     cy.findByText(
       'Begin your rebate application for the Clean School Bus (CSB) program here.',
@@ -90,17 +83,15 @@ describe('Rebate Form', () => {
   function step3(fillOutForm = false) {
     cy.log('Perform step 3 tests...');
 
-    verifyStepCounter('3', 'Organization Type');
+    cy.contains('3 of 7 Organization Type');
 
     cy.findByText('Applicant Organization Type');
 
     if (fillOutForm) {
-      const orgInputQuery = 'select[name="data[applicantOrganizationType]"]';
-      const replaceInputYesQuery =
-        'input[name*="data[doesYourOrganizationOwnTheBusesToBeReplaced]"][value=yes]';
-
-      cy.get(orgInputQuery).select('Local Education Agency (LEA)');
-      cy.get(replaceInputYesQuery).click({ force: true });
+      cy.findByLabelText('Applicant Organization Type').select(
+        'Local Education Agency (LEA)',
+      );
+      cy.findByLabelText('Yes').click({ force: true });
     }
 
     // go to next step
@@ -110,48 +101,39 @@ describe('Rebate Form', () => {
   function step4(fillOutForm = false) {
     cy.log('Perform step 4 tests...');
 
-    verifyStepCounter('4', 'Applicant Information');
+    cy.contains('4 of 7 Applicant Information');
 
     if (fillOutForm) {
       // verify auto populated fields
-      cy.get('input[name="data[applicantOrganizationName]"]').then(($el) =>
-        cy.wrap($el).should('have.value', selectedOrganization),
+      cy.findByLabelText('Organization Name').then(($el) => 
+        cy.wrap($el).should('have.value', selectedOrganization)
       );
-      cy.get('input[name="data[applicantUEI]"]').then(($el) =>
+      cy.findByLabelText('Unique Entity Identifier (UEI)').then(($el) =>
         cy.wrap($el).should('have.value', selectedUei),
       );
-      cy.get('input[name="data[applicantEfti]"]').then(($el) =>
-        cy.wrap($el).should('have.value', selectedEft),
+      cy.findByLabelText('Electronic Funds Transfer Indicator (EFTI)').then(
+        ($el) => cy.wrap($el).should('have.value', selectedEft),
       );
-      cy.get('input[name="data[applicantCity]"]').then(($el) =>
-        cy.wrap($el).should('have.value', 'WATERTOWN'),
-      );
-      cy.get('input[name="data[applicantState]"]').then(($el) =>
-        cy.wrap($el).should('have.value', 'MA'),
-      );
-      cy.get('input[name="data[applicantZipCode]"]').then(($el) =>
-        cy.wrap($el).should('have.value', '2472'),
+      cy.findByLabelText('City').should('have.value', 'WATERTOWN');
+      cy.findByLabelText('State').should('have.value', 'MA');
+      cy.findByLabelText('Zip Code', { exact: false }).should(
+        'have.value',
+        '2472',
       );
 
       // fill out the remainder of the form
-      cy.get('input[name="data[primaryContactName]"]').type('John Doe');
-      cy.get('input[name="data[primaryContactTitle]"]').type(
-        'Software Developer',
-      );
-      cy.get('input[name="data[primaryContactPhoneNumber]"]').type(
-        '1234567890',
-      );
-      cy.get('input[name="data[primaryContactEmail]"]').type('test1@test.com');
-      cy.get('input[name="data[alternateContactName]"]').type('Jane Doe');
-      cy.get('input[name="data[alternateContactTitle]"]').type(
-        'Software Developer',
-      );
-      cy.get('input[name="data[alternateContactPhoneNumber]"]').type(
-        '1234567891',
-      );
-      cy.get('input[name="data[alternateContactEmail]"]').type(
-        'test2@test.com',
-      );
+      cy.findAllByLabelText('Name').first().type('John Doe');
+      cy.findAllByLabelText('Title').first().type('Software Developer');
+      cy.findAllByLabelText('Phone Number', { exact: false })
+        .first()
+        .type('1234567890');
+      cy.findAllByLabelText('Email').first().type('test1@test.com');
+      cy.findAllByLabelText('Name').last().type('Jane Doe');
+      cy.findAllByLabelText('Title').last().type('Software Developer');
+      cy.findAllByLabelText('Phone Number', { exact: false })
+        .last()
+        .type('1234567891');
+      cy.findAllByLabelText('Email').last().type('test2@test.com');
     }
 
     // go to next step
@@ -161,45 +143,39 @@ describe('Rebate Form', () => {
   function step5(fillOutForm = false) {
     cy.log('Perform step 5 tests...');
 
-    verifyStepCounter('5', 'School District Information');
+    cy.contains('5 of 7 School District Information');
 
     if (fillOutForm) {
       // enter a district id
-      cy.get('input[name="data[ncesDistrictId]"]').type('BIE0013');
+      cy.findByLabelText(
+        'National Center for Education Statistics (NCES) District ID',
+      ).type('BIE0013');
 
       // verify fields are autopopulated
-      cy.get('input[name="data[schoolDistrictName]"]').then(($el) =>
+      cy.findByLabelText('School District Name').then(($el) =>
         cy.wrap($el).should('have.value', 'Wounded Knee District'),
       );
-      cy.get('input[name="data[schoolDistrictPhysicalAddressLine1]"]').then(
-        ($el) => cy.wrap($el).should('have.value', '100 Main Street'),
+      cy.findByLabelText('Physical Address Line 1').then(($el) =>
+        cy.wrap($el).should('have.value', '100 Main Street'),
       );
-      cy.get('input[name="data[schoolDistrictCity]"]').then(($el) =>
+      cy.findByLabelText('City').then(($el) =>
         cy.wrap($el).should('have.value', 'Manderson'),
       );
-      cy.get('input[name="data[schoolDistrictState]"]').then(($el) =>
+      cy.findByLabelText('State').then(($el) =>
         cy.wrap($el).should('have.value', 'SD'),
       );
-      cy.get('input[name="data[schoolDistrictZipCode]"]').then(($el) =>
+      cy.findByLabelText('Zip Code', { exact: false }).then(($el) =>
         cy.wrap($el).should('have.value', '57756'),
       );
-      cy.get('input[name="data[schoolDistricPrioritized]"]').then(($el) =>
+      cy.findByLabelText('Prioritized').then(($el) =>
         cy.wrap($el).should('have.value', 'Yes'),
       );
 
       // fill out the remainder of the form
-      cy.get('input[name="data[schoolDistrictContactName]"]').type(
-        'Bob Wilson',
-      );
-      cy.get('input[name="data[schoolDistrictContactTitle]"]').type(
-        'Principal',
-      );
-      cy.get('input[name="data[schoolDistrictContactPhoneNumber]"]').type(
-        '1235469870',
-      );
-      cy.get('input[name="data[schoolDistrictContactEmail]"]').type(
-        'test3@test.com',
-      );
+      cy.findByLabelText('Name').type('Bob Wilson');
+      cy.findByLabelText('Title').type('Principal');
+      cy.findByLabelText('Phone Number', { exact: false }).type('1235469870');
+      cy.findByLabelText('Email').type('test3@test.com');
     }
 
     // go to next step
@@ -209,7 +185,7 @@ describe('Rebate Form', () => {
   function step6() {
     cy.log('Perform step 6 tests...');
 
-    verifyStepCounter('6', 'Bus Information');
+    cy.contains('6 of 7 Bus Information');
 
     // go to next step
     cy.findByText('Next').click();
@@ -218,11 +194,11 @@ describe('Rebate Form', () => {
   function step7(fillOutForm = false) {
     cy.log('Perform step 7 tests...');
 
-    verifyStepCounter('7', 'Review and Sign');
+    cy.contains('7 of 7 Review and Sign');
 
     if (fillOutForm) {
       // sign the application
-      cy.get('canvas[class="signature-pad-canvas"]').then(($el) => {
+      cy.get('canvas').then(($el) => {
         cy.wrap($el).click();
       });
 
@@ -232,8 +208,9 @@ describe('Rebate Form', () => {
       cy.findByText('Submit Form').click();
 
       // verify the success message is displayed and goes away
-      cy.findByText('Form succesfully submitted.');
-      cy.findByText('Form succesfully submitted.').should('not.exist');
+      cy.findAllByText('Submitting form...');
+      cy.findAllByText('Form succesfully submitted.');
+      cy.findAllByText('Form succesfully submitted.').should('not.exist');
 
       // verify the app navigates back to the dashboard
       cy.findByText(
@@ -249,7 +226,7 @@ describe('Rebate Form', () => {
     // TODO Uncomment the below tests when the submit code is fixed
     //      Currently there is an issue where the data is not saved on submit
     // // verify the new record is in the table
-    // cy.findByTestId('csb-rebate-forms-thead')
+    // cy.findByTestId('csb-rebate-forms')
     //   .get('tbody > tr')
     //   .within(($rows) => {
     //     const $firstRow = $rows[0];
@@ -271,7 +248,7 @@ describe('Rebate Form', () => {
     cy.loginToCSB('csbtest');
   });
 
-  it('New application', () => {
+  it.only('New application', () => {
     // run the tests
     startNewApplication();
     step1();
@@ -294,9 +271,9 @@ describe('Rebate Form', () => {
 
     // go back to step 4
     cy.findByText('Previous').click();
-    verifyStepCounter('4', 'Applicant Information');
+    cy.contains('4 of 7 Applicant Information');
 
-    cy.get('button:contains("Save and Continue")').first().click();
+    cy.findAllByText('Save and Continue').filter('button').first().click();
 
     // TODO Update the success message test as currently there are issues with saving
     cy.findByText('Submission Complete');
@@ -325,7 +302,7 @@ describe('Rebate Form', () => {
 
   it('Existing application', () => {
     // verify the new record is in the table
-    cy.findByTestId('csb-rebate-forms-thead')
+    cy.findByTestId('csb-rebate-forms')
       .get('tbody > tr')
       .within(($rows) => {
         const $firstRow = $rows[0];
@@ -352,25 +329,13 @@ describe('Rebate Form', () => {
     step2();
 
     cy.findByText('Your Rebate Forms').click();
-    cy.get('.usa-modal__main')
-      .filter(':visible')
-      .within(($el) => {
-        cy.findByText('Cancel').click();
-      });
+    cy.findByText('Cancel').click();
 
     cy.findByText('Your Rebate Forms').click();
-    cy.get('.usa-modal__content')
-      .filter(':visible')
-      .within(($el) => {
-        cy.get('button[aria-label="Close this window"]').click();
-      });
+    cy.get('button[aria-label="Close this window"]').click();
 
     // go back to the dashboard
     cy.findByText('Your Rebate Forms').click();
-    cy.get('.usa-modal__main')
-      .filter(':visible')
-      .within(($el) => {
-        cy.findByText('Yes').click();
-      });
+    cy.findByText('Yes').click();
   });
 });

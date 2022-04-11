@@ -14,12 +14,14 @@ Cypress.Commands.add('loginToCSB', (username, password = 'password') => {
   cy.findAllByText('Clean School Bus Rebate', { exact: false });
 
   cy.get('body').then(($body) => {
-    if ($body.find('a[data-testid=csb-sign-in-button]').length) {
-      cy.findByTestId('csb-sign-in-button').click();
+    // Check if the user needs to sign in, by looking for the sign in button. 
+    // If the sign in button is not found do nothing, because the user is already logged in.
+    if ($body.find("a:contains('Sign in')").length) {
+      cy.contains('a', 'Sign in').click();
 
       // login to CSB
-      cy.get('#username').type(username);
-      cy.get('#password').type(password);
+      cy.findByLabelText('Username').type(username);
+      cy.findByLabelText('Password').type(password);
       cy.findByText('Login').click();
     }
   });

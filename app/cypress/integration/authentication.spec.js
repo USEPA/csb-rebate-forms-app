@@ -27,7 +27,7 @@ describe('Authentication', () => {
 
     // verify sign out was completed
     cy.findByText('You have succesfully logged out.');
-    cy.findByTestId('csb-sign-in-text').contains(
+    cy.contains(
       'Click the Sign in button below to log into the Clean School Bus Rebate Dashboard using Login.gov.',
     );
   });

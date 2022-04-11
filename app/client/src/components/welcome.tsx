@@ -83,7 +83,7 @@ export default function Welcome() {
       {message.displayed && <Message type={message.type} text={message.text} />}
 
     <div className="padding-9 border-1px border-base-lighter text-center bg-base-lightest">
-      <p data-testid="csb-sign-in-text">
+      <p>
         Click the <strong>Sign in</strong> button below to log into the{" "}
           <em>Clean School Bus Rebate Dashboard</em> using Login.gov.
       </p>
@@ -91,7 +91,6 @@ export default function Welcome() {
       <a
         className="usa-button margin-top-1 margin-right-0 font-sans-2xs"
         href={`${serverUrl}/login`}
-        data-testid="csb-sign-in-button"
       >
         <span className="display-flex flex-align-center">
           <span className="margin-right-1">Sign in</span>
