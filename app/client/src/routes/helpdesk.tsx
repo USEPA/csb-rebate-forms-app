@@ -191,28 +191,18 @@ export default function Helpdesk() {
                         confirmText: "Yes",
                         cancelText: "Cancel",
                         confirmedAction: () => {
-                          const submissionUrl = `${serverUrl}/help/rebate-form-submission/${formId}`;
-                          const submissionData = rebateFormSubmission.data;
-                          if (!submissionData) return;
+                          setRebateFormSubmission({
+                            status: "pending",
+                            data: null,
+                          });
 
-                          fetchData(submissionUrl, {
-                            state: "draft",
-                            data: {
-                              ...submissionData.data,
-                              last_updated_by: epaUserData.data.mail,
-                            },
-                          })
-                            .then((postRes) => {
+                          fetchData(
+                            `${serverUrl}/help/reopen-rebate-form-submission/${formId}`
+                          )
+                            .then((res) => {
                               setRebateFormSubmission({
-                                status: "pending",
-                                data: null,
-                              });
-
-                              fetchData(submissionUrl).then((getRes) => {
-                                setRebateFormSubmission({
-                                  status: "success",
-                                  data: getRes,
-                                });
+                                status: "success",
+                                data: res,
                               });
                             })
                             .catch((err) => {

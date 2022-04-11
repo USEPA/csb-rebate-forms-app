@@ -1,4 +1,5 @@
 const express = require("express");
+const ObjectId = require("mongodb").ObjectId;
 const axios = require("axios").default;
 // ---
 const {
@@ -21,6 +22,12 @@ router.use(ensureHelpdesk);
 router.get("/rebate-form-submission/:id", (req, res) => {
   const id = req.params.id;
 
+  if (!ObjectId.isValid(id)) {
+    return res.status(400).json({
+      message: `MongoDB ObjectId validation error for: ${id}`,
+    });
+  }
+
   axios
     .get(`${formioProjectUrl}/${formioFormId}/submission/${id}`, formioHeaders)
     .then((axiosRes) => axiosRes.data)
@@ -39,31 +46,47 @@ router.get("/rebate-form-submission/:id", (req, res) => {
 });
 
 // --- change a submitted Forms.gov rebate form's submission back to 'draft'
-router.post("/rebate-form-submission/:id", (req, res) => {
+router.get("/reopen-rebate-form-submission/:id", (req, res) => {
   const id = req.params.id;
+  const userEmail = req.user.mail;
+  const formioSubmissionUrl = `${formioProjectUrl}/${formioFormId}/submission/${id}`;
+
+  if (!ObjectId.isValid(id)) {
+    return res.status(400).json({
+      message: `MongoDB ObjectId validation error for: ${id}`,
+    });
+  }
 
   axios
-    .put(
-      `${formioProjectUrl}/${formioFormId}/submission/${id}`,
-      req.body,
-      formioHeaders
-    )
+    .get(formioSubmissionUrl, formioHeaders)
     .then((axiosRes) => axiosRes.data)
     .then((submission) => {
-      log.info(
-        `User with email ${req.user.mail} updated rebate form submission ${id} from submitted to draft.`
-      );
+      axios
+        .put(
+          formioSubmissionUrl,
+          {
+            state: "draft",
+            data: { ...submission.data, last_updated_by: userEmail },
+          },
+          formioHeaders
+        )
+        .then((axiosRes) => axiosRes.data)
+        .then((submission) => {
+          log.info(
+            `User with email ${userEmail} updated rebate form submission ${id} from submitted to draft.`
+          );
 
-      res.json(submission);
+          res.json(submission);
+        });
     })
     .catch((error) => {
       if (typeof error.toJSON === "function") {
         console.error(error.toJSON());
       }
 
-      res
-        .status(error?.response?.status || 500)
-        .json({ message: "Error updating Forms.gov rebate form submission" });
+      res.status(error?.response?.status || 500).json({
+        message: `Error updating Forms.gov rebate form submission ${id}`,
+      });
     });
 });
 
