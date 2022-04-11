@@ -170,10 +170,28 @@ export default function Dashboard() {
         </li>
       </ul>
 
-      <div className="display-flex flex-justify border-bottom padding-bottom-1">
+      <div className="desktop:display-flex flex-justify border-bottom">
+        <nav className="desktop:order-last mobile-lg:display-flex flex-align-center flex-justify-end">
+          <p className="margin-bottom-1 margin-right-1">
+            <span>
+              {epaUserData.status === "success" && epaUserData.data.mail}
+            </span>
+          </p>
+
+          <a
+            className="margin-bottom-1 usa-button font-sans-2xs margin-right-0"
+            href={`${serverUrl}/logout`}
+          >
+            <IconText order="text-icon" icon="logout" text="Sign out" />
+          </a>
+        </nav>
+
         <nav>
           {pathname === "/" ? (
-            <button className="usa-button font-sans-2xs" disabled>
+            <button
+              className="margin-bottom-1 usa-button font-sans-2xs"
+              disabled
+            >
               <IconText
                 order="icon-text"
                 icon="list"
@@ -183,7 +201,7 @@ export default function Dashboard() {
           ) : (
             <a
               href="/"
-              className="usa-button font-sans-2xs"
+              className="margin-bottom-1 usa-button font-sans-2xs"
               onClick={(ev) => {
                 ev.preventDefault();
                 const action = createDialogNavAction("/");
@@ -199,7 +217,10 @@ export default function Dashboard() {
           )}
 
           {pathname.startsWith("/rebate") ? (
-            <button className="usa-button font-sans-2xs" disabled>
+            <button
+              className="margin-bottom-1 usa-button font-sans-2xs"
+              disabled
+            >
               <IconText
                 order="icon-text"
                 icon="add_circle"
@@ -207,7 +228,10 @@ export default function Dashboard() {
               />
             </button>
           ) : (
-            <Link to="/rebate/new" className="usa-button font-sans-2xs">
+            <Link
+              to="/rebate/new"
+              className="margin-bottom-1 usa-button font-sans-2xs"
+            >
               <IconText
                 order="icon-text"
                 icon="add_circle"
@@ -219,13 +243,16 @@ export default function Dashboard() {
           {helpdeskAccess === "success" && (
             <>
               {pathname === "/helpdesk" ? (
-                <button className="usa-button font-sans-2xs" disabled>
+                <button
+                  className="margin-bottom-1 usa-button font-sans-2xs"
+                  disabled
+                >
                   <IconText order="icon-text" icon="people" text="Helpdesk" />
                 </button>
               ) : (
                 <a
                   href="/"
-                  className="usa-button font-sans-2xs"
+                  className="margin-bottom-1 usa-button font-sans-2xs"
                   onClick={(ev) => {
                     ev.preventDefault();
                     const action = createDialogNavAction("/helpdesk");
@@ -237,21 +264,6 @@ export default function Dashboard() {
               )}
             </>
           )}
-        </nav>
-
-        <nav className="display-flex flex-align-center">
-          <p className="margin-bottom-0 margin-right-1">
-            <span>
-              {epaUserData.status === "success" && epaUserData.data.mail}
-            </span>
-          </p>
-
-          <a
-            className="usa-button font-sans-2xs margin-right-0"
-            href={`${serverUrl}/logout`}
-          >
-            <IconText order="text-icon" icon="logout" text="Sign out" />
-          </a>
         </nav>
       </div>
 
