@@ -248,7 +248,7 @@ describe('Rebate Form', () => {
     cy.loginToCSB('csbtest');
   });
 
-  it.only('New application', () => {
+  it('New application', () => {
     // run the tests
     startNewApplication();
     step1();
