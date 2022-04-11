@@ -44,7 +44,7 @@ const ensureAuthenticated = (
       res.cookie(cookieName, newToken, {
         httpOnly: true,
         overwrite: true,
-        sameSite: "strict",
+        sameSite: "lax",
         secure: true,
       });
       next();
