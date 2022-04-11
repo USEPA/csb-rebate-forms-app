@@ -7,11 +7,6 @@ describe('Rebate Form', () => {
     return false;
   });
 
-  // Leave the user logged in to prevent logging in for every test
-  Cypress.Cookies.defaults({
-    preserve: 'csb-token',
-  });
-
   const loadingSpinnerId = 'csb-loading-spinner';
   let selectedUei = '';
   let selectedEft = '';
@@ -246,6 +241,11 @@ describe('Rebate Form', () => {
 
   beforeEach(() => {
     cy.loginToCSB('csbtest');
+
+    // Leave the user logged in to prevent logging in for every test
+    Cypress.Cookies.defaults({
+      preserve: 'csb-token',
+    });
   });
 
   it('New application', () => {
