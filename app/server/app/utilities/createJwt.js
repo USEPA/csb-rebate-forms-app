@@ -6,6 +6,8 @@ const createJwt = (userObject) => {
     {
       mail: userObject.mail,
       memberof: userObject.memberof || "",
+      nameID: userObject.nameID,
+      nameIDFormat: userObject.nameIDFormat,
     },
     process.env.JWT_PRIVATE_KEY,
     {
