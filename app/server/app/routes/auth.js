@@ -36,7 +36,7 @@ router.post(
     const token = createJwt(epaUserData);
     res.cookie(cookieName, token, {
       httpOnly: true,
-      sameSite: "strict",
+      sameSite: "lax",
       secure: true,
     });
 
