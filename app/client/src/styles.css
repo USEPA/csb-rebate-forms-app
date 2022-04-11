@@ -13,22 +13,15 @@
 }
 
 /* --- Formio --- */
-.formio-form-group {
-  margin-bottom: 20px;
-}
-
-.field-required:after {
-  content: " *";
-  color: red;
-}
-
 .csb-form button[type="submit"] i {
+  /* prevent formio loading icon from being displayed inside buttons */
   display: none;
 }
 
 /* --- React UI --- */
 [data-reach-dialog-overlay] {
   /* match USWDS modal */
+  z-index: 99999;
   padding: 1.5rem;
   text-align: center;
   background: rgba(0, 0, 0, 0.7);
