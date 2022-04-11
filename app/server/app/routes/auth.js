@@ -33,7 +33,12 @@ router.post(
     const epaUserData = req.user.attributes;
 
     // Create JWT, set as cookie, then redirect to client
-    const token = createJwt(epaUserData);
+    // Note: nameID and nameIDFormat are required to send with logout request
+    const token = createJwt({
+      ...epaUserData,
+      nameID: req.user.nameID,
+      nameIDFormat: req.user.nameIDFormat,
+    });
     res.cookie(cookieName, token, {
       httpOnly: true,
       sameSite: "lax",
