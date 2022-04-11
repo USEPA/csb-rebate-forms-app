@@ -24,6 +24,7 @@
     "jsforce": "1.11.0",
     "jsonwebtoken": "8.5.1",
     "log4js": "6.4.3",
+    "mongodb": "4.5.0",
     "morgan": "1.10.0",
     "passport": "0.5.2",
     "passport-saml": "3.2.1"
