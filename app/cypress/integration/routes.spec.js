@@ -10,11 +10,8 @@ describe('Routes', () => {
   const formId = '624b92ede96cb08e5923392b';
   const loadingSpinnerId = 'csb-loading-spinner';
 
-  beforeEach(() => {
-    cy.loginToCSB('csbtest');
-  });
-
   it('Test a route that is not found', () => {
+    cy.loginToCSB('csbtest');
     cy.findByText('Your Rebate Forms');
 
     cy.visit('/testing-not-found');
@@ -23,6 +20,7 @@ describe('Routes', () => {
   });
 
   it('Navigate directly to an existing application', () => {
+    cy.loginToCSB('csbtest');
     cy.findByText('Your Rebate Forms');
 
     cy.visit(`/rebate/${formId}`);
@@ -33,6 +31,7 @@ describe('Routes', () => {
   });
 
   it('Navigate directly to an existing application without being logged in', () => {
+    cy.loginToCSB('csbtest');
     cy.findByText('csb-test@erg.com');
 
     // Sign out
@@ -47,6 +46,7 @@ describe('Routes', () => {
   });
 
   it('Navigate directly to an existing application without appropriate access rights', () => {
+    cy.loginToCSB('csbtest');
     cy.findByText('Your Rebate Forms');
 
     // simulate the rebate-form-submission where user does not have access
@@ -76,6 +76,7 @@ describe('Routes', () => {
   });
 
   it('Navigate directly to an existing application and simulate a service failure', () => {
+    cy.loginToCSB('csbtest');
     cy.findByText('Your Rebate Forms');
 
     // simulate the rebate-form-submission service failing
@@ -91,5 +92,61 @@ describe('Routes', () => {
     // verify the appropriate error message is displayed
     cy.visit(`/rebate/${formId}`);
     cy.findByText(`Error loading rebate form ${formId}.`);
+  });
+
+  it('Navigate directly to an helpdesk', () => {
+    cy.loginToCSB('csbhelpdesk');
+    cy.findByText('Your Rebate Forms');
+
+    cy.visit('/helpdesk');
+
+    cy.findByTestId(loadingSpinnerId).should('be.visible');
+
+    cy.findByText('Change Rebate Form Submission State');
+  });
+
+  it('Navigate directly to the helpdesk without being logged in', () => {
+    cy.loginToCSB('csbhelpdesk');
+    cy.findByText('csbhelpdesk@test.com');
+
+    // Sign out
+    cy.findByText('Sign out').click();
+    cy.findByText('You have succesfully logged out.');
+
+    // verify the appropriate error message is displayed
+    cy.visit('/helpdesk');
+    cy.contains(
+      'Click the Sign in button below to log into the Clean School Bus Rebate Dashboard using Login.gov.',
+    );
+  });
+
+  it('Navigate directly to the helpdesk without appropriate access rights', () => {
+    cy.loginToCSB('csbtest');
+    cy.findByText('Your Rebate Forms');
+
+    // verify the helpdesk is not available
+    cy.visit('/helpdesk');
+    cy.findByText('Helpdesk').should('not.exist');
+    cy.findByText('Change Rebate Form Submission State').should('not.exist');
+  });
+
+  it('Navigate directly to an existing application and simulate a service failure', () => {
+    cy.loginToCSB('csbhelpdesk');
+    cy.findByText('csbhelpdesk@test.com');
+
+    // simulate the helpdesk-access service failing
+    const origin =
+      location.hostname === 'localhost'
+        ? `${location.protocol}//${location.hostname}:3001`
+        : window.location.origin;
+    cy.intercept(`${origin}/api/helpdesk-access`, {
+      statusCode: 500,
+      body: {},
+    }).as('helpdesk-access');
+
+    // verify the helpdesk is not available
+    cy.visit('/helpdesk');
+    cy.findByText('Helpdesk').should('not.exist');
+    cy.findByText('Change Rebate Form Submission State').should('not.exist');
   });
 });
