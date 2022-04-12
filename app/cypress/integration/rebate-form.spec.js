@@ -47,8 +47,12 @@ describe('Rebate Form', () => {
     });
   }
 
-  function step1() {
+  function step1(newApplication) {
     cy.log('Perform step 1 tests...');
+
+    // workaround for an issue where clicking next on step 1 reloads step 1 again
+    //  this only happens when creating a new application from scratch
+    if (newApplication) cy.findByText('Next').click();
 
     cy.contains('1 of 7 Introduction');
 
@@ -75,14 +79,14 @@ describe('Rebate Form', () => {
     cy.findByText('Next').click();
   }
 
-  function step3(fillOutForm = false) {
+  function step3(newApplication = false) {
     cy.log('Perform step 3 tests...');
 
     cy.contains('3 of 7 Organization Type');
 
     cy.findByText('Applicant Organization Type');
 
-    if (fillOutForm) {
+    if (newApplication) {
       cy.findByLabelText('Applicant Organization Type').select(
         'Local Education Agency (LEA)',
       );
@@ -93,15 +97,15 @@ describe('Rebate Form', () => {
     cy.findByText('Next').click();
   }
 
-  function step4(fillOutForm = false) {
+  function step4(newApplication = false) {
     cy.log('Perform step 4 tests...');
 
     cy.contains('4 of 7 Applicant Information');
 
-    if (fillOutForm) {
+    if (newApplication) {
       // verify auto populated fields
-      cy.findByLabelText('Organization Name').then(($el) => 
-        cy.wrap($el).should('have.value', selectedOrganization)
+      cy.findByLabelText('Organization Name').then(($el) =>
+        cy.wrap($el).should('have.value', selectedOrganization),
       );
       cy.findByLabelText('Unique Entity Identifier (UEI)').then(($el) =>
         cy.wrap($el).should('have.value', selectedUei),
@@ -135,16 +139,24 @@ describe('Rebate Form', () => {
     cy.findByText('Next').click();
   }
 
-  function step5(fillOutForm = false) {
+  function step5(newApplication = false) {
     cy.log('Perform step 5 tests...');
 
     cy.contains('5 of 7 School District Information');
 
-    if (fillOutForm) {
+    if (newApplication) {
+      // wait before typing District ID - this is a workaround for an issue
+      //   where the school fields aren't autopopulated
+      cy.wait(2000);
+
       // enter a district id
       cy.findByLabelText(
         'National Center for Education Statistics (NCES) District ID',
       ).type('BIE0013');
+
+      // wait after typing District ID - this is a workaround for an issue
+      //   where the school fields aren't autopopulated
+      cy.wait(2000);
 
       // verify fields are autopopulated
       cy.findByLabelText('School District Name').then(($el) =>
@@ -186,12 +198,12 @@ describe('Rebate Form', () => {
     cy.findByText('Next').click();
   }
 
-  function step7(fillOutForm = false) {
+  function step7(newApplication = false) {
     cy.log('Perform step 7 tests...');
 
     cy.contains('7 of 7 Review and Sign');
 
-    if (fillOutForm) {
+    if (newApplication) {
       // sign the application
       cy.get('canvas').then(($el) => {
         cy.wrap($el).click();
@@ -215,28 +227,26 @@ describe('Rebate Form', () => {
     }
   }
 
-  function submitTests() {
+  function submitTests(schoolDistrict, expectedStatus) {
     cy.log('Complete submission tests...');
 
-    // TODO Uncomment the below tests when the submit code is fixed
-    //      Currently there is an issue where the data is not saved on submit
-    // // verify the new record is in the table
-    // cy.findByTestId('csb-rebate-forms')
-    //   .get('tbody > tr')
-    //   .within(($rows) => {
-    //     const $firstRow = $rows[0];
-    //     cy.wrap($firstRow)
-    //       .get('th,td')
-    //       .then(($cols) => {
-    //         cy.wrap($cols[1].innerText).should('eq', 'Application');
-    //         cy.wrap($cols[2].innerText).should('eq', selectedUei);
-    //         cy.wrap($cols[3].innerText).should('eq', selectedEft);
-    //         cy.wrap($cols[4].innerText).should('eq', selectedOrganization);
-    //         cy.wrap($cols[5].innerText).should('eq', 'CODE RVA HIGH');
-    //         cy.wrap($cols[6].innerText).should('eq', 'csb-test@erg.com');
-    //         cy.wrap($cols[8].innerText).should('eq', 'submitted');
-    //       });
-    //   });
+    // verify the new record is in the table
+    cy.findByTestId('csb-rebate-forms')
+      .get('tbody > tr')
+      .within(($rows) => {
+        const $firstRow = $rows[0];
+        cy.wrap($firstRow)
+          .get('th,td')
+          .then(($cols) => {
+            cy.wrap($cols[1].innerText).should('eq', 'Application');
+            cy.wrap($cols[2].innerText).should('eq', selectedUei);
+            cy.wrap($cols[3].innerText).should('eq', selectedEft);
+            cy.wrap($cols[4].innerText).should('eq', selectedOrganization);
+            cy.wrap($cols[5].innerText).should('eq', schoolDistrict);
+            cy.wrap($cols[6].innerText).should('eq', 'csb-test@erg.com');
+            cy.wrap($cols[8].innerText).should('eq', expectedStatus);
+          });
+      });
   }
 
   beforeEach(() => {
@@ -251,20 +261,20 @@ describe('Rebate Form', () => {
   it('New application', () => {
     // run the tests
     startNewApplication();
-    step1();
+    step1(true);
     step2();
     step3(true);
     step4(true);
     step5(true);
     step6();
     step7(true);
-    submitTests();
+    submitTests('Wounded Knee District', 'submitted');
   });
 
   it('New application - Save and Continue button', () => {
     // complete steps 1 - 4
     startNewApplication();
-    step1();
+    step1(true);
     step2();
     step3(true);
     step4(true);
@@ -275,13 +285,41 @@ describe('Rebate Form', () => {
 
     cy.findAllByText('Save and Continue').filter('button').first().click();
 
-    // TODO Update the success message test as currently there are issues with saving
-    cy.findByText('Submission Complete');
+    // verify the save messages
+    cy.findAllByText('Saving form...');
+    cy.findAllByText('Draft succesfully saved.');
 
-    submitTests();
+    // go back to the dashboard
+    cy.findByText('Your Rebate Forms').click();
+    cy.findByText('Are you sure you want to navigate away from this page?');
+    cy.findByText('Yes').click();
 
-    // TODO create a test the opens the saved partial application and
-    // verifies the application is partially filled out
+    // verify the new application is marked as draft
+    submitTests('', 'draft');
+
+    // verify the new record is in the table
+    cy.findByTestId('csb-rebate-forms')
+      .get('tbody > tr')
+      .within(($rows) => {
+        const $firstRow = $rows[0];
+        cy.wrap($firstRow)
+          .get('th,td')
+          .then(($cols) => {
+            cy.wrap($cols[0]).click();
+          });
+      });
+
+    // complete the application
+    step1();
+    step2();
+    step3();
+    step4();
+    step5(true);
+    step6();
+    step7(true);
+
+    // verify the application is now marked as submitted
+    submitTests('Wounded Knee District', 'submitted');
   });
 
   it('New application service error', () => {
@@ -325,7 +363,7 @@ describe('Rebate Form', () => {
 
   it('Modal cancel tests', () => {
     startNewApplication();
-    step1();
+    step1(true);
     step2();
 
     cy.findByText('Your Rebate Forms').click();
