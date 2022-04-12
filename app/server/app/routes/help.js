@@ -45,6 +45,7 @@ router.get("/rebate-form-submission/:id", verifyMongoObjectId, (req, res) => {
 // --- change a submitted Forms.gov rebate form's submission back to 'draft'
 router.post("/rebate-form-submission/:id", verifyMongoObjectId, (req, res) => {
   const id = req.params.id;
+  const userEmail = req.user.mail;
   const formioSubmissionUrl = `${formioProjectUrl}/${formioFormId}/submission/${id}`;
 
   axios
@@ -52,11 +53,18 @@ router.post("/rebate-form-submission/:id", verifyMongoObjectId, (req, res) => {
     .then((axiosRes) => axiosRes.data)
     .then((submission) => {
       axios
-        .put(formioSubmissionUrl, req.body, formioHeaders)
+        .put(
+          formioSubmissionUrl,
+          {
+            state: "draft",
+            data: { ...submission.data, last_updated_by: userEmail },
+          },
+          formioHeaders
+        )
         .then((axiosRes) => axiosRes.data)
         .then((submission) => {
           log.info(
-            `User with email ${req.user.mail} updated rebate form submission ${id} from submitted to draft.`
+            `User with email ${userEmail} updated rebate form submission ${id} from submitted to draft.`
           );
 
           res.json(submission);

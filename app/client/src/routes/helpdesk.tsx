@@ -201,13 +201,7 @@ export default function Helpdesk() {
                               data: null,
                             });
 
-                            fetchData(submissionUrl, {
-                              state: "draft",
-                              data: {
-                                ...submissionData.data,
-                                last_updated_by: epaUserData.data.mail,
-                              },
-                            })
+                            fetchData(submissionUrl, {})
                               .then((res) => {
                                 setRebateFormSubmission({
                                   status: "success",
