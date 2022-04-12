@@ -285,7 +285,6 @@ Cypress.Commands.add('getApplicationSteps', () => {
             cy.wrap($cols[3].innerText).should('eq', selectedEft);
             cy.wrap($cols[4].innerText).should('eq', selectedOrganization);
             cy.wrap($cols[5].innerText).should('eq', schoolDistrict);
-            cy.wrap($cols[6].innerText).should('eq', 'csb-test@erg.com');
             cy.wrap($cols[8].innerText).should('eq', expectedStatus);
           });
       });
