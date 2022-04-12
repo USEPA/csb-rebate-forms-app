@@ -33,7 +33,7 @@ router.get("/rebate-form-submission/:id", verifyMongoObjectId, (req, res) => {
     })
     .catch((error) => {
       if (typeof error.toJSON === "function") {
-        console.error(error.toJSON());
+        log.debug(error.toJSON());
       }
 
       res.status(error?.response?.status || 500).json({
@@ -75,7 +75,7 @@ router.get(
       })
       .catch((error) => {
         if (typeof error.toJSON === "function") {
-          console.error(error.toJSON());
+          log.debug(error.toJSON());
         }
 
         res.status(error?.response?.status || 500).json({
