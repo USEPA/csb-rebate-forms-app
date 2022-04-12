@@ -1,5 +1,7 @@
 const { resolve } = require("node:path");
 const jwt = require("jsonwebtoken");
+const ObjectId = require("mongodb").ObjectId;
+// ---
 const { createJwt, jwtAlgorithm } = require("./utilities/createJwt");
 const logger = require("./utilities/logger");
 const { getComboKeys } = require("./utilities/getSamData");
@@ -133,6 +135,18 @@ const checkBapComboKeys = (req, res, next) => {
     });
 };
 
+const verifyMongoObjectId = (req, res, next) => {
+  const id = req.params.id;
+
+  if (id && !ObjectId.isValid(id)) {
+    return res.status(400).json({
+      message: `MongoDB ObjectId validation error for: ${id}`,
+    });
+  }
+
+  next();
+};
+
 module.exports = {
   ensureAuthenticated,
   ensureHelpdesk,
@@ -140,4 +154,5 @@ module.exports = {
   protectClientRoutes,
   checkClientRouteExists,
   checkBapComboKeys,
+  verifyMongoObjectId,
 };

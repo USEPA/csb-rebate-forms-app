@@ -209,24 +209,16 @@ export default function Helpdesk() {
                             const submissionData = rebateFormSubmission.data;
                             if (!submissionData) return;
 
-                            fetchData(submissionUrl, {
-                              state: "draft",
-                              data: {
-                                ...submissionData.data,
-                                last_updated_by: epaUserData.data.mail,
-                              },
-                            })
-                              .then((postRes) => {
-                                setRebateFormSubmission({
-                                  status: "pending",
-                                  data: null,
-                                });
+                            setRebateFormSubmission({
+                              status: "pending",
+                              data: null,
+                            });
 
-                                fetchData(submissionUrl).then((getRes) => {
-                                  setRebateFormSubmission({
-                                    status: "success",
-                                    data: getRes,
-                                  });
+                            fetchData(submissionUrl, {})
+                              .then((res) => {
+                                setRebateFormSubmission({
+                                  status: "success",
+                                  data: res,
                                 });
                               })
                               .catch((err) => {
@@ -249,9 +241,6 @@ export default function Helpdesk() {
                       >
                         <use href={`${icons}#update`} />
                       </svg>
-                      <span className="mobile-lg:display-none margin-left-1">
-                        Update Form
-                      </span>
                     </span>
                   </button>
                 </th>
