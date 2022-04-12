@@ -170,6 +170,10 @@ router.get(
             const { bap_hidden_entity_combo_key } = submission.data;
 
             if (!req.bapComboKeys.includes(bap_hidden_entity_combo_key)) {
+              log.warn(
+                `User with email ${req.user.mail} attempted to access submission ${id} that they do not have access to.`
+              );
+
               res.json({
                 userAccess: false,
                 formSchema: null,
@@ -191,6 +195,10 @@ router.get(
         if (typeof error.toJSON === "function") {
           log.debug(error.toJSON());
         }
+
+        log.error(
+          `User with email ${req.user.mail} attempted to access submission ${id} that does not exist.`
+        );
 
         res.status(error?.response?.status || 500).json({
           message: `Error getting Forms.gov rebate form submission ${id}`,

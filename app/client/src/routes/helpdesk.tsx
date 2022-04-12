@@ -140,108 +140,110 @@ export default function Helpdesk() {
       )}
 
       {rebateFormSubmission.status === "success" && (
-        <table className="usa-table usa-table--borderless usa-table--striped width-full">
-          <thead>
-            <tr className="font-sans-2xs text-no-wrap">
-              <th scope="col">&nbsp;</th>
-              <th scope="col">
-                <TextWithTooltip
-                  text="Form ID"
-                  tooltip="Form ID returned from Forms.gov"
-                />
-              </th>
-              <th scope="col">
-                <TextWithTooltip
-                  text="Applicant"
-                  tooltip="Legal Business Name from SAM.gov for this UEI"
-                />
-              </th>
-              <th scope="col">
-                <TextWithTooltip
-                  text="Updated By"
-                  tooltip="Last person that updated this form"
-                />
-              </th>
-              <th scope="col">
-                <TextWithTooltip
-                  text="Date Updated"
-                  tooltip="Last date this form was updated"
-                />
-              </th>
-              <th scope="col">
-                <TextWithTooltip text="Status" tooltip="submitted or draft" />
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th scope="row">
-                <button
-                  className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-                  disabled={rebateFormSubmission.data.state === "draft"}
-                  onClick={(ev) => {
-                    dispatch({
-                      type: "DISPLAY_DIALOG",
-                      payload: {
-                        dismissable: true,
-                        heading:
-                          "Are you sure you want to change this submission's state back to draft?",
-                        description:
-                          "Once the submission is back in a draft state, all users with access to this submission will be able to further edit it.",
-                        confirmText: "Yes",
-                        cancelText: "Cancel",
-                        confirmedAction: () => {
-                          setRebateFormSubmission({
-                            status: "pending",
-                            data: null,
-                          });
-
-                          fetchData(
-                            `${serverUrl}/help/reopen-rebate-form-submission/${formId}`
-                          )
-                            .then((res) => {
-                              setRebateFormSubmission({
-                                status: "success",
-                                data: res,
-                              });
-                            })
-                            .catch((err) => {
-                              setRebateFormSubmission({
-                                status: "failure",
-                                data: null,
-                              });
+        <div className="usa-table-container--scrollable" tabIndex={0}>
+          <table className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full">
+            <thead>
+              <tr className="font-sans-2xs text-no-wrap">
+                <th scope="col">&nbsp;</th>
+                <th scope="col">
+                  <TextWithTooltip
+                    text="Form ID"
+                    tooltip="Form ID returned from Forms.gov"
+                  />
+                </th>
+                <th scope="col">
+                  <TextWithTooltip
+                    text="Applicant"
+                    tooltip="Legal Business Name from SAM.gov for this UEI"
+                  />
+                </th>
+                <th scope="col">
+                  <TextWithTooltip
+                    text="Updated By"
+                    tooltip="Last person that updated this form"
+                  />
+                </th>
+                <th scope="col">
+                  <TextWithTooltip
+                    text="Date Updated"
+                    tooltip="Last date this form was updated"
+                  />
+                </th>
+                <th scope="col">
+                  <TextWithTooltip text="Status" tooltip="submitted or draft" />
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">
+                  <button
+                    className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
+                    disabled={rebateFormSubmission.data.state === "draft"}
+                    onClick={(ev) => {
+                      dispatch({
+                        type: "DISPLAY_DIALOG",
+                        payload: {
+                          dismissable: true,
+                          heading:
+                            "Are you sure you want to change this submission's state back to draft?",
+                          description:
+                            "Once the submission is back in a draft state, all users with access to this submission will be able to further edit it.",
+                          confirmText: "Yes",
+                          cancelText: "Cancel",
+                          confirmedAction: () => {
+                            setRebateFormSubmission({
+                              status: "pending",
+                              data: null,
                             });
+
+                            fetchData(
+                              `${serverUrl}/help/reopen-rebate-form-submission/${formId}`
+                            )
+                              .then((res) => {
+                                setRebateFormSubmission({
+                                  status: "success",
+                                  data: res,
+                                });
+                              })
+                              .catch((err) => {
+                                setRebateFormSubmission({
+                                  status: "failure",
+                                  data: null,
+                                });
+                              });
+                          },
                         },
-                      },
-                    });
-                  }}
-                >
-                  <span className="display-flex flex-align-center">
-                    <svg
-                      className="usa-icon"
-                      aria-hidden="true"
-                      focusable="false"
-                      role="img"
-                    >
-                      <use href={`${icons}#update`} />
-                    </svg>
-                  </span>
-                </button>
-              </th>
-              <td>{rebateFormSubmission.data._id}</td>
-              <td>
-                {rebateFormSubmission.data.data.applicantOrganizationName}
-              </td>
-              <td>{rebateFormSubmission.data.data.last_updated_by}</td>
-              <td>
-                {new Date(
-                  rebateFormSubmission.data.modified
-                ).toLocaleDateString()}
-              </td>
-              <td>{rebateFormSubmission.data.state}</td>
-            </tr>
-          </tbody>
-        </table>
+                      });
+                    }}
+                  >
+                    <span className="display-flex flex-align-center">
+                      <svg
+                        className="usa-icon"
+                        aria-hidden="true"
+                        focusable="false"
+                        role="img"
+                      >
+                        <use href={`${icons}#update`} />
+                      </svg>
+                    </span>
+                  </button>
+                </th>
+                <td>{rebateFormSubmission.data._id}</td>
+                <td>
+                  {rebateFormSubmission.data.data.applicantOrganizationName}
+                </td>
+                <td>{rebateFormSubmission.data.data.last_updated_by}</td>
+                <td>
+                  {new Date(
+                    rebateFormSubmission.data.modified
+                  ).toLocaleDateString()}
+                </td>
+                <td>{rebateFormSubmission.data.state}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       )}
     </>
   );
