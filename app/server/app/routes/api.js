@@ -151,8 +151,8 @@ router.get("/rebate-form-schema", (req, res) => {
 // --- get an existing rebate form's schema and submission data from Forms.gov
 router.get(
   "/rebate-form-submission/:id",
-  checkBapComboKeys,
   verifyMongoObjectId,
+  checkBapComboKeys,
   async (req, res) => {
     const id = req.params.id;
 
@@ -210,8 +210,8 @@ router.get(
 // --- post an update to an existing draft rebate form submission to Forms.gov
 router.post(
   "/rebate-form-submission/:id",
-  checkBapComboKeys,
   verifyMongoObjectId,
+  checkBapComboKeys,
   (req, res) => {
     const id = req.params.id;
 
