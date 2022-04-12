@@ -77,7 +77,7 @@ export default function Helpdesk() {
       {content.status === "success" && (
         <MarkdownContent
           className="margin-top-4"
-          children={content.data.helpdeskIntro}
+          children={content.data?.helpdeskIntro || ""}
         />
       )}
 

@@ -149,7 +149,7 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
       {content.status === "success" && (
         <MarkdownContent
           className="margin-top-4"
-          children={content.data.newRebateFormIntro}
+          children={content.data?.newRebateFormIntro || ""}
         />
       )}
 
@@ -257,8 +257,8 @@ export default function NewRebateForm() {
 
   const activeSamData =
     samUserData.status === "success" &&
-    samUserData.data.results &&
-    samUserData.data.records.filter((entity) => {
+    samUserData.data?.results &&
+    samUserData.data?.records.filter((entity) => {
       return entity.ENTITY_STATUS__c === "Active";
     });
 
@@ -281,7 +281,7 @@ export default function NewRebateForm() {
               {content.status === "success" && (
                 <MarkdownContent
                   className="margin-top-4"
-                  children={content.data.newRebateFormDialog}
+                  children={content.data?.newRebateFormDialog || ""}
                   components={{
                     h2: (props) => (
                       <h2
