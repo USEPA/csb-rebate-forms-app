@@ -7,8 +7,37 @@ describe('Routes', () => {
     return false;
   });
 
-  const formId = '624b92ede96cb08e5923392b';
+  let formId = ''; //'624b92ede96cb08e5923392b';
   const loadingSpinnerId = 'csb-loading-spinner';
+
+  before(() => {
+    cy.loginToCSB('csbtest');
+    cy.findByText('Your Rebate Forms');
+
+    // get a formId from an existing application
+    cy.findByTestId('csb-rebate-forms')
+      .get('tbody > tr')
+      .within(($rows) => {
+        const $firstRow = $rows[0];
+        cy.wrap($firstRow)
+          .get('th,td')
+          .then(($cols) => {
+            cy.wrap($cols[0]).click();
+          });
+      });
+    
+    // verify the tab loaded
+    cy.contains('1 of 7 Introduction');
+    
+    // extract the form id
+    cy.get('body').then(($body) => {
+      const elm = $body.find("h3:contains('Application ID:')")[0];
+      formId = elm.innerText.replace('Application ID: ', '');
+    });
+
+    // sign out
+    cy.findByText('Sign out').click();
+  });
 
   it('Test a route that is not found', () => {
     cy.loginToCSB('csbtest');
@@ -27,7 +56,7 @@ describe('Routes', () => {
 
     cy.findByTestId(loadingSpinnerId).should('be.visible');
 
-    cy.findByText('View Your Submitted Rebate Application');
+    cy.findByText('Edit Your Rebate Application');
   });
 
   it('Navigate directly to an existing application without being logged in', () => {
@@ -94,7 +123,7 @@ describe('Routes', () => {
     cy.findByText(`Error loading rebate form ${formId}.`);
   });
 
-  it('Navigate directly to an helpdesk', () => {
+  it('Navigate directly to the helpdesk', () => {
     cy.loginToCSB('csbhelpdesk');
     cy.findByText('Your Rebate Forms');
 
@@ -130,7 +159,7 @@ describe('Routes', () => {
     cy.findByText('Change Rebate Form Submission State').should('not.exist');
   });
 
-  it('Navigate directly to an existing application and simulate a service failure', () => {
+  it('Navigate directly to the helpdesk and simulate a service failure', () => {
     cy.loginToCSB('csbhelpdesk');
     cy.findByText('csbhelpdesk@test.com');
 
