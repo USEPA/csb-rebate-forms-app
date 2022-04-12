@@ -303,7 +303,7 @@ export default function NewRebateForm() {
                 />
               )}
 
-              <table className="usa-table usa-table--borderless usa-table--striped width-full">
+              <table className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full">
                 <thead>
                   <tr className="font-sans-2xs text-no-wrap">
                     <th scope="col">&nbsp;</th>
@@ -357,6 +357,9 @@ export default function NewRebateForm() {
                                 >
                                   <use href={`${icons}#arrow_forward`} />
                                 </svg>
+                                <span className="mobile-lg:display-none margin-left-1">
+                                  New Form
+                                </span>
                               </span>
                             </button>
                           </th>

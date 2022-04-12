@@ -65,7 +65,7 @@ export default function AllRebateForms() {
             />
           )}
 
-          <table className="usa-table usa-table--borderless usa-table--striped width-full">
+          <table className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full">
             <thead>
               <tr className="font-sans-2xs text-no-wrap">
                 <th scope="col">&nbsp;</th>
@@ -151,6 +151,9 @@ export default function AllRebateForms() {
                           >
                             <use href={`${icons}#edit`} />
                           </svg>
+                          <span className="mobile-lg:display-none margin-left-1">
+                            Open Form
+                          </span>
                         </span>
                       </Link>
                     </th>
