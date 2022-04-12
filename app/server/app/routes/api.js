@@ -12,6 +12,7 @@ const {
   ensureAuthenticated,
   ensureHelpdesk,
   checkBapComboKeys,
+  verifyMongoObjectId,
 } = require("../middleware");
 const { getSamData } = require("../utilities/getSamData");
 const logger = require("../utilities/logger");
@@ -116,7 +117,7 @@ router.get("/content", (req, res) => {
     })
     .catch((error) => {
       if (typeof error.toJSON === "function") {
-        console.error(error.toJSON());
+        log.debug(error.toJSON());
       }
 
       res
@@ -138,7 +139,7 @@ router.get("/rebate-form-schema", (req, res) => {
     )
     .catch((error) => {
       if (typeof error.toJSON === "function") {
-        console.error(error.toJSON());
+        log.debug(error.toJSON());
       }
 
       res
@@ -150,6 +151,7 @@ router.get("/rebate-form-schema", (req, res) => {
 // --- get an existing rebate form's schema and submission data from Forms.gov
 router.get(
   "/rebate-form-submission/:id",
+  verifyMongoObjectId,
   checkBapComboKeys,
   async (req, res) => {
     const id = req.params.id;
@@ -168,6 +170,10 @@ router.get(
             const { bap_hidden_entity_combo_key } = submission.data;
 
             if (!req.bapComboKeys.includes(bap_hidden_entity_combo_key)) {
+              log.warn(
+                `User with email ${req.user.mail} attempted to access submission ${id} that they do not have access to.`
+              );
+
               res.json({
                 userAccess: false,
                 formSchema: null,
@@ -187,8 +193,12 @@ router.get(
       })
       .catch((error) => {
         if (typeof error.toJSON === "function") {
-          console.error(error.toJSON());
+          log.debug(error.toJSON());
         }
+
+        log.error(
+          `User with email ${req.user.mail} attempted to access submission ${id} that does not exist.`
+        );
 
         res.status(error?.response?.status || 500).json({
           message: `Error getting Forms.gov rebate form submission ${id}`,
@@ -198,35 +208,42 @@ router.get(
 );
 
 // --- post an update to an existing draft rebate form submission to Forms.gov
-router.post("/rebate-form-submission/:id", checkBapComboKeys, (req, res) => {
-  const id = req.params.id;
+router.post(
+  "/rebate-form-submission/:id",
+  verifyMongoObjectId,
+  checkBapComboKeys,
+  (req, res) => {
+    const id = req.params.id;
 
-  // Verify post data includes one of user's BAP combo keys
-  if (!req.bapComboKeys.includes(req.body.data?.bap_hidden_entity_combo_key)) {
-    log.error(
-      `User with email ${req.user.mail} attempted to update existing form without a matching BAP combo key`
-    );
-    return res.status(401).json({ message: "Unauthorized" });
+    // Verify post data includes one of user's BAP combo keys
+    if (
+      !req.bapComboKeys.includes(req.body.data?.bap_hidden_entity_combo_key)
+    ) {
+      log.error(
+        `User with email ${req.user.mail} attempted to update existing form without a matching BAP combo key`
+      );
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    axios
+      .put(
+        `${formioProjectUrl}/${formioFormId}/submission/${id}`,
+        req.body,
+        formioHeaders
+      )
+      .then((axiosRes) => axiosRes.data)
+      .then((submission) => res.json(submission))
+      .catch((error) => {
+        if (typeof error.toJSON === "function") {
+          log.debug(error.toJSON());
+        }
+
+        res
+          .status(error?.response?.status || 500)
+          .json({ message: "Error updating Forms.gov rebate form submission" });
+      });
   }
-
-  axios
-    .put(
-      `${formioProjectUrl}/${formioFormId}/submission/${id}`,
-      req.body,
-      formioHeaders
-    )
-    .then((axiosRes) => axiosRes.data)
-    .then((submission) => res.json(submission))
-    .catch((error) => {
-      if (typeof error.toJSON === "function") {
-        console.error(error.toJSON());
-      }
-
-      res
-        .status(error?.response?.status || 500)
-        .json({ message: "Error updating Forms.gov rebate form submission" });
-    });
-});
+);
 
 // --- post a new rebate form submission to Forms.gov
 router.post("/rebate-form-submission", checkBapComboKeys, (req, res) => {
@@ -248,7 +265,7 @@ router.post("/rebate-form-submission", checkBapComboKeys, (req, res) => {
     .then((submission) => res.json(submission))
     .catch((error) => {
       if (typeof error.toJSON === "function") {
-        console.error(error.toJSON());
+        log.debug(error.toJSON());
       }
 
       res
@@ -292,7 +309,7 @@ router.get("/rebate-form-submissions", checkBapComboKeys, (req, res) => {
     .then((submissions) => res.json(submissions))
     .catch((error) => {
       if (typeof error.toJSON === "function") {
-        console.error(error.toJSON());
+        log.debug(error.toJSON());
       }
 
       res.status(error?.response?.status || 500).json({

@@ -1,5 +1,7 @@
 const { resolve } = require("node:path");
 const jwt = require("jsonwebtoken");
+const ObjectId = require("mongodb").ObjectId;
+// ---
 const { createJwt, jwtAlgorithm } = require("./utilities/createJwt");
 const logger = require("./utilities/logger");
 const { getComboKeys } = require("./utilities/getSamData");
@@ -44,7 +46,7 @@ const ensureAuthenticated = (
       res.cookie(cookieName, newToken, {
         httpOnly: true,
         overwrite: true,
-        sameSite: "strict",
+        sameSite: "lax",
         secure: true,
       });
       next();
@@ -58,12 +60,17 @@ const ensureAuthenticated = (
  */
 const ensureHelpdesk = (req, res, next) => {
   const userRoles = req.user.memberof ? req.user.memberof.split(",") : [];
+
   if (!userRoles.includes("csb_admin") && !userRoles.includes("csb_helpdesk")) {
-    log.error(
-      `User with email ${req.user.mail} attempted to perform an admin/helpdesk action without correct privileges.`
-    );
+    if (!req.originalUrl.includes("/helpdesk-access")) {
+      log.error(
+        `User with email ${req.user.mail} attempted to perform an admin/helpdesk action without correct privileges.`
+      );
+    }
+
     return res.status(401).json({ message: "Unauthorized" });
   }
+
   next();
 };
 
@@ -133,6 +140,18 @@ const checkBapComboKeys = (req, res, next) => {
     });
 };
 
+const verifyMongoObjectId = (req, res, next) => {
+  const id = req.params.id;
+
+  if (id && !ObjectId.isValid(id)) {
+    return res.status(400).json({
+      message: `MongoDB ObjectId validation error for: ${id}`,
+    });
+  }
+
+  next();
+};
+
 module.exports = {
   ensureAuthenticated,
   ensureHelpdesk,
@@ -140,4 +159,5 @@ module.exports = {
   protectClientRoutes,
   checkClientRouteExists,
   checkBapComboKeys,
+  verifyMongoObjectId,
 };

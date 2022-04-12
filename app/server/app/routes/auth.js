@@ -30,20 +30,22 @@ router.post(
     session: false,
   }),
   (req, res) => {
-    const epaUserData = req.user.attributes;
-
     // Create JWT, set as cookie, then redirect to client
-    const token = createJwt(epaUserData);
+    // Note: nameID and nameIDFormat are required to send with logout request
+    const token = createJwt({
+      ...req.user,
+      ...req.user.attributes,
+    });
     res.cookie(cookieName, token, {
       httpOnly: true,
-      sameSite: "strict",
+      sameSite: "lax",
       secure: true,
     });
 
     // If user has Admin or Helpdesk role, log to INFO
     log.info(
-      `User with email ${epaUserData.mail} and member of ${
-        epaUserData.memberof || "no"
+      `User with email ${req.user.attributes.mail} and member of ${
+        req.user.attributes.memberof || "no"
       } groups logged in.`
     );
 
