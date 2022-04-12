@@ -116,7 +116,7 @@ router.get("/content", (req, res) => {
     })
     .catch((error) => {
       if (typeof error.toJSON === "function") {
-        console.error(error.toJSON());
+        log.debug(error.toJSON());
       }
 
       res
@@ -138,7 +138,7 @@ router.get("/rebate-form-schema", (req, res) => {
     )
     .catch((error) => {
       if (typeof error.toJSON === "function") {
-        console.error(error.toJSON());
+        log.debug(error.toJSON());
       }
 
       res
@@ -168,6 +168,10 @@ router.get(
             const { bap_hidden_entity_combo_key } = submission.data;
 
             if (!req.bapComboKeys.includes(bap_hidden_entity_combo_key)) {
+              log.warn(
+                `User with email ${req.user.mail} attempted to access submission ${id} that they do not have access to.`
+              );
+
               res.json({
                 userAccess: false,
                 formSchema: null,
@@ -187,8 +191,12 @@ router.get(
       })
       .catch((error) => {
         if (typeof error.toJSON === "function") {
-          console.error(error.toJSON());
+          log.debug(error.toJSON());
         }
+
+        log.error(
+          `User with email ${req.user.mail} attempted to access submission ${id} that does not exist.`
+        );
 
         res.status(error?.response?.status || 500).json({
           message: `Error getting Forms.gov rebate form submission ${id}`,
@@ -219,7 +227,7 @@ router.post("/rebate-form-submission/:id", checkBapComboKeys, (req, res) => {
     .then((submission) => res.json(submission))
     .catch((error) => {
       if (typeof error.toJSON === "function") {
-        console.error(error.toJSON());
+        log.debug(error.toJSON());
       }
 
       res
@@ -248,7 +256,7 @@ router.post("/rebate-form-submission", checkBapComboKeys, (req, res) => {
     .then((submission) => res.json(submission))
     .catch((error) => {
       if (typeof error.toJSON === "function") {
-        console.error(error.toJSON());
+        log.debug(error.toJSON());
       }
 
       res
@@ -292,7 +300,7 @@ router.get("/rebate-form-submissions", checkBapComboKeys, (req, res) => {
     .then((submissions) => res.json(submissions))
     .catch((error) => {
       if (typeof error.toJSON === "function") {
-        console.error(error.toJSON());
+        log.debug(error.toJSON());
       }
 
       res.status(error?.response?.status || 500).json({

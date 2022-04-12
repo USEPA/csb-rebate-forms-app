@@ -11,6 +11,7 @@ import "@reach/dialog/styles.css";
 import "@reach/tooltip/styles.css";
 import "uswds/css/uswds.css";
 import "uswds/js/uswds.js";
+import "bootstrap/dist/css/bootstrap-grid.min.css";
 import "formiojs/dist/formio.full.min.css";
 import "@formio/premium/dist/premium.css";
 import "@formio/uswds/dist/uswds.min.css";

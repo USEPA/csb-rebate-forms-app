@@ -123,5 +123,5 @@ app.get("*", (req, res) => {
 app.use(errorHandler);
 
 app.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
+  log.info(`Server listening on port ${port}`);
 });
