@@ -303,81 +303,83 @@ export default function NewRebateForm() {
                 />
               )}
 
-              <table className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full">
-                <thead>
-                  <tr className="font-sans-2xs text-no-wrap">
-                    <th scope="col">&nbsp;</th>
-                    <th scope="col">
-                      <TextWithTooltip
-                        text="UEI"
-                        tooltip="Unique Entity ID from SAM.gov"
-                      />
-                    </th>
-                    <th scope="col">
-                      <TextWithTooltip
-                        text="EFT Indicator"
-                        tooltip="Electronic Funds Transfer Indicator listing the associated bank account from SAM.gov"
-                      />
-                    </th>
-                    <th scope="col">
-                      <TextWithTooltip
-                        text="Applicant"
-                        tooltip="Legal Business Name from SAM.gov for this UEI"
-                      />
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {!activeSamData ? (
-                    <tr>
-                      <td colSpan={4}>
-                        <div className="margin-bottom-2">
-                          <Loading />
-                        </div>
-                      </td>
+              <div className="usa-table-container--scrollable" tabIndex={0}>
+                <table className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full">
+                  <thead>
+                    <tr className="font-sans-2xs text-no-wrap">
+                      <th scope="col">&nbsp;</th>
+                      <th scope="col">
+                        <TextWithTooltip
+                          text="UEI"
+                          tooltip="Unique Entity ID from SAM.gov"
+                        />
+                      </th>
+                      <th scope="col">
+                        <TextWithTooltip
+                          text="EFT Indicator"
+                          tooltip="Electronic Funds Transfer Indicator listing the associated bank account from SAM.gov"
+                        />
+                      </th>
+                      <th scope="col">
+                        <TextWithTooltip
+                          text="Applicant"
+                          tooltip="Legal Business Name from SAM.gov for this UEI"
+                        />
+                      </th>
                     </tr>
-                  ) : (
-                    activeSamData.map((samData, index) => {
-                      return (
-                        <tr key={index}>
-                          <th scope="row" className="font-sans-2xs">
-                            <button
-                              className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-                              onClick={(ev) => {
-                                setSamData(samData);
-                                setDialogShown(false);
-                              }}
-                            >
-                              <span className="display-flex flex-align-center">
-                                <svg
-                                  className="usa-icon"
-                                  aria-hidden="true"
-                                  focusable="false"
-                                  role="img"
-                                >
-                                  <use href={`${icons}#arrow_forward`} />
-                                </svg>
-                                <span className="mobile-lg:display-none margin-left-1">
-                                  New Form
+                  </thead>
+                  <tbody>
+                    {!activeSamData ? (
+                      <tr>
+                        <td colSpan={4}>
+                          <div className="margin-bottom-2">
+                            <Loading />
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      activeSamData.map((samData, index) => {
+                        return (
+                          <tr key={index}>
+                            <th scope="row" className="font-sans-2xs">
+                              <button
+                                className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
+                                onClick={(ev) => {
+                                  setSamData(samData);
+                                  setDialogShown(false);
+                                }}
+                              >
+                                <span className="display-flex flex-align-center">
+                                  <svg
+                                    className="usa-icon"
+                                    aria-hidden="true"
+                                    focusable="false"
+                                    role="img"
+                                  >
+                                    <use href={`${icons}#arrow_forward`} />
+                                  </svg>
+                                  <span className="mobile-lg:display-none margin-left-1">
+                                    New Form
+                                  </span>
                                 </span>
-                              </span>
-                            </button>
-                          </th>
-                          <th className="font-sans-2xs">
-                            {samData.UNIQUE_ENTITY_ID__c}
-                          </th>
-                          <th className="font-sans-2xs">
-                            {samData.ENTITY_EFT_INDICATOR__c}
-                          </th>
-                          <th className="font-sans-2xs">
-                            {samData.LEGAL_BUSINESS_NAME__c}
-                          </th>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
+                              </button>
+                            </th>
+                            <th className="font-sans-2xs">
+                              {samData.UNIQUE_ENTITY_ID__c}
+                            </th>
+                            <th className="font-sans-2xs">
+                              {samData.ENTITY_EFT_INDICATOR__c}
+                            </th>
+                            <th className="font-sans-2xs">
+                              {samData.LEGAL_BUSINESS_NAME__c}
+                            </th>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             <button
