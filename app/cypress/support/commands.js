@@ -16,13 +16,25 @@ Cypress.Commands.add('loginToCSB', (username, password = 'password') => {
   cy.get('body').then(($body) => {
     // Check if the user needs to sign in, by looking for the sign in button. 
     // If the sign in button is not found do nothing, because the user is already logged in.
-    if ($body.find("a:contains('Sign in')").length) {
-      cy.contains('a', 'Sign in').click();
+    if ($body.find(`p:contains('${username}')`).length === 0 && $body.find("a:contains('Sign out')").length) {
+      cy.contains('a', 'Sign out').click();
 
-      // login to CSB
-      cy.findByLabelText('Username').type(username);
-      cy.findByLabelText('Password').type(password);
-      cy.findByText('Login').click();
+      cy.findAllByText('Sign in');
+      
+      signIn();
+    }
+
+    if ($body.find("a:contains('Sign in')").length) {
+      signIn();
     }
   });
+
+  function signIn() {
+    cy.contains('a', 'Sign in').click();
+
+    // login to CSB
+    cy.findByLabelText('Username').type(username);
+    cy.findByLabelText('Password').type(password);
+    cy.findByText('Login').click();
+  }
 });
