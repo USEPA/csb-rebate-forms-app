@@ -162,9 +162,9 @@ export default function ExistingRebateForm() {
           className="margin-top-4"
           children={
             submissionData.state === "draft"
-              ? content.data.existingDraftRebateFormIntro
+              ? content.data?.existingDraftRebateFormIntro || ""
               : submissionData.state === "submitted"
-              ? content.data.existingSubmittedRebateFormIntro
+              ? content.data?.existingSubmittedRebateFormIntro || ""
               : ""
           }
         />
