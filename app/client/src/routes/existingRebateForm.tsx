@@ -135,17 +135,18 @@ export default function ExistingRebateForm() {
     return <Loading />;
   }
 
-  if (rebateFormSubmission.status === "failure") {
-    return <Message type="error" text={`Error loading rebate form ${id}.`} />;
-  }
-
   const { userAccess, formSchema, submissionData } = rebateFormSubmission.data;
 
-  if (!userAccess || !formSchema || !submissionData) {
+  if (
+    rebateFormSubmission.status === "failure" ||
+    !userAccess ||
+    !formSchema ||
+    !submissionData
+  ) {
     return (
       <Message
-        type="warning"
-        text="You don’t have access to this form. Please contact support if you believe this is a mistake."
+        type="error"
+        text="The requested submission does not exist, or you do not have access. Please contact support if you believe this is a mistake."
       />
     );
   }
