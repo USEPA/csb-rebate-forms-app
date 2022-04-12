@@ -51,23 +51,23 @@ router.post("/rebate-form-submission/:id", verifyMongoObjectId, (req, res) => {
   axios
     .get(formioSubmissionUrl, formioHeaders)
     .then((axiosRes) => axiosRes.data)
-    .then((submission) => {
+    .then((existingSubmission) => {
       axios
         .put(
           formioSubmissionUrl,
           {
             state: "draft",
-            data: { ...submission.data, last_updated_by: userEmail },
+            data: { ...existingSubmission.data, last_updated_by: userEmail },
           },
           formioHeaders
         )
         .then((axiosRes) => axiosRes.data)
-        .then((submission) => {
+        .then((updatedSubmission) => {
           log.info(
             `User with email ${userEmail} updated rebate form submission ${id} from submitted to draft.`
           );
 
-          res.json(submission);
+          res.json(updatedSubmission);
         });
     })
     .catch((error) => {
