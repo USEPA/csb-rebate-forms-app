@@ -58,12 +58,17 @@ const ensureAuthenticated = (
  */
 const ensureHelpdesk = (req, res, next) => {
   const userRoles = req.user.memberof ? req.user.memberof.split(",") : [];
+
   if (!userRoles.includes("csb_admin") && !userRoles.includes("csb_helpdesk")) {
-    log.error(
-      `User with email ${req.user.mail} attempted to perform an admin/helpdesk action without correct privileges.`
-    );
+    if (!req.originalUrl.includes("/helpdesk-access")) {
+      log.error(
+        `User with email ${req.user.mail} attempted to perform an admin/helpdesk action without correct privileges.`
+      );
+    }
+
     return res.status(401).json({ message: "Unauthorized" });
   }
+
   next();
 };
 
