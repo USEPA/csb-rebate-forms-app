@@ -1,5 +1,4 @@
 const express = require("express");
-const ObjectId = require("mongodb").ObjectId;
 const axios = require("axios").default;
 // ---
 const {
@@ -7,7 +6,11 @@ const {
   formioFormId,
   formioHeaders,
 } = require("../config/formio");
-const { ensureAuthenticated, ensureHelpdesk } = require("../middleware");
+const {
+  ensureAuthenticated,
+  ensureHelpdesk,
+  verifyMongoObjectId,
+} = require("../middleware");
 const logger = require("../utilities/logger");
 
 const log = logger.logger;
@@ -19,14 +22,8 @@ router.use(ensureAuthenticated);
 router.use(ensureHelpdesk);
 
 // --- get an existing rebate form's submission data from Forms.gov
-router.get("/rebate-form-submission/:id", (req, res) => {
+router.get("/rebate-form-submission/:id", verifyMongoObjectId, (req, res) => {
   const id = req.params.id;
-
-  if (!ObjectId.isValid(id)) {
-    return res.status(400).json({
-      message: `MongoDB ObjectId validation error for: ${id}`,
-    });
-  }
 
   axios
     .get(`${formioProjectUrl}/${formioFormId}/submission/${id}`, formioHeaders)
@@ -46,48 +43,46 @@ router.get("/rebate-form-submission/:id", (req, res) => {
 });
 
 // --- change a submitted Forms.gov rebate form's submission back to 'draft'
-router.get("/reopen-rebate-form-submission/:id", (req, res) => {
-  const id = req.params.id;
-  const userEmail = req.user.mail;
-  const formioSubmissionUrl = `${formioProjectUrl}/${formioFormId}/submission/${id}`;
+router.get(
+  "/reopen-rebate-form-submission/:id",
+  verifyMongoObjectId,
+  (req, res) => {
+    const id = req.params.id;
+    const userEmail = req.user.mail;
+    const formioSubmissionUrl = `${formioProjectUrl}/${formioFormId}/submission/${id}`;
 
-  if (!ObjectId.isValid(id)) {
-    return res.status(400).json({
-      message: `MongoDB ObjectId validation error for: ${id}`,
-    });
-  }
+    axios
+      .get(formioSubmissionUrl, formioHeaders)
+      .then((axiosRes) => axiosRes.data)
+      .then((submission) => {
+        axios
+          .put(
+            formioSubmissionUrl,
+            {
+              state: "draft",
+              data: { ...submission.data, last_updated_by: userEmail },
+            },
+            formioHeaders
+          )
+          .then((axiosRes) => axiosRes.data)
+          .then((submission) => {
+            log.info(
+              `User with email ${userEmail} updated rebate form submission ${id} from submitted to draft.`
+            );
 
-  axios
-    .get(formioSubmissionUrl, formioHeaders)
-    .then((axiosRes) => axiosRes.data)
-    .then((submission) => {
-      axios
-        .put(
-          formioSubmissionUrl,
-          {
-            state: "draft",
-            data: { ...submission.data, last_updated_by: userEmail },
-          },
-          formioHeaders
-        )
-        .then((axiosRes) => axiosRes.data)
-        .then((submission) => {
-          log.info(
-            `User with email ${userEmail} updated rebate form submission ${id} from submitted to draft.`
-          );
+            res.json(submission);
+          });
+      })
+      .catch((error) => {
+        if (typeof error.toJSON === "function") {
+          console.error(error.toJSON());
+        }
 
-          res.json(submission);
+        res.status(error?.response?.status || 500).json({
+          message: `Error updating Forms.gov rebate form submission ${id}`,
         });
-    })
-    .catch((error) => {
-      if (typeof error.toJSON === "function") {
-        console.error(error.toJSON());
-      }
-
-      res.status(error?.response?.status || 500).json({
-        message: `Error updating Forms.gov rebate form submission ${id}`,
       });
-    });
-});
+  }
+);
 
 module.exports = router;

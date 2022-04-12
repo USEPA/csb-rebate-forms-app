@@ -67,6 +67,18 @@ const ensureHelpdesk = (req, res, next) => {
   next();
 };
 
+const verifyMongoObjectId = (req, res, next) => {
+  const id = req.params.id;
+
+  if (id && !ObjectId.isValid(id)) {
+    return res.status(400).json({
+      message: `MongoDB ObjectId validation error for: ${id}`,
+    });
+  }
+
+  next();
+};
+
 const rejectRequest = (req, res) => {
   // Clear token cookie if there was an error verifying (e.g. expired)
   res.clearCookie(cookieName);
@@ -136,6 +148,7 @@ const checkBapComboKeys = (req, res, next) => {
 module.exports = {
   ensureAuthenticated,
   ensureHelpdesk,
+  verifyMongoObjectId,
   appScan,
   protectClientRoutes,
   checkClientRouteExists,
