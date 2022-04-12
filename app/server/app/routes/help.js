@@ -43,46 +43,34 @@ router.get("/rebate-form-submission/:id", verifyMongoObjectId, (req, res) => {
 });
 
 // --- change a submitted Forms.gov rebate form's submission back to 'draft'
-router.get(
-  "/reopen-rebate-form-submission/:id",
-  verifyMongoObjectId,
-  (req, res) => {
-    const id = req.params.id;
-    const userEmail = req.user.mail;
-    const formioSubmissionUrl = `${formioProjectUrl}/${formioFormId}/submission/${id}`;
+router.post("/rebate-form-submission/:id", verifyMongoObjectId, (req, res) => {
+  const id = req.params.id;
+  const formioSubmissionUrl = `${formioProjectUrl}/${formioFormId}/submission/${id}`;
 
-    axios
-      .get(formioSubmissionUrl, formioHeaders)
-      .then((axiosRes) => axiosRes.data)
-      .then((submission) => {
-        axios
-          .put(
-            formioSubmissionUrl,
-            {
-              state: "draft",
-              data: { ...submission.data, last_updated_by: userEmail },
-            },
-            formioHeaders
-          )
-          .then((axiosRes) => axiosRes.data)
-          .then((submission) => {
-            log.info(
-              `User with email ${userEmail} updated rebate form submission ${id} from submitted to draft.`
-            );
+  axios
+    .get(formioSubmissionUrl, formioHeaders)
+    .then((axiosRes) => axiosRes.data)
+    .then((submission) => {
+      axios
+        .put(formioSubmissionUrl, req.body, formioHeaders)
+        .then((axiosRes) => axiosRes.data)
+        .then((submission) => {
+          log.info(
+            `User with email ${req.user.mail} updated rebate form submission ${id} from submitted to draft.`
+          );
 
-            res.json(submission);
-          });
-      })
-      .catch((error) => {
-        if (typeof error.toJSON === "function") {
-          log.debug(error.toJSON());
-        }
-
-        res.status(error?.response?.status || 500).json({
-          message: `Error updating Forms.gov rebate form submission ${id}`,
+          res.json(submission);
         });
+    })
+    .catch((error) => {
+      if (typeof error.toJSON === "function") {
+        log.debug(error.toJSON());
+      }
+
+      res.status(error?.response?.status || 500).json({
+        message: `Error updating Forms.gov rebate form submission ${id}`,
       });
-  }
-);
+    });
+});
 
 module.exports = router;

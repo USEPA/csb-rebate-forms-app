@@ -192,14 +192,22 @@ export default function Helpdesk() {
                           confirmText: "Yes",
                           cancelText: "Cancel",
                           confirmedAction: () => {
+                            const submissionUrl = `${serverUrl}/help/rebate-form-submission/${formId}`;
+                            const submissionData = rebateFormSubmission.data;
+                            if (!submissionData) return;
+
                             setRebateFormSubmission({
                               status: "pending",
                               data: null,
                             });
 
-                            fetchData(
-                              `${serverUrl}/help/reopen-rebate-form-submission/${formId}`
-                            )
+                            fetchData(submissionUrl, {
+                              state: "draft",
+                              data: {
+                                ...submissionData.data,
+                                last_updated_by: epaUserData.data.mail,
+                              },
+                            })
                               .then((res) => {
                                 setRebateFormSubmission({
                                   status: "success",
