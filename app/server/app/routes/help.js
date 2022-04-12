@@ -29,7 +29,7 @@ router.get("/rebate-form-submission/:id", (req, res) => {
     })
     .catch((error) => {
       if (typeof error.toJSON === "function") {
-        console.error(error.toJSON());
+        log.debug(error.toJSON());
       }
 
       res.status(error?.response?.status || 500).json({
@@ -58,7 +58,7 @@ router.post("/rebate-form-submission/:id", (req, res) => {
     })
     .catch((error) => {
       if (typeof error.toJSON === "function") {
-        console.error(error.toJSON());
+        log.debug(error.toJSON());
       }
 
       res
