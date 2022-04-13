@@ -29,8 +29,8 @@ import AllRebateForms from "routes/allRebateForms";
 import NewRebateForm from "routes/newRebateForm";
 import ExistingRebateForm from "routes/existingRebateForm";
 import NotFound from "routes/notFound";
-import { useUserState, useUserDispatch } from "contexts/user";
 import { useContentState, useContentDispatch } from "contexts/content";
+import { useUserState, useUserDispatch } from "contexts/user";
 import { useDialogDispatch, useDialogState } from "contexts/dialog";
 
 // Custom hook to fetch static content

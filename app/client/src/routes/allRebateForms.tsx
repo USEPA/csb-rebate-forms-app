@@ -7,13 +7,13 @@ import Loading from "components/loading";
 import Message from "components/message";
 import MarkdownContent from "components/markdownContent";
 import { TextWithTooltip } from "components/infoTooltip";
-import { useUserState } from "contexts/user";
 import { useContentState } from "contexts/content";
+import { useUserState } from "contexts/user";
 import { useFormsState, useFormsDispatch } from "contexts/forms";
 
 export default function AllRebateForms() {
-  const { samUserData } = useUserState();
   const { content } = useContentState();
+  const { samUserData } = useUserState();
   const { rebateFormSubmissions } = useFormsState();
   const dispatch = useFormsDispatch();
 

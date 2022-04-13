@@ -9,8 +9,8 @@ import Loading from "components/loading";
 import Message, { useMessageState } from "components/message";
 import MarkdownContent from "components/markdownContent";
 import { TextWithTooltip } from "components/infoTooltip";
-import { EPAUserData, SAMUserData, useUserState } from "contexts/user";
 import { useContentState } from "contexts/content";
+import { EPAUserData, SAMUserData, useUserState } from "contexts/user";
 
 type FormioSubmission = {
   // NOTE: more fields are in a form.io submission,
@@ -247,8 +247,8 @@ function FormioForm({ samData, epaData }: FormioFormProps) {
 
 export default function NewRebateForm() {
   const navigate = useNavigate();
-  const { epaUserData, samUserData } = useUserState();
   const { content } = useContentState();
+  const { epaUserData, samUserData } = useUserState();
 
   const [dialogShown, setDialogShown] = useState(true);
 
