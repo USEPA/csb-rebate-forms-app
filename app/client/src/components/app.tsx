@@ -266,9 +266,7 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
   }
 
   if (!isAuthenticated) {
-    return (
-      <Navigate to="/welcome" state={{ redirectedFrom: pathname }} replace />
-    );
+    return <Navigate to="/welcome" replace />;
   }
 
   return (
