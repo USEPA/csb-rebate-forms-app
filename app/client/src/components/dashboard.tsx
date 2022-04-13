@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { render } from "react-dom";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Formio } from "@formio/react";
 import premium from "@formio/premium";
@@ -9,9 +8,7 @@ import icons from "uswds/img/sprite.svg";
 import { serverUrl, formioProjectUrl, fetchData } from "../config";
 import { useHelpdeskAccess } from "components/app";
 import Loading from "components/loading";
-import MarkdownContent from "components/markdownContent";
 import { useUserState, useUserDispatch } from "contexts/user";
-import { useContentState, useContentDispatch } from "contexts/content";
 import { Action, useDialogDispatch } from "contexts/dialog";
 
 Formio.setProjectUrl(formioProjectUrl);
@@ -40,82 +37,6 @@ function useFetchedSamData() {
         window.location.href = `${serverUrl}/logout?RelayState=/welcome?error=sam-fetch`;
       });
   }, [dispatch]);
-}
-
-// Custom hook to fetch static content
-function useFetchedContent() {
-  const dispatch = useContentDispatch();
-
-  useEffect(() => {
-    dispatch({ type: "FETCH_CONTENT_REQUEST" });
-    fetchData(`${serverUrl}/api/content`)
-      .then((res) => {
-        const {
-          siteAlert,
-          helpdeskIntro,
-          allRebateFormsIntro,
-          allRebateFormsOutro,
-          newRebateFormIntro,
-          newRebateFormDialog,
-          existingDraftRebateFormIntro,
-          existingSubmittedRebateFormIntro,
-        } = res;
-        dispatch({
-          type: "FETCH_CONTENT_SUCCESS",
-          payload: {
-            siteAlert,
-            helpdeskIntro,
-            allRebateFormsIntro,
-            allRebateFormsOutro,
-            newRebateFormIntro,
-            newRebateFormDialog,
-            existingDraftRebateFormIntro,
-            existingSubmittedRebateFormIntro,
-          },
-        });
-      })
-      .catch((err) => {
-        dispatch({ type: "FETCH_CONTENT_FAILURE" });
-      });
-  }, [dispatch]);
-}
-
-// Custom hook to display a site-wide alert banner
-function useSiteAlertBanner() {
-  const { content } = useContentState();
-
-  useEffect(() => {
-    if (content.status !== "success") return;
-    if (content.data?.siteAlert === "") return;
-
-    const siteAlert = document.querySelector(".usa-site-alert");
-    if (!siteAlert) return;
-
-    siteAlert.setAttribute("aria-label", "Site alert");
-    siteAlert.classList.add("usa-site-alert--emergency");
-
-    render(
-      <div className="usa-alert">
-        <MarkdownContent
-          className="usa-alert__body"
-          children={content.data?.siteAlert || ""}
-          components={{
-            h1: (props) => (
-              <h3 className="usa-alert__heading">{props.children}</h3>
-            ),
-            h2: (props) => (
-              <h3 className="usa-alert__heading">{props.children}</h3>
-            ),
-            h3: (props) => (
-              <h3 className="usa-alert__heading">{props.children}</h3>
-            ),
-            p: (props) => <p className="usa-alert__text">{props.children}</p>,
-          }}
-        />
-      </div>,
-      siteAlert
-    );
-  }, [content]);
 }
 
 type IconTextProps = {
@@ -162,8 +83,6 @@ export default function Dashboard() {
   const helpdeskAccess = useHelpdeskAccess();
 
   useFetchedSamData();
-  useFetchedContent();
-  useSiteAlertBanner();
 
   /**
    * When provided a destination location to navigate to, creates an action

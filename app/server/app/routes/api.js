@@ -21,60 +21,11 @@ const log = logger.logger;
 
 const router = express.Router();
 
-const s3Bucket = process.env.S3_PUBLIC_BUCKET;
-const s3Region = process.env.S3_PUBLIC_REGION;
-
-router.use(ensureAuthenticated);
-
-// --- verification used to check if user has access to the /helpdesk route (using ensureHelpdesk middleware)
-router.get("/helpdesk-access", ensureHelpdesk, (req, res) => {
-  res.sendStatus(200);
-});
-
-// --- get EPA data from EPA Gateway/Login.gov
-router.get("/epa-data", (req, res) => {
-  // Explicitly return only required attributes from user info
-  res.json({
-    mail: req.user.mail,
-    memberof: req.user.memberof,
-    exp: req.user.exp,
-  });
-});
-
-// --- get SAM.gov data from BAP
-router.get("/sam-data", (req, res) => {
-  getSamData(req.user.mail)
-    .then((samUserData) => {
-      const userRoles = req.user.memberof.split(",");
-      const helpdeskUser =
-        userRoles.includes("csb_admin") || userRoles.includes("csb_helpdesk");
-
-      // First check if user has at least one associated UEI before completing login process
-      // If user has admin or helpdesk role, return empty array but still allow app use
-      if (!helpdeskUser && samUserData?.length === 0) {
-        log.error(
-          `User with email ${req.user.mail} tried to use app without any associated SAM records.`
-        );
-
-        return res.json({
-          results: false,
-          records: [],
-        });
-      }
-
-      res.json({
-        results: true,
-        records: samUserData,
-      });
-    })
-    .catch((err) => {
-      log.error(err);
-      res.status(401).json({ message: "Error getting SAM.gov data" });
-    });
-});
-
 // --- get static content from S3
 router.get("/content", (req, res) => {
+  const s3Bucket = process.env.S3_PUBLIC_BUCKET;
+  const s3Region = process.env.S3_PUBLIC_REGION;
+
   // NOTE: static content files found in `app/server/app/config/` directory
   const filenames = [
     "site-alert.md",
@@ -125,6 +76,55 @@ router.get("/content", (req, res) => {
       res
         .status(error?.response?.status || 500)
         .json({ message: "Error getting static content from S3 bucket" });
+    });
+});
+
+router.use(ensureAuthenticated);
+
+// --- verification used to check if user has access to the /helpdesk route (using ensureHelpdesk middleware)
+router.get("/helpdesk-access", ensureHelpdesk, (req, res) => {
+  res.sendStatus(200);
+});
+
+// --- get EPA data from EPA Gateway/Login.gov
+router.get("/epa-data", (req, res) => {
+  // Explicitly return only required attributes from user info
+  res.json({
+    mail: req.user.mail,
+    memberof: req.user.memberof,
+    exp: req.user.exp,
+  });
+});
+
+// --- get SAM.gov data from BAP
+router.get("/sam-data", (req, res) => {
+  getSamData(req.user.mail)
+    .then((samUserData) => {
+      const userRoles = req.user.memberof.split(",");
+      const helpdeskUser =
+        userRoles.includes("csb_admin") || userRoles.includes("csb_helpdesk");
+
+      // First check if user has at least one associated UEI before completing login process
+      // If user has admin or helpdesk role, return empty array but still allow app use
+      if (!helpdeskUser && samUserData?.length === 0) {
+        log.error(
+          `User with email ${req.user.mail} tried to use app without any associated SAM records.`
+        );
+
+        return res.json({
+          results: false,
+          records: [],
+        });
+      }
+
+      res.json({
+        results: true,
+        records: samUserData,
+      });
+    })
+    .catch((err) => {
+      log.error(err);
+      res.status(401).json({ message: "Error getting SAM.gov data" });
     });
 });
 
