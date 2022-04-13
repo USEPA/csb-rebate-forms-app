@@ -158,7 +158,6 @@ export default function Helpdesk() {
             className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full"
             data-testid="csb-rebate-forms-helpdesk"
           >
-            {" "}
             <thead>
               <tr className="font-sans-2xs text-no-wrap">
                 <th scope="col">&nbsp;</th>

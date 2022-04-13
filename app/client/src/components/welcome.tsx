@@ -82,29 +82,29 @@ export default function Welcome() {
 
       {message.displayed && <Message type={message.type} text={message.text} />}
 
-    <div className="padding-9 border-1px border-base-lighter text-center bg-base-lightest">
-      <p>
-        Click the <strong>Sign in</strong> button below to log into the{" "}
+      <div className="padding-9 border-1px border-base-lighter text-center bg-base-lightest">
+        <p>
+          Click the <strong>Sign in</strong> button below to login to the{" "}
           <em>Clean School Bus Rebate Dashboard</em> using Login.gov.
-      </p>
+        </p>
 
-      <a
-        className="usa-button margin-top-1 margin-right-0 font-sans-2xs"
-        href={`${serverUrl}/login`}
-      >
-        <span className="display-flex flex-align-center">
-          <span className="margin-right-1">Sign in</span>
-          <svg
-            className="usa-icon"
-            aria-hidden="true"
-            focusable="false"
-            role="img"
-          >
-            <use href={`${icons}#login`} />
-          </svg>
-        </span>
-      </a>
-    </div>
+        <a
+          className="usa-button margin-top-1 margin-right-0 font-sans-2xs"
+          href={`${serverUrl}/login`}
+        >
+          <span className="display-flex flex-align-center">
+            <span className="margin-right-1">Sign in</span>
+            <svg
+              className="usa-icon"
+              aria-hidden="true"
+              focusable="false"
+              role="img"
+            >
+              <use href={`${icons}#login`} />
+            </svg>
+          </span>
+        </a>
+      </div>
     </>
   );
 }
