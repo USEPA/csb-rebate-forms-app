@@ -174,7 +174,7 @@ export default function Dashboard() {
         <nav className="desktop:order-last mobile-lg:display-flex flex-align-center flex-justify-end">
           <p className="margin-bottom-1 margin-right-1">
             <span>
-              {epaUserData.status === "success" && epaUserData.data.mail}
+              {epaUserData.status === "success" && epaUserData.data?.mail}
             </span>
           </p>
 

@@ -77,7 +77,7 @@ export default function Helpdesk() {
       {content.status === "success" && (
         <MarkdownContent
           className="margin-top-4"
-          children={content.data.helpdeskIntro}
+          children={content.data?.helpdeskIntro || ""}
         />
       )}
 
@@ -139,7 +139,20 @@ export default function Helpdesk() {
         />
       )}
 
-      {rebateFormSubmission.status === "success" && (
+      {/*
+        NOTE: when the rebate form submission data is succesfully fetched, the
+        response should contain the submission data, but since it's coming from
+        an external server, we should check that it exists first before using it
+      */}
+      {rebateFormSubmission.status === "success" &&
+        !rebateFormSubmission.data && (
+          <Message
+            type="error"
+            text="Error loading rebate form submission. Please confirm the form ID is correct and search again."
+          />
+        )}
+
+      {rebateFormSubmission.status === "success" && rebateFormSubmission.data && (
         <div className="usa-table-container--scrollable" tabIndex={0}>
           <table
             className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full"
@@ -200,24 +213,16 @@ export default function Helpdesk() {
                             const submissionData = rebateFormSubmission.data;
                             if (!submissionData) return;
 
-                            fetchData(submissionUrl, {
-                              state: "draft",
-                              data: {
-                                ...submissionData.data,
-                                last_updated_by: epaUserData.data.mail,
-                              },
-                            })
-                              .then((postRes) => {
-                                setRebateFormSubmission({
-                                  status: "pending",
-                                  data: null,
-                                });
+                            setRebateFormSubmission({
+                              status: "pending",
+                              data: null,
+                            });
 
-                                fetchData(submissionUrl).then((getRes) => {
-                                  setRebateFormSubmission({
-                                    status: "success",
-                                    data: getRes,
-                                  });
+                            fetchData(submissionUrl, {})
+                              .then((res) => {
+                                setRebateFormSubmission({
+                                  status: "success",
+                                  data: res,
                                 });
                               })
                               .catch((err) => {
@@ -240,9 +245,6 @@ export default function Helpdesk() {
                       >
                         <use href={`${icons}#update`} />
                       </svg>
-                      <span className="mobile-lg:display-none margin-left-1">
-                        Update Form
-                      </span>
                     </span>
                   </button>
                 </th>
