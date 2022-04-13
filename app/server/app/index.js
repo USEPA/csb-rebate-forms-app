@@ -83,7 +83,7 @@ if (process.env.NODE_ENV === "development") {
 
 // Apply global middleware on dev/staging in order for scan to receive 200 status on all endpoints
 if (
-  process.env.CLOUD_SPACE === "development" ||
+  process.env.CLOUD_SPACE === "dev" ||
   process.env.CLOUD_SPACE === "staging"
 ) {
   app.use(appScan);

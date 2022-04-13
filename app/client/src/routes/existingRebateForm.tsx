@@ -6,8 +6,8 @@ import { serverUrl, fetchData } from "../config";
 import Loading from "components/loading";
 import Message, { useMessageState } from "components/message";
 import MarkdownContent from "components/markdownContent";
-import { useUserState } from "contexts/user";
 import { useContentState } from "contexts/content";
+import { useUserState } from "contexts/user";
 
 type FormioSubmission = {
   // NOTE: more fields are in a form.io submission,
@@ -69,8 +69,8 @@ type SubmissionsState =
 export default function ExistingRebateForm() {
   const navigate = useNavigate();
   const { id } = useParams<"id">();
-  const { epaUserData } = useUserState();
   const { content } = useContentState();
+  const { epaUserData } = useUserState();
 
   const [rebateFormSubmission, setRebateFormSubmission] =
     useState<SubmissionsState>({
@@ -172,7 +172,9 @@ export default function ExistingRebateForm() {
 
       {message.displayed && <Message type={message.type} text={message.text} />}
 
-      <h3>Application ID: {submissionData._id}</h3>
+      {submissionData.state === "submitted" && (
+        <h3>Application ID: {submissionData._id}</h3>
+      )}
 
       <div className="csb-form">
         <Form

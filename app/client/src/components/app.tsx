@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { render } from "react-dom";
 import {
   BrowserRouter,
   Navigate,
@@ -12,13 +13,14 @@ import "@reach/tooltip/styles.css";
 import "uswds/css/uswds.css";
 import "uswds/js/uswds.js";
 import "bootstrap/dist/css/bootstrap-grid.min.css";
-import "formiojs/dist/formio.full.min.css";
-import "@formio/premium/dist/premium.css";
 import "@formio/uswds/dist/uswds.min.css";
 import "@formio/choices.js/public/assets/styles/choices.min.css";
+import "@formio/premium/dist/premium.css";
+import "formiojs/dist/formio.full.min.css";
 // ---
-import { serverBasePath, serverUrl, fetchData } from "../config";
+import { serverBasePath, serverUrl, cloudSpace, fetchData } from "../config";
 import Loading from "components/loading";
+import MarkdownContent from "components/markdownContent";
 import Welcome from "components/welcome";
 import Dashboard from "components/dashboard";
 import ConfirmationDialog from "components/confirmationDialog";
@@ -27,25 +29,110 @@ import AllRebateForms from "routes/allRebateForms";
 import NewRebateForm from "routes/newRebateForm";
 import ExistingRebateForm from "routes/existingRebateForm";
 import NotFound from "routes/notFound";
+import { useContentState, useContentDispatch } from "contexts/content";
 import { useUserState, useUserDispatch } from "contexts/user";
 import { useDialogDispatch, useDialogState } from "contexts/dialog";
 
-type HelpdeskAccess = "idle" | "pending" | "success" | "failure";
-
-export function useHelpdeskAccess() {
-  const [helpdeskAccess, setHelpdeskAccess] = useState<HelpdeskAccess>("idle");
+// Custom hook to fetch static content
+function useFetchedContent() {
+  const dispatch = useContentDispatch();
 
   useEffect(() => {
-    setHelpdeskAccess("pending");
-    fetchData(`${serverUrl}/api/helpdesk-access`)
-      .then((res) => setHelpdeskAccess("success"))
-      .catch((err) => setHelpdeskAccess("failure"));
-  }, []);
-
-  return helpdeskAccess;
+    dispatch({ type: "FETCH_CONTENT_REQUEST" });
+    fetchData(`${serverUrl}/api/content`)
+      .then((res) => {
+        const {
+          siteAlert,
+          helpdeskIntro,
+          allRebateFormsIntro,
+          allRebateFormsOutro,
+          newRebateFormIntro,
+          newRebateFormDialog,
+          existingDraftRebateFormIntro,
+          existingSubmittedRebateFormIntro,
+        } = res;
+        dispatch({
+          type: "FETCH_CONTENT_SUCCESS",
+          payload: {
+            siteAlert,
+            helpdeskIntro,
+            allRebateFormsIntro,
+            allRebateFormsOutro,
+            newRebateFormIntro,
+            newRebateFormDialog,
+            existingDraftRebateFormIntro,
+            existingSubmittedRebateFormIntro,
+          },
+        });
+      })
+      .catch((err) => {
+        dispatch({ type: "FETCH_CONTENT_FAILURE" });
+      });
+  }, [dispatch]);
 }
 
-// Set up inactivity timer to auto-logout if user is inactive for >15 minutes
+// Custom hook to display a site-wide alert banner
+function useSiteAlertBanner() {
+  const { content } = useContentState();
+
+  useEffect(() => {
+    if (content.status !== "success") return;
+    if (content.data?.siteAlert === "") return;
+
+    const siteAlert = document.querySelector(".usa-site-alert");
+    if (!siteAlert) return;
+
+    siteAlert.setAttribute("aria-label", "Site alert");
+    siteAlert.classList.add("usa-site-alert--emergency");
+
+    render(
+      <div className="usa-alert">
+        <MarkdownContent
+          className="usa-alert__body"
+          children={content.data?.siteAlert || ""}
+          components={{
+            h1: (props) => (
+              <h3 className="usa-alert__heading">{props.children}</h3>
+            ),
+            h2: (props) => (
+              <h3 className="usa-alert__heading">{props.children}</h3>
+            ),
+            h3: (props) => (
+              <h3 className="usa-alert__heading">{props.children}</h3>
+            ),
+            p: (props) => <p className="usa-alert__text">{props.children}</p>,
+          }}
+        />
+      </div>,
+      siteAlert
+    );
+  }, [content]);
+}
+
+// Custom hook to display the CSB disclaimer banner for development/staging
+function useDisclaimerBanner() {
+  useEffect(() => {
+    if (!(cloudSpace === "dev" || cloudSpace === "staging")) return;
+
+    const siteAlert = document.querySelector(".usa-site-alert");
+    if (!siteAlert) return;
+
+    const banner = document.createElement("div");
+    banner.setAttribute("id", "csb-disclaimer-banner");
+    banner.setAttribute(
+      "class",
+      "padding-1 text-center text-white bg-secondary-dark"
+    );
+    banner.innerHTML = `<strong>EPA development environment:</strong> The
+      content on this page is not production data and this site is being used
+      for <strong>development</strong> and/or <strong>testing</strong> purposes
+      only.`;
+
+    siteAlert.insertAdjacentElement("beforebegin", banner);
+  }, []);
+}
+
+// Custom hook to set up inactivity timer to auto-logout user if they're inactive for >15 minutes
 function useInactivityDialog(callback: () => void) {
   const { epaUserData } = useUserState();
   const { dialogShown, heading } = useDialogState();
@@ -129,6 +216,23 @@ function useInactivityDialog(callback: () => void) {
   }, [dialogShown, heading, logoutTimer, dispatch]);
 }
 
+// Custom hook to check if user should have access to helpdesk pages
+export function useHelpdeskAccess() {
+  const [helpdeskAccess, setHelpdeskAccess] = useState<
+    "idle" | "pending" | "success" | "failure"
+  >("idle");
+
+  useEffect(() => {
+    setHelpdeskAccess("pending");
+    fetchData(`${serverUrl}/api/helpdesk-access`)
+      .then((res) => setHelpdeskAccess("success"))
+      .catch((err) => setHelpdeskAccess("failure"));
+  }, []);
+
+  return helpdeskAccess;
+}
+
+// Wrapper Component for any routes that need authenticated access
 function ProtectedRoute({ children }: { children: JSX.Element }) {
   const { pathname } = useLocation();
   const { isAuthenticating, isAuthenticated } = useUserState();
@@ -162,9 +266,7 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
   }
 
   if (!isAuthenticated) {
-    return (
-      <Navigate to="/welcome" state={{ redirectedFrom: pathname }} replace />
-    );
+    return <Navigate to="/welcome" replace />;
   }
 
   return (
@@ -176,6 +278,10 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
 }
 
 export default function App() {
+  useFetchedContent();
+  useSiteAlertBanner();
+  useDisclaimerBanner();
+
   return (
     <BrowserRouter basename={serverBasePath}>
       <Routes>

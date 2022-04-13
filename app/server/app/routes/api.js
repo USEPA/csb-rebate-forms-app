@@ -21,8 +21,63 @@ const log = logger.logger;
 
 const router = express.Router();
 
-const s3Bucket = process.env.S3_PUBLIC_BUCKET;
-const s3Region = process.env.S3_PUBLIC_REGION;
+// --- get static content from S3
+router.get("/content", (req, res) => {
+  const s3Bucket = process.env.S3_PUBLIC_BUCKET;
+  const s3Region = process.env.S3_PUBLIC_REGION;
+
+  // NOTE: static content files found in `app/server/app/config/` directory
+  const filenames = [
+    "site-alert.md",
+    "helpdesk-intro.md",
+    "all-rebate-forms-intro.md",
+    "all-rebate-forms-outro.md",
+    "new-rebate-form-intro.md",
+    "new-rebate-form-dialog.md",
+    "existing-draft-rebate-form-intro.md",
+    "existing-submitted-rebate-form-intro.md",
+  ];
+
+  const s3BucketUrl = `https://${s3Bucket}.s3-${s3Region}.amazonaws.com`;
+
+  Promise.all(
+    filenames.map((filename) => {
+      // local development: read files directly from disk
+      // production: fetch files from the public s3 bucket
+      return process.env.NODE_ENV === "development"
+        ? readFile(resolve(__dirname, "../content", filename), "utf8")
+        : axios.get(`${s3BucketUrl}/content/${filename}`);
+    })
+  )
+    .then((stringsOrResponses) => {
+      // local development: no further processing of strings needed
+      // production: get data from responses
+      return process.env.NODE_ENV === "development"
+        ? stringsOrResponses
+        : stringsOrResponses.map((axiosRes) => axiosRes.data);
+    })
+    .then((data) => {
+      res.json({
+        siteAlert: data[0],
+        helpdeskIntro: data[1],
+        allRebateFormsIntro: data[2],
+        allRebateFormsOutro: data[3],
+        newRebateFormIntro: data[4],
+        newRebateFormDialog: data[5],
+        existingDraftRebateFormIntro: data[6],
+        existingSubmittedRebateFormIntro: data[7],
+      });
+    })
+    .catch((error) => {
+      if (typeof error.toJSON === "function") {
+        log.debug(error.toJSON());
+      }
+
+      res
+        .status(error?.response?.status || 500)
+        .json({ message: "Error getting static content from S3 bucket" });
+    });
+});
 
 router.use(ensureAuthenticated);
 
@@ -70,59 +125,6 @@ router.get("/sam-data", (req, res) => {
     .catch((err) => {
       log.error(err);
       res.status(401).json({ message: "Error getting SAM.gov data" });
-    });
-});
-
-// --- get static content from S3
-router.get("/content", (req, res) => {
-  // NOTE: static content files found in `app/server/app/config/` directory
-  const filenames = [
-    "helpdesk-intro.md",
-    "all-rebate-forms-intro.md",
-    "all-rebate-forms-outro.md",
-    "new-rebate-form-intro.md",
-    "new-rebate-form-dialog.md",
-    "existing-draft-rebate-form-intro.md",
-    "existing-submitted-rebate-form-intro.md",
-  ];
-
-  const s3BucketUrl = `https://${s3Bucket}.s3-${s3Region}.amazonaws.com`;
-
-  Promise.all(
-    filenames.map((filename) => {
-      // local development: read files directly from disk
-      // production: fetch files from the public s3 bucket
-      return process.env.NODE_ENV === "development"
-        ? readFile(resolve(__dirname, "../content", filename), "utf8")
-        : axios.get(`${s3BucketUrl}/content/${filename}`);
-    })
-  )
-    .then((stringsOrResponses) => {
-      // local development: no further processing of strings needed
-      // production: get data from responses
-      return process.env.NODE_ENV === "development"
-        ? stringsOrResponses
-        : stringsOrResponses.map((axiosRes) => axiosRes.data);
-    })
-    .then((data) => {
-      res.json({
-        helpdeskIntro: data[0],
-        allRebateFormsIntro: data[1],
-        allRebateFormsOutro: data[2],
-        newRebateFormIntro: data[3],
-        newRebateFormDialog: data[4],
-        existingDraftRebateFormIntro: data[5],
-        existingSubmittedRebateFormIntro: data[6],
-      });
-    })
-    .catch((error) => {
-      if (typeof error.toJSON === "function") {
-        log.debug(error.toJSON());
-      }
-
-      res
-        .status(error?.response?.status || 500)
-        .json({ message: "Error getting static content from S3 bucket" });
     });
 });
 

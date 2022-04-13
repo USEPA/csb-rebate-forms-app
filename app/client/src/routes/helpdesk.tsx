@@ -9,8 +9,8 @@ import Loading from "components/loading";
 import Message from "components/message";
 import MarkdownContent from "components/markdownContent";
 import { TextWithTooltip } from "components/infoTooltip";
-import { useUserState } from "contexts/user";
 import { useContentState } from "contexts/content";
+import { useUserState } from "contexts/user";
 import { useDialogDispatch } from "contexts/dialog";
 
 type SubmissionState =
@@ -49,8 +49,8 @@ export default function Helpdesk() {
   const [searchText, setSearchText] = useState("");
   const [formId, setFormId] = useState("");
 
-  const { epaUserData } = useUserState();
   const { content } = useContentState();
+  const { epaUserData } = useUserState();
   const dispatch = useDialogDispatch();
   const helpdeskAccess = useHelpdeskAccess();
 

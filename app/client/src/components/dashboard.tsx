@@ -9,13 +9,13 @@ import { serverUrl, formioProjectUrl, fetchData } from "../config";
 import { useHelpdeskAccess } from "components/app";
 import Loading from "components/loading";
 import { useUserState, useUserDispatch } from "contexts/user";
-import { useContentDispatch } from "contexts/content";
 import { Action, useDialogDispatch } from "contexts/dialog";
 
 Formio.setProjectUrl(formioProjectUrl);
 Formio.use(premium);
 Formio.use(uswds);
 
+// Custom hook to fetch SAM.gov data
 function useFetchedSamData() {
   const dispatch = useUserDispatch();
 
@@ -35,41 +35,6 @@ function useFetchedSamData() {
       .catch((err) => {
         dispatch({ type: "FETCH_SAM_USER_DATA_FAILURE" });
         window.location.href = `${serverUrl}/logout?RelayState=/welcome?error=sam-fetch`;
-      });
-  }, [dispatch]);
-}
-
-function useFetchedContent() {
-  const dispatch = useContentDispatch();
-
-  useEffect(() => {
-    dispatch({ type: "FETCH_CONTENT_REQUEST" });
-    fetchData(`${serverUrl}/api/content`)
-      .then((res) => {
-        const {
-          helpdeskIntro,
-          allRebateFormsIntro,
-          allRebateFormsOutro,
-          newRebateFormIntro,
-          newRebateFormDialog,
-          existingDraftRebateFormIntro,
-          existingSubmittedRebateFormIntro,
-        } = res;
-        dispatch({
-          type: "FETCH_CONTENT_SUCCESS",
-          payload: {
-            helpdeskIntro,
-            allRebateFormsIntro,
-            allRebateFormsOutro,
-            newRebateFormIntro,
-            newRebateFormDialog,
-            existingDraftRebateFormIntro,
-            existingSubmittedRebateFormIntro,
-          },
-        });
-      })
-      .catch((err) => {
-        dispatch({ type: "FETCH_CONTENT_FAILURE" });
       });
   }, [dispatch]);
 }
@@ -118,7 +83,6 @@ export default function Dashboard() {
   const helpdeskAccess = useHelpdeskAccess();
 
   useFetchedSamData();
-  useFetchedContent();
 
   /**
    * When provided a destination location to navigate to, creates an action
