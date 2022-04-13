@@ -89,7 +89,7 @@ Cypress.Commands.add('getApplicationSteps', () => {
     });
   }
 
-  function step1(newApplication) {
+  function step1(newApplication = false) {
     cy.log('Perform step 1 tests...');
 
     // workaround for an issue where clicking next on step 1 reloads step 1 again
