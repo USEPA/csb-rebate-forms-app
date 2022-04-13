@@ -13,7 +13,6 @@ const router = express.Router();
 const baseUrl = process.env.CLIENT_URL || process.env.SERVER_URL;
 const cookieName = "csb-token";
 
-// TODO: pass RelayState from front-end if necessary?
 router.get(
   "/login",
   passport.authenticate("saml", {
