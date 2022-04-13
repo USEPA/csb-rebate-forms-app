@@ -50,3 +50,7 @@
   padding: 0;
   width: 100%;
 }
+
+[data-reach-tooltip] {
+  z-index: 100000;
+}
