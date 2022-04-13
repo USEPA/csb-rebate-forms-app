@@ -25,10 +25,10 @@ describe('Routes', () => {
             cy.wrap($cols[0]).click();
           });
       });
-    
+
     // verify the tab loaded
     cy.contains('1 of 7 Introduction');
-    
+
     // extract the form id
     cy.get('body').then(($body) => {
       const elm = $body.find("h3:contains('Application ID:')")[0];
@@ -120,7 +120,9 @@ describe('Routes', () => {
 
     // verify the appropriate error message is displayed
     cy.visit(`/rebate/${formId}`);
-    cy.findByText('The requested submission does not exist, or you do not have access. Please contact support if you believe this is a mistake.');
+    cy.findByText(
+      'The requested submission does not exist, or you do not have access. Please contact support if you believe this is a mistake.',
+    );
   });
 
   it('Navigate directly to the helpdesk', () => {
