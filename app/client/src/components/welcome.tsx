@@ -44,7 +44,7 @@ export default function Welcome() {
 
     if (searchParams.get("info") === "sam-results") {
       displayInfoMessage(
-        "No SAM.gov records found. Please refer to the help documentation to add data to SAM.gov."
+        "No SAM.gov records match your email. Only Government and Electronic Business SAM.gov Points of Contacts (and alternates) may edit and submit Clean School Bus Rebate Forms."
       );
       setSearchParams("");
     }
