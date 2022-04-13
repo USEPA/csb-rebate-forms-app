@@ -17,7 +17,7 @@ import "@formio/premium/dist/premium.css";
 import "@formio/uswds/dist/uswds.min.css";
 import "@formio/choices.js/public/assets/styles/choices.min.css";
 // ---
-import { serverBasePath, serverUrl, fetchData } from "../config";
+import { serverBasePath, serverUrl, cloudSpace, fetchData } from "../config";
 import Loading from "components/loading";
 import Welcome from "components/welcome";
 import Dashboard from "components/dashboard";
@@ -32,6 +32,30 @@ import { useDialogDispatch, useDialogState } from "contexts/dialog";
 
 type HelpdeskAccess = "idle" | "pending" | "success" | "failure";
 
+// Custom hook to display the CSB disclaimer banner for development/staging
+function useDisclaimerBanner() {
+  useEffect(() => {
+    if (!(cloudSpace === "dev" || cloudSpace === "staging")) return;
+
+    const siteAlert = document.querySelector(".usa-site-alert");
+    if (!siteAlert) return;
+
+    const banner = document.createElement("div");
+    banner.setAttribute("id", "csb-disclaimer-banner");
+    banner.setAttribute(
+      "class",
+      "padding-1 text-center text-white bg-secondary-dark"
+    );
+    banner.innerHTML = `<strong>EPA development environment:</strong> The
+      content on this page is not production data and this site is being used
+      for <strong>development</strong> and/or <strong>testing</strong> purposes
+      only.`;
+
+    siteAlert.insertAdjacentElement("beforebegin", banner);
+  }, []);
+}
+
+// Custom hook to check if user should have access to helpdesk pages
 export function useHelpdeskAccess() {
   const [helpdeskAccess, setHelpdeskAccess] = useState<HelpdeskAccess>("idle");
 
@@ -45,7 +69,7 @@ export function useHelpdeskAccess() {
   return helpdeskAccess;
 }
 
-// Set up inactivity timer to auto-logout if user is inactive for >15 minutes
+// Custom hook to set up inactivity timer to auto-logout user if they're inactive for >15 minutes
 function useInactivityDialog(callback: () => void) {
   const { epaUserData } = useUserState();
   const { dialogShown, heading } = useDialogState();
@@ -129,6 +153,7 @@ function useInactivityDialog(callback: () => void) {
   }, [dialogShown, heading, logoutTimer, dispatch]);
 }
 
+// Wrapper Component for any routes that need authenticated access
 function ProtectedRoute({ children }: { children: JSX.Element }) {
   const { pathname } = useLocation();
   const { isAuthenticating, isAuthenticated } = useUserState();
@@ -176,6 +201,8 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
 }
 
 export default function App() {
+  useDisclaimerBanner();
+
   return (
     <BrowserRouter basename={serverBasePath}>
       <Routes>
