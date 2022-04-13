@@ -70,7 +70,7 @@ describe('Routes', () => {
     // verify the appropriate error message is displayed
     cy.visit(`/rebate/${formId}`);
     cy.contains(
-      'Click the Sign in button below to log into the Clean School Bus Rebate Dashboard using Login.gov.',
+      'Click the Sign in button below to login to the Clean School Bus Rebate Dashboard using Login.gov.',
     );
   });
 
@@ -147,7 +147,7 @@ describe('Routes', () => {
     // verify the appropriate error message is displayed
     cy.visit('/helpdesk');
     cy.contains(
-      'Click the Sign in button below to log into the Clean School Bus Rebate Dashboard using Login.gov.',
+      'Click the Sign in button below to login to the Clean School Bus Rebate Dashboard using Login.gov.',
     );
   });
 
