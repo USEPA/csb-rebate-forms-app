@@ -172,7 +172,9 @@ export default function ExistingRebateForm() {
 
       {message.displayed && <Message type={message.type} text={message.text} />}
 
-      <h3>Application ID: {submissionData._id}</h3>
+      {submissionData.state === "submitted" && (
+        <h3>Application ID: {submissionData._id}</h3>
+      )}
 
       <div className="csb-form">
         <Form
