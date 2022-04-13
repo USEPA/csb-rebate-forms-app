@@ -1,4 +1,12 @@
 /* --- EPA/USWDS --- */
+.usa-site-alert .usa-alert {
+  max-width: 1400px;
+}
+
+.usa-site-alert .usa-alert__body {
+  display: block;
+}
+
 .usa-radio__label {
   text-indent: 0;
 }
