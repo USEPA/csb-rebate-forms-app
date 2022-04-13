@@ -77,6 +77,7 @@ router.get("/sam-data", (req, res) => {
 router.get("/content", (req, res) => {
   // NOTE: static content files found in `app/server/app/config/` directory
   const filenames = [
+    "site-alert.md",
     "helpdesk-intro.md",
     "all-rebate-forms-intro.md",
     "all-rebate-forms-outro.md",
@@ -106,13 +107,14 @@ router.get("/content", (req, res) => {
     })
     .then((data) => {
       res.json({
-        helpdeskIntro: data[0],
-        allRebateFormsIntro: data[1],
-        allRebateFormsOutro: data[2],
-        newRebateFormIntro: data[3],
-        newRebateFormDialog: data[4],
-        existingDraftRebateFormIntro: data[5],
-        existingSubmittedRebateFormIntro: data[6],
+        siteAlert: data[0],
+        helpdeskIntro: data[1],
+        allRebateFormsIntro: data[2],
+        allRebateFormsOutro: data[3],
+        newRebateFormIntro: data[4],
+        newRebateFormDialog: data[5],
+        existingDraftRebateFormIntro: data[6],
+        existingSubmittedRebateFormIntro: data[7],
       });
     })
     .catch((error) => {
