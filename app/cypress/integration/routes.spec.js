@@ -100,7 +100,7 @@ describe('Routes', () => {
     // verify the appropriate message is displayed
     cy.visit(`/rebate/${formId}`);
     cy.findByText(
-      'You don’t have access to this form. Please contact support if you believe this is a mistake.',
+      'The requested submission does not exist, or you do not have access. Please contact support if you believe this is a mistake.',
     );
   });
 
@@ -120,7 +120,7 @@ describe('Routes', () => {
 
     // verify the appropriate error message is displayed
     cy.visit(`/rebate/${formId}`);
-    cy.findByText(`Error loading rebate form ${formId}.`);
+    cy.findByText('The requested submission does not exist, or you do not have access. Please contact support if you believe this is a mistake.');
   });
 
   it('Navigate directly to the helpdesk', () => {
