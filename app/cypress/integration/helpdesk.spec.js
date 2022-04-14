@@ -9,7 +9,7 @@ describe('Helpdesk', () => {
 
   let existingFormId = '';
   const searchInputLabelText = 'Search by Form ID';
-  const loadingSpinnerId = 'csb-loading-spinner';
+  const loadingSpinnerText = 'Loading...';
 
   before(() => {
     cy.loginToCSB('courtney');
@@ -19,7 +19,7 @@ describe('Helpdesk', () => {
     });
 
     // get a formId from an existing application
-    cy.findByTestId('csb-rebate-forms')
+    cy.findByLabelText('Your Rebate Forms')
       .get('tbody > tr')
       .within(($rows) => {
         const $firstRow = $rows[0];
@@ -91,7 +91,7 @@ describe('Helpdesk', () => {
   });
 
   it('Test setting back to draft', () => {
-    const helpdeskTableTestId = 'csb-rebate-forms-helpdesk';
+    const helpdeskTableLabelText = 'Search Results';
 
     cy.get('#root').within(($root) => {
       // search for an existing id
@@ -119,13 +119,13 @@ describe('Helpdesk', () => {
     cy.findByText('Yes').click();
 
     // verify the status was set back to draft
-    cy.findByTestId(loadingSpinnerId).should('be.visible');
-    cy.findByTestId(loadingSpinnerId).should('not.exist');
+    cy.findAllByText(loadingSpinnerText).should('be.visible');
+    cy.findAllByText(loadingSpinnerText).should('not.exist');
     checkRecords('draft');
 
     function checkRecords(status) {
       // verify the record is found and has expected data
-      cy.findByTestId(helpdeskTableTestId)
+      cy.findByLabelText(helpdeskTableLabelText)
         .get('tbody > tr')
         .within(($rows) => {
           const $firstRow = $rows[0];

@@ -76,7 +76,7 @@ describe('Rebate Form', () => {
     submitTests('', 'draft');
 
     // verify the new record is in the table
-    cy.findByTestId('csb-rebate-forms')
+    cy.findByLabelText('Your Rebate Forms')
       .get('tbody > tr')
       .within(($rows) => {
         const $firstRow = $rows[0];
@@ -118,7 +118,7 @@ describe('Rebate Form', () => {
 
   it('Existing application', () => {
     // verify the new record is in the table
-    cy.findByTestId('csb-rebate-forms')
+    cy.findByLabelText('Your Rebate Forms')
       .get('tbody > tr')
       .within(($rows) => {
         const $firstRow = $rows[0];

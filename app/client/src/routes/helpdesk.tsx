@@ -155,8 +155,8 @@ export default function Helpdesk() {
       {rebateFormSubmission.status === "success" && rebateFormSubmission.data && (
         <div className="usa-table-container--scrollable" tabIndex={0}>
           <table
+            aria-label="Search Results"
             className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full"
-            data-testid="csb-rebate-forms-helpdesk"
           >
             <thead>
               <tr className="font-sans-2xs text-no-wrap">

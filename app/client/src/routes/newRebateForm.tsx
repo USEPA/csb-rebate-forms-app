@@ -305,8 +305,8 @@ export default function NewRebateForm() {
 
               <div className="usa-table-container--scrollable" tabIndex={0}>
                 <table
+                  aria-label="Entities"
                   className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full"
-                  data-testid="csb-modal-table"
                 >
                   <thead>
                     <tr className="font-sans-2xs text-no-wrap">

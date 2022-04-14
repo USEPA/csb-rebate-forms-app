@@ -49,7 +49,7 @@ Cypress.Commands.add('loginToCSB', (username, password = 'password') => {
  * @returns Functions for filling out an application
  */
 Cypress.Commands.add('getApplicationSteps', () => {
-  const loadingSpinnerId = 'csb-loading-spinner';
+  const loadingSpinnerText = 'Loading...';
   let selectedUei = '';
   let selectedEft = '';
   let selectedOrganization = '';
@@ -63,10 +63,10 @@ Cypress.Commands.add('getApplicationSteps', () => {
     cy.findByText('Start a New Rebate Application');
 
     // wait for loading to complete
-    cy.findByTestId(loadingSpinnerId).should('not.exist');
+    cy.findAllByText(loadingSpinnerText).should('not.exist');
 
     // select the first item in the modal table
-    cy.findByTestId('csb-modal-table').within(($el) => {
+    cy.findByLabelText('Entities').within(($el) => {
       cy.get('tbody > tr').then(($elms) => {
         const $firstElm = $elms[0];
 
@@ -273,7 +273,7 @@ Cypress.Commands.add('getApplicationSteps', () => {
     cy.log('Complete submission tests...');
 
     // verify the new record is in the table
-    cy.findByTestId('csb-rebate-forms')
+    cy.findByLabelText('Your Rebate Forms')
       .get('tbody > tr')
       .within(($rows) => {
         const $firstRow = $rows[0];

@@ -67,8 +67,8 @@ export default function AllRebateForms() {
 
           <div className="usa-table-container--scrollable" tabIndex={0}>
             <table
+              aria-label="Your Rebate Forms"
               className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full"
-              data-testid="csb-rebate-forms"
             >
               <thead>
                 <tr className="font-sans-2xs text-no-wrap">

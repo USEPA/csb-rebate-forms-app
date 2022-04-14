@@ -4,7 +4,8 @@ import loader from "images/loader.svg";
 
 export default function Loading() {
   return (
-    <div className="margin-top-2 padding-1 text-center" data-testid="csb-loading-spinner">
+    <div className="margin-top-2 padding-1 text-center">
+      <span className="usa-sr-only">Loading...</span>
       <img src={loader} alt="" className="height-5 is-loading" />
     </div>
   );

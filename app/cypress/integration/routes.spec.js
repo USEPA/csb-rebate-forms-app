@@ -8,14 +8,14 @@ describe('Routes', () => {
   });
 
   let formId = '';
-  const loadingSpinnerId = 'csb-loading-spinner';
+  const loadingSpinnerText = 'Loading...';
 
   before(() => {
     cy.loginToCSB('csbtest');
     cy.findByText('Your Rebate Forms');
 
     // get a formId from an existing application
-    cy.findByTestId('csb-rebate-forms')
+    cy.findByLabelText('Your Rebate Forms')
       .get('tbody > tr')
       .within(($rows) => {
         const $firstRow = $rows[0];
@@ -54,7 +54,7 @@ describe('Routes', () => {
 
     cy.visit(`/rebate/${formId}`);
 
-    cy.findByTestId(loadingSpinnerId).should('be.visible');
+    cy.findAllByText(loadingSpinnerText).should('be.visible');
 
     cy.findByText('Edit Your Rebate Application');
   });
@@ -131,7 +131,7 @@ describe('Routes', () => {
 
     cy.visit('/helpdesk');
 
-    cy.findByTestId(loadingSpinnerId).should('be.visible');
+    cy.findAllByText(loadingSpinnerText).should('be.visible');
 
     cy.findByText('Change Rebate Form Submission State');
   });
