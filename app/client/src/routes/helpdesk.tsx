@@ -157,7 +157,9 @@ export default function Helpdesk() {
           <table className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full">
             <thead>
               <tr className="font-sans-2xs text-no-wrap">
-                <th scope="col">&nbsp;</th>
+                <th scope="col">
+                  <span className="usa-sr-only">Action</span>
+                </th>
                 <th scope="col">
                   <TextWithTooltip
                     text="Form ID"
@@ -233,6 +235,7 @@ export default function Helpdesk() {
                     }}
                   >
                     <span className="display-flex flex-align-center">
+                      <span className="usa-sr-only">Set {formId} to draft</span>
                       <svg
                         className="usa-icon"
                         aria-hidden="true"
