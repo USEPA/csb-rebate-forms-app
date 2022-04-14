@@ -88,7 +88,6 @@ function reducer(state: State, action: Action): State {
       };
     }
 
-    /* istanbul ignore next: cannot test */
     default: {
       throw new Error(`Unhandled action type: ${action}`);
     }
@@ -120,7 +119,6 @@ export function FormsProvider({ children }: Props) {
 export function useFormsState() {
   const context = useContext(StateContext);
   if (context === undefined) {
-    /* istanbul ignore next: cannot test */
     throw new Error("useFormsState must be called within a FormsProvider");
   }
   return context;
@@ -133,7 +131,6 @@ export function useFormsState() {
 export function useFormsDispatch() {
   const context = useContext(DispatchContext);
   if (context === undefined) {
-    /* istanbul ignore next: cannot test */
     throw new Error("useFormsDispatch must be used within a FormsProvider");
   }
   return context;

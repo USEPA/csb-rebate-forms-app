@@ -86,7 +86,6 @@ function reducer(state: State, action: Action): State {
       };
     }
 
-    /* istanbul ignore next: cannot test */
     default: {
       throw new Error(`Unhandled action type: ${action}`);
     }
@@ -121,7 +120,6 @@ export function DialogProvider({ children }: Props) {
 export function useDialogState() {
   const context = useContext(StateContext);
   if (context === undefined) {
-    /* istanbul ignore next: cannot test */
     throw new Error("useDialogState must be called within a DialogProvider");
   }
   return context;
@@ -134,7 +132,6 @@ export function useDialogState() {
 export function useDialogDispatch() {
   const context = useContext(DispatchContext);
   if (context === undefined) {
-    /* istanbul ignore next: cannot test */
     throw new Error("useDialogDispatch must be used within a DialogProvider");
   }
   return context;
