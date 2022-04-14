@@ -1,6 +1,6 @@
 describe('Rebate Form', () => {
   // TODO Remove this when the app is more stable
-  Cypress.on('uncaught:exception', (err, runnable) => {
+  Cypress.on('uncaught:exception', (_err, _runnable) => {
     // returning false here prevents Cypress from
     // failing the test
     debugger;
@@ -17,6 +17,20 @@ describe('Rebate Form', () => {
     step7,
     submitTests,
     fillOutNewApplication;
+
+  // Verifies a record is in the table and clicks the first row
+  function clickFirstRebateFormRow() {
+    cy.findByLabelText('Your Rebate Forms')
+      .get('tbody > tr')
+      .within(($rows) => {
+        const $firstRow = $rows[0];
+        cy.wrap($firstRow)
+          .get('th,td')
+          .then(($cols) => {
+            cy.wrap($cols[0]).click();
+          });
+      });
+  }
 
   before(() => {
     cy.getApplicationSteps().then((steps) => {
@@ -75,17 +89,7 @@ describe('Rebate Form', () => {
     // verify the new application is marked as draft
     submitTests('', 'draft');
 
-    // verify the new record is in the table
-    cy.findByLabelText('Your Rebate Forms')
-      .get('tbody > tr')
-      .within(($rows) => {
-        const $firstRow = $rows[0];
-        cy.wrap($firstRow)
-          .get('th,td')
-          .then(($cols) => {
-            cy.wrap($cols[0]).click();
-          });
-      });
+    clickFirstRebateFormRow();
 
     // complete the application
     step1();
@@ -117,17 +121,7 @@ describe('Rebate Form', () => {
   });
 
   it('Existing application', () => {
-    // verify the new record is in the table
-    cy.findByLabelText('Your Rebate Forms')
-      .get('tbody > tr')
-      .within(($rows) => {
-        const $firstRow = $rows[0];
-        cy.wrap($firstRow)
-          .get('th,td')
-          .then(($cols) => {
-            cy.wrap($cols[0]).click();
-          });
-      });
+    clickFirstRebateFormRow();
 
     // run the tests
     step1();

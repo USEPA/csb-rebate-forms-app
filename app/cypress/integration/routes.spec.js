@@ -1,6 +1,6 @@
 describe('Routes', () => {
   // TODO Remove this when the app is more stable
-  Cypress.on('uncaught:exception', (err, runnable) => {
+  Cypress.on('uncaught:exception', (_err, _runnable) => {
     // returning false here prevents Cypress from
     // failing the test
     debugger;

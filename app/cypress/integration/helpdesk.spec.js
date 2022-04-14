@@ -1,6 +1,6 @@
 describe('Helpdesk', () => {
   // TODO Remove this when the app is more stable
-  Cypress.on('uncaught:exception', (err, runnable) => {
+  Cypress.on('uncaught:exception', (_err, _runnable) => {
     // returning false here prevents Cypress from
     // failing the test
     debugger;
@@ -59,7 +59,7 @@ describe('Helpdesk', () => {
 
     // scope this test to just the root, so the Search button in the
     // One EPA Template does not affect this test
-    cy.get('#root').within(($main) => {
+    cy.get('#root').within(() => {
       cy.log('Test empty search');
       cy.contains('button', 'Search').click();
       cy.findByText(errorText);
@@ -93,7 +93,7 @@ describe('Helpdesk', () => {
   it('Test setting back to draft', () => {
     const helpdeskTableLabelText = 'Search Results';
 
-    cy.get('#root').within(($root) => {
+    cy.get('#root').within(() => {
       // search for an existing id
       cy.findByLabelText(searchInputLabelText).type(existingFormId);
       cy.contains('button', 'Search').click();

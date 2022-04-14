@@ -66,11 +66,11 @@ Cypress.Commands.add('getApplicationSteps', () => {
     cy.findAllByText(loadingSpinnerText).should('not.exist');
 
     // select the first item in the modal table
-    cy.findByLabelText('Entities').within(($el) => {
+    cy.findByLabelText('Entities').within(() => {
       cy.get('tbody > tr').then(($elms) => {
         const $firstElm = $elms[0];
 
-        cy.wrap($firstElm).within(($firstRow) => {
+        cy.wrap($firstElm).within(() => {
           cy.get('th').then(($cols) => {
             // store the selected row for later use
             selectedUei = $cols[1].innerText;
