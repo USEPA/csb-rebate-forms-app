@@ -53,7 +53,7 @@ export default function AllRebateForms() {
         <div className="margin-top-4">
           <Message
             type="info"
-            text="Please select the “New Rebate” button above to create your first rebate application."
+            text="Please select the “New Application” button above to create your first rebate application."
           />
         </div>
       ) : (

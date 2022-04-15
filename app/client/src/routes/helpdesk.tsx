@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Form } from "@formio/react";
 import icon from "uswds/img/usa-icons-bg/search--white.svg";
 import icons from "uswds/img/sprite.svg";
 // ---
@@ -16,31 +17,43 @@ import { useDialogDispatch } from "contexts/dialog";
 type SubmissionState =
   | {
       status: "idle";
-      data: null;
+      data: {
+        formSchema: null;
+        submissionData: null;
+      };
     }
   | {
       status: "pending";
-      data: null;
+      data: {
+        formSchema: null;
+        submissionData: null;
+      };
     }
   | {
       status: "success";
       data: {
-        // NOTE: more fields are in a form.io submission,
-        // but we're only concerned with the fields below
-        _id: string;
-        state: "submitted" | "draft";
-        modified: string;
-        data: {
-          applicantOrganizationName: string;
-          last_updated_by: string;
+        formSchema: { url: string; json: object };
+        submissionData: {
+          // NOTE: more fields are in a form.io submission,
+          // but we're only concerned with the fields below
+          _id: string;
+          state: "submitted" | "draft";
+          modified: string;
+          data: {
+            applicantOrganizationName: string;
+            last_updated_by: string;
+            // (other fields...)
+          };
           // (other fields...)
         };
-        // (other fields...)
       };
     }
   | {
       status: "failure";
-      data: null;
+      data: {
+        formSchema: null;
+        submissionData: null;
+      };
     };
 
 export default function Helpdesk() {
@@ -48,6 +61,7 @@ export default function Helpdesk() {
 
   const [searchText, setSearchText] = useState("");
   const [formId, setFormId] = useState("");
+  const [formDisplayed, setFormDisplayed] = useState(false);
 
   const { content } = useContentState();
   const { epaUserData } = useUserState();
@@ -57,7 +71,10 @@ export default function Helpdesk() {
   const [rebateFormSubmission, setRebateFormSubmission] =
     useState<SubmissionState>({
       status: "idle",
-      data: null,
+      data: {
+        formSchema: null,
+        submissionData: null,
+      },
     });
 
   if (
@@ -71,6 +88,8 @@ export default function Helpdesk() {
   if (helpdeskAccess === "failure") {
     navigate("/", { replace: true });
   }
+
+  const { formSchema, submissionData } = rebateFormSubmission.data;
 
   return (
     <>
@@ -89,15 +108,19 @@ export default function Helpdesk() {
             ev.preventDefault();
 
             setFormId("");
+            setFormDisplayed(false);
 
             setRebateFormSubmission({
               status: "pending",
-              data: null,
+              data: {
+                formSchema: null,
+                submissionData: null,
+              },
             });
 
             fetchData(`${serverUrl}/help/rebate-form-submission/${searchText}`)
               .then((res) => {
-                setFormId(res._id);
+                setFormId(res.submissionData._id);
                 setRebateFormSubmission({
                   status: "success",
                   data: res,
@@ -107,7 +130,10 @@ export default function Helpdesk() {
                 setFormId("");
                 setRebateFormSubmission({
                   status: "failure",
-                  data: null,
+                  data: {
+                    formSchema: null,
+                    submissionData: null,
+                  },
                 });
               });
           }}
@@ -152,117 +178,169 @@ export default function Helpdesk() {
           />
         )}
 
-      {rebateFormSubmission.status === "success" && rebateFormSubmission.data && (
-        <div className="usa-table-container--scrollable" tabIndex={0}>
-          <table className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full">
-            <thead>
-              <tr className="font-sans-2xs text-no-wrap">
-                <th scope="col">
-                  <span className="usa-sr-only">Update</span>
-                </th>
-                <th scope="col">
-                  <TextWithTooltip
-                    text="Form ID"
-                    tooltip="Form ID returned from Forms.gov"
-                  />
-                </th>
-                <th scope="col">
-                  <TextWithTooltip
-                    text="Applicant"
-                    tooltip="Legal Business Name from SAM.gov for this UEI"
-                  />
-                </th>
-                <th scope="col">
-                  <TextWithTooltip
-                    text="Updated By"
-                    tooltip="Last person that updated this form"
-                  />
-                </th>
-                <th scope="col">
-                  <TextWithTooltip
-                    text="Date Updated"
-                    tooltip="Last date this form was updated"
-                  />
-                </th>
-                <th scope="col">
-                  <TextWithTooltip text="Status" tooltip="submitted or draft" />
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <th scope="row">
-                  <button
-                    className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-                    disabled={rebateFormSubmission.data.state === "draft"}
-                    onClick={(ev) => {
-                      dispatch({
-                        type: "DISPLAY_DIALOG",
-                        payload: {
-                          dismissable: true,
-                          heading:
-                            "Are you sure you want to change this submission's state back to draft?",
-                          description:
-                            "Once the submission is back in a draft state, all users with access to this submission will be able to further edit it.",
-                          confirmText: "Yes",
-                          cancelText: "Cancel",
-                          confirmedAction: () => {
-                            const submissionUrl = `${serverUrl}/help/rebate-form-submission/${formId}`;
-                            const submissionData = rebateFormSubmission.data;
-                            if (!submissionData) return;
-
-                            setRebateFormSubmission({
-                              status: "pending",
-                              data: null,
-                            });
-
-                            fetchData(submissionUrl, {})
-                              .then((res) => {
-                                setRebateFormSubmission({
-                                  status: "success",
-                                  data: res,
-                                });
-                              })
-                              .catch((err) => {
-                                setRebateFormSubmission({
-                                  status: "failure",
-                                  data: null,
-                                });
-                              });
-                          },
-                        },
-                      });
-                    }}
-                  >
-                    <span className="display-flex flex-align-center">
-                      <span className="usa-sr-only">Set {formId} to draft</span>
-                      <svg
-                        className="usa-icon"
-                        aria-hidden="true"
-                        focusable="false"
-                        role="img"
+      {rebateFormSubmission.status === "success" &&
+        formSchema &&
+        submissionData && (
+          <>
+            <div className="usa-table-container--scrollable" tabIndex={0}>
+              <table className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full">
+                <thead>
+                  <tr className="font-sans-2xs text-no-wrap">
+                    <th scope="col">
+                      <span className="usa-sr-only">Open</span>
+                    </th>
+                    <th scope="col">
+                      <TextWithTooltip
+                        text="Form ID"
+                        tooltip="Form ID returned from Forms.gov"
+                      />
+                    </th>
+                    <th scope="col">
+                      <TextWithTooltip
+                        text="Applicant"
+                        tooltip="Legal Business Name from SAM.gov for this UEI"
+                      />
+                    </th>
+                    <th scope="col">
+                      <TextWithTooltip
+                        text="Updated By"
+                        tooltip="Last person that updated this form"
+                      />
+                    </th>
+                    <th scope="col">
+                      <TextWithTooltip
+                        text="Date Updated"
+                        tooltip="Last date this form was updated"
+                      />
+                    </th>
+                    <th scope="col">
+                      <TextWithTooltip
+                        text="Status"
+                        tooltip="submitted or draft"
+                      />
+                    </th>
+                    <th scope="col">
+                      <span className="usa-sr-only">Update</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row">
+                      <button
+                        className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
+                        onClick={(ev) => setFormDisplayed(true)}
                       >
-                        <use href={`${icons}#update`} />
-                      </svg>
-                    </span>
-                  </button>
-                </th>
-                <td>{rebateFormSubmission.data._id}</td>
-                <td>
-                  {rebateFormSubmission.data.data.applicantOrganizationName}
-                </td>
-                <td>{rebateFormSubmission.data.data.last_updated_by}</td>
-                <td>
-                  {new Date(
-                    rebateFormSubmission.data.modified
-                  ).toLocaleDateString()}
-                </td>
-                <td>{rebateFormSubmission.data.state}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      )}
+                        <span className="usa-sr-only">Open Form {formId}</span>
+                        <span className="display-flex flex-align-center">
+                          <svg
+                            className="usa-icon"
+                            aria-hidden="true"
+                            focusable="false"
+                            role="img"
+                          >
+                            <use href={`${icons}#edit`} />
+                          </svg>
+                          <span className="mobile-lg:display-none margin-left-1">
+                            Open Form
+                          </span>
+                        </span>
+                      </button>
+                    </th>
+                    <td>{submissionData._id}</td>
+                    <td>{submissionData.data.applicantOrganizationName}</td>
+                    <td>{submissionData.data.last_updated_by}</td>
+                    <td>
+                      {new Date(submissionData.modified).toLocaleDateString()}
+                    </td>
+                    <td>{submissionData.state}</td>
+                    <td>
+                      <button
+                        className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
+                        disabled={submissionData.state === "draft"}
+                        onClick={(ev) => {
+                          dispatch({
+                            type: "DISPLAY_DIALOG",
+                            payload: {
+                              dismissable: true,
+                              heading:
+                                "Are you sure you want to change this submission's state back to draft?",
+                              description:
+                                "Once the submission is back in a draft state, all users with access to this submission will be able to further edit it.",
+                              confirmText: "Yes",
+                              cancelText: "Cancel",
+                              confirmedAction: () => {
+                                setFormDisplayed(false);
+
+                                setRebateFormSubmission({
+                                  status: "pending",
+                                  data: {
+                                    formSchema: null,
+                                    submissionData: null,
+                                  },
+                                });
+
+                                fetchData(
+                                  `${serverUrl}/help/rebate-form-submission/${formId}`,
+                                  {}
+                                )
+                                  .then((res) => {
+                                    setRebateFormSubmission({
+                                      status: "success",
+                                      data: res,
+                                    });
+                                  })
+                                  .catch((err) => {
+                                    setRebateFormSubmission({
+                                      status: "failure",
+                                      data: {
+                                        formSchema: null,
+                                        submissionData: null,
+                                      },
+                                    });
+                                  });
+                              },
+                            },
+                          });
+                        }}
+                      >
+                        <span className="usa-sr-only">
+                          Set {formId} to draft
+                        </span>
+                        <span className="display-flex flex-align-center">
+                          <svg
+                            className="usa-icon"
+                            aria-hidden="true"
+                            focusable="false"
+                            role="img"
+                          >
+                            <use href={`${icons}#update`} />
+                          </svg>
+                          <span className="mobile-lg:display-none margin-left-1">
+                            Update Form
+                          </span>
+                        </span>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {formDisplayed && (
+              <>
+                <h3>Application ID: {submissionData._id}</h3>
+
+                <Form
+                  form={formSchema.json}
+                  url={formSchema.url} // NOTE: used for file uploads
+                  submission={{ data: submissionData.data }}
+                  options={{ readOnly: true }}
+                />
+              </>
+            )}
+          </>
+        )}
     </>
   );
 }
