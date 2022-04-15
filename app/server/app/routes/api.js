@@ -281,7 +281,7 @@ router.get("/rebate-form-submissions", checkBapComboKeys, (req, res) => {
   const queryString = req.bapComboKeys.join(
     "&data.bap_hidden_entity_combo_key="
   );
-  const formioUserSubmissionsUrl = `${formioProjectUrl}/${formioFormId}/submission?data.bap_hidden_entity_combo_key=${queryString}`;
+  const formioUserSubmissionsUrl = `${formioProjectUrl}/${formioFormId}/submission?limit=1000000&data.bap_hidden_entity_combo_key=${queryString}`;
 
   axios
     .get(formioUserSubmissionsUrl, formioHeaders)
