@@ -120,7 +120,7 @@ export default function Helpdesk() {
 
             fetchData(`${serverUrl}/help/rebate-form-submission/${searchText}`)
               .then((res) => {
-                setFormId(res._id);
+                setFormId(res.submissionData._id);
                 setRebateFormSubmission({
                   status: "success",
                   data: res,
@@ -265,6 +265,8 @@ export default function Helpdesk() {
                               confirmText: "Yes",
                               cancelText: "Cancel",
                               confirmedAction: () => {
+                                setFormDisplayed(false);
+
                                 setRebateFormSubmission({
                                   status: "pending",
                                   data: {
