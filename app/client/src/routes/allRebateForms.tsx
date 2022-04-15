@@ -70,7 +70,7 @@ export default function AllRebateForms() {
               <thead>
                 <tr className="font-sans-2xs text-no-wrap">
                   <th scope="col">
-                    <span className="usa-sr-only">Action</span>
+                    <span className="usa-sr-only">Open</span>
                   </th>
                   <th scope="col">
                     <TextWithTooltip
@@ -150,9 +150,7 @@ export default function AllRebateForms() {
                           to={`/rebate/${_id}`}
                           className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
                         >
-                          <span className="usa-sr-only">
-                            Open Form {_id}
-                          </span>
+                          <span className="usa-sr-only">Open Form {_id}</span>
                           <span className="display-flex flex-align-center">
                             <svg
                               className="usa-icon"

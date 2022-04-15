@@ -158,7 +158,7 @@ export default function Helpdesk() {
             <thead>
               <tr className="font-sans-2xs text-no-wrap">
                 <th scope="col">
-                  <span className="usa-sr-only">Action</span>
+                  <span className="usa-sr-only">Update</span>
                 </th>
                 <th scope="col">
                   <TextWithTooltip

@@ -308,7 +308,7 @@ export default function NewRebateForm() {
                   <thead>
                     <tr className="font-sans-2xs text-no-wrap">
                       <th scope="col">
-                        <span className="usa-sr-only">Action</span>
+                        <span className="usa-sr-only">Create</span>
                       </th>
                       <th scope="col">
                         <TextWithTooltip
@@ -341,7 +341,7 @@ export default function NewRebateForm() {
                       </tr>
                     ) : (
                       activeSamData.map((samData, index) => {
-                        console.log('samData: ', samData);
+                        console.log("samData: ", samData);
                         return (
                           <tr key={index}>
                             <th scope="row" className="font-sans-2xs">
@@ -352,7 +352,11 @@ export default function NewRebateForm() {
                                   setDialogShown(false);
                                 }}
                               >
-                                <span className="usa-sr-only">New Form using {samData.UNIQUE_ENTITY_ID__c}</span>
+                                <span className="usa-sr-only">
+                                  Create Form with UEI:{" "}
+                                  {samData.UNIQUE_ENTITY_ID__c} and EFTI:{" "}
+                                  {samData.ENTITY_EFT_INDICATOR__c}
+                                </span>
                                 <span className="display-flex flex-align-center">
                                   <svg
                                     className="usa-icon"
