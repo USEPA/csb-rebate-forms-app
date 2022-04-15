@@ -186,7 +186,9 @@ export default function Helpdesk() {
               <table className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full">
                 <thead>
                   <tr className="font-sans-2xs text-no-wrap">
-                    <th scope="col">&nbsp;</th>
+                    <th scope="col">
+                      <span className="usa-sr-only">Open</span>
+                    </th>
                     <th scope="col">
                       <TextWithTooltip
                         text="Form ID"
@@ -217,7 +219,9 @@ export default function Helpdesk() {
                         tooltip="submitted or draft"
                       />
                     </th>
-                    <th scope="col">&nbsp;</th>
+                    <th scope="col">
+                      <span className="usa-sr-only">Update</span>
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -227,6 +231,7 @@ export default function Helpdesk() {
                         className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
                         onClick={(ev) => setFormDisplayed(true)}
                       >
+                        <span className="usa-sr-only">Open Form {formId}</span>
                         <span className="display-flex flex-align-center">
                           <svg
                             className="usa-icon"
@@ -299,6 +304,9 @@ export default function Helpdesk() {
                           });
                         }}
                       >
+                        <span className="usa-sr-only">
+                          Set {formId} to draft
+                        </span>
                         <span className="display-flex flex-align-center">
                           <svg
                             className="usa-icon"
