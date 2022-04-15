@@ -22,7 +22,7 @@ type FormioOnNextPageParams = {
   submission: FormioSubmission;
 };
 
-type SubmissionsState =
+type SubmissionState =
   | {
       status: "idle";
       data: {
@@ -46,9 +46,12 @@ type SubmissionsState =
             userAccess: true;
             formSchema: { url: string; json: object };
             submissionData: {
+              // NOTE: more fields are in a form.io submission,
+              // but we're only concerned with the fields below
               _id: string;
               data: object;
               state: "submitted" | "draft";
+              // (other fields...)
             };
           }
         | {
@@ -73,7 +76,7 @@ export default function ExistingRebateForm() {
   const { epaUserData } = useUserState();
 
   const [rebateFormSubmission, setRebateFormSubmission] =
-    useState<SubmissionsState>({
+    useState<SubmissionState>({
       status: "idle",
       data: {
         userAccess: false,
