@@ -289,28 +289,6 @@ router.get("/rebate-form-submissions", checkBapComboKeys, (req, res) => {
   axios
     .get(formioUserSubmissionsUrl, formioHeaders)
     .then((axiosRes) => axiosRes.data)
-    .then((submissions) => {
-      return submissions.map((submission) => {
-        const { _id, _fid, form, project, state, created, modified, data } =
-          submission;
-
-        return {
-          _id,
-          _fid,
-          form,
-          project,
-          created,
-          formType: "Application",
-          uei: data.applicantUEI,
-          eft: data.applicantEfti,
-          applicant: data.applicantOrganizationName,
-          schoolDistrict: data.schoolDistrictName,
-          lastUpdatedBy: data.last_updated_by,
-          lastUpdatedDatetime: modified,
-          status: state,
-        };
-      });
-    })
     .then((submissions) => res.json(submissions))
     .catch((error) => {
       if (typeof error.toJSON === "function") {
