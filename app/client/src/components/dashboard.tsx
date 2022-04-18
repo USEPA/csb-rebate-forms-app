@@ -163,8 +163,8 @@ export default function Dashboard() {
               />
             </button>
           ) : (
-            <a
-              href="/"
+            <Link
+              to="/"
               className="margin-bottom-1 usa-button font-sans-2xs"
               onClick={(ev) => {
                 if (pathname.startsWith("/rebate")) {
@@ -179,7 +179,7 @@ export default function Dashboard() {
                 icon="list"
                 text="Your Rebate Forms"
               />
-            </a>
+            </Link>
           )}
 
           {pathname.startsWith("/rebate") ? (
@@ -216,8 +216,8 @@ export default function Dashboard() {
                   <IconText order="icon-text" icon="people" text="Helpdesk" />
                 </button>
               ) : (
-                <a
-                  href="/helpdesk"
+                <Link
+                  to="/helpdesk"
                   className="margin-bottom-1 usa-button font-sans-2xs"
                   onClick={(ev) => {
                     if (pathname.startsWith("/rebate")) {
@@ -228,7 +228,7 @@ export default function Dashboard() {
                   }}
                 >
                   <IconText order="icon-text" icon="people" text="Helpdesk" />
-                </a>
+                </Link>
               )}
             </>
           )}
