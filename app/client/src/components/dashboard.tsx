@@ -163,13 +163,15 @@ export default function Dashboard() {
               />
             </button>
           ) : (
-            <a
-              href="/"
+            <Link
+              to="/"
               className="margin-bottom-1 usa-button font-sans-2xs"
               onClick={(ev) => {
-                ev.preventDefault();
-                const action = createDialogNavAction("/");
-                dispatch(action);
+                if (pathname.startsWith("/rebate")) {
+                  ev.preventDefault();
+                  const action = createDialogNavAction("/");
+                  dispatch(action);
+                }
               }}
             >
               <IconText
@@ -177,7 +179,7 @@ export default function Dashboard() {
                 icon="list"
                 text="Your Rebate Forms"
               />
-            </a>
+            </Link>
           )}
 
           {pathname.startsWith("/rebate") ? (
@@ -214,17 +216,19 @@ export default function Dashboard() {
                   <IconText order="icon-text" icon="people" text="Helpdesk" />
                 </button>
               ) : (
-                <a
-                  href="/"
+                <Link
+                  to="/helpdesk"
                   className="margin-bottom-1 usa-button font-sans-2xs"
                   onClick={(ev) => {
-                    ev.preventDefault();
-                    const action = createDialogNavAction("/helpdesk");
-                    dispatch(action);
+                    if (pathname.startsWith("/rebate")) {
+                      ev.preventDefault();
+                      const action = createDialogNavAction("/helpdesk");
+                      dispatch(action);
+                    }
                   }}
                 >
                   <IconText order="icon-text" icon="people" text="Helpdesk" />
-                </a>
+                </Link>
               )}
             </>
           )}

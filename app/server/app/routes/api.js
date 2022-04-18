@@ -278,36 +278,17 @@ router.post("/rebate-form-submission", checkBapComboKeys, (req, res) => {
 
 // --- get all rebate form submissions from Forms.gov
 router.get("/rebate-form-submissions", checkBapComboKeys, (req, res) => {
-  const queryString = req.bapComboKeys.join(
-    "&data.bap_hidden_entity_combo_key="
-  );
-  const formioUserSubmissionsUrl = `${formioProjectUrl}/${formioFormId}/submission?limit=1000000&data.bap_hidden_entity_combo_key=${queryString}`;
+  const formioUserSubmissionsUrl =
+    `${formioProjectUrl}/${formioFormId}/submission` +
+    `?sort=-modified` +
+    `&limit=1000000` +
+    `&data.bap_hidden_entity_combo_key=${req.bapComboKeys.join(
+      "&data.bap_hidden_entity_combo_key="
+    )}`;
 
   axios
     .get(formioUserSubmissionsUrl, formioHeaders)
     .then((axiosRes) => axiosRes.data)
-    .then((submissions) => {
-      return submissions.map((submission) => {
-        const { _id, _fid, form, project, state, created, modified, data } =
-          submission;
-
-        return {
-          _id,
-          _fid,
-          form,
-          project,
-          created,
-          formType: "Application",
-          uei: data.applicantUEI,
-          eft: data.applicantEfti,
-          applicant: data.applicantOrganizationName,
-          schoolDistrict: data.schoolDistrictName,
-          lastUpdatedBy: data.last_updated_by,
-          lastUpdatedDatetime: modified,
-          status: state,
-        };
-      });
-    })
     .then((submissions) => res.json(submissions))
     .catch((error) => {
       if (typeof error.toJSON === "function") {

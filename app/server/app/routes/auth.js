@@ -75,7 +75,7 @@ const logoutCallback = (req, res) => {
   res.clearCookie(cookieName);
 
   // If "RelayState" was passed in original logout request (either querystring or post body), redirect to below
-  const { RelayState } = req.query || req.body;
+  const RelayState = req.query?.RelayState || req.body?.RelayState;
   res.redirect(`${baseUrl}${RelayState || "/welcome?success=logout"}`);
 };
 
