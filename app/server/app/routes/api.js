@@ -278,10 +278,13 @@ router.post("/rebate-form-submission", checkBapComboKeys, (req, res) => {
 
 // --- get all rebate form submissions from Forms.gov
 router.get("/rebate-form-submissions", checkBapComboKeys, (req, res) => {
-  const queryString = req.bapComboKeys.join(
-    "&data.bap_hidden_entity_combo_key="
-  );
-  const formioUserSubmissionsUrl = `${formioProjectUrl}/${formioFormId}/submission?limit=1000000&data.bap_hidden_entity_combo_key=${queryString}`;
+  const formioUserSubmissionsUrl =
+    `${formioProjectUrl}/${formioFormId}/submission` +
+    `?sort=-modified` +
+    `&limit=1000000` +
+    `&data.bap_hidden_entity_combo_key=${req.bapComboKeys.join(
+      "&data.bap_hidden_entity_combo_key="
+    )}`;
 
   axios
     .get(formioUserSubmissionsUrl, formioHeaders)
