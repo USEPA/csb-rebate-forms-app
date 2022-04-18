@@ -124,23 +124,20 @@ export default function AllRebateForms() {
               </thead>
               <tbody>
                 {rebateFormSubmissions.data.map((submission) => {
+                  const { _id, state, modified, data } = submission;
                   const {
-                    _id,
-                    formType,
-                    uei,
-                    eft,
-                    applicant,
-                    schoolDistrict,
-                    lastUpdatedBy,
-                    lastUpdatedDatetime,
-                    status,
-                  } = submission;
+                    applicantUEI,
+                    applicantEfti,
+                    applicantOrganizationName,
+                    schoolDistrictName,
+                    last_updated_by,
+                  } = data;
 
                   return (
                     <tr
                       key={_id}
                       className={
-                        status === "submitted"
+                        state === "submitted"
                           ? "text-italic text-base-dark"
                           : ""
                       }
@@ -166,16 +163,14 @@ export default function AllRebateForms() {
                           </span>
                         </Link>
                       </th>
-                      <td>{formType}</td>
-                      <td>{uei}</td>
-                      <td>{eft}</td>
-                      <td>{applicant}</td>
-                      <td>{schoolDistrict}</td>
-                      <td>{lastUpdatedBy}</td>
-                      <td>
-                        {new Date(lastUpdatedDatetime).toLocaleDateString()}
-                      </td>
-                      <td>{status}</td>
+                      <td>Application</td>
+                      <td>{applicantUEI}</td>
+                      <td>{applicantEfti}</td>
+                      <td>{applicantOrganizationName}</td>
+                      <td>{schoolDistrictName}</td>
+                      <td>{last_updated_by}</td>
+                      <td>{new Date(modified).toLocaleDateString()}</td>
+                      <td>{state}</td>
                     </tr>
                   );
                 })}

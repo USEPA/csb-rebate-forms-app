@@ -16,22 +16,20 @@ type Props = {
  * retreive the form's JSON schema in order to display and edit the form.
  */
 type RebateFormSubmission = {
-  // --- metadata fields ---
-  _id: string; // unique ID of form submission
-  _fvid: number; // version number of form
-  form: string; // unique ID of form
-  project: string; // unique ID of project
-  created: string; // datetime string created
-  modified: string; // datetime string modified
-  // --- form fields ---
-  formType: "Application" | "Payment Request" | "Close-Out";
-  uei: string;
-  eft: string;
-  applicant: string;
-  schoolDistrict: string;
-  lastUpdatedBy: string;
-  lastUpdatedDatetime: string;
-  status: "submitted" | "draft";
+  // NOTE: more fields are in a form.io submission,
+  // but we're only concerned with the fields below
+  _id: string;
+  state: "submitted" | "draft";
+  modified: string;
+  data: {
+    applicantUEI: string;
+    applicantEfti: string;
+    applicantOrganizationName: string;
+    schoolDistrictName: string;
+    last_updated_by: string;
+    // (other fields...)
+  };
+  // (other fields...)
 };
 
 type State = {
