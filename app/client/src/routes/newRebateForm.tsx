@@ -266,7 +266,7 @@ export default function NewRebateForm() {
         </DialogContent>
       </DialogOverlay>
 
-      {selectedSamData && formSchema.status === "success" && (
+      {formSchema.status === "success" && selectedSamData && (
         <div className="display-none">
           <Form
             form={formSchema.data.json}
