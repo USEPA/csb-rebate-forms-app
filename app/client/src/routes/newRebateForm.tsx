@@ -208,7 +208,7 @@ export default function NewRebateForm() {
                               onClick={(ev) => {
                                 setSelectedSamData(data);
                                 displayInfoMessage(
-                                  "Fetching rebate form fields..."
+                                  "Creating new rebate form application..."
                                 );
                               }}
                             >
