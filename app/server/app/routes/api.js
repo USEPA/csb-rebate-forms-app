@@ -276,6 +276,15 @@ router.post("/rebate-form-submission", checkBapComboKeys, (req, res) => {
 
 // --- get all rebate form submissions from Forms.gov
 router.get("/rebate-form-submissions", checkBapComboKeys, (req, res) => {
+  // NOTE: Helpdesk users might not have any SAM.gov records associated with
+  // their email address so we should not return any submissions to those users.
+  // The only reason we explicitly need to do this is because there could be
+  // some submissions without `bap_hidden_entity_combo_key` field values in the
+  // forms.gov database – that will never be the case for submissions created
+  // from this app, but there could be submissions created externally if someone
+  // is testing posting data (e.g. from a REST client, or the Formio Viewer)
+  if (req.bapComboKeys.length === 0) return res.json([]);
+
   const formioUserSubmissionsUrl =
     `${formioProjectUrl}/${formioFormId}/submission` +
     `?sort=-modified` +
