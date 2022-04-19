@@ -5,6 +5,7 @@ const {
   formioProjectUrl,
   formioFormId,
   formioHeaders,
+  formioCsbMetadata,
 } = require("../config/formio");
 const {
   ensureAuthenticated,
@@ -59,11 +60,6 @@ router.post("/rebate-form-submission/:id", verifyMongoObjectId, (req, res) => {
   const userEmail = req.user.mail;
   const formioSubmissionUrl = `${formioProjectUrl}/${formioFormId}/submission/${id}`;
 
-  const csbAppMetadata = {
-    "csb-app-cloud-space": `env-${process.env.CLOUD_SPACE || "local"}`,
-    "csb-app-cloud-origin": req.hostname,
-  };
-
   axios
     .get(formioSubmissionUrl, formioHeaders)
     .then((axiosRes) => axiosRes.data)
@@ -74,7 +70,7 @@ router.post("/rebate-form-submission/:id", verifyMongoObjectId, (req, res) => {
           {
             state: "draft",
             data: { ...existingSubmission.data, last_updated_by: userEmail },
-            metadata: { ...existingSubmission.metadata, ...csbAppMetadata },
+            metadata: { ...existingSubmission.metadata, ...formioCsbMetadata },
           },
           formioHeaders
         )
