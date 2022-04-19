@@ -133,6 +133,9 @@ export default function AllRebateForms() {
                     last_updated_by,
                   } = data;
 
+                  const date = new Date(modified).toLocaleDateString();
+                  const time = new Date(modified).toLocaleTimeString();
+
                   return (
                     <tr
                       key={_id}
@@ -169,7 +172,7 @@ export default function AllRebateForms() {
                       <td>{applicantOrganizationName}</td>
                       <td>{schoolDistrictName}</td>
                       <td>{last_updated_by}</td>
-                      <td>{new Date(modified).toLocaleDateString()}</td>
+                      <td title={`${date} ${time}`}>{date}</td>
                       <td>{state}</td>
                     </tr>
                   );
