@@ -13,6 +13,7 @@ const {
   ensureHelpdesk,
   checkBapComboKeys,
   verifyMongoObjectId,
+  addFormioMetadata,
 } = require("../middleware");
 const { getSamData } = require("../utilities/getSamData");
 const logger = require("../utilities/logger");
@@ -212,6 +213,7 @@ router.post(
   "/rebate-form-submission/:id",
   verifyMongoObjectId,
   checkBapComboKeys,
+  addFormioMetadata,
   (req, res) => {
     const id = req.params.id;
 
@@ -246,33 +248,40 @@ router.post(
 );
 
 // --- post a new rebate form submission to Forms.gov
-router.post("/rebate-form-submission", checkBapComboKeys, (req, res) => {
-  // Verify post data includes one of user's BAP combo keys
-  if (!req.bapComboKeys.includes(req.body.data?.bap_hidden_entity_combo_key)) {
-    log.error(
-      `User with email ${req.user.mail} attempted to post new form without a matching BAP combo key`
-    );
-    return res.status(401).json({ message: "Unauthorized" });
+router.post(
+  "/rebate-form-submission",
+  checkBapComboKeys,
+  addFormioMetadata,
+  (req, res) => {
+    // Verify post data includes one of user's BAP combo keys
+    if (
+      !req.bapComboKeys.includes(req.body.data?.bap_hidden_entity_combo_key)
+    ) {
+      log.error(
+        `User with email ${req.user.mail} attempted to post new form without a matching BAP combo key`
+      );
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    axios
+      .post(
+        `${formioProjectUrl}/${formioFormId}/submission`,
+        req.body,
+        formioHeaders
+      )
+      .then((axiosRes) => axiosRes.data)
+      .then((submission) => res.json(submission))
+      .catch((error) => {
+        if (typeof error.toJSON === "function") {
+          log.debug(error.toJSON());
+        }
+
+        res
+          .status(error?.response?.status || 500)
+          .json({ message: "Error posting Forms.gov rebate form submission" });
+      });
   }
-
-  axios
-    .post(
-      `${formioProjectUrl}/${formioFormId}/submission`,
-      req.body,
-      formioHeaders
-    )
-    .then((axiosRes) => axiosRes.data)
-    .then((submission) => res.json(submission))
-    .catch((error) => {
-      if (typeof error.toJSON === "function") {
-        log.debug(error.toJSON());
-      }
-
-      res
-        .status(error?.response?.status || 500)
-        .json({ message: "Error posting Forms.gov rebate form submission" });
-    });
-});
+);
 
 // --- get all rebate form submissions from Forms.gov
 router.get("/rebate-form-submissions", checkBapComboKeys, (req, res) => {

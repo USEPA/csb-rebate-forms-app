@@ -164,6 +164,21 @@ const verifyMongoObjectId = (req, res, next) => {
   next();
 };
 
+// Add custom metadata properties to every formio submission event
+const addFormioMetadata = (req, res, next) => {
+  const csbAppMetadata = {
+    "csb-app-cloud-space": `env-${process.env.CLOUD_SPACE || "local"}`,
+    "csb-app-cloud-origin": req.hostname,
+  };
+
+  req.body.metadata = {
+    ...req.body.metadata,
+    ...csbAppMetadata,
+  };
+
+  next();
+};
+
 module.exports = {
   ensureAuthenticated,
   ensureHelpdesk,
@@ -172,4 +187,5 @@ module.exports = {
   checkClientRouteExists,
   checkBapComboKeys,
   verifyMongoObjectId,
+  addFormioMetadata,
 };
