@@ -44,7 +44,10 @@ function getMatchedContactInfo(
     if (!samEmailFields.includes(field)) continue;
     // NOTE: take the first match only – there shouldn't be a case where the
     // currently logged in user would be listed as multiple POCs for a single record
-    if (value === epaData.mail) {
+    if (
+      typeof value === "string" &&
+      value.toLowerCase() === epaData.mail.toLowerCase()
+    ) {
       matchedEmailField = field;
       break;
     }
