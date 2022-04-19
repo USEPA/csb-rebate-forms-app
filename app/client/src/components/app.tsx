@@ -28,7 +28,6 @@ import Helpdesk from "routes/helpdesk";
 import AllRebateForms from "routes/allRebateForms";
 import NewRebateForm from "routes/newRebateForm";
 import ExistingRebateForm from "routes/existingRebateForm";
-import NotFound from "routes/notFound";
 import { useContentState, useContentDispatch } from "contexts/content";
 import { useUserState, useUserDispatch } from "contexts/user";
 import { useDialogDispatch, useDialogState } from "contexts/dialog";
@@ -291,7 +290,7 @@ export default function App() {
           <Route path="helpdesk" element={<Helpdesk />} />
           <Route path="rebate/new" element={<NewRebateForm />} />
           <Route path="rebate/:id" element={<ExistingRebateForm />} />
-          <Route path="*" element={<NotFound />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
     </BrowserRouter>
