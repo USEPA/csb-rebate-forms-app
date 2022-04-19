@@ -18,36 +18,6 @@ const {
 } = require("./middleware");
 const routes = require("./routes");
 
-const app = express();
-const port = process.env.PORT || 3001;
-const log = logger.logger;
-
-app.use(
-  helmet({
-    crossOriginEmbedderPolicy: false,
-    contentSecurityPolicy: false,
-  })
-);
-app.use(
-  helmet.hsts({
-    maxAge: 31536000,
-  })
-);
-
-/****************************************************************
- Instruct web browsers to disable caching
- ****************************************************************/
-app.use(function (req, res, next) {
-  res.setHeader("Surrogate-Control", "no-store");
-  res.setHeader(
-    "Cache-Control",
-    "no-store, no-cache, must-revalidate, proxy-revalidate"
-  );
-  res.setHeader("Pragma", "no-cache");
-  res.setHeader("Expires", "0");
-  next();
-});
-
 const requiredEnvVars = [
   "SERVER_URL",
   "SAML_LOGIN_URL",
@@ -69,6 +39,30 @@ requiredEnvVars.forEach((envVar) => {
     log.error(`Required environment variable ${envVar} not found.`);
     process.exitCode = 1;
   }
+});
+
+const app = express();
+const port = process.env.PORT || 3001;
+const log = logger.logger;
+
+app.use(
+  helmet({
+    crossOriginEmbedderPolicy: false,
+    contentSecurityPolicy: false,
+  })
+);
+app.use(helmet.hsts({ maxAge: 31536000 }));
+
+// Instruct web browsers to disable caching
+app.use((req, res, next) => {
+  res.setHeader("Surrogate-Control", "no-store");
+  res.setHeader(
+    "Cache-Control",
+    "no-store, no-cache, must-revalidate, proxy-revalidate"
+  );
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+  next();
 });
 
 app.disable("x-powered-by");
