@@ -41,28 +41,9 @@ function useFetchedContent() {
     dispatch({ type: "FETCH_CONTENT_REQUEST" });
     fetchData(`${serverUrl}/api/content`)
       .then((res) => {
-        const {
-          siteAlert,
-          helpdeskIntro,
-          allRebateFormsIntro,
-          allRebateFormsOutro,
-          newRebateFormIntro,
-          newRebateFormDialog,
-          existingDraftRebateFormIntro,
-          existingSubmittedRebateFormIntro,
-        } = res;
         dispatch({
           type: "FETCH_CONTENT_SUCCESS",
-          payload: {
-            siteAlert,
-            helpdeskIntro,
-            allRebateFormsIntro,
-            allRebateFormsOutro,
-            newRebateFormIntro,
-            newRebateFormDialog,
-            existingDraftRebateFormIntro,
-            existingSubmittedRebateFormIntro,
-          },
+          payload: res,
         });
       })
       .catch((err) => {

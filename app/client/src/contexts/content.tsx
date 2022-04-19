@@ -15,7 +15,6 @@ type Content = {
   helpdeskIntro: string;
   allRebateFormsIntro: string;
   allRebateFormsOutro: string;
-  newRebateFormIntro: string;
   newRebateFormDialog: string;
   existingDraftRebateFormIntro: string;
   existingSubmittedRebateFormIntro: string;
@@ -58,7 +57,6 @@ function reducer(state: State, action: Action): State {
         helpdeskIntro,
         allRebateFormsIntro,
         allRebateFormsOutro,
-        newRebateFormIntro,
         newRebateFormDialog,
         existingDraftRebateFormIntro,
         existingSubmittedRebateFormIntro,
@@ -73,7 +71,6 @@ function reducer(state: State, action: Action): State {
             helpdeskIntro,
             allRebateFormsIntro,
             allRebateFormsOutro,
-            newRebateFormIntro,
             newRebateFormDialog,
             existingDraftRebateFormIntro,
             existingSubmittedRebateFormIntro,
