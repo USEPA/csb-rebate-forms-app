@@ -108,18 +108,6 @@ export default function NewRebateForm() {
     return null;
   }
 
-  if (formSchema.status === "idle") {
-    return null;
-  }
-
-  if (formSchema.status === "pending") {
-    return <Loading />;
-  }
-
-  if (formSchema.status === "failure") {
-    return <Message type="error" text="Error loading rebate form fields." />;
-  }
-
   const { mail } = epaUserData.data;
 
   const { title, name } = getMatchedContactInfo(
@@ -136,120 +124,129 @@ export default function NewRebateForm() {
           aria-describedby="csb-new-rebate-modal-description"
         >
           <div className="usa-modal__content">
-            <div className="usa-modal__main">
-              {content.status === "success" && (
-                <MarkdownContent
-                  className="margin-top-4"
-                  children={content.data?.newRebateFormDialog || ""}
-                  components={{
-                    h2: (props) => (
-                      <h2
-                        id="csb-new-rebate-modal-heading"
-                        className="usa-modal__heading text-center"
-                      >
-                        {props.children}
-                      </h2>
-                    ),
-                    p: (props) => (
-                      <p
-                        id="csb-new-rebate-modal-description"
-                        className="text-center"
-                      >
-                        {props.children}
-                      </p>
-                    ),
-                  }}
-                />
-              )}
+            {formSchema.status === "idle" || formSchema.status === "pending" ? (
+              <div className="margin-bottom-6">
+                <Loading />
+              </div>
+            ) : formSchema.status === "failure" ? (
+              <Message type="error" text="Error loading rebate form fields." />
+            ) : (
+              <div className="usa-modal__main">
+                {content.status === "success" && (
+                  <MarkdownContent
+                    className="margin-top-4"
+                    children={content.data?.newRebateFormDialog || ""}
+                    components={{
+                      h2: (props) => (
+                        <h2
+                          id="csb-new-rebate-modal-heading"
+                          className="usa-modal__heading text-center"
+                        >
+                          {props.children}
+                        </h2>
+                      ),
+                      p: (props) => (
+                        <p
+                          id="csb-new-rebate-modal-description"
+                          className="text-center"
+                        >
+                          {props.children}
+                        </p>
+                      ),
+                    }}
+                  />
+                )}
 
-              {message.displayed && (
-                <Message type={message.type} text={message.text} />
-              )}
+                {message.displayed && (
+                  <Message type={message.type} text={message.text} />
+                )}
 
-              <div className="usa-table-container--scrollable" tabIndex={0}>
-                <table className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full">
-                  <thead>
-                    <tr className="font-sans-2xs text-no-wrap">
-                      <th scope="col">
-                        <span className="usa-sr-only">Create</span>
-                      </th>
-                      <th scope="col">
-                        <TextWithTooltip
-                          text="UEI"
-                          tooltip="Unique Entity ID from SAM.gov"
-                        />
-                      </th>
-                      <th scope="col">
-                        <TextWithTooltip
-                          text="EFT Indicator"
-                          tooltip="Electronic Funds Transfer Indicator listing the associated bank account from SAM.gov"
-                        />
-                      </th>
-                      <th scope="col">
-                        <TextWithTooltip
-                          text="Applicant"
-                          tooltip="Legal Business Name from SAM.gov for this UEI"
-                        />
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {!activeSamData ? (
-                      <tr>
-                        <td colSpan={4}>
-                          <div className="margin-bottom-2">
-                            <Loading />
-                          </div>
-                        </td>
+                <div className="usa-table-container--scrollable" tabIndex={0}>
+                  <table className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full">
+                    <thead>
+                      <tr className="font-sans-2xs text-no-wrap">
+                        <th scope="col">
+                          <span className="usa-sr-only">Create</span>
+                        </th>
+                        <th scope="col">
+                          <TextWithTooltip
+                            text="UEI"
+                            tooltip="Unique Entity ID from SAM.gov"
+                          />
+                        </th>
+                        <th scope="col">
+                          <TextWithTooltip
+                            text="EFT Indicator"
+                            tooltip="Electronic Funds Transfer Indicator listing the associated bank account from SAM.gov"
+                          />
+                        </th>
+                        <th scope="col">
+                          <TextWithTooltip
+                            text="Applicant"
+                            tooltip="Legal Business Name from SAM.gov for this UEI"
+                          />
+                        </th>
                       </tr>
-                    ) : (
-                      activeSamData.map((data, index) => (
-                        <tr key={index}>
-                          <th scope="row" className="font-sans-2xs">
-                            <button
-                              className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-                              onClick={(ev) => {
-                                setSelectedSamData(data);
-                                displayInfoMessage(
-                                  "Creating new rebate form application..."
-                                );
-                              }}
-                            >
-                              <span className="usa-sr-only">
-                                Create Form with UEI: {data.UNIQUE_ENTITY_ID__c}{" "}
-                                and EFTI: {data.ENTITY_EFT_INDICATOR__c}
-                              </span>
-                              <span className="display-flex flex-align-center">
-                                <svg
-                                  className="usa-icon"
-                                  aria-hidden="true"
-                                  focusable="false"
-                                  role="img"
-                                >
-                                  <use href={`${icons}#arrow_forward`} />
-                                </svg>
-                                <span className="mobile-lg:display-none margin-left-1">
-                                  New Form
-                                </span>
-                              </span>
-                            </button>
-                          </th>
-                          <td className="font-sans-2xs">
-                            {data.UNIQUE_ENTITY_ID__c}
-                          </td>
-                          <td className="font-sans-2xs">
-                            {data.ENTITY_EFT_INDICATOR__c}
-                          </td>
-                          <td className="font-sans-2xs">
-                            {data.LEGAL_BUSINESS_NAME__c}
+                    </thead>
+                    <tbody>
+                      {!activeSamData ? (
+                        <tr>
+                          <td colSpan={4}>
+                            <div className="margin-bottom-2">
+                              <Loading />
+                            </div>
                           </td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+                      ) : (
+                        activeSamData.map((data, index) => (
+                          <tr key={index}>
+                            <th scope="row" className="font-sans-2xs">
+                              <button
+                                className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
+                                onClick={(ev) => {
+                                  setSelectedSamData(data);
+                                  displayInfoMessage(
+                                    "Creating new rebate form application..."
+                                  );
+                                }}
+                              >
+                                <span className="usa-sr-only">
+                                  Create Form with UEI:{" "}
+                                  {data.UNIQUE_ENTITY_ID__c} and EFTI:{" "}
+                                  {data.ENTITY_EFT_INDICATOR__c}
+                                </span>
+                                <span className="display-flex flex-align-center">
+                                  <svg
+                                    className="usa-icon"
+                                    aria-hidden="true"
+                                    focusable="false"
+                                    role="img"
+                                  >
+                                    <use href={`${icons}#arrow_forward`} />
+                                  </svg>
+                                  <span className="mobile-lg:display-none margin-left-1">
+                                    New Form
+                                  </span>
+                                </span>
+                              </button>
+                            </th>
+                            <td className="font-sans-2xs">
+                              {data.UNIQUE_ENTITY_ID__c}
+                            </td>
+                            <td className="font-sans-2xs">
+                              {data.ENTITY_EFT_INDICATOR__c}
+                            </td>
+                            <td className="font-sans-2xs">
+                              {data.LEGAL_BUSINESS_NAME__c}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
+            )}
 
             <button
               className="usa-button usa-modal__close"
@@ -269,7 +266,7 @@ export default function NewRebateForm() {
         </DialogContent>
       </DialogOverlay>
 
-      {selectedSamData && (
+      {selectedSamData && formSchema.status === "success" && (
         <div className="display-none">
           <Form
             form={formSchema.data.json}
