@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Form } from "@formio/react";
 import icon from "uswds/img/usa-icons-bg/search--white.svg";
 import icons from "uswds/img/sprite.svg";
 // ---
@@ -9,22 +10,30 @@ import Loading from "components/loading";
 import Message from "components/message";
 import MarkdownContent from "components/markdownContent";
 import { TextWithTooltip } from "components/infoTooltip";
-import { useUserState } from "contexts/user";
 import { useContentState } from "contexts/content";
+import { useUserState } from "contexts/user";
 import { useDialogDispatch } from "contexts/dialog";
 
 type SubmissionState =
   | {
       status: "idle";
-      data: null;
+      data: {
+        formSchema: null;
+        submissionData: null;
+      };
     }
   | {
       status: "pending";
-      data: null;
+      data: {
+        formSchema: null;
+        submissionData: null;
+      };
     }
   | {
       status: "success";
       data: {
+        formSchema: { url: string; json: object };
+        submissionData: {
         // NOTE: more fields are in a form.io submission,
         // but we're only concerned with the fields below
         _id: string;
@@ -37,10 +46,14 @@ type SubmissionState =
         };
         // (other fields...)
       };
+      };
     }
   | {
       status: "failure";
-      data: null;
+      data: {
+        formSchema: null;
+        submissionData: null;
+    };
     };
 
 export default function Helpdesk() {
@@ -48,16 +61,20 @@ export default function Helpdesk() {
 
   const [searchText, setSearchText] = useState("");
   const [formId, setFormId] = useState("");
+  const [formDisplayed, setFormDisplayed] = useState(false);
 
-  const { epaUserData } = useUserState();
   const { content } = useContentState();
+  const { epaUserData } = useUserState();
   const dispatch = useDialogDispatch();
   const helpdeskAccess = useHelpdeskAccess();
 
   const [rebateFormSubmission, setRebateFormSubmission] =
     useState<SubmissionState>({
       status: "idle",
-      data: null,
+      data: {
+        formSchema: null,
+        submissionData: null,
+      },
     });
 
   if (
@@ -71,6 +88,8 @@ export default function Helpdesk() {
   if (helpdeskAccess === "failure") {
     navigate("/", { replace: true });
   }
+
+  const { formSchema, submissionData } = rebateFormSubmission.data;
 
   return (
     <>
@@ -89,15 +108,19 @@ export default function Helpdesk() {
             ev.preventDefault();
 
             setFormId("");
+            setFormDisplayed(false);
 
             setRebateFormSubmission({
               status: "pending",
-              data: null,
+              data: {
+                formSchema: null,
+                submissionData: null,
+              },
             });
 
             fetchData(`${serverUrl}/help/rebate-form-submission/${searchText}`)
               .then((res) => {
-                setFormId(res._id);
+                setFormId(res.submissionData._id);
                 setRebateFormSubmission({
                   status: "success",
                   data: res,
@@ -107,7 +130,10 @@ export default function Helpdesk() {
                 setFormId("");
                 setRebateFormSubmission({
                   status: "failure",
-                  data: null,
+                  data: {
+                    formSchema: null,
+                    submissionData: null,
+                  },
                 });
               });
           }}
@@ -152,7 +178,10 @@ export default function Helpdesk() {
           />
         )}
 
-      {rebateFormSubmission.status === "success" && rebateFormSubmission.data && (
+      {rebateFormSubmission.status === "success" &&
+        formSchema &&
+        submissionData && (
+          <>
         <div className="usa-table-container--scrollable" tabIndex={0}>
           <table
             aria-label="Search Results"
@@ -160,8 +189,10 @@ export default function Helpdesk() {
           >
             <thead>
               <tr className="font-sans-2xs text-no-wrap">
-                <th scope="col">&nbsp;</th>
                 <th scope="col">
+                      <span className="usa-sr-only">Open</span>
+                    </th>
+                    <th scope="col">
                   <TextWithTooltip
                     text="Form ID"
                     tooltip="Form ID returned from Forms.gov"
@@ -186,8 +217,14 @@ export default function Helpdesk() {
                   />
                 </th>
                 <th scope="col">
-                  <TextWithTooltip text="Status" tooltip="submitted or draft" />
+                      <TextWithTooltip
+                        text="Status"
+                        tooltip="submitted or draft"
+                      />
                 </th>
+                    <th scope="col">
+                      <span className="usa-sr-only">Update</span>
+                    </th>
               </tr>
             </thead>
             <tbody>
@@ -195,7 +232,35 @@ export default function Helpdesk() {
                 <th scope="row">
                   <button
                     className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-                    disabled={rebateFormSubmission.data.state === "draft"}
+                        onClick={(ev) => setFormDisplayed(true)}
+                      >
+                        <span className="usa-sr-only">Open Form {formId}</span>
+                        <span className="display-flex flex-align-center">
+                          <svg
+                            className="usa-icon"
+                            aria-hidden="true"
+                            focusable="false"
+                            role="img"
+                          >
+                            <use href={`${icons}#edit`} />
+                          </svg>
+                          <span className="mobile-lg:display-none margin-left-1">
+                            Open Form
+                          </span>
+                        </span>
+                      </button>
+                    </th>
+                    <td>{submissionData._id}</td>
+                    <td>{submissionData.data.applicantOrganizationName}</td>
+                    <td>{submissionData.data.last_updated_by}</td>
+                    <td>
+                      {new Date(submissionData.modified).toLocaleDateString()}
+                    </td>
+                    <td>{submissionData.state}</td>
+                    <td>
+                      <button
+                        className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
+                        disabled={submissionData.state === "draft"}
                     onClick={(ev) => {
                       dispatch({
                         type: "DISPLAY_DIALOG",
@@ -208,16 +273,20 @@ export default function Helpdesk() {
                           confirmText: "Yes",
                           cancelText: "Cancel",
                           confirmedAction: () => {
-                            const submissionUrl = `${serverUrl}/help/rebate-form-submission/${formId}`;
-                            const submissionData = rebateFormSubmission.data;
-                            if (!submissionData) return;
+                                setFormDisplayed(false);
 
                             setRebateFormSubmission({
                               status: "pending",
-                              data: null,
+                                  data: {
+                                    formSchema: null,
+                                    submissionData: null,
+                                  },
                             });
 
-                            fetchData(submissionUrl, {})
+                                fetchData(
+                                  `${serverUrl}/help/rebate-form-submission/${formId}`,
+                                  {}
+                                )
                               .then((res) => {
                                 setRebateFormSubmission({
                                   status: "success",
@@ -227,7 +296,10 @@ export default function Helpdesk() {
                               .catch((err) => {
                                 setRebateFormSubmission({
                                   status: "failure",
-                                  data: null,
+                                      data: {
+                                        formSchema: null,
+                                        submissionData: null,
+                                      },
                                 });
                               });
                           },
@@ -235,6 +307,9 @@ export default function Helpdesk() {
                       });
                     }}
                   >
+                        <span className="usa-sr-only">
+                          Set {formId} to draft
+                        </span>
                     <span className="display-flex flex-align-center">
                       <svg
                         className="usa-icon"
@@ -244,25 +319,31 @@ export default function Helpdesk() {
                       >
                         <use href={`${icons}#update`} />
                       </svg>
+                          <span className="mobile-lg:display-none margin-left-1">
+                            Update Form
                     </span>
+                        </span>
                   </button>
-                </th>
-                <td>{rebateFormSubmission.data._id}</td>
-                <td>
-                  {rebateFormSubmission.data.data.applicantOrganizationName}
                 </td>
-                <td>{rebateFormSubmission.data.data.last_updated_by}</td>
-                <td>
-                  {new Date(
-                    rebateFormSubmission.data.modified
-                  ).toLocaleDateString()}
-                </td>
-                <td>{rebateFormSubmission.data.state}</td>
               </tr>
             </tbody>
           </table>
         </div>
+
+            {formDisplayed && (
+              <>
+                <h3>Application ID: {submissionData._id}</h3>
+
+                <Form
+                  form={formSchema.json}
+                  url={formSchema.url} // NOTE: used for file uploads
+                  submission={{ data: submissionData.data }}
+                  options={{ readOnly: true }}
+                />
+              </>
       )}
+    </>
+        )}
     </>
   );
 }

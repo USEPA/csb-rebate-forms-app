@@ -7,13 +7,13 @@ import Loading from "components/loading";
 import Message from "components/message";
 import MarkdownContent from "components/markdownContent";
 import { TextWithTooltip } from "components/infoTooltip";
-import { useUserState } from "contexts/user";
 import { useContentState } from "contexts/content";
+import { useUserState } from "contexts/user";
 import { useFormsState, useFormsDispatch } from "contexts/forms";
 
 export default function AllRebateForms() {
-  const { samUserData } = useUserState();
   const { content } = useContentState();
+  const { samUserData } = useUserState();
   const { rebateFormSubmissions } = useFormsState();
   const dispatch = useFormsDispatch();
 
@@ -53,7 +53,7 @@ export default function AllRebateForms() {
         <div className="margin-top-4">
           <Message
             type="info"
-            text="Please select the “New Rebate” button above to create your first rebate application."
+            text="Please select the “New Application” button above to create your first rebate application."
           />
         </div>
       ) : (
@@ -72,7 +72,9 @@ export default function AllRebateForms() {
             >
               <thead>
                 <tr className="font-sans-2xs text-no-wrap">
-                  <th scope="col">&nbsp;</th>
+                  <th scope="col">
+                    <span className="usa-sr-only">Open</span>
+                  </th>
                   <th scope="col">
                     <TextWithTooltip
                       text="Form Type"
@@ -125,23 +127,23 @@ export default function AllRebateForms() {
               </thead>
               <tbody>
                 {rebateFormSubmissions.data.map((submission) => {
+                  const { _id, state, modified, data } = submission;
                   const {
-                    _id,
-                    formType,
-                    uei,
-                    eft,
-                    applicant,
-                    schoolDistrict,
-                    lastUpdatedBy,
-                    lastUpdatedDatetime,
-                    status,
-                  } = submission;
+                    applicantUEI,
+                    applicantEfti,
+                    applicantOrganizationName,
+                    schoolDistrictName,
+                    last_updated_by,
+                  } = data;
+
+                  const date = new Date(modified).toLocaleDateString();
+                  const time = new Date(modified).toLocaleTimeString();
 
                   return (
                     <tr
                       key={_id}
                       className={
-                        status === "submitted"
+                        state === "submitted"
                           ? "text-italic text-base-dark"
                           : ""
                       }
@@ -151,6 +153,7 @@ export default function AllRebateForms() {
                           to={`/rebate/${_id}`}
                           className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
                         >
+                          <span className="usa-sr-only">Open Form {_id}</span>
                           <span className="display-flex flex-align-center">
                             <svg
                               className="usa-icon"
@@ -166,16 +169,14 @@ export default function AllRebateForms() {
                           </span>
                         </Link>
                       </th>
-                      <th>{formType}</th>
-                      <th>{uei}</th>
-                      <td>{eft}</td>
-                      <td>{applicant}</td>
-                      <td>{schoolDistrict}</td>
-                      <td>{lastUpdatedBy}</td>
-                      <td>
-                        {new Date(lastUpdatedDatetime).toLocaleDateString()}
-                      </td>
-                      <td>{status}</td>
+                      <td>Application</td>
+                      <td>{applicantUEI}</td>
+                      <td>{applicantEfti}</td>
+                      <td>{applicantOrganizationName}</td>
+                      <td>{schoolDistrictName}</td>
+                      <td>{last_updated_by}</td>
+                      <td title={`${date} ${time}`}>{date}</td>
+                      <td>{state}</td>
                     </tr>
                   );
                 })}

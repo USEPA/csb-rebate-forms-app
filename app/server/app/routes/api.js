@@ -7,6 +7,7 @@ const {
   formioProjectUrl,
   formioFormId,
   formioHeaders,
+  formioCsbMetadata,
 } = require("../config/formio");
 const {
   ensureAuthenticated,
@@ -21,8 +22,61 @@ const log = logger.logger;
 
 const router = express.Router();
 
-const s3Bucket = process.env.S3_PUBLIC_BUCKET;
-const s3Region = process.env.S3_PUBLIC_REGION;
+// --- get static content from S3
+router.get("/content", (req, res) => {
+  const s3Bucket = process.env.S3_PUBLIC_BUCKET;
+  const s3Region = process.env.S3_PUBLIC_REGION;
+
+  // NOTE: static content files found in `app/server/app/config/` directory
+  const filenames = [
+    "site-alert.md",
+    "helpdesk-intro.md",
+    "all-rebate-forms-intro.md",
+    "all-rebate-forms-outro.md",
+    "new-rebate-form-dialog.md",
+    "existing-draft-rebate-form-intro.md",
+    "existing-submitted-rebate-form-intro.md",
+  ];
+
+  const s3BucketUrl = `https://${s3Bucket}.s3-${s3Region}.amazonaws.com`;
+
+  Promise.all(
+    filenames.map((filename) => {
+      // local development: read files directly from disk
+      // production: fetch files from the public s3 bucket
+      return process.env.NODE_ENV === "development"
+        ? readFile(resolve(__dirname, "../content", filename), "utf8")
+        : axios.get(`${s3BucketUrl}/content/${filename}`);
+    })
+  )
+    .then((stringsOrResponses) => {
+      // local development: no further processing of strings needed
+      // production: get data from responses
+      return process.env.NODE_ENV === "development"
+        ? stringsOrResponses
+        : stringsOrResponses.map((axiosRes) => axiosRes.data);
+    })
+    .then((data) => {
+      res.json({
+        siteAlert: data[0],
+        helpdeskIntro: data[1],
+        allRebateFormsIntro: data[2],
+        allRebateFormsOutro: data[3],
+        newRebateFormDialog: data[4],
+        existingDraftRebateFormIntro: data[5],
+        existingSubmittedRebateFormIntro: data[6],
+      });
+    })
+    .catch((error) => {
+      if (typeof error.toJSON === "function") {
+        log.debug(error.toJSON());
+      }
+
+      res
+        .status(error?.response?.status || 500)
+        .json({ message: "Error getting static content from S3 bucket" });
+    });
+});
 
 router.use(ensureAuthenticated);
 
@@ -70,59 +124,6 @@ router.get("/sam-data", (req, res) => {
     .catch((err) => {
       log.error(err);
       res.status(401).json({ message: "Error getting SAM.gov data" });
-    });
-});
-
-// --- get static content from S3
-router.get("/content", (req, res) => {
-  // NOTE: static content files found in `app/server/app/config/` directory
-  const filenames = [
-    "helpdesk-intro.md",
-    "all-rebate-forms-intro.md",
-    "all-rebate-forms-outro.md",
-    "new-rebate-form-intro.md",
-    "new-rebate-form-dialog.md",
-    "existing-draft-rebate-form-intro.md",
-    "existing-submitted-rebate-form-intro.md",
-  ];
-
-  const s3BucketUrl = `https://${s3Bucket}.s3-${s3Region}.amazonaws.com`;
-
-  Promise.all(
-    filenames.map((filename) => {
-      // local development: read files directly from disk
-      // production: fetch files from the public s3 bucket
-      return process.env.NODE_ENV === "development"
-        ? readFile(resolve(__dirname, "../content", filename), "utf8")
-        : axios.get(`${s3BucketUrl}/content/${filename}`);
-    })
-  )
-    .then((stringsOrResponses) => {
-      // local development: no further processing of strings needed
-      // production: get data from responses
-      return process.env.NODE_ENV === "development"
-        ? stringsOrResponses
-        : stringsOrResponses.map((axiosRes) => axiosRes.data);
-    })
-    .then((data) => {
-      res.json({
-        helpdeskIntro: data[0],
-        allRebateFormsIntro: data[1],
-        allRebateFormsOutro: data[2],
-        newRebateFormIntro: data[3],
-        newRebateFormDialog: data[4],
-        existingDraftRebateFormIntro: data[5],
-        existingSubmittedRebateFormIntro: data[6],
-      });
-    })
-    .catch((error) => {
-      if (typeof error.toJSON === "function") {
-        log.debug(error.toJSON());
-      }
-
-      res
-        .status(error?.response?.status || 500)
-        .json({ message: "Error getting static content from S3 bucket" });
     });
 });
 
@@ -225,6 +226,12 @@ router.post(
       return res.status(401).json({ message: "Unauthorized" });
     }
 
+    // Add custom metadata to track formio submissions from wrapper
+    req.body.metadata = {
+      ...req.body.metadata,
+      ...formioCsbMetadata,
+    };
+
     axios
       .put(
         `${formioProjectUrl}/${formioFormId}/submission/${id}`,
@@ -255,6 +262,12 @@ router.post("/rebate-form-submission", checkBapComboKeys, (req, res) => {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
+  // Add custom metadata to track formio submissions from wrapper
+  req.body.metadata = {
+    ...req.body.metadata,
+    ...formioCsbMetadata,
+  };
+
   axios
     .post(
       `${formioProjectUrl}/${formioFormId}/submission`,
@@ -276,36 +289,26 @@ router.post("/rebate-form-submission", checkBapComboKeys, (req, res) => {
 
 // --- get all rebate form submissions from Forms.gov
 router.get("/rebate-form-submissions", checkBapComboKeys, (req, res) => {
-  const queryString = req.bapComboKeys.join(
-    "&data.bap_hidden_entity_combo_key="
-  );
-  const formioUserSubmissionsUrl = `${formioProjectUrl}/${formioFormId}/submission?data.bap_hidden_entity_combo_key=${queryString}`;
+  // NOTE: Helpdesk users might not have any SAM.gov records associated with
+  // their email address so we should not return any submissions to those users.
+  // The only reason we explicitly need to do this is because there could be
+  // some submissions without `bap_hidden_entity_combo_key` field values in the
+  // forms.gov database – that will never be the case for submissions created
+  // from this app, but there could be submissions created externally if someone
+  // is testing posting data (e.g. from a REST client, or the Formio Viewer)
+  if (req.bapComboKeys.length === 0) return res.json([]);
+
+  const formioUserSubmissionsUrl =
+    `${formioProjectUrl}/${formioFormId}/submission` +
+    `?sort=-modified` +
+    `&limit=1000000` +
+    `&data.bap_hidden_entity_combo_key=${req.bapComboKeys.join(
+      "&data.bap_hidden_entity_combo_key="
+    )}`;
 
   axios
     .get(formioUserSubmissionsUrl, formioHeaders)
     .then((axiosRes) => axiosRes.data)
-    .then((submissions) => {
-      return submissions.map((submission) => {
-        const { _id, _fid, form, project, state, created, modified, data } =
-          submission;
-
-        return {
-          _id,
-          _fid,
-          form,
-          project,
-          created,
-          formType: "Application",
-          uei: data.applicantUEI,
-          eft: data.applicantEfti,
-          applicant: data.applicantOrganizationName,
-          schoolDistrict: data.schoolDistrictName,
-          lastUpdatedBy: data.last_updated_by,
-          lastUpdatedDatetime: modified,
-          status: state,
-        };
-      });
-    })
     .then((submissions) => res.json(submissions))
     .catch((error) => {
       if (typeof error.toJSON === "function") {

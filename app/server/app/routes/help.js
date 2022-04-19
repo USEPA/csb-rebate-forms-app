@@ -5,6 +5,7 @@ const {
   formioProjectUrl,
   formioFormId,
   formioHeaders,
+  formioCsbMetadata,
 } = require("../config/formio");
 const {
   ensureAuthenticated,
@@ -29,7 +30,18 @@ router.get("/rebate-form-submission/:id", verifyMongoObjectId, (req, res) => {
     .get(`${formioProjectUrl}/${formioFormId}/submission/${id}`, formioHeaders)
     .then((axiosRes) => axiosRes.data)
     .then((submission) => {
-      res.json(submission);
+      axios
+        .get(`${formioProjectUrl}/form/${submission.form}`, formioHeaders)
+        .then((axiosRes) => axiosRes.data)
+        .then((schema) => {
+          res.json({
+            formSchema: {
+              url: `${formioProjectUrl}/form/${submission.form}`,
+              json: schema,
+            },
+            submissionData: submission,
+          });
+        });
     })
     .catch((error) => {
       if (typeof error.toJSON === "function") {
@@ -58,6 +70,7 @@ router.post("/rebate-form-submission/:id", verifyMongoObjectId, (req, res) => {
           {
             state: "draft",
             data: { ...existingSubmission.data, last_updated_by: userEmail },
+            metadata: { ...existingSubmission.metadata, ...formioCsbMetadata },
           },
           formioHeaders
         )
@@ -67,7 +80,21 @@ router.post("/rebate-form-submission/:id", verifyMongoObjectId, (req, res) => {
             `User with email ${userEmail} updated rebate form submission ${id} from submitted to draft.`
           );
 
-          res.json(updatedSubmission);
+          axios
+            .get(
+              `${formioProjectUrl}/form/${updatedSubmission.form}`,
+              formioHeaders
+            )
+            .then((axiosRes) => axiosRes.data)
+            .then((schema) => {
+              res.json({
+                formSchema: {
+                  url: `${formioProjectUrl}/form/${updatedSubmission.form}`,
+                  json: schema,
+                },
+                submissionData: updatedSubmission,
+              });
+            });
         });
     })
     .catch((error) => {

@@ -18,36 +18,6 @@ const {
 } = require("./middleware");
 const routes = require("./routes");
 
-const app = express();
-const port = process.env.PORT || 3001;
-const log = logger.logger;
-
-app.use(
-  helmet({
-    crossOriginEmbedderPolicy: false,
-    contentSecurityPolicy: false,
-  })
-);
-app.use(
-  helmet.hsts({
-    maxAge: 31536000,
-  })
-);
-
-/****************************************************************
- Instruct web browsers to disable caching
- ****************************************************************/
-app.use(function (req, res, next) {
-  res.setHeader("Surrogate-Control", "no-store");
-  res.setHeader(
-    "Cache-Control",
-    "no-store, no-cache, must-revalidate, proxy-revalidate"
-  );
-  res.setHeader("Pragma", "no-cache");
-  res.setHeader("Expires", "0");
-  next();
-});
-
 const requiredEnvVars = [
   "SERVER_URL",
   "SAML_LOGIN_URL",
@@ -71,6 +41,30 @@ requiredEnvVars.forEach((envVar) => {
   }
 });
 
+const app = express();
+const port = process.env.PORT || 3001;
+const log = logger.logger;
+
+app.use(
+  helmet({
+    crossOriginEmbedderPolicy: false,
+    contentSecurityPolicy: false,
+  })
+);
+app.use(helmet.hsts({ maxAge: 31536000 }));
+
+// Instruct web browsers to disable caching
+app.use((req, res, next) => {
+  res.setHeader("Surrogate-Control", "no-store");
+  res.setHeader(
+    "Cache-Control",
+    "no-store, no-cache, must-revalidate, proxy-revalidate"
+  );
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+  next();
+});
+
 app.disable("x-powered-by");
 
 // Enable CORS and logging with morgan for local development only
@@ -83,7 +77,7 @@ if (process.env.NODE_ENV === "development") {
 
 // Apply global middleware on dev/staging in order for scan to receive 200 status on all endpoints
 if (
-  process.env.CLOUD_SPACE === "development" ||
+  process.env.CLOUD_SPACE === "dev" ||
   process.env.CLOUD_SPACE === "staging"
 ) {
   app.use(appScan);

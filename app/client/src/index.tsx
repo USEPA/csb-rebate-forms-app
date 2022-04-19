@@ -2,8 +2,8 @@ import { StrictMode } from "react";
 import { render } from "react-dom";
 import reportWebVitals from "./reportWebVitals";
 // ---
-import { UserProvider } from "contexts/user";
 import { ContentProvider } from "contexts/content";
+import { UserProvider } from "contexts/user";
 import { FormsProvider } from "contexts/forms";
 import { DialogProvider } from "contexts/dialog";
 import ErrorBoundary from "components/errorBoundary";
@@ -15,15 +15,15 @@ const rootElement = document.getElementById("root");
 render(
   <StrictMode>
     <ErrorBoundary>
-      <UserProvider>
-        <ContentProvider>
+      <ContentProvider>
+        <UserProvider>
           <FormsProvider>
             <DialogProvider>
               <App />
             </DialogProvider>
           </FormsProvider>
-        </ContentProvider>
-      </UserProvider>
+        </UserProvider>
+      </ContentProvider>
     </ErrorBoundary>
   </StrictMode>,
   rootElement

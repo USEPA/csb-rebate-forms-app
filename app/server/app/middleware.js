@@ -23,7 +23,7 @@ const ensureAuthenticated = (
 ) => {
   // If no JWT passed in token cookie, send Unauthorized response or redirect
   if (!req.cookies[cookieName]) {
-    log.error("No jwt cookie present in request");
+    log.warn("No jwt cookie present in request");
     return rejectCallback(req, res);
   }
   jwt.verify(
@@ -32,8 +32,17 @@ const ensureAuthenticated = (
     { algorithms: [jwtAlgorithm] },
     function (err, user) {
       if (err) {
-        log.error(err);
-        return rejectCallback(req, res);
+        // Change log levels depending on jwt error received
+        if (err instanceof jwt.TokenExpiredError) {
+          log.warn("JWT expired.");
+        } else if (err instanceof jwt.JsonWebTokenError) {
+          log.error("An invalid JWT was used.");
+        } else {
+          log.error(err);
+        }
+
+        // if err is TokenExpiredError, expired will be true and user will see inactive message instead of error
+        return rejectCallback(req, res, err instanceof jwt.TokenExpiredError);
       }
 
       // Add user to the request object
@@ -74,7 +83,7 @@ const ensureHelpdesk = (req, res, next) => {
   next();
 };
 
-const rejectRequest = (req, res) => {
+const rejectRequest = (req, res, expired) => {
   // Clear token cookie if there was an error verifying (e.g. expired)
   res.clearCookie(cookieName);
 
@@ -83,8 +92,11 @@ const rejectRequest = (req, res) => {
     return res.status(401).json({ message: "Unauthorized" });
   }
   // For non-API requests (e.g. on logout), redirect to front-end if token is non-existent or invalid
+  // If expired, display timeout info message instead of auth error
   return res.redirect(
-    `${process.env.CLIENT_URL || process.env.SERVER_URL}/welcome?error=auth`
+    `${process.env.CLIENT_URL || process.env.SERVER_URL}/welcome?${
+      expired ? "info=timeout" : "error=auth"
+    }`
   );
 };
 

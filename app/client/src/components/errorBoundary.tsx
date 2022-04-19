@@ -20,7 +20,6 @@ export default class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // TODO: log error to reporting service?
     console.error("Uncaught error:", error, errorInfo);
   }
 

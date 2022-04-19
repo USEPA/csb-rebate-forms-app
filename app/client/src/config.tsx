@@ -1,5 +1,9 @@
-const { NODE_ENV, REACT_APP_SERVER_BASE_PATH, REACT_APP_FORMIO_PROJECT_URL } =
-  process.env;
+const {
+  NODE_ENV,
+  REACT_APP_SERVER_BASE_PATH,
+  REACT_APP_CLOUD_SPACE,
+  REACT_APP_FORMIO_PROJECT_URL,
+} = process.env;
 
 if (!REACT_APP_FORMIO_PROJECT_URL) {
   throw new Error(
@@ -14,6 +18,9 @@ export const serverUrl =
   NODE_ENV === "development"
     ? "http://localhost:3001"
     : window.location.origin + serverBasePath;
+
+export const cloudSpace =
+  NODE_ENV === "development" ? "dev" : REACT_APP_CLOUD_SPACE || "";
 
 export const formioProjectUrl = REACT_APP_FORMIO_PROJECT_URL;
 

@@ -13,7 +13,6 @@ const router = express.Router();
 const baseUrl = process.env.CLIENT_URL || process.env.SERVER_URL;
 const cookieName = "csb-token";
 
-// TODO: pass RelayState from front-end if necessary?
 router.get(
   "/login",
   passport.authenticate("saml", {
@@ -76,7 +75,7 @@ const logoutCallback = (req, res) => {
   res.clearCookie(cookieName);
 
   // If "RelayState" was passed in original logout request (either querystring or post body), redirect to below
-  const { RelayState } = req.query || req.body;
+  const RelayState = req.query?.RelayState || req.body?.RelayState;
   res.redirect(`${baseUrl}${RelayState || "/welcome?success=logout"}`);
 };
 
