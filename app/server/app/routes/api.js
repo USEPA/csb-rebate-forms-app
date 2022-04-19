@@ -32,7 +32,6 @@ router.get("/content", (req, res) => {
     "helpdesk-intro.md",
     "all-rebate-forms-intro.md",
     "all-rebate-forms-outro.md",
-    "new-rebate-form-intro.md",
     "new-rebate-form-dialog.md",
     "existing-draft-rebate-form-intro.md",
     "existing-submitted-rebate-form-intro.md",
@@ -62,10 +61,9 @@ router.get("/content", (req, res) => {
         helpdeskIntro: data[1],
         allRebateFormsIntro: data[2],
         allRebateFormsOutro: data[3],
-        newRebateFormIntro: data[4],
-        newRebateFormDialog: data[5],
-        existingDraftRebateFormIntro: data[6],
-        existingSubmittedRebateFormIntro: data[7],
+        newRebateFormDialog: data[4],
+        existingDraftRebateFormIntro: data[5],
+        existingSubmittedRebateFormIntro: data[6],
       });
     })
     .catch((error) => {
