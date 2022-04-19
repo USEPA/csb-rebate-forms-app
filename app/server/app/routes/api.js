@@ -7,6 +7,7 @@ const {
   formioProjectUrl,
   formioFormId,
   formioHeaders,
+  formioCsbMetadata,
 } = require("../config/formio");
 const {
   ensureAuthenticated,
@@ -225,6 +226,12 @@ router.post(
       return res.status(401).json({ message: "Unauthorized" });
     }
 
+    // Add custom metadata to track formio submissions from wrapper
+    req.body.metadata = {
+      ...req.body.metadata,
+      ...formioCsbMetadata,
+    };
+
     axios
       .put(
         `${formioProjectUrl}/${formioFormId}/submission/${id}`,
@@ -254,6 +261,12 @@ router.post("/rebate-form-submission", checkBapComboKeys, (req, res) => {
     );
     return res.status(401).json({ message: "Unauthorized" });
   }
+
+  // Add custom metadata to track formio submissions from wrapper
+  req.body.metadata = {
+    ...req.body.metadata,
+    ...formioCsbMetadata,
+  };
 
   axios
     .post(

@@ -5,6 +5,7 @@ const {
   formioProjectUrl,
   formioFormId,
   formioHeaders,
+  formioCsbMetadata,
 } = require("../config/formio");
 const {
   ensureAuthenticated,
@@ -69,6 +70,7 @@ router.post("/rebate-form-submission/:id", verifyMongoObjectId, (req, res) => {
           {
             state: "draft",
             data: { ...existingSubmission.data, last_updated_by: userEmail },
+            metadata: { ...existingSubmission.metadata, ...formioCsbMetadata },
           },
           formioHeaders
         )
