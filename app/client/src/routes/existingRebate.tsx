@@ -69,7 +69,7 @@ type SubmissionState =
       };
     };
 
-export default function ExistingRebateForm() {
+export default function ExistingRebate() {
   const navigate = useNavigate();
   const { id } = useParams<"id">();
   const { content } = useContentState();
@@ -165,9 +165,9 @@ export default function ExistingRebateForm() {
           className="margin-top-4"
           children={
             submissionData.state === "draft"
-              ? content.data?.existingDraftRebateFormIntro || ""
+              ? content.data?.draftRebateIntro || ""
               : submissionData.state === "submitted"
-              ? content.data?.existingSubmittedRebateFormIntro || ""
+              ? content.data?.submittedRebateIntro || ""
               : ""
           }
         />
