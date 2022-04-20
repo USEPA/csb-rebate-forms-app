@@ -127,28 +127,6 @@ router.get("/sam-data", (req, res) => {
     });
 });
 
-// --- get the rebate form schema from Forms.gov
-router.get("/rebate-form-schema", (req, res) => {
-  axios
-    .get(`${formioProjectUrl}/${formioFormId}`, formioHeaders)
-    .then((axiosRes) => axiosRes.data)
-    .then((schema) =>
-      res.json({
-        url: `${formioProjectUrl}/${formioFormId}`,
-        json: schema,
-      })
-    )
-    .catch((error) => {
-      if (typeof error.toJSON === "function") {
-        log.debug(error.toJSON());
-      }
-
-      res
-        .status(error?.response?.status || 500)
-        .json({ message: "Error getting Forms.gov rebate form schema" });
-    });
-});
-
 // --- get an existing rebate form's schema and submission data from Forms.gov
 router.get(
   "/rebate-form-submission/:id",
