@@ -167,10 +167,46 @@ export default function AllRebates() {
                         </Link>
                       </th>
                       <td>Application</td>
-                      <td>{applicantUEI}</td>
-                      <td>{applicantEfti}</td>
-                      <td>{applicantOrganizationName}</td>
-                      <td>{schoolDistrictName}</td>
+                      <td>
+                        {applicantUEI ? (
+                          applicantUEI
+                        ) : (
+                          <TextWithTooltip
+                            text=" "
+                            tooltip="Please edit and save the form and the UEI will be displayed"
+                          />
+                        )}
+                      </td>
+                      <td>
+                        {applicantEfti ? (
+                          applicantEfti
+                        ) : (
+                          <TextWithTooltip
+                            text=" "
+                            tooltip="Please edit and save the form and the EFT Indicator will be displayed"
+                          />
+                        )}
+                      </td>
+                      <td>
+                        {applicantOrganizationName ? (
+                          applicantOrganizationName
+                        ) : (
+                          <TextWithTooltip
+                            text=" "
+                            tooltip="Please edit and save the form and the Applicant will be displayed"
+                          />
+                        )}
+                      </td>
+                      <td>
+                        {schoolDistrictName ? (
+                          schoolDistrictName
+                        ) : (
+                          <TextWithTooltip
+                            text=" "
+                            tooltip="School District will be displayed after that field has been entered in the form"
+                          />
+                        )}
+                      </td>
                       <td>{last_updated_by}</td>
                       <td title={`${date} ${time}`}>{date}</td>
                       <td>{state}</td>
