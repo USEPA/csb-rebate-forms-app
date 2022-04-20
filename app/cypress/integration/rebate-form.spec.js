@@ -100,22 +100,6 @@ describe('Rebate Form', () => {
     submitTests('Wounded Knee District', 'submitted');
   });
 
-  it('New application service error', () => {
-    // simulate the rebate-form-schema service failing
-    const origin =
-      location.hostname === 'localhost'
-        ? `${location.protocol}//${location.hostname}:3001`
-        : window.location.origin;
-    cy.intercept(`${origin}/api/rebate-form-schema/`, {
-      statusCode: 500,
-      body: {},
-    }).as('rebate-form-schema');
-
-    // verify the appropriate error message is displayed
-    cy.findByText('New Application').click();
-    cy.findByText('Error loading rebate form fields.');
-  });
-
   it('Existing application', () => {
     clickFirstRebateFormRow();
 
