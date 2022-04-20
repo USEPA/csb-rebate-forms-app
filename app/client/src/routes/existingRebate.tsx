@@ -165,9 +165,9 @@ export default function ExistingRebate() {
           className="margin-top-4"
           children={
             submissionData.state === "draft"
-              ? content.data?.existingDraftRebateFormIntro || ""
+              ? content.data?.draftRebateIntro || ""
               : submissionData.state === "submitted"
-              ? content.data?.existingSubmittedRebateFormIntro || ""
+              ? content.data?.submittedRebateIntro || ""
               : ""
           }
         />

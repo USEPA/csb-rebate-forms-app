@@ -13,11 +13,11 @@ type Props = {
 type Content = {
   siteAlert: string;
   helpdeskIntro: string;
-  allRebateFormsIntro: string;
-  allRebateFormsOutro: string;
-  newRebateFormDialog: string;
-  existingDraftRebateFormIntro: string;
-  existingSubmittedRebateFormIntro: string;
+  allRebatesIntro: string;
+  allRebatesOutro: string;
+  newRebateDialog: string;
+  draftRebateIntro: string;
+  submittedRebateIntro: string;
 };
 
 type State = {
@@ -55,11 +55,11 @@ function reducer(state: State, action: Action): State {
       const {
         siteAlert,
         helpdeskIntro,
-        allRebateFormsIntro,
-        allRebateFormsOutro,
-        newRebateFormDialog,
-        existingDraftRebateFormIntro,
-        existingSubmittedRebateFormIntro,
+        allRebatesIntro,
+        allRebatesOutro,
+        newRebateDialog,
+        draftRebateIntro,
+        submittedRebateIntro,
       } = action.payload;
 
       return {
@@ -69,11 +69,11 @@ function reducer(state: State, action: Action): State {
           data: {
             siteAlert,
             helpdeskIntro,
-            allRebateFormsIntro,
-            allRebateFormsOutro,
-            newRebateFormDialog,
-            existingDraftRebateFormIntro,
-            existingSubmittedRebateFormIntro,
+            allRebatesIntro,
+            allRebatesOutro,
+            newRebateDialog,
+            draftRebateIntro,
+            submittedRebateIntro,
           },
         },
       };

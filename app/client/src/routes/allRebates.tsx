@@ -61,7 +61,7 @@ export default function AllRebates() {
           {content.status === "success" && (
             <MarkdownContent
               className="margin-top-4"
-              children={content.data?.allRebateFormsIntro || ""}
+              children={content.data?.allRebatesIntro || ""}
             />
           )}
 
@@ -221,7 +221,7 @@ export default function AllRebates() {
 
       {content.status === "success" && (
         <div className="margin-top-4 padding-2 padding-bottom-0 border-1px border-base-lighter bg-base-lightest">
-          <MarkdownContent children={content.data?.allRebateFormsOutro || ""} />
+          <MarkdownContent children={content.data?.allRebatesOutro || ""} />
         </div>
       )}
     </>

@@ -94,7 +94,7 @@ export default function NewRebate() {
               {content.status === "success" && (
                 <MarkdownContent
                   className="margin-top-4"
-                  children={content.data?.newRebateFormDialog || ""}
+                  children={content.data?.newRebateDialog || ""}
                   components={{
                     h2: (props) => (
                       <h2
