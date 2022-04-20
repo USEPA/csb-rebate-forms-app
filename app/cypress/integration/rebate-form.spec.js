@@ -14,7 +14,6 @@ describe('Rebate Form', () => {
     step4,
     step5,
     step6,
-    step7,
     submitTests,
     fillOutNewApplication;
 
@@ -42,7 +41,6 @@ describe('Rebate Form', () => {
         step4,
         step5,
         step6,
-        step7,
         submitTests,
         fillOutNewApplication,
       } = steps);
@@ -64,18 +62,17 @@ describe('Rebate Form', () => {
   });
 
   it('New application - Save and Continue button', () => {
-    // complete steps 1 - 4
+    // complete steps 1 - 3
     startNewApplication();
     step1(true);
-    step2();
+    step2(true);
     step3(true);
-    step4(true);
 
-    // go back to step 4
+    // go back to step 3
     cy.findByText('Previous').click();
-    cy.contains('4 of 7 Applicant Information');
+    cy.contains('3 of 6 Applicant Information');
 
-    cy.findAllByText('Save and Continue').filter('button').first().click();
+    cy.findAllByText('Save').filter('button').first().click();
 
     // verify the save messages
     cy.findAllByText('Saving form...');
@@ -95,10 +92,9 @@ describe('Rebate Form', () => {
     step1();
     step2();
     step3();
-    step4();
+    step4(true);
     step5(true);
-    step6();
-    step7(true);
+    step6(true);
 
     // verify the application is now marked as submitted
     submitTests('Wounded Knee District', 'submitted');
@@ -116,8 +112,8 @@ describe('Rebate Form', () => {
     }).as('rebate-form-schema');
 
     // verify the appropriate error message is displayed
-    startNewApplication();
-    cy.findByText('Error loading rebate form.');
+    cy.findByText('New Application').click();
+    cy.findByText('Error loading rebate form fields.');
   });
 
   it('Existing application', () => {
@@ -130,7 +126,6 @@ describe('Rebate Form', () => {
     step4();
     step5();
     step6();
-    step7();
   });
 
   it('Modal cancel tests', () => {

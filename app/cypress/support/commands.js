@@ -1,4 +1,5 @@
 import '@testing-library/cypress/add-commands';
+import 'cypress-file-upload';
 
 /**
  * This command is used for logging into CSB.
@@ -71,7 +72,7 @@ Cypress.Commands.add('getApplicationSteps', () => {
         const $firstElm = $elms[0];
 
         cy.wrap($firstElm).within(() => {
-          cy.get('th').then(($cols) => {
+          cy.get('th,td').then(($cols) => {
             // store the selected row for later use
             selectedUei = $cols[1].innerText;
             selectedEft = $cols[2].innerText;
@@ -92,30 +93,25 @@ Cypress.Commands.add('getApplicationSteps', () => {
   function step1(newApplication = false) {
     cy.log('Perform step 1 tests...');
 
+    cy.contains('1 of 6 Welcome').should('be.visible');
+
     // workaround for an issue where clicking next on step 1 reloads step 1 again
     //  this only happens when creating a new application from scratch
     if (newApplication) cy.findByText('Next').click();
-
-    cy.contains('1 of 7 Introduction');
-
-    cy.findByText(
-      'EPA is ready to assist fleets in purchasing new, cleaner school buses',
-      { exact: false },
-    );
 
     // go to next step
     cy.findByText('Next').click();
   }
 
-  function step2() {
+  function step2(newApplication = false) {
     cy.log('Perform step 2 tests...');
 
-    cy.contains('2 of 7 Welcome');
+    cy.contains('2 of 6 Applicant Type');
 
-    cy.findByText(
-      'Begin your rebate application for the Clean School Bus (CSB) program here.',
-      { exact: false },
-    );
+    if (newApplication) {
+      cy.findByLabelText('Applicant Type').select('School District');
+      cy.findByLabelText('Yes').click({ force: true });
+    }
 
     // go to next step
     cy.findByText('Next').click();
@@ -124,29 +120,11 @@ Cypress.Commands.add('getApplicationSteps', () => {
   function step3(newApplication = false) {
     cy.log('Perform step 3 tests...');
 
-    cy.contains('3 of 7 Organization Type');
-
-    cy.findByText('Applicant Organization Type');
-
-    if (newApplication) {
-      cy.findByLabelText('Applicant Organization Type').select(
-        'Local Education Agency (LEA)',
-      );
-      cy.findByLabelText('Yes').click({ force: true });
-    }
-
-    // go to next step
-    cy.findByText('Next').click();
-  }
-
-  function step4(newApplication = false) {
-    cy.log('Perform step 4 tests...');
-
-    cy.contains('4 of 7 Applicant Information');
+    cy.contains('3 of 6 Applicant Information');
 
     if (newApplication) {
       // verify auto populated fields
-      cy.findByLabelText('Organization Name').then(($el) =>
+      cy.findByLabelText('Applicant Name').then(($el) =>
         cy.wrap($el).should('have.value', selectedOrganization),
       );
       cy.findByLabelText('Unique Entity Identifier (UEI)').then(($el) =>
@@ -156,7 +134,7 @@ Cypress.Commands.add('getApplicationSteps', () => {
         ($el) => cy.wrap($el).should('have.value', selectedEft),
       );
       cy.findByLabelText('City').should('have.value', 'WATERTOWN');
-      cy.findByLabelText('State').should('have.value', 'MA');
+      cy.findByLabelText('State or Territory').should('have.value', 'MA');
       cy.findByLabelText('Zip Code', { exact: false }).should(
         'have.value',
         '2472',
@@ -165,26 +143,26 @@ Cypress.Commands.add('getApplicationSteps', () => {
       // fill out the remainder of the form
       cy.findAllByLabelText('Name').first().type('John Doe');
       cy.findAllByLabelText('Title').first().type('Software Developer');
-      cy.findAllByLabelText('Phone Number', { exact: false })
+      cy.findAllByLabelText('Business Phone Number', { exact: false })
         .first()
         .type('1234567890');
-      cy.findAllByLabelText('Email').first().type('test1@test.com');
+      cy.findAllByLabelText('Business Email').first().type('test1@test.com');
       cy.findAllByLabelText('Name').last().type('Jane Doe');
       cy.findAllByLabelText('Title').last().type('Software Developer');
-      cy.findAllByLabelText('Phone Number', { exact: false })
+      cy.findAllByLabelText('Business Phone Number', { exact: false })
         .last()
         .type('1234567891');
-      cy.findAllByLabelText('Email').last().type('test2@test.com');
+      cy.findAllByLabelText('Business Email').last().type('test2@test.com');
     }
 
     // go to next step
     cy.findByText('Next').click();
   }
 
-  function step5(newApplication = false) {
-    cy.log('Perform step 5 tests...');
+  function step4(newApplication = false) {
+    cy.log('Perform step 4 tests...');
 
-    cy.contains('5 of 7 School District Information');
+    cy.contains('4 of 6 School District Information');
 
     if (newApplication) {
       // wait before typing District ID - this is a workaround for an issue
@@ -210,7 +188,7 @@ Cypress.Commands.add('getApplicationSteps', () => {
       cy.findByLabelText('City').then(($el) =>
         cy.wrap($el).should('have.value', 'Manderson'),
       );
-      cy.findByLabelText('State').then(($el) =>
+      cy.findByLabelText('State or Territory').then(($el) =>
         cy.wrap($el).should('have.value', 'SD'),
       );
       cy.findByLabelText('Zip Code', { exact: false }).then(($el) =>
@@ -223,27 +201,76 @@ Cypress.Commands.add('getApplicationSteps', () => {
       // fill out the remainder of the form
       cy.findByLabelText('Name').type('Bob Wilson');
       cy.findByLabelText('Title').type('Principal');
-      cy.findByLabelText('Phone Number', { exact: false }).type('1235469870');
-      cy.findByLabelText('Email').type('test3@test.com');
+      cy.findByLabelText('Business Phone Number', { exact: false }).type(
+        '1235469870',
+      );
+      cy.findByLabelText('Business Email').type('test3@test.com');
     }
 
     // go to next step
     cy.findByText('Next').click();
   }
 
-  function step6() {
-    cy.log('Perform step 6 tests...');
+  function step5(newApplication = false) {
+    cy.log('Perform step 5 tests...');
 
-    cy.contains('6 of 7 Bus Information');
+    cy.contains('5 of 6 Bus Information');
+
+    if (newApplication) {
+      cy.findByText('Add bus').click();
+
+      cy.findByLabelText('VIN').type('12345678901234567');
+
+      // select the manufacturer - have to do this as a workaround since formio doesn't
+      // use a normal select element
+      cy.findByLabelText('Manufacturer').parent().click();
+      cy.findByText('Blue Bird Corporation').click();
+
+      cy.findByLabelText('Model').type('Bus 1543');
+      cy.findByLabelText('Model Year').type('1984');
+      cy.findByLabelText('Average Annual Mileage', { exact: false }).type(
+        '40000',
+      );
+      cy.findByLabelText('Average Annual Fuel Consumption (gallons)', {
+        exact: false,
+      }).type('5000');
+
+      // select the manufacturer - have to do this as a workaround since formio doesn't
+      // use a normal select element
+      cy.findByLabelText('Fuel Type').parent().click();
+      cy.findByText('Diesel').click();
+
+      cy.findAllByLabelText('GVWR', { exact: false }).first().type('12000');
+
+      // upload a file
+      const fileName = 'testPicture.jpg';
+      cy.get('div[ref="fileDrop"]').attachFile(fileName, {
+        subjectType: 'drag-n-drop',
+      });
+      cy.findByText(fileName);
+
+      cy.findByLabelText('Replacement Fuel Type').parent().click();
+      cy.findByText('Electric').click();
+      cy.findByLabelText('Replacement Bus GVWR (lbs.)', { exact: false }).type(
+        '12000',
+      );
+
+      // This is a workaround, since there are 3 save buttons
+      cy.findByText('Cancel')
+        .parent()
+        .within(() => {
+          cy.findByText('Save').click();
+        });
+    }
 
     // go to next step
     cy.findByText('Next').click();
   }
 
-  function step7(newApplication = false) {
-    cy.log('Perform step 7 tests...');
+  function step6(newApplication = false) {
+    cy.log('Perform step 6 tests...');
 
-    cy.contains('7 of 7 Review and Sign');
+    cy.contains('6 of 6 Review and Sign');
 
     if (newApplication) {
       // sign the application
@@ -293,12 +320,11 @@ Cypress.Commands.add('getApplicationSteps', () => {
   function fillOutNewApplication() {
     startNewApplication();
     step1(true);
-    step2();
+    step2(true);
     step3(true);
     step4(true);
     step5(true);
-    step6();
-    step7(true);
+    step6(true);
     submitTests('Wounded Knee District', 'submitted');
   }
 
@@ -310,7 +336,6 @@ Cypress.Commands.add('getApplicationSteps', () => {
     step4,
     step5,
     step6,
-    step7,
     submitTests,
     fillOutNewApplication,
   });
