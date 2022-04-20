@@ -14,12 +14,13 @@ describe('Routes', () => {
     cy.loginToCSB('csbtest');
     cy.findByText('Your Rebate Forms');
 
-    // get a formId from an existing application
-    cy.findByLabelText('Your Rebate Forms')
-      .get('tbody > tr')
-      .within(($rows) => {
-        const $firstRow = $rows[0];
-        cy.wrap($firstRow)
+    // get a formId from an existing application by visiting the first submitted
+    // application
+    cy.findAllByText('submitted')
+      .first()
+      .parent()
+      .within(($row) => {
+        cy.wrap($row)
           .get('th,td')
           .then(($cols) => {
             cy.wrap($cols[0]).click();
@@ -27,7 +28,7 @@ describe('Routes', () => {
       });
 
     // verify the tab loaded
-    cy.contains('1 of 7 Introduction');
+    cy.contains('1 of 6 Welcome');
 
     // extract the form id
     cy.get('body').then(($body) => {
@@ -45,7 +46,7 @@ describe('Routes', () => {
 
     cy.visit('/testing-not-found');
 
-    cy.findByText('(Not Found)');
+    cy.findByText('Your Rebate Forms');
   });
 
   it('Navigate directly to an existing application', () => {
@@ -56,7 +57,7 @@ describe('Routes', () => {
 
     cy.findAllByText(loadingSpinnerText).should('be.visible');
 
-    cy.findByText('Edit Your Rebate Application');
+    cy.findByText('View Your Submitted Rebate Application');
   });
 
   it('Navigate directly to an existing application without being logged in', () => {
