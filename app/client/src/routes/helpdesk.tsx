@@ -34,18 +34,18 @@ type SubmissionState =
       data: {
         formSchema: { url: string; json: object };
         submissionData: {
-        // NOTE: more fields are in a form.io submission,
-        // but we're only concerned with the fields below
-        _id: string;
-        state: "submitted" | "draft";
-        modified: string;
-        data: {
-          applicantOrganizationName: string;
-          last_updated_by: string;
+          // NOTE: more fields are in a form.io submission,
+          // but we're only concerned with the fields below
+          _id: string;
+          state: "submitted" | "draft";
+          modified: string;
+          data: {
+            applicantOrganizationName: string;
+            last_updated_by: string;
+            // (other fields...)
+          };
           // (other fields...)
         };
-        // (other fields...)
-      };
       };
     }
   | {
@@ -53,7 +53,7 @@ type SubmissionState =
       data: {
         formSchema: null;
         submissionData: null;
-    };
+      };
     };
 
 export default function Helpdesk() {
@@ -182,56 +182,56 @@ export default function Helpdesk() {
         formSchema &&
         submissionData && (
           <>
-        <div className="usa-table-container--scrollable" tabIndex={0}>
-          <table
-            aria-label="Search Results"
-            className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full"
-          >
-            <thead>
-              <tr className="font-sans-2xs text-no-wrap">
-                <th scope="col">
+            <div className="usa-table-container--scrollable" tabIndex={0}>
+              <table 
+                aria-label="Search Results"
+                className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full"
+              >
+                <thead>
+                  <tr className="font-sans-2xs text-no-wrap">
+                    <th scope="col">
                       <span className="usa-sr-only">Open</span>
                     </th>
                     <th scope="col">
-                  <TextWithTooltip
-                    text="Form ID"
-                    tooltip="Form ID returned from Forms.gov"
-                  />
-                </th>
-                <th scope="col">
-                  <TextWithTooltip
-                    text="Applicant"
-                    tooltip="Legal Business Name from SAM.gov for this UEI"
-                  />
-                </th>
-                <th scope="col">
-                  <TextWithTooltip
-                    text="Updated By"
-                    tooltip="Last person that updated this form"
-                  />
-                </th>
-                <th scope="col">
-                  <TextWithTooltip
-                    text="Date Updated"
-                    tooltip="Last date this form was updated"
-                  />
-                </th>
-                <th scope="col">
+                      <TextWithTooltip
+                        text="Form ID"
+                        tooltip="Form ID returned from Forms.gov"
+                      />
+                    </th>
+                    <th scope="col">
+                      <TextWithTooltip
+                        text="Applicant"
+                        tooltip="Legal Business Name from SAM.gov for this UEI"
+                      />
+                    </th>
+                    <th scope="col">
+                      <TextWithTooltip
+                        text="Updated By"
+                        tooltip="Last person that updated this form"
+                      />
+                    </th>
+                    <th scope="col">
+                      <TextWithTooltip
+                        text="Date Updated"
+                        tooltip="Last date this form was updated"
+                      />
+                    </th>
+                    <th scope="col">
                       <TextWithTooltip
                         text="Status"
                         tooltip="submitted or draft"
                       />
-                </th>
+                    </th>
                     <th scope="col">
                       <span className="usa-sr-only">Update</span>
                     </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <th scope="row">
-                  <button
-                    className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row">
+                      <button
+                        className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
                         onClick={(ev) => setFormDisplayed(true)}
                       >
                         <span className="usa-sr-only">Open Form {formId}</span>
@@ -261,74 +261,74 @@ export default function Helpdesk() {
                       <button
                         className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
                         disabled={submissionData.state === "draft"}
-                    onClick={(ev) => {
-                      dispatch({
-                        type: "DISPLAY_DIALOG",
-                        payload: {
-                          dismissable: true,
-                          heading:
-                            "Are you sure you want to change this submission's state back to draft?",
-                          description:
-                            "Once the submission is back in a draft state, all users with access to this submission will be able to further edit it.",
-                          confirmText: "Yes",
-                          cancelText: "Cancel",
-                          confirmedAction: () => {
+                        onClick={(ev) => {
+                          dispatch({
+                            type: "DISPLAY_DIALOG",
+                            payload: {
+                              dismissable: true,
+                              heading:
+                                "Are you sure you want to change this submission's state back to draft?",
+                              description:
+                                "Once the submission is back in a draft state, all users with access to this submission will be able to further edit it.",
+                              confirmText: "Yes",
+                              cancelText: "Cancel",
+                              confirmedAction: () => {
                                 setFormDisplayed(false);
 
-                            setRebateFormSubmission({
-                              status: "pending",
+                                setRebateFormSubmission({
+                                  status: "pending",
                                   data: {
                                     formSchema: null,
                                     submissionData: null,
                                   },
-                            });
+                                });
 
                                 fetchData(
                                   `${serverUrl}/help/rebate-form-submission/${formId}`,
                                   {}
                                 )
-                              .then((res) => {
-                                setRebateFormSubmission({
-                                  status: "success",
-                                  data: res,
-                                });
-                              })
-                              .catch((err) => {
-                                setRebateFormSubmission({
-                                  status: "failure",
+                                  .then((res) => {
+                                    setRebateFormSubmission({
+                                      status: "success",
+                                      data: res,
+                                    });
+                                  })
+                                  .catch((err) => {
+                                    setRebateFormSubmission({
+                                      status: "failure",
                                       data: {
                                         formSchema: null,
                                         submissionData: null,
                                       },
-                                });
-                              });
-                          },
-                        },
-                      });
-                    }}
-                  >
+                                    });
+                                  });
+                              },
+                            },
+                          });
+                        }}
+                      >
                         <span className="usa-sr-only">
                           Set {formId} to draft
                         </span>
-                    <span className="display-flex flex-align-center">
-                      <svg
-                        className="usa-icon"
-                        aria-hidden="true"
-                        focusable="false"
-                        role="img"
-                      >
-                        <use href={`${icons}#update`} />
-                      </svg>
+                        <span className="display-flex flex-align-center">
+                          <svg
+                            className="usa-icon"
+                            aria-hidden="true"
+                            focusable="false"
+                            role="img"
+                          >
+                            <use href={`${icons}#update`} />
+                          </svg>
                           <span className="mobile-lg:display-none margin-left-1">
                             Update Form
-                    </span>
+                          </span>
                         </span>
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
 
             {formDisplayed && (
               <>
@@ -341,8 +341,8 @@ export default function Helpdesk() {
                   options={{ readOnly: true }}
                 />
               </>
-      )}
-    </>
+            )}
+          </>
         )}
     </>
   );
