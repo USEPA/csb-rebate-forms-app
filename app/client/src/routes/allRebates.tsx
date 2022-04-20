@@ -11,7 +11,7 @@ import { useContentState } from "contexts/content";
 import { useUserState } from "contexts/user";
 import { useFormsState, useFormsDispatch } from "contexts/forms";
 
-export default function AllRebateForms() {
+export default function AllRebates() {
   const { content } = useContentState();
   const { samUserData } = useUserState();
   const { rebateFormSubmissions } = useFormsState();
@@ -61,7 +61,7 @@ export default function AllRebateForms() {
           {content.status === "success" && (
             <MarkdownContent
               className="margin-top-4"
-              children={content.data?.allRebateFormsIntro || ""}
+              children={content.data?.allRebatesIntro || ""}
             />
           )}
 
@@ -167,10 +167,46 @@ export default function AllRebateForms() {
                         </Link>
                       </th>
                       <td>Application</td>
-                      <td>{applicantUEI}</td>
-                      <td>{applicantEfti}</td>
-                      <td>{applicantOrganizationName}</td>
-                      <td>{schoolDistrictName}</td>
+                      <td>
+                        {applicantUEI ? (
+                          applicantUEI
+                        ) : (
+                          <TextWithTooltip
+                            text=" "
+                            tooltip="Please edit and save the form and the UEI will be displayed"
+                          />
+                        )}
+                      </td>
+                      <td>
+                        {applicantEfti ? (
+                          applicantEfti
+                        ) : (
+                          <TextWithTooltip
+                            text=" "
+                            tooltip="Please edit and save the form and the EFT Indicator will be displayed"
+                          />
+                        )}
+                      </td>
+                      <td>
+                        {applicantOrganizationName ? (
+                          applicantOrganizationName
+                        ) : (
+                          <TextWithTooltip
+                            text=" "
+                            tooltip="Please edit and save the form and the Applicant will be displayed"
+                          />
+                        )}
+                      </td>
+                      <td>
+                        {schoolDistrictName ? (
+                          schoolDistrictName
+                        ) : (
+                          <TextWithTooltip
+                            text=" "
+                            tooltip="School District will be displayed after that field has been entered in the form"
+                          />
+                        )}
+                      </td>
                       <td>{last_updated_by}</td>
                       <td title={`${date} ${time}`}>{date}</td>
                       <td>{state}</td>
@@ -185,7 +221,7 @@ export default function AllRebateForms() {
 
       {content.status === "success" && (
         <div className="margin-top-4 padding-2 padding-bottom-0 border-1px border-base-lighter bg-base-lightest">
-          <MarkdownContent children={content.data?.allRebateFormsOutro || ""} />
+          <MarkdownContent children={content.data?.allRebatesOutro || ""} />
         </div>
       )}
     </>
