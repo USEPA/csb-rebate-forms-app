@@ -25,10 +25,9 @@ import Welcome from "components/welcome";
 import Dashboard from "components/dashboard";
 import ConfirmationDialog from "components/confirmationDialog";
 import Helpdesk from "routes/helpdesk";
-import AllRebateForms from "routes/allRebateForms";
-import NewRebateForm from "routes/newRebateForm";
-import ExistingRebateForm from "routes/existingRebateForm";
-import NotFound from "routes/notFound";
+import AllRebates from "routes/allRebates";
+import NewRebate from "routes/newRebate";
+import ExistingRebate from "routes/existingRebate";
 import { useContentState, useContentDispatch } from "contexts/content";
 import { useUserState, useUserDispatch } from "contexts/user";
 import { useDialogDispatch, useDialogState } from "contexts/dialog";
@@ -275,7 +274,7 @@ export default function App() {
             </ProtectedRoute>
           }
         >
-          <Route index element={<AllRebateForms />} />
+          <Route index element={<AllRebates />} />
           {/*
             NOTE: The helpdesk route is only accessible to users who should have
             access to it. When a user tries to access the `Helpdesk` route, an
@@ -283,15 +282,15 @@ export default function App() {
             happens on the server via the user's EPA WAA groups stored in the
             JWT, and server responds appropriately. If user is a member of the
             appropriate WAA groups, they'll have access to the route, otherwise
-            they'll be redirected to the index route (`AllRebateForms`).
-            This same API call happens inside the `Dashboard` component as well,
-            to determine whether a button/link to the helpdesk route should be
+            they'll be redirected to the index route (`AllRebates`). This same
+            API call happens inside the `Dashboard` component as well, to
+            determine whether a button/link to the helpdesk route should be
             displayed.
           */}
           <Route path="helpdesk" element={<Helpdesk />} />
-          <Route path="rebate/new" element={<NewRebateForm />} />
-          <Route path="rebate/:id" element={<ExistingRebateForm />} />
-          <Route path="*" element={<NotFound />} />
+          <Route path="rebate/new" element={<NewRebate />} />
+          <Route path="rebate/:id" element={<ExistingRebate />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
     </BrowserRouter>

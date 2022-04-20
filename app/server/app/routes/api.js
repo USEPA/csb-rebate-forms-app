@@ -31,11 +31,11 @@ router.get("/content", (req, res) => {
   const filenames = [
     "site-alert.md",
     "helpdesk-intro.md",
-    "all-rebate-forms-intro.md",
-    "all-rebate-forms-outro.md",
-    "new-rebate-form-dialog.md",
-    "existing-draft-rebate-form-intro.md",
-    "existing-submitted-rebate-form-intro.md",
+    "all-rebates-intro.md",
+    "all-rebates-outro.md",
+    "new-rebate-dialog.md",
+    "draft-rebate-intro.md",
+    "submitted-rebate-intro.md",
   ];
 
   const s3BucketUrl = `https://${s3Bucket}.s3-${s3Region}.amazonaws.com`;
@@ -60,11 +60,11 @@ router.get("/content", (req, res) => {
       res.json({
         siteAlert: data[0],
         helpdeskIntro: data[1],
-        allRebateFormsIntro: data[2],
-        allRebateFormsOutro: data[3],
-        newRebateFormDialog: data[4],
-        existingDraftRebateFormIntro: data[5],
-        existingSubmittedRebateFormIntro: data[6],
+        allRebatesIntro: data[2],
+        allRebatesOutro: data[3],
+        newRebateDialog: data[4],
+        draftRebateIntro: data[5],
+        submittedRebateIntro: data[6],
       });
     })
     .catch((error) => {
@@ -124,24 +124,6 @@ router.get("/sam-data", (req, res) => {
     .catch((err) => {
       log.error(err);
       res.status(401).json({ message: "Error getting SAM.gov data" });
-    });
-});
-
-// --- get the rebate form schema from Forms.gov
-router.get("/rebate-form-schema", (req, res) => {
-  axiosFormio
-    .get(`${formioProjectUrl}/${formioFormId}`)
-    .then((axiosRes) => axiosRes.data)
-    .then((schema) =>
-      res.json({
-        url: `${formioProjectUrl}/${formioFormId}`,
-        json: schema,
-      })
-    )
-    .catch((error) => {
-      res
-        .status(error?.response?.status || 500)
-        .json({ message: "Error getting Forms.gov rebate form schema" });
     });
 });
 
