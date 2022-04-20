@@ -69,7 +69,7 @@ type SubmissionState =
       };
     };
 
-export default function ExistingRebateForm() {
+export default function ExistingRebate() {
   const navigate = useNavigate();
   const { id } = useParams<"id">();
   const { content } = useContentState();

@@ -11,7 +11,7 @@ import { useContentState } from "contexts/content";
 import { useUserState } from "contexts/user";
 import { useFormsState, useFormsDispatch } from "contexts/forms";
 
-export default function AllRebateForms() {
+export default function AllRebates() {
   const { content } = useContentState();
   const { samUserData } = useUserState();
   const { rebateFormSubmissions } = useFormsState();

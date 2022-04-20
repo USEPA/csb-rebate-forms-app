@@ -64,7 +64,7 @@ function createNewRebate(samData: SAMUserData, epaData: EPAUserData) {
   });
 }
 
-export default function NewRebateForm() {
+export default function NewRebate() {
   const navigate = useNavigate();
   const { content } = useContentState();
   const { epaUserData, samUserData } = useUserState();
