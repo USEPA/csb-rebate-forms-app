@@ -12,6 +12,15 @@ describe('Helpdesk', () => {
   const loadingSpinnerText = 'Loading...';
   const helpdeskTableLabelText = 'Search Results';
 
+  function performSearch(formId) {
+    cy.get('#root').within(() => {
+      // search for an existing id
+      cy.findByLabelText(searchInputLabelText).type(formId);
+      cy.contains('button', 'Search').click();
+      cy.findByText(formId);
+    });
+  }
+
   function checkRecords(status, buttonToClick = 'updateForm') {
     // verify the record is found and has expected data
     cy.findByLabelText(helpdeskTableLabelText)
@@ -113,12 +122,7 @@ describe('Helpdesk', () => {
   });
 
   it('Test viewing application from helpdesk', () => {
-    cy.get('#root').within(() => {
-      // search for an existing id
-      cy.findByLabelText(searchInputLabelText).type(existingFormId);
-      cy.contains('button', 'Search').click();
-      cy.findByText(existingFormId);
-    });
+    performSearch(existingFormId);
 
     // verify the status is submitted
     checkRecords('submitted', 'openForm');
@@ -133,12 +137,7 @@ describe('Helpdesk', () => {
   });
 
   it('Test setting back to draft', () => {
-    cy.get('#root').within(() => {
-      // search for an existing id
-      cy.findByLabelText(searchInputLabelText).type(existingFormId);
-      cy.contains('button', 'Search').click();
-      cy.findByText(existingFormId);
-    });
+    performSearch(existingFormId);
 
     // verify the status is submitted
     checkRecords('submitted');
