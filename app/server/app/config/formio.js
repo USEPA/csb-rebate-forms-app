@@ -27,20 +27,25 @@ axiosFormio.interceptors.response.use(
 
     // attempt to retry a failed request two more times, and log the attempts
     const { config } = error;
+    const { status } = error.response;
 
     if (config.csb.retryCount < 2) {
       config.csb.retryCount += 1;
 
       log.warn(
-        `${error.response.status} ${config.method.toUpperCase()} ${
-          config.url
-        } – Retrying (${config.csb.retryCount} of 2)...`
+        `Formio Error: ` +
+          `${status} ${config.method.toUpperCase()} ${config.url} ` +
+          `– Retrying (${config.csb.retryCount} of 2)...`
       );
 
       return new Promise((resolve) =>
         setTimeout(() => resolve(axiosFormio.request(config)), 1000)
       );
     }
+
+    log.error(
+      `Formio Error: ${status} ${config.method.toUpperCase()} ${config.url}`
+    );
 
     return Promise.reject(error);
   }
