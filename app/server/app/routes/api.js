@@ -4,9 +4,9 @@ const express = require("express");
 const axios = require("axios").default;
 // ---
 const {
+  axiosFormio,
   formioProjectUrl,
   formioFormId,
-  formioHeaders,
   formioCsbMetadata,
 } = require("../config/formio");
 const {
@@ -27,7 +27,7 @@ router.get("/content", (req, res) => {
   const s3Bucket = process.env.S3_PUBLIC_BUCKET;
   const s3Region = process.env.S3_PUBLIC_REGION;
 
-  // NOTE: static content files found in `app/server/app/config/` directory
+  // NOTE: static content files found in `app/server/app/content/` directory
   const filenames = [
     "site-alert.md",
     "helpdesk-intro.md",
@@ -43,7 +43,7 @@ router.get("/content", (req, res) => {
   Promise.all(
     filenames.map((filename) => {
       // local development: read files directly from disk
-      // production: fetch files from the public s3 bucket
+      // Cloud.gov: fetch files from the public s3 bucket
       return process.env.NODE_ENV === "development"
         ? readFile(resolve(__dirname, "../content", filename), "utf8")
         : axios.get(`${s3BucketUrl}/content/${filename}`);
@@ -51,7 +51,7 @@ router.get("/content", (req, res) => {
   )
     .then((stringsOrResponses) => {
       // local development: no further processing of strings needed
-      // production: get data from responses
+      // Cloud.gov: get data from responses
       return process.env.NODE_ENV === "development"
         ? stringsOrResponses
         : stringsOrResponses.map((axiosRes) => axiosRes.data);
@@ -135,15 +135,12 @@ router.get(
   async (req, res) => {
     const id = req.params.id;
 
-    axios
-      .get(
-        `${formioProjectUrl}/${formioFormId}/submission/${id}`,
-        formioHeaders
-      )
+    axiosFormio
+      .get(`${formioProjectUrl}/${formioFormId}/submission/${id}`)
       .then((axiosRes) => axiosRes.data)
       .then((submission) => {
-        axios
-          .get(`${formioProjectUrl}/form/${submission.form}`, formioHeaders)
+        axiosFormio
+          .get(`${formioProjectUrl}/form/${submission.form}`)
           .then((axiosRes) => axiosRes.data)
           .then((schema) => {
             const { bap_hidden_entity_combo_key } = submission.data;
@@ -171,10 +168,6 @@ router.get(
           });
       })
       .catch((error) => {
-        if (typeof error.toJSON === "function") {
-          log.debug(error.toJSON());
-        }
-
         log.error(
           `User with email ${req.user.mail} attempted to access submission ${id} that does not exist.`
         );
@@ -210,19 +203,11 @@ router.post(
       ...formioCsbMetadata,
     };
 
-    axios
-      .put(
-        `${formioProjectUrl}/${formioFormId}/submission/${id}`,
-        req.body,
-        formioHeaders
-      )
+    axiosFormio
+      .put(`${formioProjectUrl}/${formioFormId}/submission/${id}`, req.body)
       .then((axiosRes) => axiosRes.data)
       .then((submission) => res.json(submission))
       .catch((error) => {
-        if (typeof error.toJSON === "function") {
-          log.debug(error.toJSON());
-        }
-
         res
           .status(error?.response?.status || 500)
           .json({ message: "Error updating Forms.gov rebate form submission" });
@@ -246,19 +231,11 @@ router.post("/rebate-form-submission", checkBapComboKeys, (req, res) => {
     ...formioCsbMetadata,
   };
 
-  axios
-    .post(
-      `${formioProjectUrl}/${formioFormId}/submission`,
-      req.body,
-      formioHeaders
-    )
+  axiosFormio
+    .post(`${formioProjectUrl}/${formioFormId}/submission`, req.body)
     .then((axiosRes) => axiosRes.data)
     .then((submission) => res.json(submission))
     .catch((error) => {
-      if (typeof error.toJSON === "function") {
-        log.debug(error.toJSON());
-      }
-
       res
         .status(error?.response?.status || 500)
         .json({ message: "Error posting Forms.gov rebate form submission" });
@@ -284,18 +261,14 @@ router.get("/rebate-form-submissions", checkBapComboKeys, (req, res) => {
       "&data.bap_hidden_entity_combo_key="
     )}`;
 
-  axios
-    .get(formioUserSubmissionsUrl, formioHeaders)
+  axiosFormio
+    .get(formioUserSubmissionsUrl)
     .then((axiosRes) => axiosRes.data)
     .then((submissions) => res.json(submissions))
     .catch((error) => {
-      if (typeof error.toJSON === "function") {
-        log.debug(error.toJSON());
-      }
-
-      res.status(error?.response?.status || 500).json({
-        message: "Error getting Forms.gov rebate form submissions",
-      });
+      res
+        .status(error?.response?.status || 500)
+        .json({ message: "Error getting Forms.gov rebate form submissions" });
     });
 });
 
