@@ -27,7 +27,7 @@ router.get("/content", (req, res) => {
   const s3Bucket = process.env.S3_PUBLIC_BUCKET;
   const s3Region = process.env.S3_PUBLIC_REGION;
 
-  // NOTE: static content files found in `app/server/app/config/` directory
+  // NOTE: static content files found in `app/server/app/content/` directory
   const filenames = [
     "site-alert.md",
     "helpdesk-intro.md",
@@ -43,7 +43,7 @@ router.get("/content", (req, res) => {
   Promise.all(
     filenames.map((filename) => {
       // local development: read files directly from disk
-      // production: fetch files from the public s3 bucket
+      // Cloud.gov: fetch files from the public s3 bucket
       return process.env.NODE_ENV === "development"
         ? readFile(resolve(__dirname, "../content", filename), "utf8")
         : axios.get(`${s3BucketUrl}/content/${filename}`);
@@ -51,7 +51,7 @@ router.get("/content", (req, res) => {
   )
     .then((stringsOrResponses) => {
       // local development: no further processing of strings needed
-      // production: get data from responses
+      // Cloud.gov: get data from responses
       return process.env.NODE_ENV === "development"
         ? stringsOrResponses
         : stringsOrResponses.map((axiosRes) => axiosRes.data);
