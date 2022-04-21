@@ -43,10 +43,6 @@ router.get("/rebate-form-submission/:id", verifyMongoObjectId, (req, res) => {
         });
     })
     .catch((error) => {
-      if (typeof error.toJSON === "function") {
-        log.debug(error.toJSON());
-      }
-
       res.status(error?.response?.status || 500).json({
         message: `Error getting Forms.gov rebate form submission ${id}`,
       });
@@ -90,10 +86,6 @@ router.post("/rebate-form-submission/:id", verifyMongoObjectId, (req, res) => {
         });
     })
     .catch((error) => {
-      if (typeof error.toJSON === "function") {
-        log.debug(error.toJSON());
-      }
-
       res.status(error?.response?.status || 500).json({
         message: `Error updating Forms.gov rebate form submission ${id}`,
       });
