@@ -127,7 +127,7 @@ describe('Routes', () => {
   });
 
   it('Navigate directly to the helpdesk', () => {
-    cy.loginToCSB('csbhelpdesk');
+    cy.loginToCSB('csbtest8');
     cy.findByText('Your Rebate Forms');
 
     cy.visit('/helpdesk');
@@ -138,8 +138,8 @@ describe('Routes', () => {
   });
 
   it('Navigate directly to the helpdesk without being logged in', () => {
-    cy.loginToCSB('csbhelpdesk');
-    cy.findByText('csbhelpdesk@test.com');
+    cy.loginToCSB('csbtest8');
+    cy.findByText('csb-test8@erg.com');
 
     // Sign out
     cy.findByText('Sign out').click();
@@ -163,8 +163,8 @@ describe('Routes', () => {
   });
 
   it('Navigate directly to the helpdesk and simulate a service failure', () => {
-    cy.loginToCSB('csbhelpdesk');
-    cy.findByText('csbhelpdesk@test.com');
+    cy.loginToCSB('csbtest8');
+    cy.findByText('csb-test8@erg.com');
 
     // simulate the helpdesk-access service failing
     const origin =

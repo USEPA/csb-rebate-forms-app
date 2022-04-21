@@ -47,7 +47,7 @@ describe('Helpdesk', () => {
   }
 
   before(() => {
-    cy.loginToCSB('courtney');
+    cy.loginToCSB('csbtest');
 
     cy.getApplicationSteps().then((steps) => {
       steps.fillOutNewApplication();
@@ -76,7 +76,7 @@ describe('Helpdesk', () => {
   });
 
   beforeEach(() => {
-    cy.loginToCSB('courtney');
+    cy.loginToCSB('csbtest');
 
     // navigate to helpdesk
     cy.findByText('Helpdesk').click();

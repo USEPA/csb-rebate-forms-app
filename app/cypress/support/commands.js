@@ -130,7 +130,7 @@ Cypress.Commands.add('getApplicationSteps', () => {
       cy.findByLabelText('Unique Entity Identifier (UEI)').then(($el) =>
         cy.wrap($el).should('have.value', selectedUei),
       );
-      cy.findByLabelText('Electronic Funds Transfer Indicator (EFTI)').then(
+      cy.findByLabelText('Electronic Funds Transfer (EFT) Indicator').then(
         ($el) => cy.wrap($el).should('have.value', selectedEft),
       );
       cy.findByLabelText('City').should('have.value', 'WATERTOWN');
