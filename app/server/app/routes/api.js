@@ -4,9 +4,9 @@ const express = require("express");
 const axios = require("axios").default;
 // ---
 const {
+  axiosFormio,
   formioProjectUrl,
   formioFormId,
-  formioHeaders,
   formioCsbMetadata,
 } = require("../config/formio");
 const {
@@ -135,15 +135,12 @@ router.get(
   async (req, res) => {
     const id = req.params.id;
 
-    axios
-      .get(
-        `${formioProjectUrl}/${formioFormId}/submission/${id}`,
-        formioHeaders
-      )
+    axiosFormio
+      .get(`${formioProjectUrl}/${formioFormId}/submission/${id}`)
       .then((axiosRes) => axiosRes.data)
       .then((submission) => {
-        axios
-          .get(`${formioProjectUrl}/form/${submission.form}`, formioHeaders)
+        axiosFormio
+          .get(`${formioProjectUrl}/form/${submission.form}`)
           .then((axiosRes) => axiosRes.data)
           .then((schema) => {
             const { bap_hidden_entity_combo_key } = submission.data;
@@ -171,10 +168,6 @@ router.get(
           });
       })
       .catch((error) => {
-        if (typeof error.toJSON === "function") {
-          log.debug(error.toJSON());
-        }
-
         log.error(
           `User with email ${req.user.mail} attempted to access submission ${id} that does not exist.`
         );
@@ -210,19 +203,11 @@ router.post(
       ...formioCsbMetadata,
     };
 
-    axios
-      .put(
-        `${formioProjectUrl}/${formioFormId}/submission/${id}`,
-        req.body,
-        formioHeaders
-      )
+    axiosFormio
+      .put(`${formioProjectUrl}/${formioFormId}/submission/${id}`, req.body)
       .then((axiosRes) => axiosRes.data)
       .then((submission) => res.json(submission))
       .catch((error) => {
-        if (typeof error.toJSON === "function") {
-          log.debug(error.toJSON());
-        }
-
         res
           .status(error?.response?.status || 500)
           .json({ message: "Error updating Forms.gov rebate form submission" });
@@ -246,19 +231,11 @@ router.post("/rebate-form-submission", checkBapComboKeys, (req, res) => {
     ...formioCsbMetadata,
   };
 
-  axios
-    .post(
-      `${formioProjectUrl}/${formioFormId}/submission`,
-      req.body,
-      formioHeaders
-    )
+  axiosFormio
+    .post(`${formioProjectUrl}/${formioFormId}/submission`, req.body)
     .then((axiosRes) => axiosRes.data)
     .then((submission) => res.json(submission))
     .catch((error) => {
-      if (typeof error.toJSON === "function") {
-        log.debug(error.toJSON());
-      }
-
       res
         .status(error?.response?.status || 500)
         .json({ message: "Error posting Forms.gov rebate form submission" });
@@ -284,18 +261,14 @@ router.get("/rebate-form-submissions", checkBapComboKeys, (req, res) => {
       "&data.bap_hidden_entity_combo_key="
     )}`;
 
-  axios
-    .get(formioUserSubmissionsUrl, formioHeaders)
+  axiosFormio
+    .get(formioUserSubmissionsUrl)
     .then((axiosRes) => axiosRes.data)
     .then((submissions) => res.json(submissions))
     .catch((error) => {
-      if (typeof error.toJSON === "function") {
-        log.debug(error.toJSON());
-      }
-
-      res.status(error?.response?.status || 500).json({
-        message: "Error getting Forms.gov rebate form submissions",
-      });
+      res
+        .status(error?.response?.status || 500)
+        .json({ message: "Error getting Forms.gov rebate form submissions" });
     });
 });
 
