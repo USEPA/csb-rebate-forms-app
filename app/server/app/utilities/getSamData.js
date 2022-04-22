@@ -1,8 +1,7 @@
 const jsforce = require("jsforce");
-const logger = require("../utilities/logger");
-const log = logger.logger;
+const log = require("../utilities/logger");
 
-const getSamData = (email) => {
+const getSamData = (email, req) => {
   const conn = new jsforce.Connection({
     oauth2: {
       loginUrl: process.env.BAP_URL,
@@ -54,28 +53,21 @@ const getSamData = (email) => {
         )
         .then((res) => {
           return res.records;
-        })
-        .catch((err) => {
-          log.error(err);
-          throw err;
         });
     })
     .catch((err) => {
-      log.error(err);
+      log({ level: "error", message: `BAP Error: ${err}`, req });
       throw err;
     });
 };
 
-const getComboKeys = (email) => {
-  return getSamData(email)
+const getComboKeys = (email, req) => {
+  return getSamData(email, req)
     .then((samUserData) => {
       return samUserData.map((samObject) => samObject.ENTITY_COMBO_KEY__c);
     })
     .catch((err) => {
-      log.error(err);
-      const error = new Error("Error getting SAM.gov data");
-      error.statusCode = 401;
-      throw error;
+      throw err;
     });
 };
 

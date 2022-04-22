@@ -9,7 +9,7 @@ const cookieParser = require("cookie-parser");
 const passport = require("passport");
 // ---
 const errorHandler = require("./utilities/errorHandler");
-const logger = require("./utilities/logger");
+const log = require("./utilities/logger");
 const samlStrategy = require("./config/samlStrategy");
 const {
   appScan,
@@ -36,14 +36,16 @@ const requiredEnvVars = [
 
 requiredEnvVars.forEach((envVar) => {
   if (!process.env[envVar]) {
-    log.error(`Required environment variable ${envVar} not found.`);
+    log({
+      level: "error",
+      message: `Required environment variable ${envVar} not found.`,
+    });
     process.exitCode = 1;
   }
 });
 
 const app = express();
 const port = process.env.PORT || 3001;
-const log = logger.logger;
 
 app.use(
   helmet({
@@ -117,5 +119,5 @@ app.get("*", (req, res) => {
 app.use(errorHandler);
 
 app.listen(port, () => {
-  log.info(`Server listening on port ${port}`);
+  log({ level: "info", message: `Server listening on port ${port}` });
 });
