@@ -48,7 +48,7 @@ function axiosFormio(req) {
         });
 
         return new Promise((resolve) =>
-          setTimeout(() => resolve(axiosFormio.request(config)), 1000)
+          setTimeout(() => resolve(instance.request(config)), 1000)
         );
       }
 
