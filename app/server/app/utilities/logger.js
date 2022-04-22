@@ -55,7 +55,7 @@ const populateMetadataObjFromRequest = function (request) {
     b3: request.headers["b3"],
     x_b3_traceid: request.headers["x-b3-traceid"],
     x_b3_spanid: request.headers["x-b3-spanid"],
-    x_b3_parentspanid: request.headers["x_b3_parentspanid"],
+    x_b3_parentspanid: request.headers["x-b3-parentspanid"],
   };
 };
 
