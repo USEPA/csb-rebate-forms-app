@@ -51,11 +51,10 @@ const log = ({ level, message, req, otherInfo }) => {
 // request for logging/auditing purposes.
 // See https://docs.cloudfoundry.org/concepts/http-routing.html#http-headers
 const populateMetadataObjFromRequest = function (request) {
-  console.log(request.headers);
   return {
     b3: request.headers["b3"],
-    x_b3_traceid: request.headers["X-B3-TraceId"],
-    x_b3_spanid: request.headers["X-B3-SpanId"],
+    x_b3_traceid: request.headers["x-b3-traceid"],
+    x_b3_spanid: request.headers["x-b3-spanid"],
     x_b3_parentspanid: request.headers["x_b3_parentspanid"],
   };
 };
