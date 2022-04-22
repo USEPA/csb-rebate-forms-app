@@ -24,7 +24,7 @@ router.get("/bap", (req, res) => {
 });
 
 router.get("/form", (req, res) => {
-  axiosFormio
+  axiosFormio(req)
     .get(`${formioProjectUrl}/${formioFormId}`)
     .then((axiosRes) => axiosRes.data)
     .then((schema) =>
