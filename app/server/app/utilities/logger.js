@@ -30,47 +30,33 @@ else logger.level = "INFO"; //default level
 
 logger.info("LOGGER_LEVEL = " + logger.level);
 
-const getLogger = function () {
-  return logger;
+const log = ({ level, message, req, otherInfo }) => {
+  if (!req) {
+    // If request is not passed, log as normal message without metadata
+    logger.log(level, message);
+  } else {
+    // Log as JSON object with message and metadata (build metadata using request object)
+    logger.log(
+      level,
+      JSON.stringify({
+        app_metadata: populateMetadataObjFromRequest(req),
+        app_message: message,
+        app_otherinfo: otherInfo,
+      })
+    );
+  }
 };
 
-//We use this function to format most of the error messages to
-//work well (support the review) with Cloud.gov (Kibana)
-exports.formatLogMsg = function (app_metadata, app_message, app_otherinfo) {
-  const rtn_obj = {
-    app_metadata: null,
-    app_message: null,
-    app_otherinfo: null,
+// We use this function to pull out important HTTP information from the
+// request for logging/auditing purposes.
+// See https://docs.cloudfoundry.org/concepts/http-routing.html#http-headers
+const populateMetadataObjFromRequest = function (request) {
+  return {
+    b3: request.headers["b3"],
+    x_b3_traceid: request.headers["x-b3-traceid"],
+    x_b3_spanid: request.headers["x-b3-spanid"],
+    x_b3_parentspanid: request.headers["x_b3_parentspanid"],
   };
-
-  if (app_metadata != null) rtn_obj.app_metadata = app_metadata;
-  if (app_message != null) rtn_obj.app_message = app_message;
-  if (app_otherinfo != null) rtn_obj.app_otherinfo = app_otherinfo;
-
-  return JSON.stringify(rtn_obj);
 };
 
-//We use this function to pull out important HTTP infromation from the
-//request for logging/auditing purposes.
-exports.populateMetadataObjFromRequest = function (request) {
-  const metadata = {};
-
-  metadata.b3 =
-    request.header("b3") === undefined ? null : request.header("b3");
-  metadata.x_b3_traceid =
-    request.header("x-b3-traceid") === undefined
-      ? null
-      : request.header("x-b3-traceid");
-  metadata.x_b3_spanid =
-    request.header("x-b3-spanid") === undefined
-      ? null
-      : request.header("x-b3-spanid");
-  metadata.x_b3_parentspanid =
-    request.header("x_b3_parentspanid") === undefined
-      ? null
-      : request.header("x_b3_parentspanid");
-
-  return metadata;
-};
-
-exports.logger = getLogger();
+module.exports = log;

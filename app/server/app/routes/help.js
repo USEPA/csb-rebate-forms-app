@@ -11,9 +11,7 @@ const {
   ensureHelpdesk,
   verifyMongoObjectId,
 } = require("../middleware");
-const logger = require("../utilities/logger");
-
-const log = logger.logger;
+const log = require("../utilities/logger");
 
 const router = express.Router();
 
@@ -67,9 +65,11 @@ router.post("/rebate-form-submission/:id", verifyMongoObjectId, (req, res) => {
         })
         .then((axiosRes) => axiosRes.data)
         .then((updatedSubmission) => {
-          log.info(
-            `User with email ${userEmail} updated rebate form submission ${id} from submitted to draft.`
-          );
+          log({
+            level: "info",
+            message: `User with email ${userEmail} updated rebate form submission ${id} from submitted to draft.`,
+            req,
+          });
 
           axiosFormio(req)
             .get(`${formioProjectUrl}/form/${updatedSubmission.form}`)

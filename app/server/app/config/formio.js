@@ -28,7 +28,7 @@ function axiosFormio(req) {
     (response) => response,
     (error) => {
       if (typeof error.toJSON === "function") {
-        log.debug(error.toJSON());
+        log({ level: "debug", message: error.toJSON() });
       }
 
       // attempt to retry a failed request two more times, and log the attempts
@@ -38,20 +38,27 @@ function axiosFormio(req) {
       if (config.csb.retryCount < 2) {
         config.csb.retryCount += 1;
 
-        log.warn(
-          `Formio Error: ` +
+        log({
+          level: "warn",
+          message:
+            `Formio Error: ` +
             `${status} ${config.method.toUpperCase()} ${config.url} ` +
-            `– Retrying (${config.csb.retryCount} of 2)...`
-        );
+            `– Retrying (${config.csb.retryCount} of 2)...`,
+          req: config,
+        });
 
         return new Promise((resolve) =>
           setTimeout(() => resolve(axiosFormio.request(config)), 1000)
         );
       }
 
-      log.error(
-        `Formio Error: ${status} ${config.method.toUpperCase()} ${config.url}`
-      );
+      log({
+        level: "error",
+        message: `Formio Error: ${status} ${config.method.toUpperCase()} ${
+          config.url
+        }`,
+        req: config,
+      });
 
       return Promise.reject(error);
     }
