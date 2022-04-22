@@ -135,11 +135,11 @@ router.get(
   async (req, res) => {
     const id = req.params.id;
 
-    axiosFormio
+    axiosFormio(req)
       .get(`${formioProjectUrl}/${formioFormId}/submission/${id}`)
       .then((axiosRes) => axiosRes.data)
       .then((submission) => {
-        axiosFormio
+        axiosFormio(req)
           .get(`${formioProjectUrl}/form/${submission.form}`)
           .then((axiosRes) => axiosRes.data)
           .then((schema) => {
@@ -203,7 +203,7 @@ router.post(
       ...formioCsbMetadata,
     };
 
-    axiosFormio
+    axiosFormio(req)
       .put(`${formioProjectUrl}/${formioFormId}/submission/${id}`, req.body)
       .then((axiosRes) => axiosRes.data)
       .then((submission) => res.json(submission))
@@ -231,7 +231,7 @@ router.post("/rebate-form-submission", checkBapComboKeys, (req, res) => {
     ...formioCsbMetadata,
   };
 
-  axiosFormio
+  axiosFormio(req)
     .post(`${formioProjectUrl}/${formioFormId}/submission`, req.body)
     .then((axiosRes) => axiosRes.data)
     .then((submission) => res.json(submission))
@@ -261,7 +261,7 @@ router.get("/rebate-form-submissions", checkBapComboKeys, (req, res) => {
       "&data.bap_hidden_entity_combo_key="
     )}`;
 
-  axiosFormio
+  axiosFormio(req)
     .get(formioUserSubmissionsUrl)
     .then((axiosRes) => axiosRes.data)
     .then((submissions) => res.json(submissions))
