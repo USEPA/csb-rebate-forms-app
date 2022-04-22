@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Form } from "@formio/react";
+import { isEqual } from "lodash";
 // ---
 import { serverUrl, fetchData } from "../config";
 import Loading from "components/loading";
@@ -9,17 +10,11 @@ import MarkdownContent from "components/markdownContent";
 import { useContentState } from "contexts/content";
 import { useUserState } from "contexts/user";
 
-type FormioSubmission = {
+type FormioSubmissionData = {
   // NOTE: more fields are in a form.io submission,
   // but we're only concerned with the fields below
-  data: object;
-  state: "submitted" | "draft";
+  ncesDataSource?: string;
   // (other fields...)
-};
-
-type FormioOnNextPageParams = {
-  page: number;
-  submission: FormioSubmission;
 };
 
 type SubmissionState =
@@ -85,6 +80,18 @@ export default function ExistingRebate() {
       },
     });
 
+  // set when rebate form submission data is initially fetched, and then re-set
+  // each time a successful update of the submission data is posted to forms.gov
+  const [storedSubmissionData, setStoredSubmissionData] =
+    useState<FormioSubmissionData>({});
+
+  // initially empty, but will be set once the user attemts to submit the form
+  // (both succesfully and unsuccesfully). passed to the to the <Form />
+  // component's submission prop, so the fields the user filled out will not be
+  // lost if a submission update fails, so the user can attempt submitting again
+  const [pendingSubmissionData, setPendingSubmissionData] =
+    useState<FormioSubmissionData>({});
+
   useEffect(() => {
     setRebateFormSubmission({
       status: "pending",
@@ -97,6 +104,12 @@ export default function ExistingRebate() {
 
     fetchData(`${serverUrl}/api/rebate-form-submission/${id}`)
       .then((res) => {
+        const data = { ...res.submissionData.data };
+        if (data.hasOwnProperty("ncesDataSource")) {
+          delete data.ncesDataSource;
+        }
+
+        setStoredSubmissionData(data);
         setRebateFormSubmission({
           status: "success",
           data: res,
@@ -121,14 +134,6 @@ export default function ExistingRebate() {
     displayErrorMessage,
     resetMessage,
   } = useMessageState();
-
-  // NOTE: Provided to the <Form /> component's submission prop. Initially
-  // empty, it'll be set once the user attemts to submit the form (both
-  // succesfully and unsuccesfully) – that way when the form re-renders after
-  // the submission attempt, the fields the user filled out will not be lost
-  const [savedSubmission, setSavedSubmission] = useState<{ data: object }>({
-    data: {},
-  });
 
   if (rebateFormSubmission.status === "idle") {
     return null;
@@ -185,17 +190,24 @@ export default function ExistingRebate() {
           url={formSchema.url} // NOTE: used for file uploads
           submission={{
             data: {
-              ...submissionData.data,
+              ...storedSubmissionData,
               last_updated_by: epaUserData.data.mail,
-              ...savedSubmission.data,
+              ...pendingSubmissionData,
             },
           }}
           options={{
             readOnly: submissionData.state === "submitted" ? true : false,
             noAlerts: true,
           }}
-          onSubmit={(submission: FormioSubmission) => {
-            setSavedSubmission(submission);
+          onSubmit={(submission: {
+            state: "submitted" | "draft";
+            data: FormioSubmissionData;
+            metadata: object;
+          }) => {
+            const data = { ...submission.data };
+            if (data.hasOwnProperty("ncesDataSource")) {
+              delete data.ncesDataSource;
+            }
 
             if (submission.state === "submitted") {
               displayInfoMessage("Submitting form...");
@@ -205,14 +217,15 @@ export default function ExistingRebate() {
               displayInfoMessage("Saving form...");
             }
 
+            setPendingSubmissionData(data);
             fetchData(
               `${serverUrl}/api/rebate-form-submission/${submissionData._id}`,
-              {
-                ...submission,
-                data: { ...submission.data, ncesDataSource: "" },
-              }
+              { ...submission, data }
             )
               .then((res) => {
+                setStoredSubmissionData(res.data);
+                setPendingSubmissionData({});
+
                 if (submission.state === "submitted") {
                   displaySuccessMessage("Form succesfully submitted.");
                   setTimeout(() => navigate("/"), 5000);
@@ -228,28 +241,35 @@ export default function ExistingRebate() {
                 displayErrorMessage("Error submitting rebate form.");
               });
           }}
-          onNextPage={({ page, submission }: FormioOnNextPageParams) => {
+          onNextPage={({
+            page,
+            submission,
+          }: {
+            page: number;
+            submission: {
+              data: FormioSubmissionData;
+              metadata: object;
+            };
+          }) => {
+            const data = { ...submission.data };
+            if (data.hasOwnProperty("ncesDataSource")) {
+              delete data.ncesDataSource;
+            }
+
+            // don't post an update if form is not in draft state
+            // or if no changes have been made to the form
             if (submissionData.state !== "draft") return;
+            if (isEqual(data, storedSubmissionData)) return;
 
-            setSavedSubmission(submission);
-
-            if (submission.state === "submitted") {
-              displayInfoMessage("Submitting form...");
-            }
-
-            if (submission.state === "draft") {
-              displayInfoMessage("Saving form...");
-            }
-
+            displayInfoMessage("Saving form...");
+            setPendingSubmissionData(data);
             fetchData(
               `${serverUrl}/api/rebate-form-submission/${submissionData._id}`,
-              {
-                ...submission,
-                data: { ...submission.data, ncesDataSource: "" },
-                state: "draft",
-              }
+              { ...submission, data, state: "draft" }
             )
               .then((res) => {
+                setStoredSubmissionData(res.data);
+                setPendingSubmissionData({});
                 displaySuccessMessage("Draft succesfully saved.");
                 setTimeout(() => resetMessage(), 5000);
               })
