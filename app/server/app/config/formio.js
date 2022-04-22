@@ -17,8 +17,8 @@ function axiosFormio(req) {
     config.headers["b3"] = req.headers["b3"] || "";
     config.headers["x-b3-traceid"] = req.headers["x-b3-traceid"] || "";
     config.headers["x-b3-spanid"] = req.headers["x-b3-spanid"] || "";
-    config.headers["x_b3_parentspanid"] =
-      req.headers["x_b3_parentspanid"] || "";
+    config.headers["x-b3-parentspanid"] =
+      req.headers["x-b3-parentspanid"] || "";
     return config;
   });
 
