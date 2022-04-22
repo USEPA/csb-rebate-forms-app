@@ -41,6 +41,7 @@ jobs:
       JWT_PUBLIC_KEY: ${{ secrets.JWT_PUBLIC_KEY }}
       JWT_PRIVATE_KEY: ${{ secrets.JWT_PRIVATE_KEY }}
       FORMIO_PKG_AUTH_TOKEN: ${{ secrets.FORMIO_PKG_AUTH_TOKEN }}
+      FORMIO_BASE_URL: ${{ secrets.FORMIO_BASE_URL }}
       FORMIO_PROJECT_URL: ${{ secrets.FORMIO_PROJECT_URL }}
       FORMIO_FORM_ID: ${{ secrets.FORMIO_FORM_ID }}
       FORMIO_API_KEY: ${{ secrets.FORMIO_API_KEY }}
@@ -84,6 +85,7 @@ jobs:
           PUBLIC_URL="$SERVER_URL" \
             REACT_APP_SERVER_BASE_PATH="$SERVER_BASE_PATH" \
             REACT_APP_CLOUD_SPACE="$CLOUD_SPACE" \
+            REACT_APP_FORMIO_BASE_URL="$FORMIO_BASE_URL" \
             REACT_APP_FORMIO_PROJECT_URL="$FORMIO_PROJECT_URL" \
             npm run build
           rm ../server/app/public/index.html

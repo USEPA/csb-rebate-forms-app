@@ -2,8 +2,15 @@ const {
   NODE_ENV,
   REACT_APP_SERVER_BASE_PATH,
   REACT_APP_CLOUD_SPACE,
+  REACT_APP_FORMIO_BASE_URL,
   REACT_APP_FORMIO_PROJECT_URL,
 } = process.env;
+
+if (!REACT_APP_FORMIO_BASE_URL) {
+  throw new Error(
+    "Required REACT_APP_FORMIO_BASE_URL environment variable not found."
+  );
+}
 
 if (!REACT_APP_FORMIO_PROJECT_URL) {
   throw new Error(
@@ -21,6 +28,8 @@ export const serverUrl =
 
 export const cloudSpace =
   NODE_ENV === "development" ? "dev" : REACT_APP_CLOUD_SPACE || "";
+
+export const formioBaseUrl = REACT_APP_FORMIO_BASE_URL;
 
 export const formioProjectUrl = REACT_APP_FORMIO_PROJECT_URL;
 
