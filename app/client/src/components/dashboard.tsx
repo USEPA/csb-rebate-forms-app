@@ -5,12 +5,18 @@ import premium from "@formio/premium";
 import uswds from "@formio/uswds";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl, formioProjectUrl, fetchData } from "../config";
+import {
+  serverUrl,
+  formioBaseUrl,
+  formioProjectUrl,
+  fetchData,
+} from "../config";
 import { useHelpdeskAccess } from "components/app";
 import Loading from "components/loading";
 import { useUserState, useUserDispatch } from "contexts/user";
 import { Action, useDialogDispatch } from "contexts/dialog";
 
+Formio.setBaseUrl(formioBaseUrl);
 Formio.setProjectUrl(formioProjectUrl);
 Formio.use(premium);
 Formio.use(uswds);
