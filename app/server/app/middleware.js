@@ -3,10 +3,8 @@ const jwt = require("jsonwebtoken");
 const ObjectId = require("mongodb").ObjectId;
 // ---
 const { createJwt, jwtAlgorithm } = require("./utilities/createJwt");
-const logger = require("./utilities/logger");
+const log = require("./utilities/logger");
 const { getComboKeys } = require("./utilities/getSamData");
-
-const log = logger.logger;
 
 const cookieName = "csb-token";
 
@@ -23,7 +21,7 @@ const ensureAuthenticated = (
 ) => {
   // If no JWT passed in token cookie, send Unauthorized response or redirect
   if (!req.cookies[cookieName]) {
-    log.warn("No jwt cookie present in request");
+    log({ level: "warn", message: "No jwt cookie present in request", req });
     return rejectCallback(req, res);
   }
   jwt.verify(
@@ -34,11 +32,13 @@ const ensureAuthenticated = (
       if (err) {
         // Change log levels depending on jwt error received
         if (err instanceof jwt.TokenExpiredError) {
-          log.warn("JWT expired.");
+          log({ level: "warn", message: "JWT expired.", req });
         } else if (err instanceof jwt.JsonWebTokenError) {
-          log.error("An invalid JWT was used.");
+          log({ level: "error", message: "An invalid JWT was used.", req });
         } else {
-          log.error(err);
+          const message =
+            typeof err.toString === "function" ? err.toString() : err;
+          log({ level: "error", message, req });
         }
 
         // if err is TokenExpiredError, expired will be true and user will see inactive message instead of error
@@ -72,9 +72,11 @@ const ensureHelpdesk = (req, res, next) => {
 
   if (!userRoles.includes("csb_admin") && !userRoles.includes("csb_helpdesk")) {
     if (!req.originalUrl.includes("/helpdesk-access")) {
-      log.error(
-        `User with email ${req.user.mail} attempted to perform an admin/helpdesk action without correct privileges.`
-      );
+      log({
+        level: "error",
+        message: `User with email ${req.user.mail} attempted to perform an admin/helpdesk action without correct privileges.`,
+        req,
+      });
     }
 
     return res.status(401).json({ message: "Unauthorized" });
@@ -142,7 +144,7 @@ const appScan = (req, res, next) => {
 
 // Get user's SAM.gov unique combo keys and add "bapComboKeys" to request object if successful
 const checkBapComboKeys = (req, res, next) => {
-  getComboKeys(req.user.mail)
+  getComboKeys(req.user.mail, req)
     .then((bapComboKeys) => {
       req.bapComboKeys = bapComboKeys;
       next();

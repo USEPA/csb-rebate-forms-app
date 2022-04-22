@@ -3,9 +3,7 @@ const passport = require("passport");
 const samlStrategy = require("../config/samlStrategy");
 const { ensureAuthenticated } = require("../middleware");
 const { createJwt } = require("../utilities/createJwt");
-const logger = require("../utilities/logger");
-
-const log = logger.logger;
+const log = require("../utilities/logger");
 
 const router = express.Router();
 
@@ -42,11 +40,13 @@ router.post(
     });
 
     // If user has Admin or Helpdesk role, log to INFO
-    log.info(
-      `User with email ${req.user.attributes.mail} and member of ${
+    log({
+      level: "info",
+      message: `User with email ${req.user.attributes.mail} and member of ${
         req.user.attributes.memberof || "no"
-      } groups logged in.`
-    );
+      } groups logged in.`,
+      req,
+    });
 
     // "RelayState" will be the path that the user initially tried to access before being sent to /login
     res.redirect(`${baseUrl}${req.body.RelayState || "/"}`);
@@ -54,14 +54,22 @@ router.post(
 );
 
 router.get("/login/fail", (req, res) => {
-  log.error("SAML login failed");
+  log({
+    level: "error",
+    message: "SAML Error - Login failed",
+    req,
+  });
   res.redirect(`${baseUrl}/welcome?error=saml`);
 });
 
 router.get("/logout", ensureAuthenticated, (req, res) => {
   samlStrategy.logout(req, function (err, requestUrl) {
     if (err) {
-      log.error(err);
+      log({
+        level: "error",
+        message: `SAML Error - Passport logout failed - ${err}`,
+        req,
+      });
       res.redirect(`${baseUrl}/`);
     } else {
       // Send request to SAML logout url
