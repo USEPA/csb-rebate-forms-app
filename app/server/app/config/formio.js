@@ -1,8 +1,6 @@
 const axios = require("axios").default;
 // ---
-const logger = require("../utilities/logger");
-
-const log = logger.logger;
+const log = require("../utilities/logger");
 
 const formioProjectUrl = process.env.FORMIO_PROJECT_URL;
 const formioFormId = process.env.FORMIO_FORM_ID;
