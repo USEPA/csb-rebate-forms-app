@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Form } from "@formio/react";
 import { isEqual } from "lodash";
@@ -82,8 +82,16 @@ export default function ExistingRebate() {
 
   // set when rebate form submission data is initially fetched, and then re-set
   // each time a successful update of the submission data is posted to forms.gov
-  const [storedSubmissionData, setStoredSubmissionData] =
+  const [storedSubmissionData, _setStoredSubmissionData] =
     useState<FormioSubmissionData>({});
+
+  // create ref to storedSubmissionData, so the latest value can be referenced
+  // in the Form component's `onNextPage` event prop
+  const storedSubmissionDataRef = useRef(storedSubmissionData);
+  const setStoredSubmissionData = (data: FormioSubmissionData) => {
+    storedSubmissionDataRef.current = data;
+    _setStoredSubmissionData(data);
+  };
 
   // initially empty, but will be set once the user attemts to submit the form
   // (both succesfully and unsuccesfully). passed to the to the <Form />
@@ -259,7 +267,7 @@ export default function ExistingRebate() {
             // don't post an update if form is not in draft state
             // or if no changes have been made to the form
             if (submissionData.state !== "draft") return;
-            if (isEqual(data, storedSubmissionData)) return;
+            if (isEqual(data, storedSubmissionDataRef.current)) return;
 
             displayInfoMessage("Saving form...");
             setPendingSubmissionData(data);
