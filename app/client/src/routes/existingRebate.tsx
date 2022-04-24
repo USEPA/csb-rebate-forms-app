@@ -254,7 +254,7 @@ function ExistingRebateContent() {
   const storedSubmissionDataRef = useRef(storedSubmissionData);
 
   // initially empty, but will be set once the user attemts to submit the form
-  // (both succesfully and unsuccesfully). passed to the to the <Form />
+  // (both successfully and unsuccessfully). passed to the to the <Form />
   // component's submission prop, so the fields the user filled out will not be
   // lost if a submission update fails, so the user can attempt submitting again
   const [pendingSubmissionData, setPendingSubmissionData] =
@@ -402,7 +402,7 @@ function ExistingRebateContent() {
                 if (submission.state === "submitted") {
                   dispatch({
                     type: "DISPLAY_SUCCESS_MESSAGE",
-                    payload: { text: "Form succesfully submitted." },
+                    payload: { text: "Form successfully submitted." },
                   });
 
                   setTimeout(() => {
@@ -415,7 +415,7 @@ function ExistingRebateContent() {
                 if (submission.state === "draft") {
                   dispatch({
                     type: "DISPLAY_SUCCESS_MESSAGE",
-                    payload: { text: "Draft succesfully saved." },
+                    payload: { text: "Draft successfully saved." },
                   });
 
                   setTimeout(() => {
@@ -471,7 +471,7 @@ function ExistingRebateContent() {
 
                 dispatch({
                   type: "DISPLAY_SUCCESS_MESSAGE",
-                  payload: { text: "Draft succesfully saved." },
+                  payload: { text: "Draft successfully saved." },
                 });
 
                 setTimeout(() => {

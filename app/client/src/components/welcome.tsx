@@ -63,7 +63,7 @@ export default function Welcome() {
       setMessage({
         displayed: true,
         type: "success",
-        text: "You have succesfully logged out.",
+        text: "You have successfully logged out.",
       });
     }
 
