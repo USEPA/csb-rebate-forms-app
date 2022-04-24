@@ -166,7 +166,7 @@ export default function Helpdesk() {
       )}
 
       {/*
-        NOTE: when the rebate form submission data is succesfully fetched, the
+        NOTE: when the rebate form submission data is successfully fetched, the
         response should contain the submission data, but since it's coming from
         an external server, we should check that it exists first before using it
       */}
