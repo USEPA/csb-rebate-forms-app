@@ -246,16 +246,12 @@ function ExistingRebateContent() {
 
   // set when rebate form submission data is initially fetched, and then re-set
   // each time a successful update of the submission data is posted to forms.gov
-  const [storedSubmissionData, _setStoredSubmissionData] =
+  const [storedSubmissionData, setStoredSubmissionData] =
     useState<FormioSubmissionData>({});
 
   // create ref to storedSubmissionData, so the latest value can be referenced
   // in the Form component's `onNextPage` event prop
   const storedSubmissionDataRef = useRef(storedSubmissionData);
-  const setStoredSubmissionData = (data: FormioSubmissionData) => {
-    storedSubmissionDataRef.current = data;
-    _setStoredSubmissionData(data);
-  };
 
   // initially empty, but will be set once the user attemts to submit the form
   // (both succesfully and unsuccesfully). passed to the to the <Form />
@@ -281,7 +277,11 @@ function ExistingRebateContent() {
           delete data.ncesDataSource;
         }
 
-        setStoredSubmissionData(data);
+        setStoredSubmissionData((prevData) => {
+          storedSubmissionDataRef.current = data;
+          return data;
+        });
+
         setRebateFormSubmission({
           status: "success",
           data: res,
@@ -386,12 +386,17 @@ function ExistingRebateContent() {
             }
 
             setPendingSubmissionData(data);
+
             fetchData(
               `${serverUrl}/api/rebate-form-submission/${submissionData._id}`,
               { ...submission, data }
             )
               .then((res) => {
-                setStoredSubmissionData(res.data);
+                setStoredSubmissionData((prevData) => {
+                  storedSubmissionDataRef.current = res.data;
+                  return res.data;
+                });
+
                 setPendingSubmissionData({});
 
                 if (submission.state === "submitted") {
@@ -449,18 +454,26 @@ function ExistingRebateContent() {
               type: "DISPLAY_INFO_MESSAGE",
               payload: { text: "Saving form..." },
             });
+
             setPendingSubmissionData(data);
+
             fetchData(
               `${serverUrl}/api/rebate-form-submission/${submissionData._id}`,
               { ...submission, data, state: "draft" }
             )
               .then((res) => {
-                setStoredSubmissionData(res.data);
+                setStoredSubmissionData((prevData) => {
+                  storedSubmissionDataRef.current = res.data;
+                  return res.data;
+                });
+
                 setPendingSubmissionData({});
+
                 dispatch({
                   type: "DISPLAY_SUCCESS_MESSAGE",
                   payload: { text: "Draft succesfully saved." },
                 });
+
                 setTimeout(() => {
                   dispatch({ type: "RESET_MESSAGE" });
                 }, 5000);
