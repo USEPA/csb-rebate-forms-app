@@ -1,14 +1,171 @@
-import { useEffect, useState, useRef } from "react";
+import {
+  Dispatch,
+  ReactNode,
+  createContext,
+  useContext,
+  useReducer,
+  useEffect,
+  useState,
+  useRef,
+} from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Form } from "@formio/react";
 import { isEqual } from "lodash";
 // ---
 import { serverUrl, fetchData } from "../config";
 import Loading from "components/loading";
-import Message, { useMessageState } from "components/message";
+import Message from "components/message";
 import MarkdownContent from "components/markdownContent";
 import { useContentState } from "contexts/content";
 import { useUserState } from "contexts/user";
+
+// -----------------------------------------------------------------------------
+
+type Props = {
+  children: ReactNode;
+};
+
+type State = {
+  displayed: boolean;
+  type: "info" | "success" | "warning" | "error";
+  text: string;
+};
+
+type Action =
+  | {
+      type: "DISPLAY_INFO_MESSAGE";
+      payload: { text: string };
+    }
+  | {
+      type: "DISPLAY_SUCCESS_MESSAGE";
+      payload: { text: string };
+    }
+  | {
+      type: "DISPLAY_WARNING_MESSAGE";
+      payload: { text: string };
+    }
+  | {
+      type: "DISPLAY_ERROR_MESSAGE";
+      payload: { text: string };
+    }
+  | { type: "RESET_MESSAGE" };
+
+const StateContext = createContext<State | undefined>(undefined);
+const DispatchContext = createContext<Dispatch<Action> | undefined>(undefined);
+
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case "DISPLAY_INFO_MESSAGE": {
+      const { text } = action.payload;
+      return {
+        ...state,
+        displayed: true,
+        type: "info",
+        text,
+      };
+    }
+
+    case "DISPLAY_SUCCESS_MESSAGE": {
+      const { text } = action.payload;
+      return {
+        ...state,
+        displayed: true,
+        type: "success",
+        text,
+      };
+    }
+
+    case "DISPLAY_WARNING_MESSAGE": {
+      const { text } = action.payload;
+      return {
+        ...state,
+        displayed: true,
+        type: "warning",
+        text,
+      };
+    }
+
+    case "DISPLAY_ERROR_MESSAGE": {
+      const { text } = action.payload;
+      return {
+        ...state,
+        displayed: true,
+        type: "error",
+        text,
+      };
+    }
+
+    case "RESET_MESSAGE": {
+      return {
+        ...state,
+        displayed: false,
+        type: "info",
+        text: "",
+      };
+    }
+
+    default: {
+      throw new Error(`Unhandled action type: ${action}`);
+    }
+  }
+}
+
+function ExistingRebateProvider({ children }: Props) {
+  const initialState: State = {
+    displayed: false,
+    type: "info",
+    text: "",
+  };
+
+  const [state, dispatch] = useReducer(reducer, initialState);
+
+  return (
+    <StateContext.Provider value={state}>
+      <DispatchContext.Provider value={dispatch}>
+        {children}
+      </DispatchContext.Provider>
+    </StateContext.Provider>
+  );
+}
+
+/**
+ * Returns state stored in `ExistingRebateProvider` context component.
+ */
+function useExistingRebateState() {
+  const context = useContext(StateContext);
+  if (context === undefined) {
+    throw new Error(
+      "useExistingRebateState must be called within a ExistingRebateProvider"
+    );
+  }
+  return context;
+}
+
+/**
+ * Returns `dispatch` method for dispatching actions to update state stored in
+ * `ExistingRebateProvider` context component.
+ */
+function useExistingRebateDispatch() {
+  const context = useContext(DispatchContext);
+  if (context === undefined) {
+    throw new Error(
+      "useExistingRebateDispatch must be used within a ExistingRebateProvider"
+    );
+  }
+  return context;
+}
+
+// -----------------------------------------------------------------------------
+
+export default function ExistingRebate() {
+  return (
+    <ExistingRebateProvider>
+      <ExistingRebateContent />
+    </ExistingRebateProvider>
+  );
+}
+
+// -----------------------------------------------------------------------------
 
 type FormioSubmissionData = {
   // NOTE: more fields are in a form.io submission,
@@ -64,11 +221,18 @@ type SubmissionState =
       };
     };
 
-export default function ExistingRebate() {
+function FormMessage() {
+  const { displayed, type, text } = useExistingRebateState();
+  if (!displayed) return null;
+  return <Message type={type} text={text} />;
+}
+
+function ExistingRebateContent() {
   const navigate = useNavigate();
   const { id } = useParams<"id">();
   const { content } = useContentState();
   const { epaUserData } = useUserState();
+  const dispatch = useExistingRebateDispatch();
 
   const [rebateFormSubmission, setRebateFormSubmission] =
     useState<SubmissionState>({
@@ -135,14 +299,6 @@ export default function ExistingRebate() {
       });
   }, [id]);
 
-  const {
-    message,
-    displayInfoMessage,
-    displaySuccessMessage,
-    displayErrorMessage,
-    resetMessage,
-  } = useMessageState();
-
   if (rebateFormSubmission.status === "idle") {
     return null;
   }
@@ -186,9 +342,9 @@ export default function ExistingRebate() {
         />
       )}
 
-      {message.displayed && <Message type={message.type} text={message.text} />}
+      <FormMessage />
 
-        <h3>Application ID: {submissionData._id}</h3>
+      <h3>Application ID: {submissionData._id}</h3>
 
       <div className="csb-form">
         <Form
@@ -216,11 +372,17 @@ export default function ExistingRebate() {
             }
 
             if (submission.state === "submitted") {
-              displayInfoMessage("Submitting form...");
+              dispatch({
+                type: "DISPLAY_INFO_MESSAGE",
+                payload: { text: "Submitting form..." },
+              });
             }
 
             if (submission.state === "draft") {
-              displayInfoMessage("Saving form...");
+              dispatch({
+                type: "DISPLAY_INFO_MESSAGE",
+                payload: { text: "Saving form..." },
+              });
             }
 
             setPendingSubmissionData(data);
@@ -233,18 +395,34 @@ export default function ExistingRebate() {
                 setPendingSubmissionData({});
 
                 if (submission.state === "submitted") {
-                  displaySuccessMessage("Form succesfully submitted.");
-                  setTimeout(() => navigate("/"), 5000);
+                  dispatch({
+                    type: "DISPLAY_SUCCESS_MESSAGE",
+                    payload: { text: "Form succesfully submitted." },
+                  });
+
+                  setTimeout(() => {
+                    dispatch({ type: "RESET_MESSAGE" });
+                    navigate("/");
+                  }, 5000);
                   return;
                 }
 
                 if (submission.state === "draft") {
-                  displaySuccessMessage("Draft succesfully saved.");
-                  setTimeout(() => resetMessage(), 5000);
+                  dispatch({
+                    type: "DISPLAY_SUCCESS_MESSAGE",
+                    payload: { text: "Draft succesfully saved." },
+                  });
+
+                  setTimeout(() => {
+                    dispatch({ type: "RESET_MESSAGE" });
+                  }, 5000);
                 }
               })
               .catch((err) => {
-                displayErrorMessage("Error submitting rebate form.");
+                dispatch({
+                  type: "DISPLAY_ERROR_MESSAGE",
+                  payload: { text: "Error submitting rebate form." },
+                });
               });
           }}
           onNextPage={({
@@ -267,7 +445,10 @@ export default function ExistingRebate() {
             if (submissionData.state !== "draft") return;
             if (isEqual(data, storedSubmissionDataRef.current)) return;
 
-            displayInfoMessage("Saving form...");
+            dispatch({
+              type: "DISPLAY_INFO_MESSAGE",
+              payload: { text: "Saving form..." },
+            });
             setPendingSubmissionData(data);
             fetchData(
               `${serverUrl}/api/rebate-form-submission/${submissionData._id}`,
@@ -276,17 +457,25 @@ export default function ExistingRebate() {
               .then((res) => {
                 setStoredSubmissionData(res.data);
                 setPendingSubmissionData({});
-                displaySuccessMessage("Draft succesfully saved.");
-                setTimeout(() => resetMessage(), 5000);
+                dispatch({
+                  type: "DISPLAY_SUCCESS_MESSAGE",
+                  payload: { text: "Draft succesfully saved." },
+                });
+                setTimeout(() => {
+                  dispatch({ type: "RESET_MESSAGE" });
+                }, 5000);
               })
               .catch((err) => {
-                displayErrorMessage("Error saving draft rebate form.");
+                dispatch({
+                  type: "DISPLAY_ERROR_MESSAGE",
+                  payload: { text: "Error saving draft rebate form." },
+                });
               });
           }}
         />
       </div>
 
-      {message.displayed && <Message type={message.type} text={message.text} />}
+      <FormMessage />
     </div>
   );
 }
