@@ -11,9 +11,7 @@ const {
   ensureHelpdesk,
   verifyMongoObjectId,
 } = require("../middleware");
-const logger = require("../utilities/logger");
-
-const log = logger.logger;
+const log = require("../utilities/logger");
 
 const router = express.Router();
 
@@ -25,11 +23,11 @@ router.use(ensureHelpdesk);
 router.get("/rebate-form-submission/:id", verifyMongoObjectId, (req, res) => {
   const id = req.params.id;
 
-  axiosFormio
+  axiosFormio(req)
     .get(`${formioProjectUrl}/${formioFormId}/submission/${id}`)
     .then((axiosRes) => axiosRes.data)
     .then((submission) => {
-      axiosFormio
+      axiosFormio(req)
         .get(`${formioProjectUrl}/form/${submission.form}`)
         .then((axiosRes) => axiosRes.data)
         .then((schema) => {
@@ -55,11 +53,11 @@ router.post("/rebate-form-submission/:id", verifyMongoObjectId, (req, res) => {
   const userEmail = req.user.mail;
   const formioSubmissionUrl = `${formioProjectUrl}/${formioFormId}/submission/${id}`;
 
-  axiosFormio
+  axiosFormio(req)
     .get(formioSubmissionUrl)
     .then((axiosRes) => axiosRes.data)
     .then((existingSubmission) => {
-      axiosFormio
+      axiosFormio(req)
         .put(formioSubmissionUrl, {
           state: "draft",
           data: { ...existingSubmission.data, last_updated_by: userEmail },
@@ -67,11 +65,13 @@ router.post("/rebate-form-submission/:id", verifyMongoObjectId, (req, res) => {
         })
         .then((axiosRes) => axiosRes.data)
         .then((updatedSubmission) => {
-          log.info(
-            `User with email ${userEmail} updated rebate form submission ${id} from submitted to draft.`
-          );
+          log({
+            level: "info",
+            message: `User with email ${userEmail} updated rebate form submission ${id} from submitted to draft.`,
+            req,
+          });
 
-          axiosFormio
+          axiosFormio(req)
             .get(`${formioProjectUrl}/form/${updatedSubmission.form}`)
             .then((axiosRes) => axiosRes.data)
             .then((schema) => {

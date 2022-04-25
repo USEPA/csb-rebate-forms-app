@@ -16,9 +16,7 @@ const {
   verifyMongoObjectId,
 } = require("../middleware");
 const { getSamData } = require("../utilities/getSamData");
-const logger = require("../utilities/logger");
-
-const log = logger.logger;
+const log = require("../utilities/logger");
 
 const router = express.Router();
 
@@ -69,8 +67,17 @@ router.get("/content", (req, res) => {
     })
     .catch((error) => {
       if (typeof error.toJSON === "function") {
-        log.debug(error.toJSON());
+        log({ level: "debug", message: error.toJSON(), req });
       }
+      log({
+        level: "error",
+        message: `S3 Error: ${
+          error.response?.status
+        } ${error.response?.config?.method?.toUpperCase()} ${
+          error.response?.config?.url
+        }`,
+        req,
+      });
 
       res
         .status(error?.response?.status || 500)
@@ -97,7 +104,7 @@ router.get("/epa-data", (req, res) => {
 
 // --- get SAM.gov data from BAP
 router.get("/sam-data", (req, res) => {
-  getSamData(req.user.mail)
+  getSamData(req.user.mail, req)
     .then((samUserData) => {
       const userRoles = req.user.memberof.split(",");
       const helpdeskUser =
@@ -106,9 +113,11 @@ router.get("/sam-data", (req, res) => {
       // First check if user has at least one associated UEI before completing login process
       // If user has admin or helpdesk role, return empty array but still allow app use
       if (!helpdeskUser && samUserData?.length === 0) {
-        log.error(
-          `User with email ${req.user.mail} tried to use app without any associated SAM records.`
-        );
+        log({
+          level: "error",
+          message: `User with email ${req.user.mail} tried to use app without any associated SAM records.`,
+          req,
+        });
 
         return res.json({
           results: false,
@@ -121,8 +130,7 @@ router.get("/sam-data", (req, res) => {
         records: samUserData,
       });
     })
-    .catch((err) => {
-      log.error(err);
+    .catch(() => {
       res.status(401).json({ message: "Error getting SAM.gov data" });
     });
 });
@@ -135,20 +143,22 @@ router.get(
   async (req, res) => {
     const id = req.params.id;
 
-    axiosFormio
+    axiosFormio(req)
       .get(`${formioProjectUrl}/${formioFormId}/submission/${id}`)
       .then((axiosRes) => axiosRes.data)
       .then((submission) => {
-        axiosFormio
+        axiosFormio(req)
           .get(`${formioProjectUrl}/form/${submission.form}`)
           .then((axiosRes) => axiosRes.data)
           .then((schema) => {
             const { bap_hidden_entity_combo_key } = submission.data;
 
             if (!req.bapComboKeys.includes(bap_hidden_entity_combo_key)) {
-              log.warn(
-                `User with email ${req.user.mail} attempted to access submission ${id} that they do not have access to.`
-              );
+              log({
+                level: "warn",
+                message: `User with email ${req.user.mail} attempted to access submission ${id} that they do not have access to.`,
+                req,
+              });
 
               res.json({
                 userAccess: false,
@@ -168,10 +178,6 @@ router.get(
           });
       })
       .catch((error) => {
-        log.error(
-          `User with email ${req.user.mail} attempted to access submission ${id} that does not exist.`
-        );
-
         res.status(error?.response?.status || 500).json({
           message: `Error getting Forms.gov rebate form submission ${id}`,
         });
@@ -191,9 +197,11 @@ router.post(
     if (
       !req.bapComboKeys.includes(req.body.data?.bap_hidden_entity_combo_key)
     ) {
-      log.error(
-        `User with email ${req.user.mail} attempted to update existing form without a matching BAP combo key`
-      );
+      log({
+        level: "error",
+        message: `User with email ${req.user.mail} attempted to update existing form without a matching BAP combo key`,
+        req,
+      });
       return res.status(401).json({ message: "Unauthorized" });
     }
 
@@ -203,7 +211,7 @@ router.post(
       ...formioCsbMetadata,
     };
 
-    axiosFormio
+    axiosFormio(req)
       .put(`${formioProjectUrl}/${formioFormId}/submission/${id}`, req.body)
       .then((axiosRes) => axiosRes.data)
       .then((submission) => res.json(submission))
@@ -219,9 +227,11 @@ router.post(
 router.post("/rebate-form-submission", checkBapComboKeys, (req, res) => {
   // Verify post data includes one of user's BAP combo keys
   if (!req.bapComboKeys.includes(req.body.data?.bap_hidden_entity_combo_key)) {
-    log.error(
-      `User with email ${req.user.mail} attempted to post new form without a matching BAP combo key`
-    );
+    log({
+      level: "error",
+      message: `User with email ${req.user.mail} attempted to post new form without a matching BAP combo key`,
+      req,
+    });
     return res.status(401).json({ message: "Unauthorized" });
   }
 
@@ -231,7 +241,7 @@ router.post("/rebate-form-submission", checkBapComboKeys, (req, res) => {
     ...formioCsbMetadata,
   };
 
-  axiosFormio
+  axiosFormio(req)
     .post(`${formioProjectUrl}/${formioFormId}/submission`, req.body)
     .then((axiosRes) => axiosRes.data)
     .then((submission) => res.json(submission))
@@ -261,7 +271,7 @@ router.get("/rebate-form-submissions", checkBapComboKeys, (req, res) => {
       "&data.bap_hidden_entity_combo_key="
     )}`;
 
-  axiosFormio
+  axiosFormio(req)
     .get(formioUserSubmissionsUrl)
     .then((axiosRes) => axiosRes.data)
     .then((submissions) => res.json(submissions))

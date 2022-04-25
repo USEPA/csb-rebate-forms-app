@@ -1,10 +1,11 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { DialogOverlay, DialogContent } from "@reach/dialog";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, fetchData } from "../config";
 import Loading from "components/loading";
-import Message, { useMessageState } from "components/message";
+import Message from "components/message";
 import MarkdownContent from "components/markdownContent";
 import { TextWithTooltip } from "components/infoTooltip";
 import { useContentState } from "contexts/content";
@@ -69,13 +70,20 @@ export default function NewRebate() {
   const { content } = useContentState();
   const { epaUserData, samUserData } = useUserState();
 
+  const [message, setMessage] = useState<{
+    displayed: boolean;
+    type: "info" | "success" | "warning" | "error";
+    text: string;
+  }>({
+    displayed: false,
+    type: "info",
+    text: "",
+  });
+
   const activeSamData =
     samUserData.status === "success" &&
     samUserData.data?.results &&
     samUserData.data?.records.filter((e) => e.ENTITY_STATUS__c === "Active");
-
-  const { message, displayInfoMessage, displayErrorMessage } =
-    useMessageState();
 
   if (epaUserData.status !== "success") {
     return null;
@@ -166,18 +174,22 @@ export default function NewRebate() {
                             <button
                               className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
                               onClick={(ev) => {
-                                displayInfoMessage(
-                                  "Creating new rebate form application..."
-                                );
+                                setMessage({
+                                  displayed: true,
+                                  type: "info",
+                                  text: "Creating new rebate form application...",
+                                });
 
                                 createNewRebate(samData, epaUserData.data)
                                   .then((res) => {
                                     navigate(`/rebate/${res._id}`);
                                   })
                                   .catch((err) => {
-                                    displayErrorMessage(
-                                      "Error creating new rebate form application."
-                                    );
+                                    setMessage({
+                                      displayed: true,
+                                      type: "error",
+                                      text: "Error creating new rebate form application.",
+                                    });
                                   });
                               }}
                             >
