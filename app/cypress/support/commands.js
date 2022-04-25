@@ -227,7 +227,7 @@ Cypress.Commands.add('getApplicationSteps', () => {
       cy.findByText('Blue Bird Corporation').click();
 
       cy.findByLabelText('Model').type('Bus 1543');
-      cy.findByLabelText('Model Year').type('1984');
+      cy.findByLabelText('Model Year', { exact: false }).type('1984');
       cy.findByLabelText('Average Annual Mileage', { exact: false }).type(
         '40000',
       );
@@ -254,6 +254,7 @@ Cypress.Commands.add('getApplicationSteps', () => {
       cy.findByLabelText('Replacement Bus GVWR (lbs.)', { exact: false }).type(
         '12000',
       );
+      cy.findByLabelText('Rebate Amount Requested', { exact: false }).invoke('val').should('not.eq', '');
 
       // This is a workaround, since there are 3 save buttons
       cy.findByText('Cancel')
@@ -285,13 +286,13 @@ Cypress.Commands.add('getApplicationSteps', () => {
 
       // verify the success message is displayed and goes away
       cy.findAllByText('Submitting form...');
-      cy.findAllByText('Form succesfully submitted.');
-      cy.findAllByText('Form succesfully submitted.').should('not.exist');
+      cy.findAllByText('Form successfully submitted.');
+      cy.findAllByText('Form successfully submitted.').should('not.exist');
 
       // verify the app navigates back to the dashboard
       cy.findByText(
         'This collection of information is approved by OMB under the Paperwork Reduction Act',
-        { exact: false },
+        { exact: false, timeout: 60000 },
       );
     }
   }

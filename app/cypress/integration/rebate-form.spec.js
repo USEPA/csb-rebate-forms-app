@@ -76,7 +76,7 @@ describe('Rebate Form', () => {
 
     // verify the save messages
     cy.findAllByText('Saving form...');
-    cy.findAllByText('Draft succesfully saved.');
+    cy.findAllByText('Draft successfully saved.');
 
     // go back to the dashboard
     cy.findByText('Your Rebate Forms').click();
