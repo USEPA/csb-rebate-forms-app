@@ -9,8 +9,8 @@ import {
   useRef,
 } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Form } from "@formio/react";
-import { isEqual } from "lodash";
+import { Formio, Form } from "@formio/react";
+import { cloneDeep, isEqual } from "lodash";
 // ---
 import { serverUrl, fetchData } from "../config";
 import Loading from "components/loading";
@@ -272,6 +272,14 @@ function ExistingRebateContent() {
 
     fetchData(`${serverUrl}/api/rebate-form-submission/${id}`)
       .then((res) => {
+        // Set up s3 re-route to wrapper app
+        const s3Provider = Formio.Providers.providers.storage.s3;
+        Formio.Providers.providers.storage.s3 = function (formio: any) {
+          const s3Formio = cloneDeep(formio);
+          s3Formio.formUrl = `${serverUrl}/api/${res.submissionData.data.bap_hidden_entity_combo_key}`;
+          return s3Provider(s3Formio);
+        };
+
         const data = { ...res.submissionData.data };
         if (data.hasOwnProperty("ncesDataSource")) {
           delete data.ncesDataSource;

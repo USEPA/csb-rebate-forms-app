@@ -252,6 +252,28 @@ router.post("/rebate-form-submission", checkBapComboKeys, (req, res) => {
     });
 });
 
+// --- upload s3 file metadata to Forms.gov
+router.post(":bapComboKey/storage/s3", checkBapComboKeys, (req, res) => {
+  if (!req.bapComboKeys.includes(req.params.bapComboKey)) {
+    log({
+      level: "error",
+      message: `User with email ${req.user.mail} attempted to upload file without a matching BAP combo key`,
+      req,
+    });
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  axiosFormio(req)
+    .post(`${formioProjectUrl}/${formioFormId}/storage/s3`, req.body)
+    .then((axiosRes) => axiosRes.data)
+    .then((fileMetadata) => res.json(fileMetadata))
+    .catch((error) => {
+      res
+        .status(error?.response?.status || 500)
+        .json({ message: "Error uploading Forms.gov file" });
+    });
+});
+
 // --- get all rebate form submissions from Forms.gov
 router.get("/rebate-form-submissions", checkBapComboKeys, (req, res) => {
   // NOTE: Helpdesk users might not have any SAM.gov records associated with
