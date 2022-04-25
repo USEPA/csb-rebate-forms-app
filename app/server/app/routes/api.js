@@ -287,7 +287,7 @@ router.get("/:bapComboKey/storage/s3", checkBapComboKeys, (req, res) => {
 
   axiosFormio(req)
     .get(`${formioProjectUrl}/${formioFormId}/storage/s3`, {
-      params: req.params,
+      params: req.query,
     })
     .then((axiosRes) => axiosRes.data)
     .then((fileMetadata) => res.json(fileMetadata))
