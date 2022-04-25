@@ -253,7 +253,7 @@ router.post("/rebate-form-submission", checkBapComboKeys, (req, res) => {
 });
 
 // --- upload s3 file metadata to Forms.gov
-router.post(":bapComboKey/storage/s3", checkBapComboKeys, (req, res) => {
+router.post("/:bapComboKey/storage/s3", checkBapComboKeys, (req, res) => {
   if (!req.bapComboKeys.includes(req.params.bapComboKey)) {
     log({
       level: "error",
