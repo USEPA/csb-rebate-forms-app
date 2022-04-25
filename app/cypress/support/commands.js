@@ -90,14 +90,10 @@ Cypress.Commands.add('getApplicationSteps', () => {
     });
   }
 
-  function step1(newApplication = false) {
+  function step1() {
     cy.log('Perform step 1 tests...');
 
     cy.contains('1 of 6 Welcome').should('be.visible');
-
-    // workaround for an issue where clicking next on step 1 reloads step 1 again
-    //  this only happens when creating a new application from scratch
-    if (newApplication) cy.findByText('Next').click();
 
     // go to next step
     cy.findByText('Next').click();
@@ -109,6 +105,10 @@ Cypress.Commands.add('getApplicationSteps', () => {
     cy.contains('2 of 6 Applicant Type');
 
     if (newApplication) {
+      // workaround for an issue where the fields below will be cleared
+      // if filled out to soon
+      cy.wait(2000);
+
       cy.findByLabelText('Applicant Type').select('School District');
       cy.findByLabelText('Yes').click({ force: true });
     }
@@ -137,7 +137,7 @@ Cypress.Commands.add('getApplicationSteps', () => {
       cy.findByLabelText('State or Territory').should('have.value', 'MA');
       cy.findByLabelText('Zip Code', { exact: false }).should(
         'have.value',
-        '2472',
+        '02472',
       );
 
       // fill out the remainder of the form
@@ -319,7 +319,7 @@ Cypress.Commands.add('getApplicationSteps', () => {
 
   function fillOutNewApplication() {
     startNewApplication();
-    step1(true);
+    step1();
     step2(true);
     step3(true);
     step4(true);

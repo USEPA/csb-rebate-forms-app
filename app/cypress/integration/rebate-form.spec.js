@@ -64,7 +64,7 @@ describe('Rebate Form', () => {
   it('New application - Save and Continue button', () => {
     // complete steps 1 - 3
     startNewApplication();
-    step1(true);
+    step1();
     step2(true);
     step3(true);
 
@@ -114,7 +114,7 @@ describe('Rebate Form', () => {
 
   it('Modal cancel tests', () => {
     startNewApplication();
-    step1(true);
+    step1();
     step2();
 
     cy.findByText('Your Rebate Forms').click();

@@ -13,7 +13,7 @@ describe('Authentication', () => {
     cy.loginToCSB('csbtest');
   });
 
-  const loggedOutMessage = 'You have succesfully logged out.';
+  const loggedOutMessage = 'You have successfully logged out.';
   const samInfoText =
     'No SAM.gov records match your email. Only Government and Electronic Business SAM.gov Points of Contacts (and alternates) may edit and submit Clean School Bus Rebate Forms.';
   const samErrorText = 'Error retrieving SAM.gov data. Please contact support.';

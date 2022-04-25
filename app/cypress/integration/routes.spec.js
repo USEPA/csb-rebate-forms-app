@@ -9,6 +9,7 @@ describe('Routes', () => {
 
   let formId = '';
   const loadingSpinnerText = 'Loading...';
+  const loggedOutMessage = 'You have successfully logged out.';
 
   before(() => {
     cy.loginToCSB('csbtest');
@@ -66,7 +67,7 @@ describe('Routes', () => {
 
     // Sign out
     cy.findByText('Sign out').click();
-    cy.findByText('You have succesfully logged out.');
+    cy.findByText(loggedOutMessage);
 
     // verify the appropriate error message is displayed
     cy.visit(`/rebate/${formId}`);
@@ -143,7 +144,7 @@ describe('Routes', () => {
 
     // Sign out
     cy.findByText('Sign out').click();
-    cy.findByText('You have succesfully logged out.');
+    cy.findByText(loggedOutMessage);
 
     // verify the appropriate error message is displayed
     cy.visit('/helpdesk');
