@@ -255,6 +255,8 @@ Cypress.Commands.add('getApplicationSteps', () => {
       cy.get('div[ref="fileDrop"]').attachFile(fileName, {
         subjectType: 'drag-n-drop',
       });
+      cy.findByText('"Starting upload."').should('be.visible');
+      cy.findByText('"Starting upload."').should('not.exist');
       cy.findByText(fileName);
 
       cy.findByLabelText('Replacement Fuel Type').parent().click();
