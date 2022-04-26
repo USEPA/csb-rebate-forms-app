@@ -14,8 +14,7 @@ describe('Rebate Form', () => {
     step4,
     step5,
     step6,
-    submitTests,
-    fillOutNewApplication;
+    submitTests;
 
   // Verifies a record is in the table and clicks the first row
   function clickFirstRebateFormRow() {
@@ -42,7 +41,6 @@ describe('Rebate Form', () => {
         step5,
         step6,
         submitTests,
-        fillOutNewApplication,
       } = steps);
     });
   });
@@ -54,11 +52,6 @@ describe('Rebate Form', () => {
     Cypress.Cookies.defaults({
       preserve: 'csb-token',
     });
-  });
-
-  it('New application', () => {
-    // run the tests
-    fillOutNewApplication();
   });
 
   it('New application - Save and Continue button', () => {
