@@ -183,7 +183,10 @@ export default function Helpdesk() {
         submissionData && (
           <>
             <div className="usa-table-container--scrollable" tabIndex={0}>
-              <table className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full">
+              <table 
+                aria-label="Rebate Form Search Results"
+                className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full"
+              >
                 <thead>
                   <tr className="font-sans-2xs text-no-wrap">
                     <th scope="col">
