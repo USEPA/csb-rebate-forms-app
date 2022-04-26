@@ -351,6 +351,48 @@
         "parameters": [{ "$ref": "#/components/parameters/scan" }]
       }
     },
+    "/api/{bapComboKey}/storage/s3": {
+      "get": {
+        "summary": "/api/{bapComboKey}/storage/s3",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [],
+        "parameters": [
+          {
+            "name": "bapComboKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          { "$ref": "#/components/parameters/scan" }
+        ]
+      },
+      "post": {
+        "summary": "/api/{bapComboKey}/storage/s3",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [],
+        "parameters": [
+          {
+            "name": "bapComboKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          { "$ref": "#/components/parameters/scan" }
+        ]
+      }
+    },
     "/api/rebate-form-submission": {
       "post": {
         "summary": "/api/rebate-form-submission",
