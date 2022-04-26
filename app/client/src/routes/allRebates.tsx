@@ -66,7 +66,10 @@ export default function AllRebates() {
           )}
 
           <div className="usa-table-container--scrollable" tabIndex={0}>
-            <table className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full">
+            <table 
+              aria-label="Your Rebate Forms"
+              className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full"
+            >
               <thead>
                 <tr className="font-sans-2xs text-no-wrap">
                   <th scope="col">
