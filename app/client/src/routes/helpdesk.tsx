@@ -184,7 +184,7 @@ export default function Helpdesk() {
           <>
             <div className="usa-table-container--scrollable" tabIndex={0}>
               <table 
-                aria-label="Search Results"
+                aria-label="Rebate Form Search Results"
                 className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full"
               >
                 <thead>

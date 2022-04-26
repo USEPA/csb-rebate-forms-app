@@ -10,7 +10,7 @@ describe('Helpdesk', () => {
   let existingFormId = '';
   const searchInputLabelText = 'Search by Form ID';
   const loadingSpinnerText = 'Loading...';
-  const helpdeskTableLabelText = 'Search Results';
+  const helpdeskTableLabelText = 'Rebate Form Search Results';
 
   function performSearch(formId) {
     cy.get('#root').within(() => {

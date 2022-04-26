@@ -67,7 +67,7 @@ Cypress.Commands.add('getApplicationSteps', () => {
     cy.findAllByText(loadingSpinnerText).should('not.exist');
 
     // select the first item in the modal table
-    cy.findByLabelText('Entities').within(() => {
+    cy.findByLabelText('SAM.gov Entities').within(() => {
       cy.get('tbody > tr').then(($elms) => {
         const $firstElm = $elms[0];
 
