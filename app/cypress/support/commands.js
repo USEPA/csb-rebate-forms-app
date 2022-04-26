@@ -295,7 +295,6 @@ Cypress.Commands.add('getApplicationSteps', () => {
       cy.findByText('Submit Form').click();
 
       // verify the success message is displayed and goes away
-      cy.findAllByText('Submitting form...');
       cy.findAllByText('Form successfully submitted.');
       cy.findAllByText('Form successfully submitted.').should('not.exist');
 
