@@ -18,10 +18,8 @@
     "eject": "react-scripts eject",
     "coverage": "react-scripts -r @cypress/instrument-cra start"
   },
-  "devDependencies": {
-    "@cypress/instrument-cra": "1.4.0"
-  },
   "dependencies": {
+    "@cypress/instrument-cra": "1.4.0",
     "@formio/premium": "1.18.1",
     "@formio/react": "5.2.0",
     "@formio/uswds": "2.4.5",
