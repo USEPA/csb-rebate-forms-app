@@ -14,7 +14,7 @@ router.get("/app", (req, res) => {
 });
 
 router.get("/bap", (req, res) => {
-  getSamData("CleanSchoolBus@erg.com")
+  getSamData("CleanSchoolBus@erg.com", req)
     .then(() => {
       res.json({ status: true });
     })
