@@ -83,17 +83,19 @@ const getSamData = (email, req) => {
         throw err;
       });
   }
-  return queryBap(email, req).catch((err) => {
-    if (err?.toString() === "invalid_grant: expired access/refresh token") {
+  return queryBap(email, req).catch((initialError) => {
+    if (
+      initialError?.toString() === "invalid_grant: expired access/refresh token"
+    ) {
       log({ level: "info", message: "BAP access token expired", req });
     } else {
-      log({ level: "error", message: `BAP Error: ${err}`, req });
+      log({ level: "error", message: `BAP Error: ${initialError}`, req });
     }
     return setupConnection(req.app)
       .then(() => queryBap(email, req))
-      .catch((err) => {
-        log({ level: "error", message: `BAP Error: ${err}`, req });
-        throw err;
+      .catch((retryError) => {
+        log({ level: "error", message: `BAP Error: ${retryError}`, req });
+        throw retryError;
       });
   });
 };
