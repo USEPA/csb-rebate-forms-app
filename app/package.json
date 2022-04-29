@@ -26,7 +26,7 @@
     "server": "cd server && npm start",
     "start": "concurrently -kc \"blue.dim,green.dim\" \"npm:server\" \"npm:client\"",
     "cypress": "concurrently -kc \"blue.dim,green.dim,yellow.dim\" -n server,client,cypress \"npm:server\" \"npm:client\" \"cypress open --env coverage=false\"",
-    "coverage": "concurrently -kc \"blue.dim,green.dim,yellow.dim\" -n server,client,cypress \"npm:server\" \"cd client && npm run coverage\" \"cypress run --spec \"cypress/integration/authentication.spec.js\" --browser edge\""
+    "coverage": "concurrently -kc \"blue.dim,green.dim,yellow.dim\" -n server,client,cypress \"npm:server\" \"cd client && npm run coverage\" \"cypress run --browser edge\""
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,json,css,scss,md}": "prettier --write"
