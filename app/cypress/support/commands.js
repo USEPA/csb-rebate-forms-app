@@ -217,6 +217,9 @@ Cypress.Commands.add('getApplicationSteps', () => {
 
       cy.findByLabelText('VIN').type('12345678901234567');
 
+      // workaround for dropdown tests not working
+      cy.wait(2000);
+
       // select the manufacturer - have to do this as a workaround since formio doesn't
       // use a normal select element
       cy.findByLabelText('Manufacturer').parent().click();
