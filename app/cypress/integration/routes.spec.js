@@ -21,11 +21,7 @@ describe("Routes", () => {
       .first()
       .parent()
       .within(($row) => {
-        cy.wrap($row)
-          .get("th,td")
-          .then(($cols) => {
-            cy.wrap($cols[0]).click();
-          });
+        cy.findByRole("link").click();
       });
 
     // verify the tab loaded
@@ -38,7 +34,7 @@ describe("Routes", () => {
     });
 
     // sign out
-    cy.findByText("Sign out").click();
+    cy.findByRole("link", { name: "Sign out" }).click();
   });
 
   it("Test a route that is not found", () => {
@@ -66,7 +62,7 @@ describe("Routes", () => {
     cy.findByText("csb-test@erg.com");
 
     // Sign out
-    cy.findByText("Sign out").click();
+    cy.findByRole("link", { name: "Sign out" }).click();
     cy.findByText(loggedOutMessage);
 
     // verify the appropriate error message is displayed
@@ -143,7 +139,7 @@ describe("Routes", () => {
     cy.findByText("csb-test8@erg.com");
 
     // Sign out
-    cy.findByText("Sign out").click();
+    cy.findByRole("link", { name: "Sign out" }).click();
     cy.findByText(loggedOutMessage);
 
     // verify the appropriate error message is displayed
@@ -159,7 +155,7 @@ describe("Routes", () => {
 
     // verify the helpdesk is not available
     cy.visit("/helpdesk");
-    cy.findByText("Helpdesk").should("not.exist");
+    cy.findByRole("link", { name: "Helpdesk" }).should("not.exist");
     cy.findByText("Change Rebate Form Submission State").should("not.exist");
   });
 
@@ -179,7 +175,7 @@ describe("Routes", () => {
 
     // verify the helpdesk is not available
     cy.visit("/helpdesk");
-    cy.findByText("Helpdesk").should("not.exist");
+    cy.findByRole("link", { name: "Helpdesk" }).should("not.exist");
     cy.findByText("Change Rebate Form Submission State").should("not.exist");
   });
 });

@@ -28,7 +28,7 @@ describe("Authentication", () => {
     cy.findByText("csb-test@erg.com");
 
     // sign out
-    cy.findByText("Sign out").click();
+    cy.findByRole("link", { name: "Sign out" }).click();
 
     // verify sign out was completed
     cy.findByText(loggedOutMessage);
@@ -64,7 +64,7 @@ describe("Authentication", () => {
   it("Test SAM.gov service failure", () => {
     // sign out
     cy.findByText("csb-test@erg.com");
-    cy.findByText("Sign out").click();
+    cy.findByRole("link", { name: "Sign out" }).click();
     cy.findByText(loggedOutMessage);
 
     // simulate the sam-data service failing
@@ -85,7 +85,7 @@ describe("Authentication", () => {
   it("Test SAM.gov service with no results", () => {
     // sign out
     cy.findByText("csb-test@erg.com");
-    cy.findByText("Sign out").click();
+    cy.findByRole("link", { name: "Sign out" }).click();
     cy.findByText(loggedOutMessage);
 
     // simulate the sam-data service with no results

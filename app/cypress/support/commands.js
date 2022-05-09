@@ -37,9 +37,9 @@ Cypress.Commands.add("loginToCSB", (username, password = "password") => {
     cy.contains("a", "Sign in").click();
 
     // login to CSB
-    cy.findByLabelText("Username").type(username);
+    cy.findByRole("textbox", { name: "Username" }).type(username);
     cy.findByLabelText("Password").type(password);
-    cy.findByText("Login").click();
+    cy.findByRole("button", { name: "Login" }).click();
   }
 });
 
@@ -58,32 +58,28 @@ Cypress.Commands.add("getApplicationSteps", () => {
   function startNewApplication() {
     cy.log("Starting a new application...");
 
-    cy.findByText("New Application").click();
+    cy.findByRole("link", { name: "New Application" }).click();
 
     // verify the modal is displayed
-    cy.findByText("Start a New Rebate Application");
+    cy.findByRole("heading", { name: "Start a New Rebate Application" });
 
     // wait for loading to complete
     cy.findAllByText(loadingSpinnerText).should("not.exist");
 
     // select the first item in the modal table
-    cy.findByLabelText("SAM.gov Entities").within(() => {
-      cy.get("tbody > tr").then(($elms) => {
-        const $firstElm = $elms[0];
-
-        cy.wrap($firstElm).within(() => {
-          cy.get("th,td").then(($cols) => {
+    cy.findByRole("table", { name: "SAM.gov Entities" }).within(() => {
+      cy.findAllByRole("row").then(($rows) => {
+        cy.wrap($rows[1]).within(() => {
+          cy.findAllByRole((content, element) => 
+            content === 'rowheader' || content === 'cell'
+          ).then(($cols) => {
             // store the selected row for later use
             selectedUei = $cols[1].innerText;
             selectedEft = $cols[2].innerText;
             selectedOrganization = $cols[3].innerText;
 
             // click the arrow on the first row
-            cy.wrap($cols[0])
-              .get("button")
-              .then(($buttons) => {
-                cy.wrap($buttons[0]).click();
-              });
+            cy.findByRole("button").click();
           });
         });
       });
@@ -96,7 +92,7 @@ Cypress.Commands.add("getApplicationSteps", () => {
     cy.contains("1 of 6 Welcome").should("be.visible");
 
     // go to next step
-    cy.findByText("Next").click();
+    cy.findByRole("button", { name: /Next/i }).click();
   }
 
   function step2(newApplication = false) {
@@ -109,12 +105,14 @@ Cypress.Commands.add("getApplicationSteps", () => {
       // if filled out to soon
       cy.wait(2000);
 
-      cy.findByLabelText("Applicant Type").select("School District");
-      cy.findByLabelText("Yes").click({ force: true });
+      cy.findByRole("combobox", { name: "Applicant Type" }).select(
+        "School District"
+      );
+      cy.findByRole("radio", { name: "Yes" }).click({ force: true });
     }
 
     // go to next step
-    cy.findByText("Next").click();
+    cy.findByRole("button", { name: /Next/i }).click();
   }
 
   function step3(newApplication = false) {
@@ -124,39 +122,53 @@ Cypress.Commands.add("getApplicationSteps", () => {
 
     if (newApplication) {
       // verify auto populated fields
-      cy.findByLabelText("Applicant Name").then(($el) =>
+      cy.findByRole("textbox", { name: "Applicant Name" }).then(($el) =>
         cy.wrap($el).should("have.value", selectedOrganization)
       );
-      cy.findByLabelText("Unique Entity Identifier (UEI)").then(($el) =>
-        cy.wrap($el).should("have.value", selectedUei)
+      cy.findByRole("textbox", { name: "Unique Entity Identifier (UEI)" }).then(
+        ($el) => cy.wrap($el).should("have.value", selectedUei)
       );
-      cy.findByLabelText("Electronic Funds Transfer (EFT) Indicator").then(
-        ($el) => cy.wrap($el).should("have.value", selectedEft)
-      );
-      cy.findByLabelText("City").should("have.value", "WATERTOWN");
-      cy.findByLabelText("State or Territory").should("have.value", "MA");
-      cy.findByLabelText("Zip Code", { exact: false }).should(
+      cy.findByRole("textbox", {
+        name: "Electronic Funds Transfer (EFT) Indicator",
+      }).then(($el) => cy.wrap($el).should("have.value", selectedEft));
+      cy.findByRole("textbox", { name: "City" }).should(
         "have.value",
-        "02472"
+        "WATERTOWN"
+      );
+      cy.findByRole("textbox", { name: "State or Territory" }).should(
+        "have.value",
+        "MA"
+      );
+      cy.findByRole("textbox", { name: /Zip Code/i }).should(
+        "have.value",
+        "2472"
       );
 
       // fill out the remainder of the form
-      cy.findAllByLabelText("Name").first().type("John Doe");
-      cy.findAllByLabelText("Title").first().type("Software Developer");
-      cy.findAllByLabelText("Business Phone Number", { exact: false })
+      cy.findAllByRole("textbox", { name: "Name" }).first().type("John Doe");
+      cy.findAllByRole("textbox", { name: "Title" })
+        .first()
+        .type("Software Developer");
+      cy.findAllByRole("textbox", { name: /Business Phone Number/i })
         .first()
         .type("1234567890");
-      cy.findAllByLabelText("Business Email").first().type("test1@test.com");
-      cy.findAllByLabelText("Name").last().type("Jane Doe");
-      cy.findAllByLabelText("Title").last().type("Software Developer");
-      cy.findAllByLabelText("Business Phone Number", { exact: false })
+      cy.findAllByRole("textbox", { name: "Business Email" })
+        .first()
+        .type("test1@test.com");
+      cy.findAllByRole("textbox", { name: "Name" }).last().type("Jane Doe");
+      cy.findAllByRole("textbox", { name: "Title" })
+        .last()
+        .type("Software Developer");
+      cy.findAllByRole("textbox", { name: /Business Phone Number/i })
         .last()
         .type("1234567891");
-      cy.findAllByLabelText("Business Email").last().type("test2@test.com");
+      cy.findAllByRole("textbox", { name: "Business Email" })
+        .last()
+        .type("test2@test.com");
     }
 
     // go to next step
-    cy.findByText("Next").click();
+    cy.findByRole("button", { name: /Next/i }).click();
   }
 
   function step4(newApplication = false) {
@@ -170,41 +182,42 @@ Cypress.Commands.add("getApplicationSteps", () => {
       cy.wait(2000);
 
       // enter a district id
-      cy.findByLabelText(
-        "National Center for Education Statistics (NCES) District ID"
-      ).type("BIE0013");
+      // cy.findByRole("textbox", { name: /National Center for Education Statistics (NCES) District ID/i }).type("BIE0013");
+      cy.findByLabelText("National Center for Education Statistics (NCES) District ID").type("BIE0013");
 
       // verify fields are autopopulated
-      cy.findByLabelText("School District Name").then(($el) =>
+      cy.findByRole("textbox", { name: "School District Name"}).then(($el) =>
         cy.wrap($el).should("have.value", "Wounded Knee District")
       );
-      cy.findByLabelText("Physical Address Line 1").then(($el) =>
+      cy.findByRole("textbox", { name: "Physical Address Line 1"}).then(($el) =>
         cy.wrap($el).should("have.value", "100 Main Street")
       );
-      cy.findByLabelText("City").then(($el) =>
+      cy.findByRole("textbox", { name: "City"}).then(($el) =>
         cy.wrap($el).should("have.value", "Manderson")
       );
       cy.findByLabelText("State or Territory").then(($el) =>
         cy.wrap($el).should("have.value", "SD")
       );
-      cy.findByLabelText("Zip Code", { exact: false }).then(($el) =>
+      cy.findByRole("textbox", { name: /Zip Code/i}).then(($el) =>
         cy.wrap($el).should("have.value", "57756")
       );
-      cy.findByLabelText("Prioritized").then(($el) =>
+      cy.findByRole("textbox", { name: "Prioritized"}).then(($el) =>
         cy.wrap($el).should("have.value", "Yes")
       );
 
       // fill out the remainder of the form
-      cy.findByLabelText("Name").type("Bob Wilson");
-      cy.findByLabelText("Title").type("Principal");
-      cy.findByLabelText("Business Phone Number", { exact: false }).type(
+      cy.findByRole("textbox", { name: "Name" }).type("Bob Wilson");
+      cy.findByRole("textbox", { name: "Title" }).type("Principal");
+      cy.findByRole("textbox", { name: /Business Phone Number/i }).type(
         "1235469870"
       );
-      cy.findByLabelText("Business Email").type("test3@test.com");
+      cy.findByRole("textbox", { name: "Business Email" }).type(
+        "test3@test.com"
+      );
     }
 
     // go to next step
-    cy.findByText("Next").click();
+    cy.findByRole("button", { name: /Next/i }).click();
   }
 
   function step5(newApplication = false) {
@@ -213,9 +226,9 @@ Cypress.Commands.add("getApplicationSteps", () => {
     cy.contains("5 of 6 Bus Information");
 
     if (newApplication) {
-      cy.findByText("Add bus").click();
+      cy.findByRole("button", { name: /Add bus/i }).click();
 
-      cy.findByLabelText("VIN").type("12345678901234567");
+      cy.findByRole("textbox", { name: /VIN/i }).type("12345678901234567");
 
       // workaround for dropdown tests not working
       cy.wait(2000);
@@ -226,8 +239,8 @@ Cypress.Commands.add("getApplicationSteps", () => {
       cy.findByText("Blue Bird Corporation").click();
 
       cy.findByLabelText("Model").type("Bus 1543");
-      cy.findByLabelText("Model Year", { exact: false }).type("1984");
-      cy.findByLabelText("Average Annual Mileage", { exact: false }).type(
+      cy.findByRole("textbox", { name: /Model Year/i }).type("1984");
+      cy.findByRole("textbox", { name: /Average Annual Mileage/i }).type(
         "40000"
       );
       cy.findByLabelText("Average Annual Fuel Consumption (gallons)", {
@@ -239,7 +252,7 @@ Cypress.Commands.add("getApplicationSteps", () => {
       cy.findByLabelText("Fuel Type").parent().click();
       cy.findByText("Diesel").click();
 
-      cy.findAllByLabelText("GVWR", { exact: false }).first().type("12000");
+      cy.findAllByRole("textbox", { name: /GVWR/i }).first().type("12000");
 
       // upload a file
       const fileName = "testPicture.jpg";
@@ -255,12 +268,12 @@ Cypress.Commands.add("getApplicationSteps", () => {
       cy.findByLabelText("Replacement Bus GVWR (lbs.)", { exact: false }).type(
         "12000"
       );
-      cy.findByLabelText("Rebate Amount Requested", { exact: false })
+      cy.findByRole("textbox", { name: /Rebate Amount Requested/i })
         .invoke("val")
         .should("not.eq", "");
 
       // This is a workaround, since there are 3 save buttons
-      cy.findByText("Cancel")
+      cy.findByRole("button", { name: "Cancel" })
         .parent()
         .within(() => {
           cy.findByText("Save").click();
@@ -268,7 +281,7 @@ Cypress.Commands.add("getApplicationSteps", () => {
     }
 
     // go to next step
-    cy.findByText("Next").click();
+    cy.findByRole("button", { name: /Next/i }).click();
   }
 
   function step6(newApplication = false) {
@@ -285,7 +298,7 @@ Cypress.Commands.add("getApplicationSteps", () => {
       cy.wait(1000);
 
       // go to next step
-      cy.findByText("Submit Form").click();
+      cy.findByRole("button", { name: /Submit Form/i }).click();
 
       // verify the success message is displayed and goes away
       cy.findAllByText("Form successfully submitted.");
@@ -303,13 +316,12 @@ Cypress.Commands.add("getApplicationSteps", () => {
     cy.log("Complete submission tests...");
 
     // verify the new record is in the table
-    cy.findByLabelText("Your Rebate Forms")
-      .get("tbody > tr")
-      .within(($rows) => {
-        const $firstRow = $rows[0];
-        cy.wrap($firstRow)
-          .get("th,td")
-          .then(($cols) => {
+    cy.findByRole("table", { name: "Your Rebate Forms" }).within(() => {
+      cy.findAllByRole("row").then(($rows) => {
+        cy.wrap($rows[1]).within(() => {
+          cy.findAllByRole((content, element) => 
+            content === 'rowheader' || content === 'cell'
+          ).then(($cols) => {
             cy.wrap($cols[1].innerText).should("eq", "Application");
             cy.wrap($cols[2].innerText).should("eq", selectedUei);
             cy.wrap($cols[3].innerText).should("eq", selectedEft);
@@ -317,7 +329,9 @@ Cypress.Commands.add("getApplicationSteps", () => {
             cy.wrap($cols[5].innerText).should("eq", schoolDistrict);
             cy.wrap($cols[8].innerText).should("eq", expectedStatus);
           });
+        });
       });
+    });
   }
 
   function fillOutNewApplication() {

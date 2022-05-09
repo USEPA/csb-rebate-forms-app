@@ -13,23 +13,20 @@ describe("Helpdesk", () => {
   const helpdeskTableLabelText = "Rebate Form Search Results";
 
   function performSearch(formId) {
-    cy.get("#root").within(() => {
-      // search for an existing id
-      cy.findByLabelText(searchInputLabelText).type(formId);
-      cy.contains("button", "Search").click();
-      cy.findByText(formId);
-    });
+    // search for an existing id
+    cy.findByRole("searchbox", { name: searchInputLabelText }).type(formId);
+    cy.findAllByRole("button", { name: "Search" }).last().click();
+    cy.findByText(formId);
   }
 
   function checkRecords(status, buttonToClick = "updateForm") {
     // verify the record is found and has expected data
-    cy.findByLabelText(helpdeskTableLabelText)
-      .get("tbody > tr")
-      .within(($rows) => {
-        const $firstRow = $rows[0];
-        cy.wrap($firstRow)
-          .get("th,td")
-          .then(($cols) => {
+    cy.findByRole("table", { name: helpdeskTableLabelText }).within(() => {
+      cy.findAllByRole("row").then(($rows) => {
+        cy.wrap($rows[1]).within(() => {
+          cy.findAllByRole((content, element) => 
+            content === 'rowheader' || content === 'cell'
+          ).then(($cols) => {
             cy.wrap($cols[1].innerText).should("eq", existingFormId);
             cy.wrap($cols[5].innerText).should("eq", status);
 
@@ -43,7 +40,9 @@ describe("Helpdesk", () => {
               }
             }
           });
+        })
       });
+    });
   }
 
   before(() => {
@@ -54,16 +53,13 @@ describe("Helpdesk", () => {
     });
 
     // get a formId from an existing application
-    cy.findByLabelText("Your Rebate Forms")
-      .get("tbody > tr")
-      .within(($rows) => {
-        const $firstRow = $rows[0];
-        cy.wrap($firstRow)
-          .get("th,td")
-          .then(($cols) => {
-            cy.wrap($cols[0]).click();
-          });
+    cy.findByRole("table", { name: "Your Rebate Forms" }).within(() => {
+      cy.findAllByRole("row").then(($rows) => {
+        cy.wrap($rows[1]).within(() => {
+          cy.findByRole("link", { name: /Open Form/i }).click();
+        })
       });
+    });
 
     // verify the tab loaded
     cy.contains("1 of 6 Welcome");
@@ -79,7 +75,7 @@ describe("Helpdesk", () => {
     cy.loginToCSB("csbtest");
 
     // navigate to helpdesk
-    cy.findByText("Helpdesk").click();
+    cy.findByRole("link", { name: "Helpdesk" }).click();
   });
 
   it("Test search input", () => {
@@ -92,31 +88,31 @@ describe("Helpdesk", () => {
     // One EPA Template does not affect this test
     cy.get("#root").within(() => {
       cy.log("Test empty search");
-      cy.contains("button", "Search").click();
+      cy.findAllByRole("button", { name: "Search" }).last().click();
       cy.findByText(errorText);
 
       cy.log("Test random text in search");
-      cy.findByLabelText(searchInputLabelText).type("dsfdkljfskl");
-      cy.contains("button", "Search").click();
-      cy.findByLabelText(searchInputLabelText).clear();
+      cy.findByRole("searchbox", { name: searchInputLabelText }).type("dsfdkljfskl");
+      cy.findAllByRole("button", { name: "Search" }).last().click();
+      cy.findByRole("searchbox", { name: searchInputLabelText }).clear();
       cy.findByText(errorText);
 
       cy.log("Test searching for an existing rebate form id");
-      cy.findByLabelText(searchInputLabelText).type(existingFormId);
-      cy.contains("button", "Search").click();
-      cy.findByLabelText(searchInputLabelText).clear(); // clear input so as not to trip up findByText
+      cy.findByRole("searchbox", { name: searchInputLabelText }).type(existingFormId);
+      cy.findAllByRole("button", { name: "Search" }).last().click();
+      cy.findByRole("searchbox", { name: searchInputLabelText }).clear(); // clear input so as not to trip up findByText
       cy.findByText(existingFormId);
 
       cy.log("Test searching for a non-existing rebate form id");
-      cy.findByLabelText(searchInputLabelText).type("1234567890abcdefghijklmn");
-      cy.contains("button", "Search").click();
-      cy.findByLabelText(searchInputLabelText).clear(); // clear input so as not to trip up findByText
+      cy.findByRole("searchbox", { name: searchInputLabelText }).type("1234567890abcdefghijklmn");
+      cy.findAllByRole("button", { name: "Search" }).last().click();
+      cy.findByRole("searchbox", { name: searchInputLabelText }).clear(); // clear input so as not to trip up findByText
       cy.findByText(errorText);
 
       cy.log("Test searching for a typo on an existing rebate form id");
-      cy.findByLabelText(searchInputLabelText).type("624f31dfb9cf1fafec93153a");
-      cy.contains("button", "Search").click();
-      cy.findByLabelText(searchInputLabelText).clear(); // clear input so as not to trip up findByText
+      cy.findByRole("searchbox", { name: searchInputLabelText }).type("624f31dfb9cf1fafec93153a");
+      cy.findAllByRole("button", { name: "Search" }).last().click();
+      cy.findByRole("searchbox", { name: searchInputLabelText }).clear(); // clear input so as not to trip up findByText
       cy.findByText(errorText);
     });
   });
@@ -133,7 +129,7 @@ describe("Helpdesk", () => {
 
     // verify the form elements on the second step are disabled
     cy.contains("2 of 6 Applicant Type");
-    cy.findByLabelText("Applicant Type").should("be.disabled");
+    cy.findByRole("combobox", { name: "Applicant Type" }).should("be.disabled");
   });
 
   it("Test setting back to draft", () => {
@@ -146,7 +142,7 @@ describe("Helpdesk", () => {
     cy.findByText(
       "Are you sure you want to change this submission's state back to draft?"
     );
-    cy.findByText("Cancel").click();
+    cy.findByRole("button", { name: "Cancel" }).click();
 
     // verify modal closed
     cy.findByText(existingFormId);
@@ -155,7 +151,7 @@ describe("Helpdesk", () => {
     checkRecords("submitted");
 
     // reset the status back to draft
-    cy.findByText("Yes").click();
+    cy.findByRole("button", { name: "Yes" }).click();
 
     // verify the status was set back to draft
     cy.findAllByText(loadingSpinnerText).should("be.visible");

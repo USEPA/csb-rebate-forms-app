@@ -18,16 +18,13 @@ describe("Rebate Form", () => {
 
   // Verifies a record is in the table and clicks the first row
   function clickFirstRebateFormRow() {
-    cy.findByLabelText("Your Rebate Forms")
-      .get("tbody > tr")
-      .within(($rows) => {
-        const $firstRow = $rows[0];
-        cy.wrap($firstRow)
-          .get("th,td")
-          .then(($cols) => {
-            cy.wrap($cols[0]).click();
-          });
-      });
+    cy.findByRole("table", { name: "Your Rebate Forms" }).within(() => {
+      cy.findAllByRole("row").then(($rows) => {
+        cy.wrap($rows[1]).within(() => {
+          cy.findByRole("link").click();
+        });
+      })
+    });
   }
 
   before(() => {
@@ -62,19 +59,19 @@ describe("Rebate Form", () => {
     step3(true);
 
     // go back to step 3
-    cy.findByText("Previous").click();
+    cy.findByRole("button", { name: /Previous/i }).click();
     cy.contains("3 of 6 Applicant Information");
 
-    cy.findAllByText("Save").filter("button").first().click();
+    cy.findAllByRole("button", { name: "Save" }).first().click();
 
     // verify the save messages
     cy.findAllByText("Saving form...");
     cy.findAllByText("Draft successfully saved.");
 
     // go back to the dashboard
-    cy.findByText("Your Rebate Forms").click();
+    cy.findByRole("link", { name: "Your Rebate Forms" }).click();
     cy.findByText("Are you sure you want to navigate away from this page?");
-    cy.findByText("Yes").click();
+    cy.findByRole("button", { name: "Yes" }).click();
 
     // verify the new application is marked as draft
     submitTests("", "draft");
@@ -110,14 +107,14 @@ describe("Rebate Form", () => {
     step1();
     step2();
 
-    cy.findByText("Your Rebate Forms").click();
-    cy.findByText("Cancel").click();
+    cy.findByRole("link", { name: "Your Rebate Forms" }).click();
+    cy.findByRole("button", { name: "Cancel" }).click();
 
     cy.findByText("Your Rebate Forms").click();
-    cy.get('button[aria-label="Close this window"]').click();
+    cy.findByRole("button", { name: "Close this window" }).click();
 
     // go back to the dashboard
-    cy.findByText("Your Rebate Forms").click();
-    cy.findByText("Yes").click();
+    cy.findByRole("link", { name: "Your Rebate Forms" }).click();
+    cy.findByRole("button", { name: "Yes" }).click();
   });
 });
