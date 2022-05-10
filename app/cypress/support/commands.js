@@ -34,11 +34,11 @@ Cypress.Commands.add("loginToCSB", (username, password = "password") => {
       signIn();
     }
 
-    // already signed in as the provided user, so do nothing
     else if (
       $body.find(`p:contains('${username}')`).length &&
       $body.find("a:contains('Sign out')").length
     ) {
+      // already signed in as the provided user, so do nothing
     }
   });
 

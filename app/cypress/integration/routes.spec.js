@@ -30,7 +30,7 @@ describe("Routes", () => {
     // extract the form id
     cy.findByRole("heading", { name: /Application ID:/i, level: 3 }).then(
       ($elms) => {
-        existingFormId = $elms[0].innerText.replace("Application ID: ", "");
+        formId = $elms[0].innerText.replace("Application ID: ", "");
       }
     );
 
