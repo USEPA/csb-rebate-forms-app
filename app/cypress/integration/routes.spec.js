@@ -13,7 +13,7 @@ describe("Routes", () => {
 
   before(() => {
     cy.loginToCSB("csbtest");
-    cy.findByText("Your Rebate Forms");
+    cy.findByRole("button", { name: "Your Rebate Forms" }).should("be.visible");
 
     // get a formId from an existing application by visiting the first submitted
     // application
@@ -28,10 +28,11 @@ describe("Routes", () => {
     cy.contains("1 of 6 Welcome");
 
     // extract the form id
-    cy.get("body").then(($body) => {
-      const elm = $body.find("h3:contains('Application ID:')")[0];
-      formId = elm.innerText.replace("Application ID: ", "");
-    });
+    cy.findByRole("heading", { name: /Application ID:/i, level: 3 }).then(
+      ($elms) => {
+        existingFormId = $elms[0].innerText.replace("Application ID: ", "");
+      }
+    );
 
     // sign out
     cy.findByRole("link", { name: "Sign out" }).click();
@@ -39,22 +40,25 @@ describe("Routes", () => {
 
   it("Test a route that is not found", () => {
     cy.loginToCSB("csbtest");
-    cy.findByText("Your Rebate Forms");
+    cy.findByRole("button", { name: "Your Rebate Forms" }).should("be.visible");
 
     cy.visit("/testing-not-found");
 
-    cy.findByText("Your Rebate Forms");
+    cy.findByRole("button", { name: "Your Rebate Forms" }).should("be.visible");
   });
 
   it("Navigate directly to an existing application", () => {
     cy.loginToCSB("csbtest");
-    cy.findByText("Your Rebate Forms");
+    cy.findByRole("button", { name: "Your Rebate Forms" }).should("be.visible");
 
     cy.visit(`/rebate/${formId}`);
 
     cy.findAllByText(loadingSpinnerText).should("be.visible");
 
-    cy.findByText("View Your Submitted Rebate Application");
+    cy.findByRole("heading", {
+      name: "View Your Submitted Rebate Application",
+      level: 2,
+    });
   });
 
   it("Navigate directly to an existing application without being logged in", () => {
@@ -74,7 +78,7 @@ describe("Routes", () => {
 
   it("Navigate directly to an existing application without appropriate access rights", () => {
     cy.loginToCSB("csbtest");
-    cy.findByText("Your Rebate Forms");
+    cy.findByRole("button", { name: "Your Rebate Forms" }).should("be.visible");
 
     // simulate the rebate-form-submission where user does not have access
     const origin =
@@ -104,7 +108,7 @@ describe("Routes", () => {
 
   it("Navigate directly to an existing application and simulate a service failure", () => {
     cy.loginToCSB("csbtest");
-    cy.findByText("Your Rebate Forms");
+    cy.findByRole("button", { name: "Your Rebate Forms" }).should("be.visible");
 
     // simulate the rebate-form-submission service failing
     const origin =
@@ -125,13 +129,16 @@ describe("Routes", () => {
 
   it("Navigate directly to the helpdesk", () => {
     cy.loginToCSB("csbtest8");
-    cy.findByText("Your Rebate Forms");
+    cy.findByRole("button", { name: "Your Rebate Forms" }).should("be.visible");
 
     cy.visit("/helpdesk");
 
     cy.findAllByText(loadingSpinnerText).should("be.visible");
 
-    cy.findByText("Change Rebate Form Submission State");
+    cy.findByRole("heading", {
+      name: "Change Rebate Form Submission State",
+      level: 2,
+    });
   });
 
   it("Navigate directly to the helpdesk without being logged in", () => {
@@ -151,12 +158,15 @@ describe("Routes", () => {
 
   it("Navigate directly to the helpdesk without appropriate access rights", () => {
     cy.loginToCSB("csbtest");
-    cy.findByText("Your Rebate Forms");
+    cy.findByRole("button", { name: "Your Rebate Forms" }).should("be.visible");
 
     // verify the helpdesk is not available
     cy.visit("/helpdesk");
     cy.findByRole("link", { name: "Helpdesk" }).should("not.exist");
-    cy.findByText("Change Rebate Form Submission State").should("not.exist");
+    cy.findByRole("heading", {
+      name: "Change Rebate Form Submission State",
+      level: 2,
+    }).should("not.exist");
   });
 
   it("Navigate directly to the helpdesk and simulate a service failure", () => {
@@ -176,6 +186,9 @@ describe("Routes", () => {
     // verify the helpdesk is not available
     cy.visit("/helpdesk");
     cy.findByRole("link", { name: "Helpdesk" }).should("not.exist");
-    cy.findByText("Change Rebate Form Submission State").should("not.exist");
+    cy.findByRole("heading", {
+      name: "Change Rebate Form Submission State",
+      level: 2,
+    }).should("not.exist");
   });
 });

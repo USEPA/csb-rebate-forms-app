@@ -24,25 +24,29 @@ describe("Helpdesk", () => {
     cy.findByRole("table", { name: helpdeskTableLabelText }).within(() => {
       cy.findAllByRole("row").then(($rows) => {
         cy.wrap($rows[1]).within(() => {
-          cy.findAllByRole((content, _element) => 
-            content === 'rowheader' || content === 'cell'
+          cy.findAllByRole(
+            (content, _element) => content === "rowheader" || content === "cell"
           ).then(($cols) => {
             cy.wrap($cols[1].innerText).should("eq", existingFormId);
             cy.wrap($cols[5].innerText).should("eq", status);
 
-            // click the change submission status button
-            if (status === "submitted") {
-              if (buttonToClick === "openForm") {
-                cy.wrap($cols[0]).find("button").click();
-              }
-              if (buttonToClick === "updateForm") {
-                cy.wrap($cols[6]).find("button").click();
-              }
-            }
+            clickAppropriateButton($cols);
           });
-        })
+        });
       });
     });
+
+    function clickAppropriateButton($cols) {
+      // click the change submission status button
+      if (status === "submitted") {
+        if (buttonToClick === "openForm") {
+          cy.wrap($cols[0]).find("button").click();
+        }
+        if (buttonToClick === "updateForm") {
+          cy.wrap($cols[6]).find("button").click();
+        }
+      }
+    }
   }
 
   before(() => {
@@ -57,7 +61,7 @@ describe("Helpdesk", () => {
       cy.findAllByRole("row").then(($rows) => {
         cy.wrap($rows[1]).within(() => {
           cy.findByRole("link", { name: /Open Form/i }).click();
-        })
+        });
       });
     });
 
@@ -65,10 +69,11 @@ describe("Helpdesk", () => {
     cy.contains("1 of 6 Welcome");
 
     // extract the form id
-    cy.get("body").then(($body) => {
-      const elm = $body.find("h3:contains('Application ID:')")[0];
-      existingFormId = elm.innerText.replace("Application ID: ", "");
-    });
+    cy.findByRole("heading", { name: /Application ID:/i, level: 3 }).then(
+      ($elms) => {
+        existingFormId = $elms[0].innerText.replace("Application ID: ", "");
+      }
+    );
   });
 
   beforeEach(() => {
@@ -82,39 +87,48 @@ describe("Helpdesk", () => {
     const errorText =
       "Error loading rebate form submission. Please confirm the form ID is correct and search again.";
 
-    cy.findByText("Change Rebate Form Submission State");
+    cy.findByRole("heading", {
+      name: "Change Rebate Form Submission State",
+      level: 2,
+    });
 
     // scope this test to just the root, so the Search button in the
     // One EPA Template does not affect this test
-    cy.get("#root").within(() => {
-      cy.log("Test empty search");
-      cy.findAllByRole("button", { name: "Search" }).last().click();
-      cy.findByText(errorText);
+    cy.log("Test empty search");
+    cy.findAllByRole("button", { name: "Search" }).last().click();
+    cy.findByText(errorText);
 
-      cy.log("Test random text in search");
-      cy.findByRole("searchbox", { name: searchInputLabelText }).type("dsfdkljfskl");
-      cy.findAllByRole("button", { name: "Search" }).last().click();
-      cy.findByRole("searchbox", { name: searchInputLabelText }).clear();
-      cy.findByText(errorText);
+    cy.log("Test random text in search");
+    cy.findByRole("searchbox", { name: searchInputLabelText }).type(
+      "dsfdkljfskl"
+    );
+    cy.findAllByRole("button", { name: "Search" }).last().click();
+    cy.findByRole("searchbox", { name: searchInputLabelText }).clear();
+    cy.findByText(errorText);
 
-      cy.log("Test searching for an existing rebate form id");
-      cy.findByRole("searchbox", { name: searchInputLabelText }).type(existingFormId);
-      cy.findAllByRole("button", { name: "Search" }).last().click();
-      cy.findByRole("searchbox", { name: searchInputLabelText }).clear(); // clear input so as not to trip up findByText
-      cy.findByText(existingFormId);
+    cy.log("Test searching for an existing rebate form id");
+    cy.findByRole("searchbox", { name: searchInputLabelText }).type(
+      existingFormId
+    );
+    cy.findAllByRole("button", { name: "Search" }).last().click();
+    cy.findByRole("searchbox", { name: searchInputLabelText }).clear(); // clear input so as not to trip up findByText
+    cy.findByText(existingFormId);
 
-      cy.log("Test searching for a non-existing rebate form id");
-      cy.findByRole("searchbox", { name: searchInputLabelText }).type("1234567890abcdefghijklmn");
-      cy.findAllByRole("button", { name: "Search" }).last().click();
-      cy.findByRole("searchbox", { name: searchInputLabelText }).clear(); // clear input so as not to trip up findByText
-      cy.findByText(errorText);
+    cy.log("Test searching for a non-existing rebate form id");
+    cy.findByRole("searchbox", { name: searchInputLabelText }).type(
+      "1234567890abcdefghijklmn"
+    );
+    cy.findAllByRole("button", { name: "Search" }).last().click();
+    cy.findByRole("searchbox", { name: searchInputLabelText }).clear(); // clear input so as not to trip up findByText
+    cy.findByText(errorText);
 
-      cy.log("Test searching for a typo on an existing rebate form id");
-      cy.findByRole("searchbox", { name: searchInputLabelText }).type("624f31dfb9cf1fafec93153a");
-      cy.findAllByRole("button", { name: "Search" }).last().click();
-      cy.findByRole("searchbox", { name: searchInputLabelText }).clear(); // clear input so as not to trip up findByText
-      cy.findByText(errorText);
-    });
+    cy.log("Test searching for a typo on an existing rebate form id");
+    cy.findByRole("searchbox", { name: searchInputLabelText }).type(
+      "624f31dfb9cf1fafec93153a"
+    );
+    cy.findAllByRole("button", { name: "Search" }).last().click();
+    cy.findByRole("searchbox", { name: searchInputLabelText }).clear(); // clear input so as not to trip up findByText
+    cy.findByText(errorText);
   });
 
   it("Test viewing application from helpdesk", () => {
@@ -125,7 +139,7 @@ describe("Helpdesk", () => {
 
     // verify the first step is displayed
     cy.contains("1 of 6 Welcome");
-    cy.findByText("Next").click();
+    cy.findByRole("button", { name: /Next/i }).click();
 
     // verify the form elements on the second step are disabled
     cy.contains("2 of 6 Applicant Type");
@@ -139,9 +153,10 @@ describe("Helpdesk", () => {
     checkRecords("submitted");
 
     // cancel setting the status back to draft
-    cy.findByText(
-      "Are you sure you want to change this submission's state back to draft?"
-    );
+    cy.findByRole("heading", {
+      name: "Are you sure you want to change this submission's state back to draft?",
+      level: 2,
+    });
     cy.findByRole("button", { name: "Cancel" }).click();
 
     // verify modal closed

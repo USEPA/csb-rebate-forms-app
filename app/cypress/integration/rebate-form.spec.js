@@ -23,7 +23,7 @@ describe("Rebate Form", () => {
         cy.wrap($rows[1]).within(() => {
           cy.findByRole("link").click();
         });
-      })
+      });
     });
   }
 
@@ -70,7 +70,10 @@ describe("Rebate Form", () => {
 
     // go back to the dashboard
     cy.findByRole("link", { name: "Your Rebate Forms" }).click();
-    cy.findByText("Are you sure you want to navigate away from this page?");
+    cy.findByRole("heading", {
+      name: "Are you sure you want to navigate away from this page?",
+      level: 2,
+    });
     cy.findByRole("button", { name: "Yes" }).click();
 
     // verify the new application is marked as draft
@@ -110,7 +113,7 @@ describe("Rebate Form", () => {
     cy.findByRole("link", { name: "Your Rebate Forms" }).click();
     cy.findByRole("button", { name: "Cancel" }).click();
 
-    cy.findByText("Your Rebate Forms").click();
+    cy.findByRole("link", { name: "Your Rebate Forms" }).click();
     cy.findByRole("button", { name: "Close this window" }).click();
 
     // go back to the dashboard

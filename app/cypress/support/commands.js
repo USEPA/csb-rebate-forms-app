@@ -12,29 +12,38 @@ Cypress.Commands.add("loginToCSB", (username, password = "password") => {
   cy.visit("/");
 
   // wait for loading to complete. This text is available on the SignIn page and the post sign in page
-  cy.findAllByText("Clean School Bus Rebate", { exact: false });
+  cy.findByRole("heading", {
+    name: /Clean School Bus Rebate Forms/i,
+    level: 1,
+  });
 
+  // Check if the user needs to sign in, by looking for the sign in button.
   cy.get("body").then(($body) => {
-    // Check if the user needs to sign in, by looking for the sign in button.
-    // If the sign in button is not found do nothing, because the user is already logged in.
-    if (
+    // not signed in, so sign in as the provided user
+    if ($body.find("a:contains('Sign in')").length) {
+      signIn();
+    }
+
+    // signed in as a different user, so sign out and sign back in as the provided user
+    else if (
       $body.find(`p:contains('${username}')`).length === 0 &&
       $body.find("a:contains('Sign out')").length
     ) {
-      cy.contains("a", "Sign out").click();
-
-      cy.findAllByText("Sign in");
+      cy.findByRole("link", { name: "Sign out" }).click();
 
       signIn();
     }
 
-    if ($body.find("a:contains('Sign in')").length) {
-      signIn();
+    // already signed in as the provided user, so do nothing
+    else if (
+      $body.find(`p:contains('${username}')`).length &&
+      $body.find("a:contains('Sign out')").length
+    ) {
     }
   });
 
   function signIn() {
-    cy.contains("a", "Sign in").click();
+    cy.findByRole("link", { name: "Sign in" }).click();
 
     // login to CSB
     cy.findByRole("textbox", { name: "Username" }).type(username);
@@ -70,8 +79,8 @@ Cypress.Commands.add("getApplicationSteps", () => {
     cy.findByRole("table", { name: "SAM.gov Entities" }).within(() => {
       cy.findAllByRole("row").then(($rows) => {
         cy.wrap($rows[1]).within(() => {
-          cy.findAllByRole((content, _element) => 
-            content === 'rowheader' || content === 'cell'
+          cy.findAllByRole(
+            (content, _element) => content === "rowheader" || content === "cell"
           ).then(($cols) => {
             // store the selected row for later use
             selectedUei = $cols[1].innerText;
@@ -182,26 +191,27 @@ Cypress.Commands.add("getApplicationSteps", () => {
       cy.wait(2000);
 
       // enter a district id
-      // cy.findByRole("textbox", { name: /National Center for Education Statistics (NCES) District ID/i }).type("BIE0013");
-      cy.findByLabelText("National Center for Education Statistics (NCES) District ID").type("BIE0013");
+      cy.findByLabelText(
+        "National Center for Education Statistics (NCES) District ID"
+      ).type("BIE0013");
 
       // verify fields are autopopulated
-      cy.findByRole("textbox", { name: "School District Name"}).then(($el) =>
+      cy.findByRole("textbox", { name: "School District Name" }).then(($el) =>
         cy.wrap($el).should("have.value", "Wounded Knee District")
       );
-      cy.findByRole("textbox", { name: "Physical Address Line 1"}).then(($el) =>
-        cy.wrap($el).should("have.value", "100 Main Street")
+      cy.findByRole("textbox", { name: "Physical Address Line 1" }).then(
+        ($el) => cy.wrap($el).should("have.value", "100 Main Street")
       );
-      cy.findByRole("textbox", { name: "City"}).then(($el) =>
+      cy.findByRole("textbox", { name: "City" }).then(($el) =>
         cy.wrap($el).should("have.value", "Manderson")
       );
       cy.findByLabelText("State or Territory").then(($el) =>
         cy.wrap($el).should("have.value", "SD")
       );
-      cy.findByRole("textbox", { name: /Zip Code/i}).then(($el) =>
+      cy.findByRole("textbox", { name: /Zip Code/i }).then(($el) =>
         cy.wrap($el).should("have.value", "57756")
       );
-      cy.findByRole("textbox", { name: "Prioritized"}).then(($el) =>
+      cy.findByRole("textbox", { name: "Prioritized" }).then(($el) =>
         cy.wrap($el).should("have.value", "Yes")
       );
 
@@ -276,7 +286,7 @@ Cypress.Commands.add("getApplicationSteps", () => {
       cy.findByRole("button", { name: "Cancel" })
         .parent()
         .within(() => {
-          cy.findByText("Save").click();
+          cy.findByRole("button", { name: "Save" }).click();
         });
     }
 
@@ -319,8 +329,8 @@ Cypress.Commands.add("getApplicationSteps", () => {
     cy.findByRole("table", { name: "Your Rebate Forms" }).within(() => {
       cy.findAllByRole("row").then(($rows) => {
         cy.wrap($rows[1]).within(() => {
-          cy.findAllByRole((content, _element) => 
-            content === 'rowheader' || content === 'cell'
+          cy.findAllByRole(
+            (content, _element) => content === "rowheader" || content === "cell"
           ).then(($cols) => {
             cy.wrap($cols[1].innerText).should("eq", "Application");
             cy.wrap($cols[2].innerText).should("eq", selectedUei);
