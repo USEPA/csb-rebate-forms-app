@@ -70,7 +70,7 @@ Cypress.Commands.add("getApplicationSteps", () => {
     cy.findByRole("table", { name: "SAM.gov Entities" }).within(() => {
       cy.findAllByRole("row").then(($rows) => {
         cy.wrap($rows[1]).within(() => {
-          cy.findAllByRole((content, element) => 
+          cy.findAllByRole((content, _element) => 
             content === 'rowheader' || content === 'cell'
           ).then(($cols) => {
             // store the selected row for later use
@@ -319,7 +319,7 @@ Cypress.Commands.add("getApplicationSteps", () => {
     cy.findByRole("table", { name: "Your Rebate Forms" }).within(() => {
       cy.findAllByRole("row").then(($rows) => {
         cy.wrap($rows[1]).within(() => {
-          cy.findAllByRole((content, element) => 
+          cy.findAllByRole((content, _element) => 
             content === 'rowheader' || content === 'cell'
           ).then(($cols) => {
             cy.wrap($cols[1].innerText).should("eq", "Application");

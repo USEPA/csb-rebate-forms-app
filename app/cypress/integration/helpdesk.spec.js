@@ -24,7 +24,7 @@ describe("Helpdesk", () => {
     cy.findByRole("table", { name: helpdeskTableLabelText }).within(() => {
       cy.findAllByRole("row").then(($rows) => {
         cy.wrap($rows[1]).within(() => {
-          cy.findAllByRole((content, element) => 
+          cy.findAllByRole((content, _element) => 
             content === 'rowheader' || content === 'cell'
           ).then(($cols) => {
             cy.wrap($cols[1].innerText).should("eq", existingFormId);

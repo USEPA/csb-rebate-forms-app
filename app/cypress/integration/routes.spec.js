@@ -20,7 +20,7 @@ describe("Routes", () => {
     cy.findAllByText("submitted")
       .first()
       .parent()
-      .within(($row) => {
+      .within(() => {
         cy.findByRole("link").click();
       });
 
