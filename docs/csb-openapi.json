@@ -1,0 +1,553 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "epa-csb-server",
+    "version": "1.0.0",
+    "license": {
+      "name": "CC0-1.0"
+    },
+    "description": "U.S. EPA Clean School Bus data collection system"
+  },
+  "paths": {
+    "/status/app": {
+      "get": {
+        "summary": "/status/app",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [],
+        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+      }
+    },
+    "/status/bap": {
+      "get": {
+        "summary": "/status/bap",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [],
+        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+      }
+    },
+    "/status/form": {
+      "get": {
+        "summary": "/status/form",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [],
+        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+      }
+    },
+    "/login": {
+      "get": {
+        "summary": "/login",
+        "responses": {
+          "302": {
+            "description": "Found"
+          }
+        },
+        "tags": [],
+        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+      }
+    },
+    "/login/assert": {
+      "post": {
+        "summary": "/login/assert",
+        "responses": {
+          "302": {
+            "description": "Found",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string",
+                  "example": "<p>Found. Redirecting to <a href=\"http://localhost:3000/\">http://localhost:3000/</a></p>"
+                }
+              }
+            }
+          }
+        },
+        "tags": [],
+        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+      }
+    },
+    "/login/fail": {
+      "get": {
+        "summary": "/login/fail",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [],
+        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+      }
+    },
+    "/logout": {
+      "get": {
+        "summary": "/logout",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [],
+        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+      }
+    },
+    "/logout/callback": {
+      "get": {
+        "summary": "/logout/callback",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [],
+        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+      },
+      "post": {
+        "summary": "/logout/callback",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [],
+        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+      }
+    },
+    "/metadata": {
+      "get": {
+        "summary": "/metadata",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/xml": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "tags": [],
+        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+      }
+    },
+    "/help/rebate-form-submission/{id}": {
+      "get": {
+        "summary": "/help/rebate-form-submission/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          { "$ref": "#/components/parameters/scan" }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "userAccess": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "formSchema": {
+                      "type": "object",
+                      "properties": {
+                        "url": {
+                          "type": "string",
+                          "example": "https://formmio/project/form/id"
+                        },
+                        "json": {
+                          "type": "object"
+                        }
+                      }
+                    },
+                    "submissionData": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": []
+      },
+      "post": {
+        "summary": "/help/rebate-form-submission/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          { "$ref": "#/components/parameters/scan" }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "userAccess": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "formSchema": {
+                      "type": "object",
+                      "properties": {
+                        "url": {
+                          "type": "string",
+                          "example": "https://formmio/project/form/id"
+                        },
+                        "json": {
+                          "type": "object"
+                        }
+                      }
+                    },
+                    "submissionData": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": []
+      }
+    },
+    "/api/helpdesk-access": {
+      "get": {
+        "summary": "/api/helpdesk-access",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [],
+        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+      }
+    },
+    "/api/epa-data": {
+      "get": {
+        "summary": "/api/epa-data",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [],
+        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+      }
+    },
+    "/api/sam-data": {
+      "get": {
+        "summary": "/api/sam-data",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [],
+        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+      }
+    },
+    "/api/content": {
+      "get": {
+        "summary": "/api/content",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [],
+        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+      }
+    },
+    "/api/{bapComboKey}/storage/s3": {
+      "get": {
+        "summary": "/api/{bapComboKey}/storage/s3",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [],
+        "parameters": [
+          {
+            "name": "bapComboKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          { "$ref": "#/components/parameters/scan" }
+        ]
+      },
+      "post": {
+        "summary": "/api/{bapComboKey}/storage/s3",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [],
+        "parameters": [
+          {
+            "name": "bapComboKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          { "$ref": "#/components/parameters/scan" }
+        ]
+      }
+    },
+    "/api/rebate-form-submission": {
+      "post": {
+        "summary": "/api/rebate-form-submission",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [],
+        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+      }
+    },
+    "/api/rebate-form-submissions": {
+      "get": {
+        "summary": "/api/rebate-form-submissions",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [],
+        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+      }
+    },
+    "/api/rebate-form-submission/{id}": {
+      "get": {
+        "summary": "/api/rebate-form-submission/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          { "$ref": "#/components/parameters/scan" }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "userAccess": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "formSchema": {
+                      "type": "object",
+                      "properties": {
+                        "url": {
+                          "type": "string",
+                          "example": "https://formmio/project/form/id"
+                        },
+                        "json": {
+                          "type": "object"
+                        }
+                      }
+                    },
+                    "submissionData": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": []
+      },
+      "post": {
+        "summary": "/api/rebate-form-submission/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          { "$ref": "#/components/parameters/scan" }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "userAccess": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "formSchema": {
+                      "type": "object",
+                      "properties": {
+                        "url": {
+                          "type": "string",
+                          "example": "https://formmio/project/form/id"
+                        },
+                        "json": {
+                          "type": "object"
+                        }
+                      }
+                    },
+                    "submissionData": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": []
+      }
+    }
+  },
+  "tags": [],
+  "components": {
+    "parameters": {
+      "scan": {
+        "in": "query",
+        "name": "scan",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "enum": ["true"]
+        }
+      }
+    }
+  }
+}

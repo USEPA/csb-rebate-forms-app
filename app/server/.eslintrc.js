@@ -9,7 +9,7 @@ module.exports = {
   extends: ["eslint:recommended", "plugin:prettier/recommended"],
   parserOptions: {
     parser: "babel-eslint",
-    ecmaVersion: 2018,
+    ecmaVersion: 2020,
   },
   rules: {
     "no-console": process.env.NODE_ENV === "production" ? "warn" : "off",

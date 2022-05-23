@@ -2,24 +2,28 @@ import { StrictMode } from "react";
 import { render } from "react-dom";
 import reportWebVitals from "./reportWebVitals";
 // ---
-import { ApiProvider } from "contexts/api";
+import { ContentProvider } from "contexts/content";
 import { UserProvider } from "contexts/user";
 import { FormsProvider } from "contexts/forms";
+import { DialogProvider } from "contexts/dialog";
 import ErrorBoundary from "components/errorBoundary";
 import App from "components/app";
+import "./styles.css";
 
 const rootElement = document.getElementById("root");
 
 render(
   <StrictMode>
     <ErrorBoundary>
-      <ApiProvider>
+      <ContentProvider>
         <UserProvider>
           <FormsProvider>
-            <App />
+            <DialogProvider>
+              <App />
+            </DialogProvider>
           </FormsProvider>
         </UserProvider>
-      </ApiProvider>
+      </ContentProvider>
     </ErrorBoundary>
   </StrictMode>,
   rootElement

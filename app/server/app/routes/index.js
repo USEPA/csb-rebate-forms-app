@@ -2,8 +2,9 @@ const express = require("express");
 
 const router = express.Router();
 
-router.get("/status", (req, res) => {
-  res.json({ running: true });
-});
+router.use("/", require("./auth"));
+router.use("/api", require("./api"));
+router.use("/help", require("./help"));
+router.use("/status", require("./status"));
 
 module.exports = router;

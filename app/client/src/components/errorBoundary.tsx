@@ -1,4 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from "react";
+// ---
+import Message from "components/message";
 
 type Props = {
   children: ReactNode;
@@ -18,7 +20,6 @@ export default class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // TODO: log error to reporting service?
     console.error("Uncaught error:", error, errorInfo);
   }
 
@@ -27,13 +28,7 @@ export default class ErrorBoundary extends Component<Props, State> {
     const { hasError } = this.state;
 
     if (hasError) {
-      return (
-        <div className="usa-alert usa-alert--error" role="alert">
-          <div className="usa-alert__body">
-            <p className="usa-alert__text">Something went wrong.</p>
-          </div>
-        </div>
-      );
+      return <Message type="error" text="Something went wrong." />;
     }
 
     return children;

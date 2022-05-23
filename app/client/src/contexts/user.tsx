@@ -10,28 +10,63 @@ type Props = {
   children: ReactNode;
 };
 
-type EPAData = {
-  firstName: string;
-  lastName: string;
-  email: string;
+export type EPAUserData = {
+  mail: string;
+  memberof: string;
+  exp: number;
 };
 
-type SAMData = {
-  uei: string;
+export type SAMUserData = {
+  ENTITY_COMBO_KEY__c: string;
+  UNIQUE_ENTITY_ID__c: string;
+  ENTITY_EFT_INDICATOR__c: string;
+  CAGE_CODE__c: string;
+  ENTITY_STATUS__c: "Active" | string;
+  LEGAL_BUSINESS_NAME__c: string;
+  PHYSICAL_ADDRESS_LINE_1__c: string;
+  PHYSICAL_ADDRESS_LINE_2__c: string | null;
+  PHYSICAL_ADDRESS_CITY__c: string;
+  PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c: string;
+  PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c: string;
+  PHYSICAL_ADDRESS_ZIP_CODE_4__c: string;
+  // contacts
+  ELEC_BUS_POC_EMAIL__c: string | null;
+  ELEC_BUS_POC_NAME__c: string | null;
+  ELEC_BUS_POC_TITLE__c: string | null;
+  //
+  ALT_ELEC_BUS_POC_EMAIL__c: string | null;
+  ALT_ELEC_BUS_POC_NAME__c: string | null;
+  ALT_ELEC_BUS_POC_TITLE__c: string | null;
+  //
+  GOVT_BUS_POC_EMAIL__c: string | null;
+  GOVT_BUS_POC_NAME__c: string | null;
+  GOVT_BUS_POC_TITLE__c: string | null;
+  //
+  ALT_GOVT_BUS_POC_EMAIL__c: string | null;
+  ALT_GOVT_BUS_POC_NAME__c: string | null;
+  ALT_GOVT_BUS_POC_TITLE__c: string | null;
+  //
+  attributes: { type: string; url: string };
 };
 
 type State = {
+  isAuthenticating: boolean;
   isAuthenticated: boolean;
   epaUserData:
     | { status: "idle"; data: {} }
     | { status: "pending"; data: {} }
-    | { status: "success"; data: EPAData }
+    | { status: "success"; data: EPAUserData }
     | { status: "failure"; data: {} };
   samUserData:
-    | { status: "idle"; data: [] }
-    | { status: "pending"; data: [] }
-    | { status: "success"; data: SAMData[] }
-    | { status: "failure"; data: [] };
+    | { status: "idle"; data: {} }
+    | { status: "pending"; data: {} }
+    | {
+        status: "success";
+        data:
+          | { results: true; records: SAMUserData[] }
+          | { results: false; records: [] };
+      }
+    | { status: "failure"; data: {} };
 };
 
 type Action =
@@ -40,13 +75,19 @@ type Action =
   | { type: "FETCH_EPA_USER_DATA_REQUEST" }
   | {
       type: "FETCH_EPA_USER_DATA_SUCCESS";
-      payload: { epaUserData: EPAData };
+      payload: {
+        epaUserData: EPAUserData;
+      };
     }
   | { type: "FETCH_EPA_USER_DATA_FAILURE" }
   | { type: "FETCH_SAM_USER_DATA_REQUEST" }
   | {
       type: "FETCH_SAM_USER_DATA_SUCCESS";
-      payload: { samUserData: SAMData[] };
+      payload: {
+        samUserData:
+          | { results: true; records: SAMUserData[] }
+          | { results: false; records: [] };
+      };
     }
   | { type: "FETCH_SAM_USER_DATA_FAILURE" };
 
@@ -58,6 +99,7 @@ function reducer(state: State, action: Action): State {
     case "USER_SIGN_IN": {
       return {
         ...state,
+        isAuthenticating: false,
         isAuthenticated: true,
       };
     }
@@ -65,16 +107,26 @@ function reducer(state: State, action: Action): State {
     case "USER_SIGN_OUT": {
       return {
         ...state,
+        isAuthenticating: false,
         isAuthenticated: false,
-        epaUserData: { status: "idle", data: {} },
-        samUserData: { status: "idle", data: [] },
+        epaUserData: {
+          status: "idle",
+          data: {},
+        },
+        samUserData: {
+          status: "idle",
+          data: {},
+        },
       };
     }
 
     case "FETCH_EPA_USER_DATA_REQUEST": {
       return {
         ...state,
-        epaUserData: { status: "pending", data: {} },
+        epaUserData: {
+          status: "pending",
+          data: {},
+        },
       };
     }
 
@@ -82,21 +134,30 @@ function reducer(state: State, action: Action): State {
       const { epaUserData } = action.payload;
       return {
         ...state,
-        epaUserData: { status: "success", data: epaUserData },
+        epaUserData: {
+          status: "success",
+          data: epaUserData,
+        },
       };
     }
 
     case "FETCH_EPA_USER_DATA_FAILURE": {
       return {
         ...state,
-        epaUserData: { status: "failure", data: {} },
+        epaUserData: {
+          status: "failure",
+          data: {},
+        },
       };
     }
 
     case "FETCH_SAM_USER_DATA_REQUEST": {
       return {
         ...state,
-        samUserData: { status: "pending", data: [] },
+        samUserData: {
+          status: "pending",
+          data: {},
+        },
       };
     }
 
@@ -104,14 +165,20 @@ function reducer(state: State, action: Action): State {
       const { samUserData } = action.payload;
       return {
         ...state,
-        samUserData: { status: "success", data: samUserData },
+        samUserData: {
+          status: "success",
+          data: samUserData,
+        },
       };
     }
 
     case "FETCH_SAM_USER_DATA_FAILURE": {
       return {
         ...state,
-        samUserData: { status: "failure", data: [] },
+        samUserData: {
+          status: "failure",
+          data: {},
+        },
       };
     }
 
@@ -123,9 +190,16 @@ function reducer(state: State, action: Action): State {
 
 export function UserProvider({ children }: Props) {
   const initialState: State = {
+    isAuthenticating: true,
     isAuthenticated: false,
-    epaUserData: { status: "idle", data: {} },
-    samUserData: { status: "idle", data: [] },
+    epaUserData: {
+      status: "idle",
+      data: {},
+    },
+    samUserData: {
+      status: "idle",
+      data: {},
+    },
   };
 
   const [state, dispatch] = useReducer(reducer, initialState);

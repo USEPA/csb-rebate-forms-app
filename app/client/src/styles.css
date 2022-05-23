@@ -1,0 +1,56 @@
+/* --- EPA/USWDS --- */
+.usa-site-alert .usa-alert {
+  max-width: 1400px;
+}
+
+.usa-site-alert .usa-alert__body {
+  display: block;
+}
+
+.usa-radio__label {
+  text-indent: 0;
+}
+
+.usa-modal--lg .usa-modal__main {
+  max-width: 48rem;
+}
+
+.usa-table--striped tbody tr:nth-child(odd) td,
+.usa-table--striped tbody tr:nth-child(odd) th {
+  color: inherit;
+}
+
+/* --- Formio --- */
+.csb-form button[type="submit"] i {
+  /* prevent formio loading icon from being displayed inside buttons */
+  display: none;
+}
+
+/* --- React UI --- */
+[data-reach-dialog-overlay] {
+  /* match USWDS modal */
+  z-index: 99999;
+  padding: 1.5rem;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.7);
+}
+
+[data-reach-dialog-overlay]::before {
+  /* match USWDS modal */
+  content: "";
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+}
+
+[data-reach-dialog-content] {
+  /* match USWDS modal */
+  overflow-x: auto;
+  margin: 1.25rem auto;
+  padding: 0;
+  width: 100%;
+}
+
+[data-reach-tooltip] {
+  z-index: 100000;
+}
