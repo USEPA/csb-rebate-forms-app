@@ -12,8 +12,8 @@ import { TextWithTooltip } from "components/infoTooltip";
 import { useContentState } from "contexts/content";
 import { SamEntityData, useUserState } from "contexts/user";
 
-function createNewRebate(email: string, samData: SamEntityData) {
-  const { title, name } = getUserInfo(email, samData);
+function createNewRebate(email: string, record: SamEntityData) {
+  const { title, name } = getUserInfo(email, record);
 
   return fetchData(`${serverUrl}/api/rebate-form-submission/`, {
     data: {
@@ -21,18 +21,18 @@ function createNewRebate(email: string, samData: SamEntityData) {
       hidden_current_user_email: email,
       hidden_current_user_title: title,
       hidden_current_user_name: name,
-      bap_hidden_entity_combo_key: samData.ENTITY_COMBO_KEY__c,
+      bap_hidden_entity_combo_key: record.ENTITY_COMBO_KEY__c,
       sam_hidden_applicant_email: email,
       sam_hidden_applicant_title: title,
       sam_hidden_applicant_name: name,
-      sam_hidden_applicant_efti: samData.ENTITY_EFT_INDICATOR__c,
-      sam_hidden_applicant_uei: samData.UNIQUE_ENTITY_ID__c,
-      sam_hidden_applicant_organization_name: samData.LEGAL_BUSINESS_NAME__c,
-      sam_hidden_applicant_street_address_1: samData.PHYSICAL_ADDRESS_LINE_1__c,
-      sam_hidden_applicant_street_address_2: samData.PHYSICAL_ADDRESS_LINE_2__c,
-      sam_hidden_applicant_city: samData.PHYSICAL_ADDRESS_CITY__c,
-      sam_hidden_applicant_state: samData.PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
-      sam_hidden_applicant_zip_code: samData.PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
+      sam_hidden_applicant_efti: record.ENTITY_EFT_INDICATOR__c,
+      sam_hidden_applicant_uei: record.UNIQUE_ENTITY_ID__c,
+      sam_hidden_applicant_organization_name: record.LEGAL_BUSINESS_NAME__c,
+      sam_hidden_applicant_street_address_1: record.PHYSICAL_ADDRESS_LINE_1__c,
+      sam_hidden_applicant_street_address_2: record.PHYSICAL_ADDRESS_LINE_2__c,
+      sam_hidden_applicant_city: record.PHYSICAL_ADDRESS_CITY__c,
+      sam_hidden_applicant_state: record.PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
+      sam_hidden_applicant_zip_code: record.PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
     },
     state: "draft",
   });
@@ -137,7 +137,7 @@ export default function NewRebate() {
                         </tr>
                       </thead>
                       <tbody>
-                        {activeSamRecords.map((samData, index) => (
+                        {activeSamRecords.map((record, index) => (
                           <tr key={index}>
                             <th scope="row" className="font-sans-2xs">
                               <button
@@ -149,7 +149,7 @@ export default function NewRebate() {
                                     text: "Creating new rebate form application...",
                                   });
 
-                                  createNewRebate(email, samData)
+                                  createNewRebate(email, record)
                                     .then((res) => {
                                       navigate(`/rebate/${res._id}`);
                                     })
@@ -164,8 +164,8 @@ export default function NewRebate() {
                               >
                                 <span className="usa-sr-only">
                                   Create Form with UEI:{" "}
-                                  {samData.UNIQUE_ENTITY_ID__c} and EFTI:{" "}
-                                  {samData.ENTITY_EFT_INDICATOR__c}
+                                  {record.UNIQUE_ENTITY_ID__c} and EFTI:{" "}
+                                  {record.ENTITY_EFT_INDICATOR__c}
                                 </span>
                                 <span className="display-flex flex-align-center">
                                   <svg
@@ -183,13 +183,13 @@ export default function NewRebate() {
                               </button>
                             </th>
                             <td className="font-sans-2xs">
-                              {samData.UNIQUE_ENTITY_ID__c}
+                              {record.UNIQUE_ENTITY_ID__c}
                             </td>
                             <td className="font-sans-2xs">
-                              {samData.ENTITY_EFT_INDICATOR__c}
+                              {record.ENTITY_EFT_INDICATOR__c}
                             </td>
                             <td className="font-sans-2xs">
-                              {samData.LEGAL_BUSINESS_NAME__c}
+                              {record.LEGAL_BUSINESS_NAME__c}
                             </td>
                           </tr>
                         ))}

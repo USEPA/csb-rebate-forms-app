@@ -338,14 +338,17 @@ function ExistingRebateContent() {
   }
 
   const entityComboKey = storedSubmissionData.bap_hidden_entity_combo_key;
-  const samData = samUserData.data.records.find((record) => {
-    return record.ENTITY_COMBO_KEY__c === entityComboKey;
+  const record = samUserData.data.records.find((record) => {
+    return (
+      record.ENTITY_STATUS__c === "Active" &&
+      record.ENTITY_COMBO_KEY__c === entityComboKey
+    );
   });
 
-  if (!samData) return null;
+  if (!record) return null;
 
   const email = epaUserData.data.mail;
-  const { title, name } = getUserInfo(email, samData);
+  const { title, name } = getUserInfo(email, record);
 
   return (
     <div className="margin-top-2">
