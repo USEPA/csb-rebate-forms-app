@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { DialogOverlay, DialogContent } from "@reach/dialog";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl, fetchData } from "../config";
+import { serverUrl, messages, fetchData } from "../config";
 import { getUserInfo } from "../utilities";
 import Loading from "components/loading";
 import Message from "components/message";
@@ -74,10 +74,7 @@ export default function NewRebate() {
           <div className="usa-modal__content">
             <div className="usa-modal__main">
               {activeSamRecords.length <= 0 ? (
-                <Message
-                  type="info"
-                  text="No SAM.gov records match your email. Only Government and Electronic Business SAM.gov Points of Contacts (and alternates) may edit and submit Clean School Bus Rebate Forms."
-                />
+                <Message type="info" text={messages.samResults} />
               ) : (
                 <>
                   {content.status === "success" && (
