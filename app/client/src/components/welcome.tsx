@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl } from "../config";
+import { serverUrl, messages } from "../config";
 import Message from "components/message";
 
 export default function Welcome() {
@@ -23,7 +23,7 @@ export default function Welcome() {
       setMessage({
         displayed: true,
         type: "error",
-        text: "Authentication error. Please log in again or contact support.",
+        text: messages.authError,
       });
     }
 
@@ -31,7 +31,7 @@ export default function Welcome() {
       setMessage({
         displayed: true,
         type: "error",
-        text: "Error logging in. Please try again or contact support.",
+        text: messages.samlError,
       });
     }
 
@@ -39,7 +39,7 @@ export default function Welcome() {
       setMessage({
         displayed: true,
         type: "error",
-        text: "Error retrieving SAM.gov data. Please contact support.",
+        text: messages.samFetchError,
       });
     }
 
@@ -47,7 +47,7 @@ export default function Welcome() {
       setMessage({
         displayed: true,
         type: "info",
-        text: "No SAM.gov records match your email. Only Government and Electronic Business SAM.gov Points of Contacts (and alternates) may edit and submit Clean School Bus Rebate Forms.",
+        text: messages.samNoResults,
       });
     }
 
@@ -55,7 +55,7 @@ export default function Welcome() {
       setMessage({
         displayed: true,
         type: "info",
-        text: "For security reasons, you have been logged out due to 15 minutes of inactivity.",
+        text: messages.timeout,
       });
     }
 
@@ -63,7 +63,7 @@ export default function Welcome() {
       setMessage({
         displayed: true,
         type: "success",
-        text: "You have successfully logged out.",
+        text: messages.logout,
       });
     }
 

@@ -13,6 +13,7 @@ import { Formio, Form } from "@formio/react";
 import { cloneDeep, isEqual } from "lodash";
 // ---
 import { serverUrl, fetchData } from "../config";
+import { getUserInfo } from "../utilities";
 import Loading from "components/loading";
 import Message from "components/message";
 import MarkdownContent from "components/markdownContent";
@@ -170,6 +171,7 @@ export default function ExistingRebate() {
 type FormioSubmissionData = {
   // NOTE: more fields are in a form.io submission,
   // but we're only concerned with the fields below
+  bap_hidden_entity_combo_key?: string;
   ncesDataSource?: string;
   // (other fields...)
 };
@@ -231,7 +233,7 @@ function ExistingRebateContent() {
   const navigate = useNavigate();
   const { id } = useParams<"id">();
   const { content } = useContentState();
-  const { epaUserData } = useUserState();
+  const { epaUserData, samUserData } = useUserState();
   const dispatch = useExistingRebateDispatch();
 
   const [rebateFormSubmission, setRebateFormSubmission] =
@@ -331,9 +333,22 @@ function ExistingRebateContent() {
     );
   }
 
-  if (epaUserData.status !== "success") {
+  if (epaUserData.status !== "success" || samUserData.status !== "success") {
     return <Loading />;
   }
+
+  const entityComboKey = storedSubmissionData.bap_hidden_entity_combo_key;
+  const record = samUserData.data.records.find((record) => {
+    return (
+      record.ENTITY_STATUS__c === "Active" &&
+      record.ENTITY_COMBO_KEY__c === entityComboKey
+    );
+  });
+
+  if (!record) return null;
+
+  const email = epaUserData.data.mail;
+  const { title, name } = getUserInfo(email, record);
 
   return (
     <div className="margin-top-2">
@@ -361,7 +376,10 @@ function ExistingRebateContent() {
           submission={{
             data: {
               ...storedSubmissionData,
-              last_updated_by: epaUserData.data.mail,
+              last_updated_by: email,
+              hidden_current_user_email: email,
+              hidden_current_user_title: title,
+              hidden_current_user_name: name,
               ...pendingSubmissionData,
             },
           }}
