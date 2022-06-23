@@ -34,11 +34,17 @@ export const formioBaseUrl = REACT_APP_FORMIO_BASE_URL;
 export const formioProjectUrl = REACT_APP_FORMIO_PROJECT_URL;
 
 export const messages = {
-  auth: "Authentication error. Please log in again or contact support.",
-  saml: "Error logging in. Please try again or contact support.",
-  samFetch: "Error retrieving SAM.gov data. Please contact support.",
-  samResults:
+  genericError: "Something went wrong.",
+  authError: "Authentication error. Please log in again or contact support.",
+  samlError: "Error logging in. Please try again or contact support.",
+  samFetchError: "Error retrieving SAM.gov data. Please contact support.",
+  samNoResults:
     "No SAM.gov records match your email. Only Government and Electronic Business SAM.gov Points of Contacts (and alternates) may edit and submit Clean School Bus Rebate Forms.",
+  rebateSubmissionsError: "Error loading rebate form submissions.",
+  newRebateApplication:
+    "Please select the “New Application” button above to create your first rebate application.",
+  helpdeskRebateFormError:
+    "Error loading rebate form submission. Please confirm the form ID is correct and search again.",
   timeout:
     "For security reasons, you have been logged out due to 15 minutes of inactivity.",
   logout: "You have successfully logged out.",

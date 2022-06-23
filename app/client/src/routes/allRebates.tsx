@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl, fetchData } from "../config";
+import { serverUrl, fetchData, messages } from "../config";
 import Loading from "components/loading";
 import Message from "components/message";
 import MarkdownContent from "components/markdownContent";
@@ -42,19 +42,14 @@ export default function AllRebates() {
   }
 
   if (rebateFormSubmissions.status === "failure") {
-    return (
-      <Message type="error" text="Error loading rebate form submissions." />
-    );
+    return <Message type="error" text={messages.rebateSubmissionsError} />;
   }
 
   return (
     <>
       {rebateFormSubmissions.data.length === 0 ? (
         <div className="margin-top-4">
-          <Message
-            type="info"
-            text="Please select the “New Application” button above to create your first rebate application."
-          />
+          <Message type="info" text={messages.newRebateApplication} />
         </div>
       ) : (
         <>
@@ -66,7 +61,7 @@ export default function AllRebates() {
           )}
 
           <div className="usa-table-container--scrollable" tabIndex={0}>
-            <table 
+            <table
               aria-label="Your Rebate Forms"
               className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full"
             >

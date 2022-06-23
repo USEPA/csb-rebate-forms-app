@@ -23,7 +23,7 @@ export default function Welcome() {
       setMessage({
         displayed: true,
         type: "error",
-        text: messages.auth,
+        text: messages.authError,
       });
     }
 
@@ -31,7 +31,7 @@ export default function Welcome() {
       setMessage({
         displayed: true,
         type: "error",
-        text: messages.saml,
+        text: messages.samlError,
       });
     }
 
@@ -39,7 +39,7 @@ export default function Welcome() {
       setMessage({
         displayed: true,
         type: "error",
-        text: messages.samFetch,
+        text: messages.samFetchError,
       });
     }
 
@@ -47,7 +47,7 @@ export default function Welcome() {
       setMessage({
         displayed: true,
         type: "info",
-        text: messages.samResults,
+        text: messages.samNoResults,
       });
     }
 

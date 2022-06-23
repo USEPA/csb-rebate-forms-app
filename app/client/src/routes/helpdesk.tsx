@@ -4,7 +4,7 @@ import { Form } from "@formio/react";
 import icon from "uswds/img/usa-icons-bg/search--white.svg";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl, fetchData } from "../config";
+import { serverUrl, messages, fetchData } from "../config";
 import { useHelpdeskAccess } from "components/app";
 import Loading from "components/loading";
 import Message from "components/message";
@@ -159,10 +159,7 @@ export default function Helpdesk() {
       {rebateFormSubmission.status === "pending" && <Loading />}
 
       {rebateFormSubmission.status === "failure" && (
-        <Message
-          type="error"
-          text="Error loading rebate form submission. Please confirm the form ID is correct and search again."
-        />
+        <Message type="error" text={messages.helpdeskRebateFormError} />
       )}
 
       {/*
@@ -172,10 +169,7 @@ export default function Helpdesk() {
       */}
       {rebateFormSubmission.status === "success" &&
         !rebateFormSubmission.data && (
-          <Message
-            type="error"
-            text="Error loading rebate form submission. Please confirm the form ID is correct and search again."
-          />
+          <Message type="error" text={messages.helpdeskRebateFormError} />
         )}
 
       {rebateFormSubmission.status === "success" &&
@@ -183,7 +177,7 @@ export default function Helpdesk() {
         submissionData && (
           <>
             <div className="usa-table-container--scrollable" tabIndex={0}>
-              <table 
+              <table
                 aria-label="Rebate Form Search Results"
                 className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full"
               >

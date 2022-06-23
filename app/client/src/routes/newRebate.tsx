@@ -74,7 +74,7 @@ export default function NewRebate() {
           <div className="usa-modal__content">
             <div className="usa-modal__main">
               {activeSamRecords.length <= 0 ? (
-                <Message type="info" text={messages.samResults} />
+                <Message type="info" text={messages.samNoResults} />
               ) : (
                 <>
                   {content.status === "success" && (
