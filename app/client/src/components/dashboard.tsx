@@ -7,6 +7,7 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import {
   serverUrl,
+  serverUrlForLinks,
   formioBaseUrl,
   formioProjectUrl,
   fetchData,
@@ -150,7 +151,7 @@ export default function Dashboard() {
 
           <a
             className="margin-bottom-1 usa-button font-sans-2xs margin-right-0"
-            href={`${serverUrl}/logout`}
+            href={`${serverUrlForLinks}/logout`}
           >
             <IconText order="text-icon" icon="logout" text="Sign out" />
           </a>
