@@ -171,8 +171,12 @@ export default function ExistingRebate() {
 type FormioSubmissionData = {
   // NOTE: more fields are in a form.io submission,
   // but we're only concerned with the fields below
+  hidden_current_user_email?: string;
+  hidden_current_user_title?: string;
+  hidden_current_user_name?: string;
   bap_hidden_entity_combo_key?: string;
   ncesDataSource?: string;
+  ncesDataLookup?: string[];
   // (other fields...)
 };
 
@@ -282,9 +286,13 @@ function ExistingRebateContent() {
           return s3Provider(s3Formio);
         };
 
+        // remove `ncesDataSource` and `ncesDataLookup` fields
         const data = { ...res.submissionData.data };
         if (data.hasOwnProperty("ncesDataSource")) {
           delete data.ncesDataSource;
+        }
+        if (data.hasOwnProperty("ncesDataLookup")) {
+          delete data.ncesDataLookup;
         }
 
         setStoredSubmissionData((prevData) => {
@@ -392,9 +400,13 @@ function ExistingRebateContent() {
             data: FormioSubmissionData;
             metadata: object;
           }) => {
+            // remove `ncesDataSource` and `ncesDataLookup` fields
             const data = { ...submission.data };
             if (data.hasOwnProperty("ncesDataSource")) {
               delete data.ncesDataSource;
+            }
+            if (data.hasOwnProperty("ncesDataLookup")) {
+              delete data.ncesDataLookup;
             }
 
             if (submission.state === "submitted") {
@@ -466,15 +478,30 @@ function ExistingRebateContent() {
               metadata: object;
             };
           }) => {
+            // remove `ncesDataSource` and `ncesDataLookup` fields
             const data = { ...submission.data };
             if (data.hasOwnProperty("ncesDataSource")) {
               delete data.ncesDataSource;
             }
+            if (data.hasOwnProperty("ncesDataLookup")) {
+              delete data.ncesDataLookup;
+            }
 
             // don't post an update if form is not in draft state
-            // or if no changes have been made to the form
+            // (form has been already submitted, and fields are read-only)
             if (submissionData.state !== "draft") return;
-            if (isEqual(data, storedSubmissionDataRef.current)) return;
+
+            // don't post an update if no changes have been made to the form
+            // (ignoring current user fields)
+            const dataToCheck = { ...data };
+            delete dataToCheck.hidden_current_user_email;
+            delete dataToCheck.hidden_current_user_title;
+            delete dataToCheck.hidden_current_user_name;
+            const storedDataToCheck = { ...storedSubmissionDataRef.current };
+            delete storedDataToCheck.hidden_current_user_email;
+            delete storedDataToCheck.hidden_current_user_title;
+            delete storedDataToCheck.hidden_current_user_name;
+            if (isEqual(dataToCheck, storedDataToCheck)) return;
 
             dispatch({
               type: "DISPLAY_INFO_MESSAGE",
