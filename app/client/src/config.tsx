@@ -18,13 +18,29 @@ if (!REACT_APP_FORMIO_PROJECT_URL) {
   );
 }
 
+// allows the app to be accessed from a sub directory of a server (e.g. /csb)
 export const serverBasePath =
   NODE_ENV === "development" ? "" : REACT_APP_SERVER_BASE_PATH || "";
 
-export const serverUrl =
-  NODE_ENV === "development"
-    ? "http://localhost:3001"
-    : window.location.origin + serverBasePath;
+// NOTE: This app is configured to use [Create React App's proxy setup]
+// (https://create-react-app.dev/docs/proxying-api-requests-in-development/)
+//
+// For local development, the React app development server runs on port 3000,
+// and the Express app server runs on port 3001, so we've added a proxy field to
+// the client app's package.json file to proxy unknown requests from the React
+// app to the Express app (for local dev only – only works with `npm start`).
+//
+// When deployed to Cloud.gov, the React app is built and served as static files
+// from the Express app, so it's one app running from a single port so no proxy
+// is needed for production.
+export const serverUrl = window.location.origin + serverBasePath;
+
+// NOTE: This local development setup unfortunately doesn't proxy GET requests
+// from links though because they set an "Accept" request header to "text/html",
+// so we need to use a different environment variable for when the serverUrl is
+// used in the href of anchor tags (e.g. login and logout links).
+export const serverUrlForLinks =
+  NODE_ENV === "development" ? "http://localhost:3001" : serverUrl;
 
 export const cloudSpace =
   NODE_ENV === "development" ? "dev" : REACT_APP_CLOUD_SPACE || "";
