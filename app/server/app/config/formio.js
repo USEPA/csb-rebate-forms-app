@@ -2,8 +2,10 @@ const axios = require("axios").default;
 // ---
 const log = require("../utilities/logger");
 
-const formioProjectUrl = process.env.FORMIO_PROJECT_URL;
-const formioFormId = process.env.FORMIO_FORM_ID;
+const formioBaseUrl = process.env.FORMIO_BASE_URL;
+const formioProjectName = process.env.FORMIO_PROJECT_NAME;
+const formioProjectUrl = `${formioBaseUrl}/${formioProjectName}`;
+const formioFormName = process.env.FORMIO_FORM_NAME;
 const formioApiKey = process.env.FORMIO_API_KEY;
 
 function axiosFormio(req) {
@@ -73,6 +75,6 @@ const formioCsbMetadata = {
 module.exports = {
   axiosFormio,
   formioProjectUrl,
-  formioFormId,
+  formioFormName,
   formioCsbMetadata,
 };

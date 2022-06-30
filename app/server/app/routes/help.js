@@ -3,7 +3,7 @@ const express = require("express");
 const {
   axiosFormio,
   formioProjectUrl,
-  formioFormId,
+  formioFormName,
   formioCsbMetadata,
 } = require("../config/formio");
 const {
@@ -24,7 +24,7 @@ router.get("/rebate-form-submission/:id", verifyMongoObjectId, (req, res) => {
   const id = req.params.id;
 
   axiosFormio(req)
-    .get(`${formioProjectUrl}/${formioFormId}/submission/${id}`)
+    .get(`${formioProjectUrl}/${formioFormName}/submission/${id}`)
     .then((axiosRes) => axiosRes.data)
     .then((submission) => {
       axiosFormio(req)
@@ -51,7 +51,7 @@ router.get("/rebate-form-submission/:id", verifyMongoObjectId, (req, res) => {
 router.post("/rebate-form-submission/:id", verifyMongoObjectId, (req, res) => {
   const id = req.params.id;
   const userEmail = req.user.mail;
-  const formioSubmissionUrl = `${formioProjectUrl}/${formioFormId}/submission/${id}`;
+  const formioSubmissionUrl = `${formioProjectUrl}/${formioFormName}/submission/${id}`;
 
   axiosFormio(req)
     .get(formioSubmissionUrl)

@@ -6,7 +6,7 @@ const axios = require("axios").default;
 const {
   axiosFormio,
   formioProjectUrl,
-  formioFormId,
+  formioFormName,
   formioCsbMetadata,
 } = require("../config/formio");
 const {
@@ -144,7 +144,7 @@ router.get(
     const id = req.params.id;
 
     axiosFormio(req)
-      .get(`${formioProjectUrl}/${formioFormId}/submission/${id}`)
+      .get(`${formioProjectUrl}/${formioFormName}/submission/${id}`)
       .then((axiosRes) => axiosRes.data)
       .then((submission) => {
         axiosFormio(req)
@@ -212,7 +212,7 @@ router.post(
     };
 
     axiosFormio(req)
-      .put(`${formioProjectUrl}/${formioFormId}/submission/${id}`, req.body)
+      .put(`${formioProjectUrl}/${formioFormName}/submission/${id}`, req.body)
       .then((axiosRes) => axiosRes.data)
       .then((submission) => res.json(submission))
       .catch((error) => {
@@ -242,7 +242,7 @@ router.post("/rebate-form-submission", checkBapComboKeys, (req, res) => {
   };
 
   axiosFormio(req)
-    .post(`${formioProjectUrl}/${formioFormId}/submission`, req.body)
+    .post(`${formioProjectUrl}/${formioFormName}/submission`, req.body)
     .then((axiosRes) => axiosRes.data)
     .then((submission) => res.json(submission))
     .catch((error) => {
@@ -264,7 +264,7 @@ router.post("/:bapComboKey/storage/s3", checkBapComboKeys, (req, res) => {
   }
 
   axiosFormio(req)
-    .post(`${formioProjectUrl}/${formioFormId}/storage/s3`, req.body)
+    .post(`${formioProjectUrl}/${formioFormName}/storage/s3`, req.body)
     .then((axiosRes) => axiosRes.data)
     .then((fileMetadata) => res.json(fileMetadata))
     .catch((error) => {
@@ -286,7 +286,7 @@ router.get("/:bapComboKey/storage/s3", checkBapComboKeys, (req, res) => {
   }
 
   axiosFormio(req)
-    .get(`${formioProjectUrl}/${formioFormId}/storage/s3`, {
+    .get(`${formioProjectUrl}/${formioFormName}/storage/s3`, {
       params: req.query,
     })
     .then((axiosRes) => axiosRes.data)
@@ -310,7 +310,7 @@ router.get("/rebate-form-submissions", checkBapComboKeys, (req, res) => {
   if (req.bapComboKeys.length === 0) return res.json([]);
 
   const formioUserSubmissionsUrl =
-    `${formioProjectUrl}/${formioFormId}/submission` +
+    `${formioProjectUrl}/${formioFormName}/submission` +
     `?sort=-modified` +
     `&limit=1000000` +
     `&data.bap_hidden_entity_combo_key=${req.bapComboKeys.join(
