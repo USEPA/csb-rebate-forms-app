@@ -43,8 +43,8 @@ jobs:
       JWT_PRIVATE_KEY: ${{ secrets.JWT_PRIVATE_KEY }}
       FORMIO_PKG_AUTH_TOKEN: ${{ secrets.FORMIO_PKG_AUTH_TOKEN }}
       FORMIO_BASE_URL: ${{ secrets.FORMIO_BASE_URL }}
-      FORMIO_PROJECT_URL: ${{ secrets.FORMIO_PROJECT_URL }}
-      FORMIO_FORM_ID: ${{ secrets.FORMIO_FORM_ID }}
+      FORMIO_PROJECT_NAME: ${{ secrets.FORMIO_PROJECT_NAME }}
+      FORMIO_FORM_NAME: ${{ secrets.FORMIO_FORM_NAME }}
       FORMIO_API_KEY: ${{ secrets.FORMIO_API_KEY }}
       BAP_CLIENT_ID: ${{ secrets.BAP_CLIENT_ID }}
       BAP_CLIENT_SECRET: ${{ secrets.BAP_CLIENT_SECRET }}
@@ -87,7 +87,7 @@ jobs:
             REACT_APP_SERVER_BASE_PATH="$SERVER_BASE_PATH" \
             REACT_APP_CLOUD_SPACE="$CLOUD_SPACE" \
             REACT_APP_FORMIO_BASE_URL="$FORMIO_BASE_URL" \
-            REACT_APP_FORMIO_PROJECT_URL="$FORMIO_PROJECT_URL" \
+            REACT_APP_FORMIO_PROJECT_NAME="$FORMIO_PROJECT_NAME" \
             npm run build
           rm ../server/app/public/index.html
           cd build
@@ -117,8 +117,9 @@ jobs:
           cf set-env $APP_NAME "SAML_PRIVATE_KEY" "$SAML_PRIVATE_KEY" > /dev/null
           cf set-env $APP_NAME "JWT_PUBLIC_KEY" "$JWT_PUBLIC_KEY" > /dev/null
           cf set-env $APP_NAME "JWT_PRIVATE_KEY" "$JWT_PRIVATE_KEY" > /dev/null
-          cf set-env $APP_NAME "FORMIO_PROJECT_URL" "$FORMIO_PROJECT_URL" > /dev/null
-          cf set-env $APP_NAME "FORMIO_FORM_ID" "$FORMIO_FORM_ID" > /dev/null
+          cf set-env $APP_NAME "FORMIO_BASE_URL" "$FORMIO_BASE_URL" > /dev/null
+          cf set-env $APP_NAME "FORMIO_PROJECT_NAME" "$FORMIO_PROJECT_NAME" > /dev/null
+          cf set-env $APP_NAME "FORMIO_FORM_NAME" "$FORMIO_FORM_NAME" > /dev/null
           cf set-env $APP_NAME "FORMIO_API_KEY" "$FORMIO_API_KEY" > /dev/null
           cf set-env $APP_NAME "BAP_CLIENT_ID" "$BAP_CLIENT_ID" > /dev/null
           cf set-env $APP_NAME "BAP_CLIENT_SECRET" "$BAP_CLIENT_SECRET" > /dev/null

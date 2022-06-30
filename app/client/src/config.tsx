@@ -3,7 +3,7 @@ const {
   REACT_APP_SERVER_BASE_PATH,
   REACT_APP_CLOUD_SPACE,
   REACT_APP_FORMIO_BASE_URL,
-  REACT_APP_FORMIO_PROJECT_URL,
+  REACT_APP_FORMIO_PROJECT_NAME,
 } = process.env;
 
 if (!REACT_APP_FORMIO_BASE_URL) {
@@ -12,9 +12,9 @@ if (!REACT_APP_FORMIO_BASE_URL) {
   );
 }
 
-if (!REACT_APP_FORMIO_PROJECT_URL) {
+if (!REACT_APP_FORMIO_PROJECT_NAME) {
   throw new Error(
-    "Required REACT_APP_FORMIO_PROJECT_URL environment variable not found."
+    "Required REACT_APP_FORMIO_PROJECT_NAME environment variable not found."
   );
 }
 
@@ -47,7 +47,9 @@ export const cloudSpace =
 
 export const formioBaseUrl = REACT_APP_FORMIO_BASE_URL;
 
-export const formioProjectUrl = REACT_APP_FORMIO_PROJECT_URL;
+const formioProjectName = REACT_APP_FORMIO_PROJECT_NAME;
+
+export const formioProjectUrl = `${formioBaseUrl}/${formioProjectName}`;
 
 export const messages = {
   genericError: "Something went wrong.",
