@@ -10,13 +10,13 @@ type Props = {
   children: ReactNode;
 };
 
-export type EPAUserData = {
+type EpaUserData = {
   mail: string;
   memberof: string;
   exp: number;
 };
 
-export type SAMUserData = {
+export type SamEntityData = {
   ENTITY_COMBO_KEY__c: string;
   UNIQUE_ENTITY_ID__c: string;
   ENTITY_EFT_INDICATOR__c: string;
@@ -55,7 +55,7 @@ type State = {
   epaUserData:
     | { status: "idle"; data: {} }
     | { status: "pending"; data: {} }
-    | { status: "success"; data: EPAUserData }
+    | { status: "success"; data: EpaUserData }
     | { status: "failure"; data: {} };
   samUserData:
     | { status: "idle"; data: {} }
@@ -63,7 +63,7 @@ type State = {
     | {
         status: "success";
         data:
-          | { results: true; records: SAMUserData[] }
+          | { results: true; records: SamEntityData[] }
           | { results: false; records: [] };
       }
     | { status: "failure"; data: {} };
@@ -76,7 +76,7 @@ type Action =
   | {
       type: "FETCH_EPA_USER_DATA_SUCCESS";
       payload: {
-        epaUserData: EPAUserData;
+        epaUserData: EpaUserData;
       };
     }
   | { type: "FETCH_EPA_USER_DATA_FAILURE" }
@@ -85,7 +85,7 @@ type Action =
       type: "FETCH_SAM_USER_DATA_SUCCESS";
       payload: {
         samUserData:
-          | { results: true; records: SAMUserData[] }
+          | { results: true; records: SamEntityData[] }
           | { results: false; records: [] };
       };
     }
