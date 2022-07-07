@@ -186,7 +186,7 @@ export default function NewRebate() {
                               {record.UNIQUE_ENTITY_ID__c}
                             </td>
                             <td className="font-sans-2xs">
-                              {record.ENTITY_EFT_INDICATOR__c}
+                              {record.ENTITY_EFT_INDICATOR__c || "0000"}
                             </td>
                             <td className="font-sans-2xs">
                               {record.LEGAL_BUSINESS_NAME__c}
