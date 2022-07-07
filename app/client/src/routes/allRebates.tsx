@@ -125,7 +125,7 @@ export default function AllRebates() {
                   const { _id, state, modified, data } = submission;
                   const {
                     applicantUEI,
-                    applicantEfti,
+                    applicantEfti_display,
                     applicantOrganizationName,
                     schoolDistrictName,
                     last_updated_by,
@@ -176,8 +176,34 @@ export default function AllRebates() {
                         )}
                       </td>
                       <td>
-                        {applicantEfti ? (
-                          applicantEfti
+                        {/*
+                        NOTE: In the initial version of the app, the rebate form
+                        (GSA) only set the `applicantEfti` field, based on the
+                        value we provide the `sam_hidden_applicant_efti` field.
+                        That value comes from the BAP/SAM.gov data, which could
+                        be an empty string. In those cases, '0000' should be
+                        used instead, so GSA updated the form definition to
+                        include a new `applicantEfti_display` field that will
+                        conditionally set its value to '0000' if the
+                        `sam_hidden_applicant_efti` field is an empty string.
+                        We still need to handle this situation for existing
+                        submissions (before GSA updated the form definition).
+                        */}
+                        {applicantEfti_display ? (
+                          applicantEfti_display
+                        ) : /*
+                        NOTE: Here's where we conditionally set "0000" for forms
+                        that have already been created before the rebate form's
+                        form definition was updated. We can't check the
+                        `applicantEfti` field, as it could be an empty string
+                        (falsy in JavaScript), so we'll check the `applicantUEI`
+                        field instead, as it should exist for existing form
+                        submissions that have advanced past the first screen (we
+                        could have also checked the `applicantOrganizationName`
+                        field for the same result).
+                        */
+                        applicantUEI ? (
+                          "0000"
                         ) : (
                           <TextWithTooltip
                             text=" "
