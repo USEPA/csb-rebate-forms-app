@@ -391,13 +391,17 @@
 
         <div class="l-page__footer">
           <div class="l-constrain">
-            <a
-              href="https://www.epa.gov/cleanschoolbus/forms/contact-us-about-clean-school-bus-program-funding"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Contact Us</a
-            >&nbsp;to ask a question, provide feedback, or report a problem.
+            <span>
+              <a
+                href="https://www.epa.gov/cleanschoolbus/forms/contact-us-about-clean-school-bus-program-funding"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Contact Us</a
+              >&nbsp;to ask a question, provide feedback, or report a problem.
+            </span>
+
+            <span>&nbsp;</span>
           </div>
         </div>
       </div>
@@ -480,7 +484,16 @@
             <h2>Connect.</h2>
             <ul class="menu menu--footer">
               <li class="menu__item">
-                <a class="menu__link" href="https://www.data.gov/">Data.gov</a>
+                <a href="https://www.data.gov/" class="menu__link">
+                  Data.gov
+                  <span
+                    class="usa-tag external-link__tag"
+                    title="Exit EPA Website"
+                  >
+                    <span aria-hidden="true">Exit</span>
+                    <span class="u-visually-hidden">Exit EPA Website</span>
+                  </span>
+                </a>
               </li>
               <li class="menu__item">
                 <a
@@ -508,6 +521,13 @@
               <li class="menu__item">
                 <a class="menu__link" href="https://www.regulations.gov/">
                   Regulations.gov
+                  <span
+                    class="usa-tag external-link__tag"
+                    title="Exit EPA Website"
+                  >
+                    <span aria-hidden="true">Exit</span>
+                    <span class="u-visually-hidden">Exit EPA Website</span>
+                  </span>
                 </a>
               </li>
               <li class="menu__item">
@@ -519,11 +539,27 @@
                 </a>
               </li>
               <li class="menu__item">
-                <a class="menu__link" href="https://www.usa.gov/">USA.gov</a>
+                <a class="menu__link" href="https://www.usa.gov/">
+                  USA.gov
+                  <span
+                    class="usa-tag external-link__tag"
+                    title="Exit EPA Website"
+                  >
+                    <span aria-hidden="true">Exit</span>
+                    <span class="u-visually-hidden">Exit EPA Website</span>
+                  </span>
+                </a>
               </li>
               <li class="menu__item">
                 <a class="menu__link" href="https://www.whitehouse.gov/">
                   White House
+                  <span
+                    class="usa-tag external-link__tag"
+                    title="Exit EPA Website"
+                  >
+                    <span aria-hidden="true">Exit</span>
+                    <span class="u-visually-hidden">Exit EPA Website</span>
+                  </span>
                 </a>
               </li>
             </ul>
@@ -638,7 +674,6 @@
                 </a>
               </li>
             </ul>
-            <p class="footer__last-updated">Last updated on January 19, 2022</p>
           </div>
         </div>
       </div>
@@ -653,6 +688,11 @@
     <style>
       .l-header {
         position: static;
+      }
+
+      .external-link__tag {
+        font-size: 0.75rem;
+        padding: 0 0.5em;
       }
 
       @media (min-width: 64em) {
