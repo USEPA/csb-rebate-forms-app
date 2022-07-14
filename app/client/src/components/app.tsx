@@ -171,7 +171,7 @@ function useInactivityDialog(callback: () => void) {
       }
     },
     debounce: 500,
-    crossTab: { emitOnAllTabs: true },
+    crossTab: true,
   });
 
   useEffect(() => {
