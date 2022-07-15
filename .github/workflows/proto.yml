@@ -77,7 +77,7 @@ jobs:
         working-directory: app/client
 
       - name: Install front-end dependencies
-        run: npm install --legacy-peer-deps
+        run: npm install
         working-directory: app/client
 
       - name: Build front-end files and move to server
