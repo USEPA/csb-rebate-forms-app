@@ -1,4 +1,5 @@
-import { createRoot } from "react-dom/client";
+import { StrictMode } from "react";
+import { render } from "react-dom";
 import reportWebVitals from "./reportWebVitals";
 // ---
 import { ContentProvider } from "contexts/content";
@@ -10,20 +11,22 @@ import App from "components/app";
 import "./styles.css";
 
 const container = document.getElementById("root") as HTMLElement;
-const root = createRoot(container);
 
-root.render(
-  <ErrorBoundary>
-    <ContentProvider>
-      <UserProvider>
-        <FormsProvider>
-          <DialogProvider>
-            <App />
-          </DialogProvider>
-        </FormsProvider>
-      </UserProvider>
-    </ContentProvider>
-  </ErrorBoundary>
+render(
+  <StrictMode>
+    <ErrorBoundary>
+      <ContentProvider>
+        <UserProvider>
+          <FormsProvider>
+            <DialogProvider>
+              <App />
+            </DialogProvider>
+          </FormsProvider>
+        </UserProvider>
+      </ContentProvider>
+    </ErrorBoundary>
+  </StrictMode>,
+  container
 );
 
 // If you want to start measuring performance in your app, pass a function
