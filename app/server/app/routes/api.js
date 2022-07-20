@@ -139,7 +139,6 @@ router.get("/sam-data", (req, res) => {
 // --- get an existing rebate form's schema and submission data from Forms.gov
 router.get(
   "/rebate-form-submission/:id",
-  checkCsbEnrollmentPeriod,
   verifyMongoObjectId,
   checkBapComboKeys,
   async (req, res) => {
