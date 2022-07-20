@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl, fetchData, messages } from "../config";
+import { serverUrl, enrollmentClosed, fetchData, messages } from "../config";
 import Loading from "components/loading";
 import Message from "components/message";
 import MarkdownContent from "components/markdownContent";
@@ -138,7 +138,7 @@ export default function AllRebates() {
                     <tr
                       key={_id}
                       className={
-                        state === "submitted"
+                        state === "submitted" || enrollmentClosed
                           ? "text-italic text-base-dark"
                           : ""
                       }

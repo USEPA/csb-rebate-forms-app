@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { DialogOverlay, DialogContent } from "@reach/dialog";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl, messages, fetchData } from "../config";
+import { serverUrl, enrollmentClosed, messages, fetchData } from "../config";
 import { getUserInfo } from "../utilities";
 import Loading from "components/loading";
 import Message from "components/message";
@@ -73,7 +73,9 @@ export default function NewRebate() {
         >
           <div className="usa-modal__content">
             <div className="usa-modal__main">
-              {activeSamRecords.length <= 0 ? (
+              {enrollmentClosed ? (
+                <Message type="info" text={messages.csbEnrollmentClosed} />
+              ) : activeSamRecords.length <= 0 ? (
                 <Message type="info" text={messages.samNoResults} />
               ) : (
                 <>
