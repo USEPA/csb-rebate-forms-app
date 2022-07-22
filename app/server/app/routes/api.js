@@ -97,6 +97,7 @@ router.get("/helpdesk-access", ensureHelpdesk, (req, res) => {
 router.get("/epa-data", (req, res) => {
   // Explicitly return only required attributes from user info
   res.json({
+    enrollmentClosed: process.env.CSB_ENROLLMENT_PERIOD === "closed",
     mail: req.user.mail,
     memberof: req.user.memberof,
     exp: req.user.exp,
