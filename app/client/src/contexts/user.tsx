@@ -11,6 +11,7 @@ type Props = {
 };
 
 type EpaUserData = {
+  enrollmentClosed: boolean;
   mail: string;
   memberof: string;
   exp: number;

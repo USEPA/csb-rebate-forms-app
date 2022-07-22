@@ -2,16 +2,9 @@ const {
   NODE_ENV,
   REACT_APP_SERVER_BASE_PATH,
   REACT_APP_CLOUD_SPACE,
-  REACT_APP_CSB_ENROLLMENT_PERIOD,
   REACT_APP_FORMIO_BASE_URL,
   REACT_APP_FORMIO_PROJECT_NAME,
 } = process.env;
-
-if (!REACT_APP_CSB_ENROLLMENT_PERIOD) {
-  throw new Error(
-    "Required REACT_APP_CSB_ENROLLMENT_PERIOD environment variable not found."
-  );
-}
 
 if (!REACT_APP_FORMIO_BASE_URL) {
   throw new Error(
@@ -52,8 +45,6 @@ export const serverUrlForLinks =
 export const cloudSpace =
   NODE_ENV === "development" ? "dev" : REACT_APP_CLOUD_SPACE || "";
 
-export const enrollmentClosed = REACT_APP_CSB_ENROLLMENT_PERIOD === "closed";
-
 export const formioBaseUrl = REACT_APP_FORMIO_BASE_URL;
 
 const formioProjectName = REACT_APP_FORMIO_PROJECT_NAME;
@@ -75,7 +66,7 @@ export const messages = {
   timeout:
     "For security reasons, you have been logged out due to 15 minutes of inactivity.",
   logout: "You have successfully logged out.",
-  csbEnrollmentClosed: "The CSB enrollment period is closed.",
+  enrollmentClosed: "The CSB enrollment period is closed.",
 };
 
 /**
