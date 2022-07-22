@@ -12,7 +12,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Formio, Form } from "@formio/react";
 import { cloneDeep, isEqual } from "lodash";
 // ---
-import { serverUrl, fetchData } from "../config";
+import { serverUrl, enrollmentClosed, fetchData } from "../config";
+import { getUserInfo } from "../utilities";
 import Loading from "components/loading";
 import Message from "components/message";
 import MarkdownContent from "components/markdownContent";
@@ -170,7 +171,12 @@ export default function ExistingRebate() {
 type FormioSubmissionData = {
   // NOTE: more fields are in a form.io submission,
   // but we're only concerned with the fields below
+  hidden_current_user_email?: string;
+  hidden_current_user_title?: string;
+  hidden_current_user_name?: string;
+  bap_hidden_entity_combo_key?: string;
   ncesDataSource?: string;
+  ncesDataLookup?: string[];
   // (other fields...)
 };
 
@@ -231,7 +237,7 @@ function ExistingRebateContent() {
   const navigate = useNavigate();
   const { id } = useParams<"id">();
   const { content } = useContentState();
-  const { epaUserData } = useUserState();
+  const { epaUserData, samUserData } = useUserState();
   const dispatch = useExistingRebateDispatch();
 
   const [rebateFormSubmission, setRebateFormSubmission] =
@@ -280,9 +286,13 @@ function ExistingRebateContent() {
           return s3Provider(s3Formio);
         };
 
+        // remove `ncesDataSource` and `ncesDataLookup` fields
         const data = { ...res.submissionData.data };
         if (data.hasOwnProperty("ncesDataSource")) {
           delete data.ncesDataSource;
+        }
+        if (data.hasOwnProperty("ncesDataLookup")) {
+          delete data.ncesDataLookup;
         }
 
         setStoredSubmissionData((prevData) => {
@@ -331,9 +341,22 @@ function ExistingRebateContent() {
     );
   }
 
-  if (epaUserData.status !== "success") {
+  if (epaUserData.status !== "success" || samUserData.status !== "success") {
     return <Loading />;
   }
+
+  const entityComboKey = storedSubmissionData.bap_hidden_entity_combo_key;
+  const record = samUserData.data.records.find((record) => {
+    return (
+      record.ENTITY_STATUS__c === "Active" &&
+      record.ENTITY_COMBO_KEY__c === entityComboKey
+    );
+  });
+
+  if (!record) return null;
+
+  const email = epaUserData.data.mail;
+  const { title, name } = getUserInfo(email, record);
 
   return (
     <div className="margin-top-2">
@@ -361,12 +384,18 @@ function ExistingRebateContent() {
           submission={{
             data: {
               ...storedSubmissionData,
-              last_updated_by: epaUserData.data.mail,
+              last_updated_by: email,
+              hidden_current_user_email: email,
+              hidden_current_user_title: title,
+              hidden_current_user_name: name,
               ...pendingSubmissionData,
             },
           }}
           options={{
-            readOnly: submissionData.state === "submitted" ? true : false,
+            readOnly:
+              submissionData.state === "submitted" || enrollmentClosed
+                ? true
+                : false,
             noAlerts: true,
           }}
           onSubmit={(submission: {
@@ -374,9 +403,13 @@ function ExistingRebateContent() {
             data: FormioSubmissionData;
             metadata: object;
           }) => {
+            // remove `ncesDataSource` and `ncesDataLookup` fields
             const data = { ...submission.data };
             if (data.hasOwnProperty("ncesDataSource")) {
               delete data.ncesDataSource;
+            }
+            if (data.hasOwnProperty("ncesDataLookup")) {
+              delete data.ncesDataLookup;
             }
 
             if (submission.state === "submitted") {
@@ -448,15 +481,30 @@ function ExistingRebateContent() {
               metadata: object;
             };
           }) => {
+            // remove `ncesDataSource` and `ncesDataLookup` fields
             const data = { ...submission.data };
             if (data.hasOwnProperty("ncesDataSource")) {
               delete data.ncesDataSource;
             }
+            if (data.hasOwnProperty("ncesDataLookup")) {
+              delete data.ncesDataLookup;
+            }
 
             // don't post an update if form is not in draft state
-            // or if no changes have been made to the form
+            // (form has been already submitted, and fields are read-only)
             if (submissionData.state !== "draft") return;
-            if (isEqual(data, storedSubmissionDataRef.current)) return;
+
+            // don't post an update if no changes have been made to the form
+            // (ignoring current user fields)
+            const dataToCheck = { ...data };
+            delete dataToCheck.hidden_current_user_email;
+            delete dataToCheck.hidden_current_user_title;
+            delete dataToCheck.hidden_current_user_name;
+            const storedDataToCheck = { ...storedSubmissionDataRef.current };
+            delete storedDataToCheck.hidden_current_user_email;
+            delete storedDataToCheck.hidden_current_user_title;
+            delete storedDataToCheck.hidden_current_user_name;
+            if (isEqual(dataToCheck, storedDataToCheck)) return;
 
             dispatch({
               type: "DISPLAY_INFO_MESSAGE",

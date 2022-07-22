@@ -7,6 +7,8 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import {
   serverUrl,
+  serverUrlForLinks,
+  enrollmentClosed,
   formioBaseUrl,
   formioProjectUrl,
   fetchData,
@@ -150,7 +152,7 @@ export default function Dashboard() {
 
           <a
             className="margin-bottom-1 usa-button font-sans-2xs margin-right-0"
-            href={`${serverUrl}/logout`}
+            href={`${serverUrlForLinks}/logout`}
           >
             <IconText order="text-icon" icon="logout" text="Sign out" />
           </a>
@@ -188,7 +190,7 @@ export default function Dashboard() {
             </Link>
           )}
 
-          {pathname.startsWith("/rebate") ? (
+          {pathname.startsWith("/rebate") || enrollmentClosed ? (
             <button
               className="margin-bottom-1 usa-button font-sans-2xs"
               disabled
