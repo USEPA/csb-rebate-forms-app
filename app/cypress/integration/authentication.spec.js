@@ -70,7 +70,7 @@ describe("Authentication", () => {
     // simulate the sam-data service failing
     const origin =
       location.hostname === "localhost"
-        ? `${location.protocol}//${location.hostname}:3001`
+        ? `${location.protocol}//${location.hostname}:3000`
         : window.location.origin;
     cy.intercept(`${origin}/api/sam-data`, {
       statusCode: 500,
@@ -91,7 +91,7 @@ describe("Authentication", () => {
     // simulate the sam-data service with no results
     const origin =
       location.hostname === "localhost"
-        ? `${location.protocol}//${location.hostname}:3001`
+        ? `${location.protocol}//${location.hostname}:3000`
         : window.location.origin;
     cy.intercept(`${origin}/api/sam-data`, {
       statusCode: 200,

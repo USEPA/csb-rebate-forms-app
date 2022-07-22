@@ -305,6 +305,8 @@ Cypress.Commands.add("getApplicationSteps", () => {
         cy.wrap($el).click();
       });
 
+      cy.findByRole("checkbox", { name: /I confirm I have provided my signature above */i }).click({ force: true });
+
       cy.wait(1000);
 
       // go to next step

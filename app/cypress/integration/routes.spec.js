@@ -83,7 +83,7 @@ describe("Routes", () => {
     // simulate the rebate-form-submission where user does not have access
     const origin =
       location.hostname === "localhost"
-        ? `${location.protocol}//${location.hostname}:3001`
+        ? `${location.protocol}//${location.hostname}:3000`
         : window.location.origin;
     cy.intercept(`${origin}/api/rebate-form-submission/${formId}`, {
       statusCode: 200,
@@ -113,7 +113,7 @@ describe("Routes", () => {
     // simulate the rebate-form-submission service failing
     const origin =
       location.hostname === "localhost"
-        ? `${location.protocol}//${location.hostname}:3001`
+        ? `${location.protocol}//${location.hostname}:3000`
         : window.location.origin;
     cy.intercept(`${origin}/api/rebate-form-submission/${formId}`, {
       statusCode: 500,
