@@ -12,6 +12,7 @@ const {
 const {
   ensureAuthenticated,
   ensureHelpdesk,
+  checkCsbEnrollmentPeriod,
   checkBapComboKeys,
   verifyMongoObjectId,
 } = require("../middleware");
@@ -188,6 +189,7 @@ router.get(
 // --- post an update to an existing draft rebate form submission to Forms.gov
 router.post(
   "/rebate-form-submission/:id",
+  checkCsbEnrollmentPeriod,
   verifyMongoObjectId,
   checkBapComboKeys,
   (req, res) => {
@@ -224,55 +226,67 @@ router.post(
 );
 
 // --- post a new rebate form submission to Forms.gov
-router.post("/rebate-form-submission", checkBapComboKeys, (req, res) => {
-  // Verify post data includes one of user's BAP combo keys
-  if (!req.bapComboKeys.includes(req.body.data?.bap_hidden_entity_combo_key)) {
-    log({
-      level: "error",
-      message: `User with email ${req.user.mail} attempted to post new form without a matching BAP combo key`,
-      req,
-    });
-    return res.status(401).json({ message: "Unauthorized" });
+router.post(
+  "/rebate-form-submission",
+  checkCsbEnrollmentPeriod,
+  checkBapComboKeys,
+  (req, res) => {
+    // Verify post data includes one of user's BAP combo keys
+    if (
+      !req.bapComboKeys.includes(req.body.data?.bap_hidden_entity_combo_key)
+    ) {
+      log({
+        level: "error",
+        message: `User with email ${req.user.mail} attempted to post new form without a matching BAP combo key`,
+        req,
+      });
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    // Add custom metadata to track formio submissions from wrapper
+    req.body.metadata = {
+      ...req.body.metadata,
+      ...formioCsbMetadata,
+    };
+
+    axiosFormio(req)
+      .post(`${formioProjectUrl}/${formioFormName}/submission`, req.body)
+      .then((axiosRes) => axiosRes.data)
+      .then((submission) => res.json(submission))
+      .catch((error) => {
+        res
+          .status(error?.response?.status || 500)
+          .json({ message: "Error posting Forms.gov rebate form submission" });
+      });
   }
-
-  // Add custom metadata to track formio submissions from wrapper
-  req.body.metadata = {
-    ...req.body.metadata,
-    ...formioCsbMetadata,
-  };
-
-  axiosFormio(req)
-    .post(`${formioProjectUrl}/${formioFormName}/submission`, req.body)
-    .then((axiosRes) => axiosRes.data)
-    .then((submission) => res.json(submission))
-    .catch((error) => {
-      res
-        .status(error?.response?.status || 500)
-        .json({ message: "Error posting Forms.gov rebate form submission" });
-    });
-});
+);
 
 // --- upload s3 file metadata to Forms.gov
-router.post("/:bapComboKey/storage/s3", checkBapComboKeys, (req, res) => {
-  if (!req.bapComboKeys.includes(req.params.bapComboKey)) {
-    log({
-      level: "error",
-      message: `User with email ${req.user.mail} attempted to upload file without a matching BAP combo key`,
-      req,
-    });
-    return res.status(401).json({ message: "Unauthorized" });
-  }
+router.post(
+  "/:bapComboKey/storage/s3",
+  checkCsbEnrollmentPeriod,
+  checkBapComboKeys,
+  (req, res) => {
+    if (!req.bapComboKeys.includes(req.params.bapComboKey)) {
+      log({
+        level: "error",
+        message: `User with email ${req.user.mail} attempted to upload file without a matching BAP combo key`,
+        req,
+      });
+      return res.status(401).json({ message: "Unauthorized" });
+    }
 
-  axiosFormio(req)
-    .post(`${formioProjectUrl}/${formioFormName}/storage/s3`, req.body)
-    .then((axiosRes) => axiosRes.data)
-    .then((fileMetadata) => res.json(fileMetadata))
-    .catch((error) => {
-      res
-        .status(error?.response?.status || 500)
-        .json({ message: "Error uploading Forms.gov file" });
-    });
-});
+    axiosFormio(req)
+      .post(`${formioProjectUrl}/${formioFormName}/storage/s3`, req.body)
+      .then((axiosRes) => axiosRes.data)
+      .then((fileMetadata) => res.json(fileMetadata))
+      .catch((error) => {
+        res
+          .status(error?.response?.status || 500)
+          .json({ message: "Error uploading Forms.gov file" });
+      });
+  }
+);
 
 // --- download s3 file metadata from Forms.gov
 router.get("/:bapComboKey/storage/s3", checkBapComboKeys, (req, res) => {

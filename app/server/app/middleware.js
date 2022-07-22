@@ -122,6 +122,15 @@ const protectClientRoutes = (req, res, next) => {
   next();
 };
 
+const checkCsbEnrollmentPeriod = (req, res, next) => {
+  const enrollmentClosed = process.env.CSB_ENROLLMENT_PERIOD === "closed";
+  if (enrollmentClosed) {
+    return res.status(400).json({ message: `CSB enrollment period is closed` });
+  }
+
+  next();
+};
+
 const checkClientRouteExists = (req, res, next) => {
   const subPath = process.env.SERVER_BASE_PATH || "";
   const clientRoutes = ["/", "/welcome", "/helpdesk", "/rebate/new"].map(
@@ -171,6 +180,7 @@ module.exports = {
   ensureHelpdesk,
   appScan,
   protectClientRoutes,
+  checkCsbEnrollmentPeriod,
   checkClientRouteExists,
   checkBapComboKeys,
   verifyMongoObjectId,

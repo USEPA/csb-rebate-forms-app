@@ -12,7 +12,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Formio, Form } from "@formio/react";
 import { cloneDeep, isEqual } from "lodash";
 // ---
-import { serverUrl, fetchData } from "../config";
+import { serverUrl, enrollmentClosed, fetchData } from "../config";
 import { getUserInfo } from "../utilities";
 import Loading from "components/loading";
 import Message from "components/message";
@@ -392,7 +392,10 @@ function ExistingRebateContent() {
             },
           }}
           options={{
-            readOnly: submissionData.state === "submitted" ? true : false,
+            readOnly:
+              submissionData.state === "submitted" || enrollmentClosed
+                ? true
+                : false,
             noAlerts: true,
           }}
           onSubmit={(submission: {
