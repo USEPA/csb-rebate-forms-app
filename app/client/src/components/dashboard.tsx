@@ -8,7 +8,6 @@ import icons from "uswds/img/sprite.svg";
 import {
   serverUrl,
   serverUrlForLinks,
-  enrollmentClosed,
   formioBaseUrl,
   formioProjectUrl,
   fetchData,
@@ -190,7 +189,9 @@ export default function Dashboard() {
             </Link>
           )}
 
-          {pathname.startsWith("/rebate") || enrollmentClosed ? (
+          {pathname.startsWith("/rebate") ||
+          (epaUserData.status === "success" &&
+            epaUserData.data?.enrollmentClosed) ? (
             <button
               className="margin-bottom-1 usa-button font-sans-2xs"
               disabled

@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl, enrollmentClosed, fetchData, messages } from "../config";
+import { serverUrl, fetchData, messages } from "../config";
 import Loading from "components/loading";
 import Message from "components/message";
 import MarkdownContent from "components/markdownContent";
@@ -13,7 +13,7 @@ import { useFormsState, useFormsDispatch } from "contexts/forms";
 
 export default function AllRebates() {
   const { content } = useContentState();
-  const { samUserData } = useUserState();
+  const { epaUserData, samUserData } = useUserState();
   const { rebateFormSubmissions } = useFormsState();
   const dispatch = useFormsDispatch();
 
@@ -138,7 +138,9 @@ export default function AllRebates() {
                     <tr
                       key={_id}
                       className={
-                        state === "submitted" || enrollmentClosed
+                        state === "submitted" ||
+                        (epaUserData.status === "success" &&
+                          epaUserData.data?.enrollmentClosed)
                           ? "text-italic text-base-dark"
                           : ""
                       }
