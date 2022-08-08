@@ -125,6 +125,7 @@ export default function AllRebates() {
                   const { _id, state, modified, data } = submission;
                   const {
                     applicantUEI,
+                    applicantEfti,
                     applicantEfti_display,
                     applicantOrganizationName,
                     schoolDistrictName,
@@ -134,6 +135,17 @@ export default function AllRebates() {
                   const date = new Date(modified).toLocaleDateString();
                   const time = new Date(modified).toLocaleTimeString();
 
+                  /* NOTE: when a form is first initially created, and the user
+has not yet clicked the "Next" or "Save" buttons, any fields that the formio
+form definition sets automatically (based on hidden fields we inject on form
+creation) will not yet be part of the form submission data. As soon as the user
+clicks the "Next" or "Save" buttons the first time, those fields will be set and
+stored in the submission. Since we display some of those fields in the table
+below, we need to check if their values exist, and if they don't (for cases
+where the user has not yet advanced past the first screen of the form...which we
+believe is a bit of an edge case, as most users will likely do that after
+starting a new application), indicate to the user they need to first save the
+form for the fields to be displayed. */
                   return (
                     <tr
                       key={_id}
@@ -168,7 +180,7 @@ export default function AllRebates() {
                       </th>
                       <td>Application</td>
                       <td>
-                        {applicantUEI ? (
+                        {Boolean(applicantUEI) ? (
                           applicantUEI
                         ) : (
                           <TextWithTooltip
@@ -178,43 +190,58 @@ export default function AllRebates() {
                         )}
                       </td>
                       <td>
-                        {/*
-                        NOTE: In the initial version of the app, the rebate form
-                        (GSA) only set the `applicantEfti` field, based on the
-                        value we provide the `sam_hidden_applicant_efti` field.
-                        That value comes from the BAP/SAM.gov data, which could
-                        be an empty string. In those cases, '0000' should be
-                        used instead, so GSA updated the form definition to
-                        include a new `applicantEfti_display` field that will
-                        conditionally set its value to '0000' if the
-                        `sam_hidden_applicant_efti` field is an empty string.
-                        We still need to handle this situation for existing
-                        submissions (before GSA updated the form definition).
-                        */}
-                        {applicantEfti_display ? (
-                          applicantEfti_display
-                        ) : /*
-                        NOTE: Here's where we conditionally set "0000" for forms
-                        that have already been created before the rebate form's
-                        form definition was updated. We can't check the
-                        `applicantEfti` field, as it could be an empty string
-                        (falsy in JavaScript), so we'll check the `applicantUEI`
-                        field instead, as it should exist for existing form
-                        submissions that have advanced past the first screen (we
-                        could have also checked the `applicantOrganizationName`
-                        field for the same result).
-                        */
-                        applicantUEI ? (
-                          "0000"
-                        ) : (
-                          <TextWithTooltip
-                            text=" "
-                            tooltip="Please edit and save the form and the EFT Indicator will be displayed"
-                          />
-                        )}
+                        {
+                          /* NOTE:
+The initial version of the rebate form definition included the `applicantEfti`
+field, which is configured via the form definition (in formio/forms.gov) to set
+its value based on the value of the `sam_hidden_applicant_efti` field, which we
+inject on initial form submission. That value comes from the BAP (SAM.gov data),
+which could be an empty string.
+
+To handle the potentially empty string, the formio form definition was updated
+to include a new `applicantEfti_display` field that's configured in the form
+definition to set it's value to the string '0000' if the `applicantEfti` field's
+value is an empty string. This logic (again, built into the form definition)
+works great for new form submissions that have taken place after the form
+definition has been updated to include this `applicantEfti_display` field... */
+                          Boolean(applicantEfti_display) ? (
+                            applicantEfti_display
+                          ) : /* NOTE:
+...but we need to handle old/existing submissions that were submitted before the
+form definition was updated to include the new `applicantEfti_display` field,
+and where the user has already advanced past the first screen (e.g. they've hit
+the "Next" or "Save" buttons at least once).
+
+At this point the form definition logic has already kicked in that sets the
+`applicaitonEfti` field, but it's value _could_ be an empty string (it won't
+necessairly be, but it could be). Since the `applicantEfti` field's value could
+be an empty string (which is falsy in JavaScript), we need to check another
+field's value that will also set at this point, and whose value will always be
+truthy. We'll check the `applicantUEI` field's value, as it's value will always
+be set for users that have advanced past the first screen (we could have just as
+easily used another field, like the `applicantOrganizationName` field for the
+same result). */
+                          Boolean(applicantUEI) ? (
+                            /* NOTE:
+If the `applicantUEI` field's value is truthy, we know the user has advanced
+past the first screen, so we'll render the value of the `applicantEfti` field,
+and fall back to "0000", which will be used in cases where the `applicantEfti`
+field's value is an empty string. */
+                            applicantEfti || "0000"
+                          ) : (
+                            /* NOTE:
+At this point in the conditional logic, we know the user has not advanced past
+the first screen, so we'll render the tooltip, indicating the user must edit and
+save the form for the EFT indicator to be displayed. */
+                            <TextWithTooltip
+                              text=" "
+                              tooltip="Please edit and save the form and the EFT Indicator will be displayed"
+                            />
+                          )
+                        }
                       </td>
                       <td>
-                        {applicantOrganizationName ? (
+                        {Boolean(applicantOrganizationName) ? (
                           applicantOrganizationName
                         ) : (
                           <TextWithTooltip
@@ -224,7 +251,7 @@ export default function AllRebates() {
                         )}
                       </td>
                       <td>
-                        {schoolDistrictName ? (
+                        {Boolean(schoolDistrictName) ? (
                           schoolDistrictName
                         ) : (
                           <TextWithTooltip
