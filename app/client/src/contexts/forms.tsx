@@ -23,6 +23,7 @@ type RebateFormSubmission = {
   modified: string;
   data: {
     applicantUEI: string;
+    applicantEfti: string;
     applicantEfti_display: string;
     applicantOrganizationName: string;
     schoolDistrictName: string;
