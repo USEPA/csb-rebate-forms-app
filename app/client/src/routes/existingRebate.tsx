@@ -169,15 +169,13 @@ export default function ExistingRebate() {
 // -----------------------------------------------------------------------------
 
 type FormioSubmissionData = {
-  // NOTE: more fields are in a form.io submission,
-  // but we're only concerned with the fields below
+  [field: string]: unknown;
   hidden_current_user_email?: string;
   hidden_current_user_title?: string;
   hidden_current_user_name?: string;
   bap_hidden_entity_combo_key?: string;
   ncesDataSource?: string;
   ncesDataLookup?: string[];
-  // (other fields...)
 };
 
 type SubmissionState =
@@ -204,12 +202,10 @@ type SubmissionState =
             userAccess: true;
             formSchema: { url: string; json: object };
             submissionData: {
-              // NOTE: more fields are in a form.io submission,
-              // but we're only concerned with the fields below
-              _id: string;
+              [field: string]: unknown;
+              _id: string; // MongoDB ObjectId string
               data: object;
               state: "submitted" | "draft";
-              // (other fields...)
             };
           }
         | {
@@ -436,7 +432,7 @@ function ExistingRebateContent() {
           onSubmit={(submission: {
             state: "submitted" | "draft";
             data: FormioSubmissionData;
-            metadata: object;
+            metadata: unknown;
           }) => {
             // remove `ncesDataSource` and `ncesDataLookup` fields
             const data = { ...submission.data };
@@ -513,7 +509,7 @@ function ExistingRebateContent() {
             page: number;
             submission: {
               data: FormioSubmissionData;
-              metadata: object;
+              metadata: unknown;
             };
           }) => {
             // remove `ncesDataSource` and `ncesDataLookup` fields

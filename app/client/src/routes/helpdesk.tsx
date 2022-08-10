@@ -34,17 +34,15 @@ type SubmissionState =
       data: {
         formSchema: { url: string; json: object };
         submissionData: {
-          // NOTE: more fields are in a form.io submission,
-          // but we're only concerned with the fields below
-          _id: string;
+          [field: string]: unknown;
+          _id: string; // MongoDB ObjectId string
           state: "submitted" | "draft";
-          modified: string;
+          modified: string; // ISO 8601 date string
           data: {
+            [field: string]: unknown;
             applicantOrganizationName: string;
             last_updated_by: string;
-            // (other fields...)
           };
-          // (other fields...)
         };
       };
     }
