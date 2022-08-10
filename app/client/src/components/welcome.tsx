@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Navigate, useSearchParams } from "react-router-dom";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrlForLinks, messages } from "../config";
+import { serverUrl, serverUrlForLinks, fetchData, messages } from "../config";
 import Message from "components/message";
+import { useUserState, useUserDispatch } from "contexts/user";
 
 export default function Welcome() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -69,6 +70,19 @@ export default function Welcome() {
 
     setSearchParams("");
   }, [searchParams, setSearchParams]);
+
+  const { isAuthenticated } = useUserState();
+  const dispatch = useUserDispatch();
+
+  useEffect(() => {
+    fetchData(`${serverUrl}/api/epa-data`)
+      .then((res) => dispatch({ type: "USER_SIGN_IN" }))
+      .catch((err) => dispatch({ type: "USER_SIGN_OUT" }));
+  }, [dispatch]);
+
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
 
   return (
     <>
