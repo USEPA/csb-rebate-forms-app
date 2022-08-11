@@ -1,6 +1,8 @@
 const jsforce = require("jsforce");
 const log = require("../utilities/logger");
 
+// Utilities to fetch data from EPA's Business Automation Platform (BAP)
+
 const setupConnection = (app) => {
   const bapConnection = new jsforce.Connection({
     oauth2: {

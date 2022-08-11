@@ -16,7 +16,7 @@ const {
   checkBapComboKeys,
   verifyMongoObjectId,
 } = require("../middleware");
-const { getSamData } = require("../utilities/getSamData");
+const { getSamData } = require("../utilities/bap");
 const log = require("../utilities/logger");
 
 const router = express.Router();
