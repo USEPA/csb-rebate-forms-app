@@ -169,15 +169,13 @@ export default function ExistingRebate() {
 // -----------------------------------------------------------------------------
 
 type FormioSubmissionData = {
-  // NOTE: more fields are in a form.io submission,
-  // but we're only concerned with the fields below
+  [field: string]: unknown;
   hidden_current_user_email?: string;
   hidden_current_user_title?: string;
   hidden_current_user_name?: string;
   bap_hidden_entity_combo_key?: string;
   ncesDataSource?: string;
   ncesDataLookup?: string[];
-  // (other fields...)
 };
 
 type SubmissionState =
@@ -204,12 +202,10 @@ type SubmissionState =
             userAccess: true;
             formSchema: { url: string; json: object };
             submissionData: {
-              // NOTE: more fields are in a form.io submission,
-              // but we're only concerned with the fields below
-              _id: string;
+              [field: string]: unknown;
+              _id: string; // MongoDB ObjectId string
               data: object;
               state: "submitted" | "draft";
-              // (other fields...)
             };
           }
         | {
@@ -399,10 +395,44 @@ function ExistingRebateContent() {
                 : false,
             noAlerts: true,
           }}
+          onChange={(submission: {
+            changed: {
+              component: {
+                [field: string]: unknown;
+                key: string;
+              };
+              flags: unknown;
+              instance: unknown;
+              value: unknown;
+            };
+            data: FormioSubmissionData;
+            isValid: boolean;
+            metadata: unknown;
+          }) => {
+            // NOTE: For some unknown reason, whenever the bus info's "Save"
+            // button (the component w/ the key "busInformation") is clicked
+            // the `storedSubmissionDataRef` value is mutated, which invalidates
+            // the isEqual() early return "dirty check" used in the onNextPage
+            // event callback below (as the two object being compared are now
+            // equal). That means if the user changed any of the bus info fields
+            // (which are displayed via a Formio "Edit Grid" component, which
+            // includes its own "Save" button that must be clicked) and clicked
+            // the form's "Next" button without making any other form field
+            // changes, the "dirty check" incorrectly fails, and the updated
+            // form data was not posted. The fix below should resolve that issue
+            // as now we're intentionally mutating the `storedSubmissionDataRef`
+            // to an empty object whenever the Edit Grid's "Save" button is
+            // clicked (which must be clicked to close the bus info fields) to
+            // guarantee the "dirty check" succeeds the next time the form's
+            // "Next" button is clicked.
+            if (submission?.changed?.component?.key === "busInformation") {
+              storedSubmissionDataRef.current = {};
+            }
+          }}
           onSubmit={(submission: {
             state: "submitted" | "draft";
             data: FormioSubmissionData;
-            metadata: object;
+            metadata: unknown;
           }) => {
             // remove `ncesDataSource` and `ncesDataLookup` fields
             const data = { ...submission.data };
@@ -479,7 +509,7 @@ function ExistingRebateContent() {
             page: number;
             submission: {
               data: FormioSubmissionData;
-              metadata: object;
+              metadata: unknown;
             };
           }) => {
             // remove `ncesDataSource` and `ncesDataLookup` fields
