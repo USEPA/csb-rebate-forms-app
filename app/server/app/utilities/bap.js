@@ -73,48 +73,49 @@ function setupConnection(app) {
 }
 
 /**
- * Uses cached JSforce connection to query the BAP for SAM.gov entity data.
+ * Uses cached JSforce connection to query the BAP for SAM.gov entities.
  * @param {string} email
  * @param {express.Request} req
- * @returns {Promise<SamEntity[]>} collection of SAM.gov entity data
+ * @returns {Promise<SamEntity[]>} collection of SAM.gov entities
  */
-function queryForSamData(email, req) {
+function queryForSamEntities(email, req) {
   /** @type {jsforce.Connection} */
   const bapConnection = req.app.locals.bapConnection;
   return bapConnection
     .query(
       `
         SELECT
-            ENTITY_COMBO_KEY__c,
-            ENTITY_STATUS__c,
-            UNIQUE_ENTITY_ID__c,
-            ENTITY_EFT_INDICATOR__c,
-            CAGE_CODE__c,
-            LEGAL_BUSINESS_NAME__c,
-            GOVT_BUS_POC_NAME__c,
-            GOVT_BUS_POC_EMAIL__c,
-            GOVT_BUS_POC_TITLE__c,
-            ALT_GOVT_BUS_POC_NAME__c,
-            ALT_GOVT_BUS_POC_EMAIL__c,
-            ALT_GOVT_BUS_POC_TITLE__c,
-            ELEC_BUS_POC_NAME__c,
-            ELEC_BUS_POC_EMAIL__c,
-            ELEC_BUS_POC_TITLE__c,
-            ALT_ELEC_BUS_POC_NAME__c,
-            ALT_ELEC_BUS_POC_EMAIL__c,
-            ALT_ELEC_BUS_POC_TITLE__c,
-            PHYSICAL_ADDRESS_LINE_1__c,
-            PHYSICAL_ADDRESS_LINE_2__c,
-            PHYSICAL_ADDRESS_CITY__c,
-            PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
-            PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
-            PHYSICAL_ADDRESS_ZIP_CODE_4__c
-        FROM ${BAP_TABLE}
+          ENTITY_COMBO_KEY__c,
+          ENTITY_STATUS__c,
+          UNIQUE_ENTITY_ID__c,
+          ENTITY_EFT_INDICATOR__c,
+          CAGE_CODE__c,
+          LEGAL_BUSINESS_NAME__c,
+          GOVT_BUS_POC_NAME__c,
+          GOVT_BUS_POC_EMAIL__c,
+          GOVT_BUS_POC_TITLE__c,
+          ALT_GOVT_BUS_POC_NAME__c,
+          ALT_GOVT_BUS_POC_EMAIL__c,
+          ALT_GOVT_BUS_POC_TITLE__c,
+          ELEC_BUS_POC_NAME__c,
+          ELEC_BUS_POC_EMAIL__c,
+          ELEC_BUS_POC_TITLE__c,
+          ALT_ELEC_BUS_POC_NAME__c,
+          ALT_ELEC_BUS_POC_EMAIL__c,
+          ALT_ELEC_BUS_POC_TITLE__c,
+          PHYSICAL_ADDRESS_LINE_1__c,
+          PHYSICAL_ADDRESS_LINE_2__c,
+          PHYSICAL_ADDRESS_CITY__c,
+          PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
+          PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
+          PHYSICAL_ADDRESS_ZIP_CODE_4__c
+        FROM
+          ${BAP_TABLE}
         WHERE
-            ALT_ELEC_BUS_POC_EMAIL__c = '${email}' or
-            GOVT_BUS_POC_EMAIL__c = '${email}' or
-            ALT_GOVT_BUS_POC_EMAIL__c = '${email}' or
-            ELEC_BUS_POC_EMAIL__c = '${email}'
+          ALT_ELEC_BUS_POC_EMAIL__c = '${email}' OR
+          GOVT_BUS_POC_EMAIL__c = '${email}' OR
+          ALT_GOVT_BUS_POC_EMAIL__c = '${email}' OR
+          ELEC_BUS_POC_EMAIL__c = '${email}'
       `
     )
     .then((res) => {
@@ -137,7 +138,7 @@ function getSamData(email, req) {
     log({ level: "info", message });
 
     return setupConnection(req.app)
-      .then(() => queryForSamData(email, req))
+      .then(() => queryForSamEntities(email, req))
       .catch((err) => {
         const message = `BAP Error: ${err}`;
         log({ level: "error", message, req });
@@ -145,7 +146,7 @@ function getSamData(email, req) {
       });
   }
 
-  return queryForSamData(email, req).catch((err) => {
+  return queryForSamEntities(email, req).catch((err) => {
     if (err?.toString() === "invalid_grant: expired access/refresh token") {
       const message = `BAP access token expired`;
       log({ level: "info", message, req });
@@ -155,7 +156,7 @@ function getSamData(email, req) {
     }
 
     return setupConnection(req.app)
-      .then(() => queryForSamData(email, req))
+      .then(() => queryForSamEntities(email, req))
       .catch((retryErr) => {
         const message = `BAP Error: ${retryErr}`;
         log({ level: "error", message, req });
