@@ -1,33 +1,87 @@
+/**
+ * Utilities to fetch data from EPA's Business Automation Platform (BAP)
+ */
+
 const jsforce = require("jsforce");
+const express = require("express");
 const log = require("../utilities/logger");
 
-// Utilities to fetch data from EPA's Business Automation Platform (BAP)
+/**
+ * @typedef {Object} SamEntity
+ * @property {Object} attributes
+ * @property {string} ENTITY_COMBO_KEY__c
+ * @property {string} ENTITY_STATUS__c
+ * @property {string} UNIQUE_ENTITY_ID__c
+ * @property {?string} ENTITY_EFT_INDICATOR__c
+ * @property {string} CAGE_CODE__c
+ * @property {string} LEGAL_BUSINESS_NAME__c
+ * @property {?string} GOVT_BUS_POC_NAME__c
+ * @property {?string} GOVT_BUS_POC_EMAIL__c
+ * @property {?string} GOVT_BUS_POC_TITLE__c
+ * @property {?string} ALT_GOVT_BUS_POC_NAME__c
+ * @property {?string} ALT_GOVT_BUS_POC_EMAIL__c
+ * @property {?string} ALT_GOVT_BUS_POC_TITLE__c
+ * @property {?string} ELEC_BUS_POC_NAME__c
+ * @property {?string} ELEC_BUS_POC_EMAIL__c
+ * @property {?string} ELEC_BUS_POC_TITLE__c
+ * @property {?string} ALT_ELEC_BUS_POC_NAME__c
+ * @property {?string} ALT_ELEC_BUS_POC_EMAIL__c
+ * @property {?string} ALT_ELEC_BUS_POC_TITLE__c
+ * @property {string} PHYSICAL_ADDRESS_LINE_1__c
+ * @property {?string} PHYSICAL_ADDRESS_LINE_2__c
+ * @property {string} PHYSICAL_ADDRESS_CITY__c
+ * @property {string} PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c
+ * @property {string} PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c
+ * @property {string} PHYSICAL_ADDRESS_ZIP_CODE_4__c
+ */
 
-const setupConnection = (app) => {
+const {
+  SERVER_URL,
+  BAP_CLIENT_ID,
+  BAP_CLIENT_SECRET,
+  BAP_URL,
+  BAP_USER,
+  BAP_PASSWORD,
+  BAP_TABLE,
+} = process.env;
+
+/**
+ * Sets up the BAP connection and stores it in the Express app's locals object.
+ * @param {express.Application} app
+ */
+function setupConnection(app) {
   const bapConnection = new jsforce.Connection({
     oauth2: {
-      loginUrl: process.env.BAP_URL,
-      clientId: process.env.BAP_CLIENT_ID,
-      clientSecret: process.env.BAP_CLIENT_SECRET,
-      redirectUri: process.env.SERVER_URL,
+      clientId: BAP_CLIENT_ID,
+      clientSecret: BAP_CLIENT_SECRET,
+      loginUrl: BAP_URL,
+      redirectUri: SERVER_URL,
     },
   });
 
   return bapConnection
-    .loginByOAuth2(process.env.BAP_USER, process.env.BAP_PASSWORD)
+    .loginByOAuth2(BAP_USER, BAP_PASSWORD)
     .then(() => {
-      log({ level: "info", message: "Initializing BAP Connection." });
+      const message = `Initializing BAP Connection.`;
+      log({ level: "info", message });
       // Store bapConnection in global express object using app.locals
       app.locals.bapConnection = bapConnection;
     })
     .catch((err) => {
       throw err;
     });
-};
+}
 
-const queryBap = (email, req) => {
-  // query BAP for SAM data
-  return req.app.locals.bapConnection
+/**
+ * Uses cached JSforce connection to query the BAP for SAM.gov entity data.
+ * @param {string} email
+ * @param {express.Request} req
+ * @returns {Promise<SamEntity[]>} collection of SAM.gov entity data
+ */
+function queryBap(email, req) {
+  /** @type {jsforce.Connection} */
+  const bapConnection = req.app.locals.bapConnection;
+  return bapConnection
     .query(
       `
         SELECT
@@ -55,7 +109,7 @@ const queryBap = (email, req) => {
             PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
             PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
             PHYSICAL_ADDRESS_ZIP_CODE_4__c
-        FROM ${process.env.BAP_TABLE}
+        FROM ${BAP_TABLE}
         WHERE
             ALT_ELEC_BUS_POC_EMAIL__c = '${email}' or
             GOVT_BUS_POC_EMAIL__c = '${email}' or
@@ -69,47 +123,62 @@ const queryBap = (email, req) => {
     .catch((err) => {
       throw err;
     });
-};
+}
 
-const getSamData = (email, req) => {
-  // Make sure bap connection has been initialized
+/**
+ * Fetches SAM.gov data associated with a provided user.
+ * @param {string} email
+ * @param {express.Request} req
+ */
+function getSamData(email, req) {
+  // Make sure BAP connection has been initialized
   if (!req.app.locals.bapConnection) {
-    log({
-      level: "info",
-      message: "BAP Connection has not yet been initialized.",
-    });
+    const message = `BAP Connection has not yet been initialized.`;
+    log({ level: "info", message });
+
     return setupConnection(req.app)
       .then(() => queryBap(email, req))
       .catch((err) => {
-        log({ level: "error", message: `BAP Error: ${err}`, req });
+        const message = `BAP Error: ${err}`;
+        log({ level: "error", message, req });
         throw err;
       });
   }
+
   return queryBap(email, req).catch((initialError) => {
     if (
       initialError?.toString() === "invalid_grant: expired access/refresh token"
     ) {
-      log({ level: "info", message: "BAP access token expired", req });
+      const message = `BAP access token expired`;
+      log({ level: "info", message, req });
     } else {
-      log({ level: "error", message: `BAP Error: ${initialError}`, req });
+      const message = `BAP Error: ${initialError}`;
+      log({ level: "error", message, req });
     }
+
     return setupConnection(req.app)
       .then(() => queryBap(email, req))
       .catch((retryError) => {
-        log({ level: "error", message: `BAP Error: ${retryError}`, req });
+        const message = `BAP Error: ${retryError}`;
+        log({ level: "error", message, req });
         throw retryError;
       });
   });
-};
+}
 
-const getComboKeys = (email, req) => {
+/**
+ * Fetches SAM.gov entity combo keys data associated with a provided user.
+ * @param {string} email
+ * @param {express.Request} req
+ */
+function getComboKeys(email, req) {
   return getSamData(email, req)
-    .then((samUserData) => {
-      return samUserData.map((samObject) => samObject.ENTITY_COMBO_KEY__c);
+    .then((samEntities) => {
+      return samEntities.map((samEntity) => samEntity.ENTITY_COMBO_KEY__c);
     })
     .catch((err) => {
       throw err;
     });
-};
+}
 
 module.exports = { getSamData, getComboKeys };
