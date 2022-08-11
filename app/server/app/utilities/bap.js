@@ -78,7 +78,7 @@ function setupConnection(app) {
  * @param {express.Request} req
  * @returns {Promise<SamEntity[]>} collection of SAM.gov entity data
  */
-function queryBap(email, req) {
+function queryForSamData(email, req) {
   /** @type {jsforce.Connection} */
   const bapConnection = req.app.locals.bapConnection;
   return bapConnection
@@ -137,7 +137,7 @@ function getSamData(email, req) {
     log({ level: "info", message });
 
     return setupConnection(req.app)
-      .then(() => queryBap(email, req))
+      .then(() => queryForSamData(email, req))
       .catch((err) => {
         const message = `BAP Error: ${err}`;
         log({ level: "error", message, req });
@@ -145,23 +145,21 @@ function getSamData(email, req) {
       });
   }
 
-  return queryBap(email, req).catch((initialError) => {
-    if (
-      initialError?.toString() === "invalid_grant: expired access/refresh token"
-    ) {
+  return queryForSamData(email, req).catch((err) => {
+    if (err?.toString() === "invalid_grant: expired access/refresh token") {
       const message = `BAP access token expired`;
       log({ level: "info", message, req });
     } else {
-      const message = `BAP Error: ${initialError}`;
+      const message = `BAP Error: ${err}`;
       log({ level: "error", message, req });
     }
 
     return setupConnection(req.app)
-      .then(() => queryBap(email, req))
-      .catch((retryError) => {
-        const message = `BAP Error: ${retryError}`;
+      .then(() => queryForSamData(email, req))
+      .catch((retryErr) => {
+        const message = `BAP Error: ${retryErr}`;
         log({ level: "error", message, req });
-        throw retryError;
+        throw retryErr;
       });
   });
 }
