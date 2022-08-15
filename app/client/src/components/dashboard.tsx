@@ -28,7 +28,7 @@ function useFetchedSamData() {
 
   useEffect(() => {
     dispatch({ type: "FETCH_SAM_USER_DATA_REQUEST" });
-    fetchData(`${serverUrl}/api/sam-data`)
+    fetchData(`${serverUrl}/api/bap-data`)
       .then((res) => {
         if (res.results) {
           dispatch({

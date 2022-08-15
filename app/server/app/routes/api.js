@@ -16,7 +16,7 @@ const {
   checkBapComboKeys,
   verifyMongoObjectId,
 } = require("../middleware");
-const { getSamData } = require("../utilities/bap");
+const { getSamData, getRebateSubmissionsData } = require("../utilities/bap");
 const log = require("../utilities/logger");
 
 const router = express.Router();
@@ -93,7 +93,7 @@ router.get("/helpdesk-access", ensureHelpdesk, (req, res) => {
   res.sendStatus(200);
 });
 
-// --- get EPA data from EPA Gateway/Login.gov
+// --- get data from EPA Gateway/Login.gov
 router.get("/epa-data", (req, res) => {
   // Explicitly return only required attributes from user info
   res.json({
@@ -104,8 +104,8 @@ router.get("/epa-data", (req, res) => {
   });
 });
 
-// --- get SAM.gov data from BAP
-router.get("/sam-data", (req, res) => {
+// --- get data from EPA's Business Automation Platform (BAP)
+router.get("/bap-data", (req, res) => {
   getSamData(req.user.mail, req)
     .then((samEntities) => {
       const userRoles = req.user.memberof.split(",");
@@ -127,13 +127,24 @@ router.get("/sam-data", (req, res) => {
         });
       }
 
-      res.json({
-        results: true,
-        records: samEntities,
-      });
+      const comboKeys = samEntities.map((e) => e.ENTITY_COMBO_KEY__c);
+
+      getRebateSubmissionsData(comboKeys, req)
+        .then((submissions) => {
+          // TODO
+          console.log(submissions);
+
+          res.json({
+            results: true,
+            records: samEntities,
+          });
+        })
+        .catch((error) => {
+          throw error;
+        });
     })
-    .catch(() => {
-      res.status(401).json({ message: "Error getting SAM.gov data" });
+    .catch((error) => {
+      res.status(401).json({ message: "Error getting data from BAP" });
     });
 });
 
