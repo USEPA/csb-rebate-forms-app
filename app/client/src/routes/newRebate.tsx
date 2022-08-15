@@ -41,7 +41,7 @@ function createNewRebate(email: string, record: SamEntityData) {
 export default function NewRebate() {
   const navigate = useNavigate();
   const { content } = useContentState();
-  const { epaUserData, samUserData } = useUserState();
+  const { epaUserData, bapUserData } = useUserState();
 
   const [message, setMessage] = useState<{
     displayed: boolean;
@@ -53,13 +53,13 @@ export default function NewRebate() {
     text: "",
   });
 
-  if (epaUserData.status !== "success" || samUserData.status !== "success") {
+  if (epaUserData.status !== "success" || bapUserData.status !== "success") {
     return <Loading />;
   }
 
   const email = epaUserData.data.mail;
 
-  const activeSamRecords = samUserData.data.records.filter((record) => {
+  const activeSamRecords = bapUserData.data.records.filter((record) => {
     return record.ENTITY_STATUS__c === "Active";
   });
 

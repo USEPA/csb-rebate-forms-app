@@ -58,7 +58,7 @@ type State = {
     | { status: "pending"; data: {} }
     | { status: "success"; data: EpaUserData }
     | { status: "failure"; data: {} };
-  samUserData:
+  bapUserData:
     | { status: "idle"; data: {} }
     | { status: "pending"; data: {} }
     | {
@@ -81,16 +81,16 @@ type Action =
       };
     }
   | { type: "FETCH_EPA_USER_DATA_FAILURE" }
-  | { type: "FETCH_SAM_USER_DATA_REQUEST" }
+  | { type: "FETCH_BAP_USER_DATA_REQUEST" }
   | {
-      type: "FETCH_SAM_USER_DATA_SUCCESS";
+      type: "FETCH_BAP_USER_DATA_SUCCESS";
       payload: {
-        samUserData:
+        bapUserData:
           | { results: true; records: SamEntityData[] }
           | { results: false; records: [] };
       };
     }
-  | { type: "FETCH_SAM_USER_DATA_FAILURE" };
+  | { type: "FETCH_BAP_USER_DATA_FAILURE" };
 
 const StateContext = createContext<State | undefined>(undefined);
 const DispatchContext = createContext<Dispatch<Action> | undefined>(undefined);
@@ -114,7 +114,7 @@ function reducer(state: State, action: Action): State {
           status: "idle",
           data: {},
         },
-        samUserData: {
+        bapUserData: {
           status: "idle",
           data: {},
         },
@@ -152,31 +152,31 @@ function reducer(state: State, action: Action): State {
       };
     }
 
-    case "FETCH_SAM_USER_DATA_REQUEST": {
+    case "FETCH_BAP_USER_DATA_REQUEST": {
       return {
         ...state,
-        samUserData: {
+        bapUserData: {
           status: "pending",
           data: {},
         },
       };
     }
 
-    case "FETCH_SAM_USER_DATA_SUCCESS": {
-      const { samUserData } = action.payload;
+    case "FETCH_BAP_USER_DATA_SUCCESS": {
+      const { bapUserData } = action.payload;
       return {
         ...state,
-        samUserData: {
+        bapUserData: {
           status: "success",
-          data: samUserData,
+          data: bapUserData,
         },
       };
     }
 
-    case "FETCH_SAM_USER_DATA_FAILURE": {
+    case "FETCH_BAP_USER_DATA_FAILURE": {
       return {
         ...state,
-        samUserData: {
+        bapUserData: {
           status: "failure",
           data: {},
         },
@@ -197,7 +197,7 @@ export function UserProvider({ children }: Props) {
       status: "idle",
       data: {},
     },
-    samUserData: {
+    bapUserData: {
       status: "idle",
       data: {},
     },

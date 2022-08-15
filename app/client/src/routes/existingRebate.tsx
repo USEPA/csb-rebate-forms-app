@@ -233,7 +233,7 @@ function ExistingRebateContent() {
   const navigate = useNavigate();
   const { id } = useParams<"id">();
   const { content } = useContentState();
-  const { epaUserData, samUserData } = useUserState();
+  const { epaUserData, bapUserData } = useUserState();
   const dispatch = useExistingRebateDispatch();
 
   const [rebateFormSubmission, setRebateFormSubmission] =
@@ -337,12 +337,12 @@ function ExistingRebateContent() {
     );
   }
 
-  if (epaUserData.status !== "success" || samUserData.status !== "success") {
+  if (epaUserData.status !== "success" || bapUserData.status !== "success") {
     return <Loading />;
   }
 
   const entityComboKey = storedSubmissionData.bap_hidden_entity_combo_key;
-  const record = samUserData.data.records.find((record) => {
+  const record = bapUserData.data.records.find((record) => {
     return (
       record.ENTITY_STATUS__c === "Active" &&
       record.ENTITY_COMBO_KEY__c === entityComboKey

@@ -13,12 +13,12 @@ import { useFormsState, useFormsDispatch } from "contexts/forms";
 
 export default function AllRebates() {
   const { content } = useContentState();
-  const { epaUserData, samUserData } = useUserState();
+  const { epaUserData, bapUserData } = useUserState();
   const { rebateFormSubmissions } = useFormsState();
   const dispatch = useFormsDispatch();
 
   useEffect(() => {
-    if (samUserData.status !== "success" || !samUserData.data.results) return;
+    if (bapUserData.status !== "success" || !bapUserData.data.results) return;
 
     dispatch({ type: "FETCH_REBATE_FORM_SUBMISSIONS_REQUEST" });
 
@@ -32,7 +32,7 @@ export default function AllRebates() {
       .catch((err) => {
         dispatch({ type: "FETCH_REBATE_FORM_SUBMISSIONS_FAILURE" });
       });
-  }, [samUserData, dispatch]);
+  }, [bapUserData, dispatch]);
 
   if (
     rebateFormSubmissions.status === "idle" ||
