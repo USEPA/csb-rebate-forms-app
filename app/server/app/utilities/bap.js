@@ -43,6 +43,7 @@ const {
   BAP_USER,
   BAP_PASSWORD,
   BAP_SAM_TABLE,
+  BAP_FORMS_TABLE,
 } = process.env;
 
 /**
@@ -180,4 +181,78 @@ function getComboKeys(email, req) {
     });
 }
 
-module.exports = { getSamData, getComboKeys };
+/**
+ * Uses cached JSforce connection to query the BAP for rebate form submissions.
+ * @param {string[]} comboKeys
+ * @param {express.Request} req
+ * @returns {Promise<Object[]>} collection of rebate form submissions
+ */
+function queryForRebateFormSubmissions(comboKeys, req) {
+  /** @type {jsforce.Connection} */
+  const bapConnection = req.app.locals.bapConnection;
+  return bapConnection
+    .query(
+      `
+        SELECT
+          id,
+          CSB_Review_Item_ID__c,
+          Parent_CSB_Rebate__r.id,
+          Parent_CSB_Rebate__r.CSB_Rebate_Status__c
+        FROM
+          ${BAP_FORMS_TABLE}
+        WHERE
+          ${comboKeys
+            .map((key) => `UEI_EFTI_Combo_Key__c = '${key}'`)
+            .join(" OR ")}
+        ORDER BY
+          createddate DESC
+      `
+    )
+    .then((res) => {
+      return res.records;
+    })
+    .catch((err) => {
+      throw err;
+    });
+}
+
+/**
+ * Fetches rebate form submissions associated with a provided set of combo keys.
+ * @param {string[]} comboKeys
+ * @param {express.Request} req
+ */
+function getRebateSubmissionsData(comboKeys, req) {
+  // Make sure BAP connection has been initialized
+  if (!req.app.locals.bapConnection) {
+    const message = `BAP Connection has not yet been initialized.`;
+    log({ level: "info", message });
+
+    return setupConnection(req.app)
+      .then(() => queryForRebateFormSubmissions(comboKeys, req))
+      .catch((err) => {
+        const message = `BAP Error: ${err}`;
+        log({ level: "error", message, req });
+        throw err;
+      });
+  }
+
+  return queryForRebateFormSubmissions(comboKeys, req).catch((err) => {
+    if (err?.toString() === "invalid_grant: expired access/refresh token") {
+      const message = `BAP access token expired`;
+      log({ level: "info", message, req });
+    } else {
+      const message = `BAP Error: ${err}`;
+      log({ level: "error", message, req });
+    }
+
+    return setupConnection(req.app)
+      .then(() => queryForRebateFormSubmissions(comboKeys, req))
+      .catch((retryErr) => {
+        const message = `BAP Error: ${retryErr}`;
+        log({ level: "error", message, req });
+        throw retryErr;
+      });
+  });
+}
+
+module.exports = { getSamData, getComboKeys, getRebateSubmissionsData };
