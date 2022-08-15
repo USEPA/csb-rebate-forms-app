@@ -42,7 +42,7 @@ const {
   BAP_URL,
   BAP_USER,
   BAP_PASSWORD,
-  BAP_TABLE,
+  BAP_SAM_TABLE,
 } = process.env;
 
 /**
@@ -110,7 +110,7 @@ function queryForSamEntities(email, req) {
           PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
           PHYSICAL_ADDRESS_ZIP_CODE_4__c
         FROM
-          ${BAP_TABLE}
+          ${BAP_SAM_TABLE}
         WHERE
           ALT_ELEC_BUS_POC_EMAIL__c = '${email}' OR
           GOVT_BUS_POC_EMAIL__c = '${email}' OR
