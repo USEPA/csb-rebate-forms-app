@@ -122,7 +122,8 @@ router.get("/bap-data", (req, res) => {
 
         return res.json({
           samResults: false,
-          samRecords: [],
+          samEntities: [],
+          rebateSubmissions: [],
         });
       }
 
@@ -132,7 +133,7 @@ router.get("/bap-data", (req, res) => {
         .then((submissions) => {
           res.json({
             samResults: true,
-            samRecords: samEntities,
+            samEntities,
             rebateSubmissions: submissions,
           });
         })
