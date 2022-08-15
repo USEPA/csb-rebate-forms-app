@@ -18,7 +18,9 @@ export default function AllRebates() {
   const dispatch = useFormsDispatch();
 
   useEffect(() => {
-    if (bapUserData.status !== "success" || !bapUserData.data.results) return;
+    if (bapUserData.status !== "success" || !bapUserData.data.samResults) {
+      return;
+    }
 
     dispatch({ type: "FETCH_REBATE_FORM_SUBMISSIONS_REQUEST" });
 

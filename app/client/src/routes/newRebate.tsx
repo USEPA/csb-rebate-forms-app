@@ -59,7 +59,7 @@ export default function NewRebate() {
 
   const email = epaUserData.data.mail;
 
-  const activeSamRecords = bapUserData.data.records.filter((record) => {
+  const activeSamRecords = bapUserData.data.samRecords.filter((record) => {
     return record.ENTITY_STATUS__c === "Active";
   });
 

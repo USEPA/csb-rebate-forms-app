@@ -30,7 +30,7 @@ function useFetchedBapData() {
     dispatch({ type: "FETCH_BAP_USER_DATA_REQUEST" });
     fetchData(`${serverUrl}/api/bap-data`)
       .then((res) => {
-        if (res.results) {
+        if (res.samResults) {
           dispatch({
             type: "FETCH_BAP_USER_DATA_SUCCESS",
             payload: { bapUserData: res },

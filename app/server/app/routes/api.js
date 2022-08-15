@@ -108,12 +108,11 @@ router.get("/epa-data", (req, res) => {
 router.get("/bap-data", (req, res) => {
   getSamData(req.user.mail, req)
     .then((samEntities) => {
+      // NOTE: allow admin or helpdesk users access to the app, even without SAM.gov data
       const userRoles = req.user.memberof.split(",");
       const helpdeskUser =
         userRoles.includes("csb_admin") || userRoles.includes("csb_helpdesk");
 
-      // First check if user has at least one associated UEI before completing login process
-      // If user has admin or helpdesk role, return empty array but still allow app use
       if (!helpdeskUser && samEntities?.length === 0) {
         log({
           level: "error",
@@ -122,8 +121,8 @@ router.get("/bap-data", (req, res) => {
         });
 
         return res.json({
-          results: false,
-          records: [],
+          samResults: false,
+          samRecords: [],
         });
       }
 
@@ -131,12 +130,10 @@ router.get("/bap-data", (req, res) => {
 
       getRebateSubmissionsData(comboKeys, req)
         .then((submissions) => {
-          // TODO
-          console.log(submissions);
-
           res.json({
-            results: true,
-            records: samEntities,
+            samResults: true,
+            samRecords: samEntities,
+            rebateSubmissions: submissions,
           });
         })
         .catch((error) => {

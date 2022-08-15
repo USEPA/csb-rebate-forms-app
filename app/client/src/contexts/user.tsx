@@ -64,8 +64,8 @@ type State = {
     | {
         status: "success";
         data:
-          | { results: true; records: SamEntityData[] }
-          | { results: false; records: [] };
+          | { samResults: true; samRecords: SamEntityData[] }
+          | { samResults: false; samRecords: [] };
       }
     | { status: "failure"; data: {} };
 };
@@ -86,8 +86,8 @@ type Action =
       type: "FETCH_BAP_USER_DATA_SUCCESS";
       payload: {
         bapUserData:
-          | { results: true; records: SamEntityData[] }
-          | { results: false; records: [] };
+          | { samResults: true; samRecords: SamEntityData[] }
+          | { samResults: false; samRecords: [] };
       };
     }
   | { type: "FETCH_BAP_USER_DATA_FAILURE" };
