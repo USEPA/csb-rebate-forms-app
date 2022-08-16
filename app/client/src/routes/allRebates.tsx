@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { Fragment, useEffect } from "react";
 import { Link } from "react-router-dom";
 import icons from "uswds/img/sprite.svg";
 // ---
@@ -72,12 +72,22 @@ export default function AllRebates() {
                   <th scope="col">
                     <span className="usa-sr-only">Open</span>
                   </th>
+
+                  <th scope="col">
+                    <TextWithTooltip text="Application ID" tooltip="..." />
+                  </th>
+
                   <th scope="col">
                     <TextWithTooltip
-                      text="Form Type &nbsp;•&nbsp; Form Status"
-                      tooltip="Application, Payment Request, or Close-Out &nbsp;•&nbsp; submitted or draft"
+                      text="Form Type"
+                      tooltip="Application, Payment Request, or Close-Out"
+                    />
+                    <TextWithTooltip
+                      text="Form Status"
+                      tooltip="submitted or draft"
                     />
                   </th>
+
                   <th scope="col">
                     <TextWithTooltip
                       text="UEI"
@@ -88,6 +98,7 @@ export default function AllRebates() {
                       tooltip="Electronic Funds Transfer Indicator listing the associated bank account from SAM.gov"
                     />
                   </th>
+
                   <th scope="col">
                     <TextWithTooltip
                       text="Applicant"
@@ -98,6 +109,7 @@ export default function AllRebates() {
                       tooltip="School district represented by applicant"
                     />
                   </th>
+
                   <th scope="col">
                     <TextWithTooltip
                       text="Updated By"
@@ -110,6 +122,7 @@ export default function AllRebates() {
                   </th>
                 </tr>
               </thead>
+
               <tbody>
                 {rebateFormSubmissions.data.map((submission) => {
                   const { _id, state, modified, data } = submission;
@@ -144,15 +157,44 @@ believe is a bit of an edge case, as most users will likely do that after
 starting a new application), indicate to the user they need to first save the
 form for the fields to be displayed. */
                   return (
-                    <tr key={_id}>
-                      <th scope="row">
-                        <Link
-                          to={`/rebate/${_id}`}
-                          className={`usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1 ${
-                            state === "submitted" && "usa-button--base"
-                          }`}
-                        >
-                          <span className="display-flex flex-align-center">
+                    <Fragment key={_id}>
+                      <tr>
+                        <th scope="row">
+                          <Link
+                            to={`/rebate/${_id}`}
+                            className={`usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1 ${
+                              state === "submitted" && "usa-button--base"
+                            }`}
+                          >
+                            <span className="display-flex flex-align-center">
+                              <svg
+                                className="usa-icon"
+                                aria-hidden="true"
+                                focusable="false"
+                                role="img"
+                              >
+                                <use
+                                  href={
+                                    state === "draft"
+                                      ? `${icons}#edit`
+                                      : `${icons}#visibility`
+                                  }
+                                />
+                              </svg>
+                              <span className="margin-left-1">
+                                {state === "draft" && <>Edit</>}
+                                {state === "submitted" && <>View</>}
+                              </span>
+                            </span>
+                          </Link>
+                        </th>
+
+                        <td className={statusStyles}>&nbsp;</td>
+
+                        <td className={statusStyles}>
+                          <span title={_id}>Application</span>
+                          <br />
+                          <span className="display-flex flex-align-center font-sans-2xs">
                             <svg
                               className="usa-icon"
                               aria-hidden="true"
@@ -162,37 +204,28 @@ form for the fields to be displayed. */
                               <use
                                 href={
                                   state === "draft"
-                                    ? `${icons}#edit`
-                                    : `${icons}#visibility`
+                                    ? `${icons}#remove`
+                                    : `${icons}#check`
                                 }
                               />
                             </svg>
-                            <span className="margin-left-1">
-                              {state === "draft" && <>Edit</>}
-                              {state === "submitted" && <>View</>}
-                            </span>
+                            <span className="margin-left-05">{state}</span>
                           </span>
-                        </Link>
-                      </th>
+                        </td>
 
-                      <td className={statusStyles}>
-                        <span title={_id}>
-                          Application &nbsp;•&nbsp; {state}
-                        </span>
-                      </td>
-                      <td className={statusStyles}>
-                        <>
-                          {Boolean(applicantUEI) ? (
-                            applicantUEI
-                          ) : (
-                            <TextWithTooltip
-                              text=" "
-                              tooltip="Please edit and save the form and the UEI will be displayed"
-                            />
-                          )}
-                          <br />
-                          {
-                            /* NOTE:
+                        <td className={statusStyles}>
+                          <>
+                            {Boolean(applicantUEI) ? (
+                              applicantUEI
+                            ) : (
+                              <TextWithTooltip
+                                text=" "
+                                tooltip="Please edit and save the form and the UEI will be displayed"
+                              />
+                            )}
+                            <br />
+                            {
+                              /* NOTE:
 The initial version of the rebate form definition included the `applicantEfti`
 field, which is configured via the form definition (in formio/forms.gov) to set
 its value based on the value of the `sam_hidden_applicant_efti` field, which we
@@ -205,9 +238,9 @@ definition to set it's value to the string '0000' if the `applicantEfti` field's
 value is an empty string. This logic (again, built into the form definition)
 works great for new form submissions that have taken place after the form
 definition has been updated to include this `applicantEfti_display` field... */
-                            Boolean(applicantEfti_display) ? (
-                              applicantEfti_display
-                            ) : /* NOTE:
+                              Boolean(applicantEfti_display) ? (
+                                applicantEfti_display
+                              ) : /* NOTE:
 ...but we need to handle old/existing submissions that were submitted before the
 form definition was updated to include the new `applicantEfti_display` field,
 and where the user has already advanced past the first screen (e.g. they've hit
@@ -222,53 +255,56 @@ truthy. We'll check the `applicantUEI` field's value, as it's value will always
 be set for users that have advanced past the first screen (we could have just as
 easily used another field, like the `applicantOrganizationName` field for the
 same result). */
-                            Boolean(applicantUEI) ? (
-                              /* NOTE:
+                              Boolean(applicantUEI) ? (
+                                /* NOTE:
 If the `applicantUEI` field's value is truthy, we know the user has advanced
 past the first screen, so we'll render the value of the `applicantEfti` field,
 and fall back to "0000", which will be used in cases where the `applicantEfti`
 field's value is an empty string. */
-                              applicantEfti || "0000"
-                            ) : (
-                              /* NOTE:
+                                applicantEfti || "0000"
+                              ) : (
+                                /* NOTE:
 At this point in the conditional logic, we know the user has not advanced past
 the first screen, so we'll render the tooltip, indicating the user must edit and
 save the form for the EFT indicator to be displayed. */
+                                <TextWithTooltip
+                                  text=" "
+                                  tooltip="Please edit and save the form and the EFT Indicator will be displayed"
+                                />
+                              )
+                            }
+                          </>
+                        </td>
+
+                        <td className={statusStyles}>
+                          <>
+                            {Boolean(applicantOrganizationName) ? (
+                              applicantOrganizationName
+                            ) : (
                               <TextWithTooltip
                                 text=" "
-                                tooltip="Please edit and save the form and the EFT Indicator will be displayed"
+                                tooltip="Please edit and save the form and the Applicant will be displayed"
                               />
-                            )
-                          }
-                        </>
-                      </td>
-                      <td className={statusStyles}>
-                        <>
-                          {Boolean(applicantOrganizationName) ? (
-                            applicantOrganizationName
-                          ) : (
-                            <TextWithTooltip
-                              text=" "
-                              tooltip="Please edit and save the form and the Applicant will be displayed"
-                            />
-                          )}
+                            )}
+                            <br />
+                            {Boolean(schoolDistrictName) ? (
+                              schoolDistrictName
+                            ) : (
+                              <TextWithTooltip
+                                text=" "
+                                tooltip="School District will be displayed after that field has been entered in the form"
+                              />
+                            )}
+                          </>
+                        </td>
+
+                        <td className={statusStyles}>
+                          {last_updated_by}
                           <br />
-                          {Boolean(schoolDistrictName) ? (
-                            schoolDistrictName
-                          ) : (
-                            <TextWithTooltip
-                              text=" "
-                              tooltip="School District will be displayed after that field has been entered in the form"
-                            />
-                          )}
-                        </>
-                      </td>
-                      <td className={statusStyles}>
-                        {last_updated_by}
-                        <br />
-                        <span title={`${date} ${time}`}>{date}</span>
-                      </td>
-                    </tr>
+                          <span title={`${date} ${time}`}>{date}</span>
+                        </td>
+                      </tr>
+                    </Fragment>
                   );
                 })}
               </tbody>
