@@ -4,7 +4,7 @@ const ObjectId = require("mongodb").ObjectId;
 // ---
 const { createJwt, jwtAlgorithm } = require("./utilities/createJwt");
 const log = require("./utilities/logger");
-const { getComboKeys } = require("./utilities/getSamData");
+const { getComboKeys } = require("./utilities/bap");
 
 const cookieName = "csb-token";
 

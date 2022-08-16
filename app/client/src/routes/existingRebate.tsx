@@ -233,7 +233,7 @@ function ExistingRebateContent() {
   const navigate = useNavigate();
   const { id } = useParams<"id">();
   const { content } = useContentState();
-  const { epaUserData, samUserData } = useUserState();
+  const { epaUserData, bapUserData } = useUserState();
   const dispatch = useExistingRebateDispatch();
 
   const [rebateFormSubmission, setRebateFormSubmission] =
@@ -337,22 +337,22 @@ function ExistingRebateContent() {
     );
   }
 
-  if (epaUserData.status !== "success" || samUserData.status !== "success") {
+  if (epaUserData.status !== "success" || bapUserData.status !== "success") {
     return <Loading />;
   }
 
   const entityComboKey = storedSubmissionData.bap_hidden_entity_combo_key;
-  const record = samUserData.data.records.find((record) => {
+  const entity = bapUserData.data.samEntities.find((entity) => {
     return (
-      record.ENTITY_STATUS__c === "Active" &&
-      record.ENTITY_COMBO_KEY__c === entityComboKey
+      entity.ENTITY_STATUS__c === "Active" &&
+      entity.ENTITY_COMBO_KEY__c === entityComboKey
     );
   });
 
-  if (!record) return null;
+  if (!entity) return null;
 
   const email = epaUserData.data.mail;
-  const { title, name } = getUserInfo(email, record);
+  const { title, name } = getUserInfo(email, entity);
 
   return (
     <div className="margin-top-2">

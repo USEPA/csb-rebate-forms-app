@@ -16,7 +16,7 @@ const {
   checkBapComboKeys,
   verifyMongoObjectId,
 } = require("../middleware");
-const { getSamData } = require("../utilities/getSamData");
+const { getSamData, getRebateSubmissionsData } = require("../utilities/bap");
 const log = require("../utilities/logger");
 
 const router = express.Router();
@@ -93,7 +93,7 @@ router.get("/helpdesk-access", ensureHelpdesk, (req, res) => {
   res.sendStatus(200);
 });
 
-// --- get EPA data from EPA Gateway/Login.gov
+// --- get data from EPA Gateway/Login.gov
 router.get("/epa-data", (req, res) => {
   // Explicitly return only required attributes from user info
   res.json({
@@ -104,17 +104,16 @@ router.get("/epa-data", (req, res) => {
   });
 });
 
-// --- get SAM.gov data from BAP
-router.get("/sam-data", (req, res) => {
+// --- get data from EPA's Business Automation Platform (BAP)
+router.get("/bap-data", (req, res) => {
   getSamData(req.user.mail, req)
-    .then((samUserData) => {
+    .then((samEntities) => {
+      // NOTE: allow admin or helpdesk users access to the app, even without SAM.gov data
       const userRoles = req.user.memberof.split(",");
       const helpdeskUser =
         userRoles.includes("csb_admin") || userRoles.includes("csb_helpdesk");
 
-      // First check if user has at least one associated UEI before completing login process
-      // If user has admin or helpdesk role, return empty array but still allow app use
-      if (!helpdeskUser && samUserData?.length === 0) {
+      if (!helpdeskUser && samEntities?.length === 0) {
         log({
           level: "error",
           message: `User with email ${req.user.mail} tried to use app without any associated SAM records.`,
@@ -122,18 +121,28 @@ router.get("/sam-data", (req, res) => {
         });
 
         return res.json({
-          results: false,
-          records: [],
+          samResults: false,
+          samEntities: [],
+          rebateSubmissions: [],
         });
       }
 
-      res.json({
-        results: true,
-        records: samUserData,
-      });
+      const comboKeys = samEntities.map((e) => e.ENTITY_COMBO_KEY__c);
+
+      getRebateSubmissionsData(comboKeys, req)
+        .then((submissions) => {
+          res.json({
+            samResults: true,
+            samEntities,
+            rebateSubmissions: submissions,
+          });
+        })
+        .catch((error) => {
+          throw error;
+        });
     })
-    .catch(() => {
-      res.status(401).json({ message: "Error getting SAM.gov data" });
+    .catch((error) => {
+      res.status(401).json({ message: "Error getting data from BAP" });
     });
 });
 

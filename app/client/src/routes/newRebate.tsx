@@ -12,8 +12,8 @@ import { TextWithTooltip } from "components/infoTooltip";
 import { useContentState } from "contexts/content";
 import { SamEntityData, useUserState } from "contexts/user";
 
-function createNewRebate(email: string, record: SamEntityData) {
-  const { title, name } = getUserInfo(email, record);
+function createNewRebate(email: string, entity: SamEntityData) {
+  const { title, name } = getUserInfo(email, entity);
 
   return fetchData(`${serverUrl}/api/rebate-form-submission/`, {
     data: {
@@ -21,18 +21,18 @@ function createNewRebate(email: string, record: SamEntityData) {
       hidden_current_user_email: email,
       hidden_current_user_title: title,
       hidden_current_user_name: name,
-      bap_hidden_entity_combo_key: record.ENTITY_COMBO_KEY__c,
+      bap_hidden_entity_combo_key: entity.ENTITY_COMBO_KEY__c,
       sam_hidden_applicant_email: email,
       sam_hidden_applicant_title: title,
       sam_hidden_applicant_name: name,
-      sam_hidden_applicant_efti: record.ENTITY_EFT_INDICATOR__c,
-      sam_hidden_applicant_uei: record.UNIQUE_ENTITY_ID__c,
-      sam_hidden_applicant_organization_name: record.LEGAL_BUSINESS_NAME__c,
-      sam_hidden_applicant_street_address_1: record.PHYSICAL_ADDRESS_LINE_1__c,
-      sam_hidden_applicant_street_address_2: record.PHYSICAL_ADDRESS_LINE_2__c,
-      sam_hidden_applicant_city: record.PHYSICAL_ADDRESS_CITY__c,
-      sam_hidden_applicant_state: record.PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
-      sam_hidden_applicant_zip_code: record.PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
+      sam_hidden_applicant_efti: entity.ENTITY_EFT_INDICATOR__c,
+      sam_hidden_applicant_uei: entity.UNIQUE_ENTITY_ID__c,
+      sam_hidden_applicant_organization_name: entity.LEGAL_BUSINESS_NAME__c,
+      sam_hidden_applicant_street_address_1: entity.PHYSICAL_ADDRESS_LINE_1__c,
+      sam_hidden_applicant_street_address_2: entity.PHYSICAL_ADDRESS_LINE_2__c,
+      sam_hidden_applicant_city: entity.PHYSICAL_ADDRESS_CITY__c,
+      sam_hidden_applicant_state: entity.PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
+      sam_hidden_applicant_zip_code: entity.PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
     },
     state: "draft",
   });
@@ -41,7 +41,7 @@ function createNewRebate(email: string, record: SamEntityData) {
 export default function NewRebate() {
   const navigate = useNavigate();
   const { content } = useContentState();
-  const { epaUserData, samUserData } = useUserState();
+  const { epaUserData, bapUserData } = useUserState();
 
   const [message, setMessage] = useState<{
     displayed: boolean;
@@ -53,14 +53,14 @@ export default function NewRebate() {
     text: "",
   });
 
-  if (epaUserData.status !== "success" || samUserData.status !== "success") {
+  if (epaUserData.status !== "success" || bapUserData.status !== "success") {
     return <Loading />;
   }
 
   const email = epaUserData.data.mail;
 
-  const activeSamRecords = samUserData.data.records.filter((record) => {
-    return record.ENTITY_STATUS__c === "Active";
+  const activeSamEntities = bapUserData.data.samEntities.filter((entity) => {
+    return entity.ENTITY_STATUS__c === "Active";
   });
 
   return (
@@ -75,7 +75,7 @@ export default function NewRebate() {
             <div className="usa-modal__main">
               {epaUserData.data.enrollmentClosed ? (
                 <Message type="info" text={messages.enrollmentClosed} />
-              ) : activeSamRecords.length <= 0 ? (
+              ) : activeSamEntities.length <= 0 ? (
                 <Message type="info" text={messages.samNoResults} />
               ) : (
                 <>
@@ -139,7 +139,7 @@ export default function NewRebate() {
                         </tr>
                       </thead>
                       <tbody>
-                        {activeSamRecords.map((record, index) => (
+                        {activeSamEntities.map((entity, index) => (
                           <tr key={index}>
                             <th scope="row" className="font-sans-2xs">
                               <button
@@ -151,7 +151,7 @@ export default function NewRebate() {
                                     text: "Creating new rebate form application...",
                                   });
 
-                                  createNewRebate(email, record)
+                                  createNewRebate(email, entity)
                                     .then((res) => {
                                       navigate(`/rebate/${res._id}`);
                                     })
@@ -166,8 +166,8 @@ export default function NewRebate() {
                               >
                                 <span className="usa-sr-only">
                                   Create Form with UEI:{" "}
-                                  {record.UNIQUE_ENTITY_ID__c} and EFTI:{" "}
-                                  {record.ENTITY_EFT_INDICATOR__c}
+                                  {entity.UNIQUE_ENTITY_ID__c} and EFTI:{" "}
+                                  {entity.ENTITY_EFT_INDICATOR__c}
                                 </span>
                                 <span className="display-flex flex-align-center">
                                   <svg
@@ -185,13 +185,13 @@ export default function NewRebate() {
                               </button>
                             </th>
                             <td className="font-sans-2xs">
-                              {record.UNIQUE_ENTITY_ID__c}
+                              {entity.UNIQUE_ENTITY_ID__c}
                             </td>
                             <td className="font-sans-2xs">
-                              {record.ENTITY_EFT_INDICATOR__c || "0000"}
+                              {entity.ENTITY_EFT_INDICATOR__c || "0000"}
                             </td>
                             <td className="font-sans-2xs">
-                              {record.LEGAL_BUSINESS_NAME__c}
+                              {entity.LEGAL_BUSINESS_NAME__c}
                             </td>
                           </tr>
                         ))}

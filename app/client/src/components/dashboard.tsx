@@ -22,25 +22,25 @@ Formio.setProjectUrl(formioProjectUrl);
 Formio.use(premium);
 Formio.use(uswds);
 
-// Custom hook to fetch SAM.gov data
-function useFetchedSamData() {
+// Custom hook to fetch BAP data
+function useFetchedBapData() {
   const dispatch = useUserDispatch();
 
   useEffect(() => {
-    dispatch({ type: "FETCH_SAM_USER_DATA_REQUEST" });
-    fetchData(`${serverUrl}/api/sam-data`)
+    dispatch({ type: "FETCH_BAP_USER_DATA_REQUEST" });
+    fetchData(`${serverUrl}/api/bap-data`)
       .then((res) => {
-        if (res.results) {
+        if (res.samResults) {
           dispatch({
-            type: "FETCH_SAM_USER_DATA_SUCCESS",
-            payload: { samUserData: res },
+            type: "FETCH_BAP_USER_DATA_SUCCESS",
+            payload: { bapUserData: res },
           });
         } else {
           window.location.href = `${serverUrl}/logout?RelayState=/welcome?info=sam-results`;
         }
       })
       .catch((err) => {
-        dispatch({ type: "FETCH_SAM_USER_DATA_FAILURE" });
+        dispatch({ type: "FETCH_BAP_USER_DATA_FAILURE" });
         window.location.href = `${serverUrl}/logout?RelayState=/welcome?error=sam-fetch`;
       });
   }, [dispatch]);
@@ -85,11 +85,11 @@ export default function Dashboard() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
-  const { epaUserData, samUserData } = useUserState();
+  const { epaUserData, bapUserData } = useUserState();
   const dispatch = useDialogDispatch();
   const helpdeskAccess = useHelpdeskAccess();
 
-  useFetchedSamData();
+  useFetchedBapData();
 
   /**
    * When provided a destination location to navigate to, creates an action
@@ -112,7 +112,7 @@ export default function Dashboard() {
     };
   }
 
-  if (samUserData.status !== "success") {
+  if (bapUserData.status !== "success") {
     return <Loading />;
   }
 
