@@ -31,7 +31,7 @@ type TextWithTooltipProps = {
 
 export function TextWithTooltip({ text, tooltip }: TextWithTooltipProps) {
   return (
-    <span className="display-flex flex-align-center text-no-wrap">
+    <span className="display-inline-flex flex-align-center text-no-wrap">
       <InfoTooltip label={tooltip} />
       {text}
     </span>

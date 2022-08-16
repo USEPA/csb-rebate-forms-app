@@ -74,7 +74,10 @@ export default function AllRebates() {
                   </th>
 
                   <th scope="col">
-                    <TextWithTooltip text="Application ID" tooltip="..." />
+                    <TextWithTooltip
+                      text="Application ID"
+                      tooltip="Unique Clean School Bus Application ID"
+                    />
                   </th>
 
                   <th scope="col">
@@ -82,6 +85,7 @@ export default function AllRebates() {
                       text="Form Type"
                       tooltip="Application, Payment Request, or Close-Out"
                     />
+                    <br />
                     <TextWithTooltip
                       text="Form Status"
                       tooltip="submitted or draft"
@@ -93,6 +97,7 @@ export default function AllRebates() {
                       text="UEI"
                       tooltip="Unique Entity ID from SAM.gov"
                     />
+                    <br />
                     <TextWithTooltip
                       text="EFT Indicator"
                       tooltip="Electronic Funds Transfer Indicator listing the associated bank account from SAM.gov"
@@ -104,6 +109,7 @@ export default function AllRebates() {
                       text="Applicant"
                       tooltip="Legal Business Name from SAM.gov for this UEI"
                     />
+                    <br />
                     <TextWithTooltip
                       text="School District"
                       tooltip="School district represented by applicant"
@@ -115,6 +121,7 @@ export default function AllRebates() {
                       text="Updated By"
                       tooltip="Last person that updated this form"
                     />
+                    <br />
                     <TextWithTooltip
                       text="Date Updated"
                       tooltip="Last date this form was updated"
@@ -189,7 +196,12 @@ form for the fields to be displayed. */
                           </Link>
                         </th>
 
-                        <td className={statusStyles}>&nbsp;</td>
+                        <td className={statusStyles}>
+                          <TextWithTooltip
+                            text=" "
+                            tooltip="Application ID will be displayed within 24hrs. after starting a new rebate form application"
+                          />
+                        </td>
 
                         <td className={statusStyles}>
                           <span title={_id}>Application</span>
