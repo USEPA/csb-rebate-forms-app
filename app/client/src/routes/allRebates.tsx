@@ -13,7 +13,7 @@ import { useFormsState, useFormsDispatch } from "contexts/forms";
 
 export default function AllRebates() {
   const { content } = useContentState();
-  const { epaUserData, bapUserData } = useUserState();
+  const { csbData, bapUserData } = useUserState();
   const { rebateFormSubmissions } = useFormsState();
   const dispatch = useFormsDispatch();
 
@@ -147,8 +147,8 @@ export default function AllRebates() {
 
                   const statusStyles =
                     state === "submitted" ||
-                    (epaUserData.status === "success" &&
-                      epaUserData.data?.enrollmentClosed)
+                    (csbData.status === "success" &&
+                      csbData.data.enrollmentClosed)
                       ? "text-italic text-base-dark"
                       : "";
 

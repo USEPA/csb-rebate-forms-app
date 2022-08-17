@@ -10,8 +10,11 @@ type Props = {
   children: ReactNode;
 };
 
-type EpaUserData = {
+type CsbData = {
   enrollmentClosed: boolean;
+};
+
+type EpaUserData = {
   mail: string;
   memberof: string;
   exp: number;
@@ -53,6 +56,11 @@ export type SamEntityData = {
 type State = {
   isAuthenticating: boolean;
   isAuthenticated: boolean;
+  csbData:
+    | { status: "idle"; data: {} }
+    | { status: "pending"; data: {} }
+    | { status: "success"; data: CsbData }
+    | { status: "failure"; data: {} };
   epaUserData:
     | { status: "idle"; data: {} }
     | { status: "pending"; data: {} }
@@ -73,12 +81,16 @@ type State = {
 type Action =
   | { type: "USER_SIGN_IN" }
   | { type: "USER_SIGN_OUT" }
+  | { type: "FETCH_CSB_DATA_REQUEST" }
+  | {
+      type: "FETCH_CSB_DATA_SUCCESS";
+      payload: { csbData: CsbData };
+    }
+  | { type: "FETCH_CSB_DATA_FAILURE" }
   | { type: "FETCH_EPA_USER_DATA_REQUEST" }
   | {
       type: "FETCH_EPA_USER_DATA_SUCCESS";
-      payload: {
-        epaUserData: EpaUserData;
-      };
+      payload: { epaUserData: EpaUserData };
     }
   | { type: "FETCH_EPA_USER_DATA_FAILURE" }
   | { type: "FETCH_BAP_USER_DATA_REQUEST" }
@@ -110,12 +122,47 @@ function reducer(state: State, action: Action): State {
         ...state,
         isAuthenticating: false,
         isAuthenticated: false,
+        csbData: {
+          status: "idle",
+          data: {},
+        },
         epaUserData: {
           status: "idle",
           data: {},
         },
         bapUserData: {
           status: "idle",
+          data: {},
+        },
+      };
+    }
+
+    case "FETCH_CSB_DATA_REQUEST": {
+      return {
+        ...state,
+        csbData: {
+          status: "pending",
+          data: {},
+        },
+      };
+    }
+
+    case "FETCH_CSB_DATA_SUCCESS": {
+      const { csbData } = action.payload;
+      return {
+        ...state,
+        csbData: {
+          status: "success",
+          data: csbData,
+        },
+      };
+    }
+
+    case "FETCH_CSB_DATA_FAILURE": {
+      return {
+        ...state,
+        csbData: {
+          status: "failure",
           data: {},
         },
       };
@@ -193,6 +240,10 @@ export function UserProvider({ children }: Props) {
   const initialState: State = {
     isAuthenticating: true,
     isAuthenticated: false,
+    csbData: {
+      status: "idle",
+      data: {},
+    },
     epaUserData: {
       status: "idle",
       data: {},

@@ -22,6 +22,25 @@ Formio.setProjectUrl(formioProjectUrl);
 Formio.use(premium);
 Formio.use(uswds);
 
+// Custom hook to fetch EPA data
+function useFetchedEpaData() {
+  const dispatch = useUserDispatch();
+
+  useEffect(() => {
+    dispatch({ type: "FETCH_EPA_USER_DATA_REQUEST" });
+    fetchData(`${serverUrl}/api/epa-data`)
+      .then((res) => {
+        dispatch({
+          type: "FETCH_EPA_USER_DATA_SUCCESS",
+          payload: { epaUserData: res },
+        });
+      })
+      .catch((err) => {
+        dispatch({ type: "FETCH_EPA_USER_DATA_FAILURE" });
+      });
+  }, [dispatch]);
+}
+
 // Custom hook to fetch BAP data
 function useFetchedBapData() {
   const dispatch = useUserDispatch();
@@ -85,10 +104,11 @@ export default function Dashboard() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
-  const { epaUserData, bapUserData } = useUserState();
+  const { csbData, epaUserData, bapUserData } = useUserState();
   const dispatch = useDialogDispatch();
   const helpdeskAccess = useHelpdeskAccess();
 
+  useFetchedEpaData();
   useFetchedBapData();
 
   /**
@@ -145,7 +165,7 @@ export default function Dashboard() {
         <nav className="desktop:order-last mobile-lg:display-flex flex-align-center flex-justify-end">
           <p className="margin-bottom-1 margin-right-1">
             <span>
-              {epaUserData.status === "success" && epaUserData.data?.mail}
+              {epaUserData.status === "success" && epaUserData.data.mail}
             </span>
           </p>
 
@@ -190,8 +210,7 @@ export default function Dashboard() {
           )}
 
           {pathname.startsWith("/rebate") ||
-          (epaUserData.status === "success" &&
-            epaUserData.data?.enrollmentClosed) ? (
+          (csbData.status === "success" && csbData.data.enrollmentClosed) ? (
             <button
               className="margin-bottom-1 usa-button font-sans-2xs"
               disabled
