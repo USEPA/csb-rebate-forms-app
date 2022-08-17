@@ -1,4 +1,5 @@
 const { resolve } = require("node:path");
+const express = require("express");
 const jwt = require("jsonwebtoken");
 const ObjectId = require("mongodb").ObjectId;
 // ---
@@ -12,18 +13,17 @@ const cookieName = "csb-token";
  * Middleware to check for JWT, add user object to request, and create new JWT to keep alive for 15 minutes from request
  * Default to rejectRequest function if jwt is invalid, but allow for a custom override function on reject
  * (required for auto-redirect to SAML)
+ * @param {express.Request} req
+ * @param {express.Response} res
+ * @param {express.NextFunction} next
  */
-const ensureAuthenticated = (
-  req,
-  res,
-  next,
-  rejectCallback = rejectRequest
-) => {
+function ensureAuthenticated(req, res, next, rejectCallback = rejectRequest) {
   // If no JWT passed in token cookie, send Unauthorized response or redirect
   if (!req.cookies[cookieName]) {
     log({ level: "warn", message: "No jwt cookie present in request", req });
     return rejectCallback(req, res);
   }
+
   jwt.verify(
     req.cookies[cookieName],
     process.env.JWT_PUBLIC_KEY,
@@ -61,13 +61,16 @@ const ensureAuthenticated = (
       next();
     }
   );
-};
+}
 
 /**
- * Confirm user has either "csb_admin" or "csb_helpdesk" role
+ * Confirm user has either "csb_admin" or "csb_helpdesk" role.
  * Log message and send 401 Unauthorized if user does not have either role
+ * @param {express.Request} req
+ * @param {express.Response} res
+ * @param {express.NextFunction} next
  */
-const ensureHelpdesk = (req, res, next) => {
+function ensureHelpdesk(req, res, next) {
   const userRoles = req.user.memberof ? req.user.memberof.split(",") : [];
 
   if (!userRoles.includes("csb_admin") && !userRoles.includes("csb_helpdesk")) {
@@ -83,9 +86,14 @@ const ensureHelpdesk = (req, res, next) => {
   }
 
   next();
-};
+}
 
-const rejectRequest = (req, res, expired) => {
+/**
+ * @param {express.Request} req
+ * @param {express.Response} res
+ * @param {boolean} expired
+ */
+function rejectRequest(req, res, expired) {
   // Clear token cookie if there was an error verifying (e.g. expired)
   res.clearCookie(cookieName);
 
@@ -100,10 +108,15 @@ const rejectRequest = (req, res, expired) => {
       expired ? "info=timeout" : "error=auth"
     }`
   );
-};
+}
 
-// Auto-redirect to SAML login for any non-logged-in user on any route except base "/" or "/welcome"
-const protectClientRoutes = (req, res, next) => {
+/**
+ * Auto-redirect to SAML login for any non-logged-in user on any route except base "/" or "/welcome"
+ * @param {express.Request} req
+ * @param {express.Response} res
+ * @param {express.NextFunction} next
+ */
+function protectClientRoutes(req, res, next) {
   const subPath = process.env.SERVER_BASE_PATH || "";
   const unprotectedRoutes = ["/", "/welcome", "/manifest.json"].map(
     (route) => `${subPath}${route}`
@@ -120,18 +133,28 @@ const protectClientRoutes = (req, res, next) => {
     });
   }
   next();
-};
+}
 
-const checkCsbEnrollmentPeriod = (req, res, next) => {
+/**
+ * @param {express.Request} req
+ * @param {express.Response} res
+ * @param {express.NextFunction} next
+ */
+function checkCsbEnrollmentPeriod(req, res, next) {
   const enrollmentClosed = process.env.CSB_ENROLLMENT_PERIOD === "closed";
   if (enrollmentClosed) {
     return res.status(400).json({ message: `CSB enrollment period is closed` });
   }
 
   next();
-};
+}
 
-const checkClientRouteExists = (req, res, next) => {
+/**
+ * @param {express.Request} req
+ * @param {express.Response} res
+ * @param {express.NextFunction} next
+ */
+function checkClientRouteExists(req, res, next) {
   const subPath = process.env.SERVER_BASE_PATH || "";
   const clientRoutes = ["/", "/welcome", "/helpdesk", "/rebate/new"].map(
     (route) => `${subPath}${route}`
@@ -140,19 +163,29 @@ const checkClientRouteExists = (req, res, next) => {
     return res.status(404).sendFile(resolve(__dirname, "public/404.html"));
   }
   next();
-};
+}
 
-// Global middleware on dev/staging to send 200 status on all server endpoints (required for ZAP scan)
-const appScan = (req, res, next) => {
+/**
+ * Global middleware on dev/staging to send 200 status on all server endpoints (required for ZAP scan)
+ * @param {express.Request} req
+ * @param {express.Response} res
+ * @param {express.NextFunction} next
+ */
+function appScan(req, res, next) {
   // OpenAPI def must use global "scan" param and enum to "true"
   if (req.query.scan === "true") {
     return res.json({ status: 200 });
   }
   next();
-};
+}
 
-// Get user's SAM.gov unique combo keys and add "bapComboKeys" to request object if successful
-const checkBapComboKeys = (req, res, next) => {
+/**
+ * Get user's SAM.gov unique combo keys and add "bapComboKeys" to request object if successful
+ * @param {express.Request} req
+ * @param {express.Response} res
+ * @param {express.NextFunction} next
+ */
+function checkBapComboKeys(req, res, next) {
   getComboKeys(req.user.mail, req)
     .then((bapComboKeys) => {
       req.bapComboKeys = bapComboKeys;
@@ -161,9 +194,14 @@ const checkBapComboKeys = (req, res, next) => {
     .catch(() => {
       return res.status(401).json({ message: "Error getting SAM.gov data" });
     });
-};
+}
 
-const verifyMongoObjectId = (req, res, next) => {
+/**
+ * @param {express.Request} req
+ * @param {express.Response} res
+ * @param {express.NextFunction} next
+ */
+function verifyMongoObjectId(req, res, next) {
   const id = req.params.id;
 
   if (id && !ObjectId.isValid(id)) {
@@ -173,7 +211,7 @@ const verifyMongoObjectId = (req, res, next) => {
   }
 
   next();
-};
+}
 
 module.exports = {
   ensureAuthenticated,
