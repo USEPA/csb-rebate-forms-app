@@ -35,11 +35,10 @@ export const serverBasePath =
 // is needed for production.
 export const serverUrl = window.location.origin + serverBasePath;
 
-// NOTE: This local development setup unfortunately doesn't proxy GET requests
-// from links though because they set an "Accept" request header to "text/html",
-// so we need to use a different environment variable for when the serverUrl is
-// used in the href of anchor tags (e.g. login and logout links).
-export const serverUrlForLinks =
+// NOTE: Create React App's local development proxy setup doesn't proxy requests
+// that set an "Accept" request header to "text/html", so in those cases we need
+// to explicitly use the server app's URL/port (localhost:3001)
+export const serverUrlForHrefs =
   NODE_ENV === "development" ? "http://localhost:3001" : serverUrl;
 
 export const cloudSpace =

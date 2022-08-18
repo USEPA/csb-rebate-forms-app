@@ -7,7 +7,7 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import {
   serverUrl,
-  serverUrlForLinks,
+  serverUrlForHrefs,
   formioBaseUrl,
   formioProjectUrl,
   fetchData,
@@ -55,12 +55,12 @@ function useFetchedBapData() {
             payload: { bapUserData: res },
           });
         } else {
-          window.location.href = `${serverUrl}/logout?RelayState=/welcome?info=sam-results`;
+          window.location.href = `${serverUrlForHrefs}/logout?RelayState=/welcome?info=sam-results`;
         }
       })
       .catch((err) => {
         dispatch({ type: "FETCH_BAP_USER_DATA_FAILURE" });
-        window.location.href = `${serverUrl}/logout?RelayState=/welcome?error=sam-fetch`;
+        window.location.href = `${serverUrlForHrefs}/logout?RelayState=/welcome?error=bap-fetch`;
       });
   }, [dispatch]);
 }
@@ -171,7 +171,7 @@ export default function Dashboard() {
 
           <a
             className="margin-bottom-1 usa-button font-sans-2xs margin-right-0"
-            href={`${serverUrlForLinks}/logout`}
+            href={`${serverUrlForHrefs}/logout`}
           >
             <IconText order="text-icon" icon="logout" text="Sign out" />
           </a>
