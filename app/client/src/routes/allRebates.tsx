@@ -181,10 +181,11 @@ export default function AllRebates() {
                     state === "submitted" &&
                     bap.rebateStatus === "Edits Requested";
 
-                  const statusStyles =
-                    enrollmentClosed || state === "submitted"
-                      ? "text-italic text-base-dark"
-                      : "";
+                  const statusClassNames = submissionNeedsEdits
+                    ? "csb-needs-edits"
+                    : enrollmentClosed || state === "submitted"
+                    ? "text-italic text-base-dark"
+                    : "";
 
                   /* NOTE: when a form is first initially created, and the user
 has not yet clicked the "Next" or "Save" buttons, any fields that the formio
@@ -200,7 +201,7 @@ form for the fields to be displayed. */
                   return (
                     <Fragment key={_id}>
                       <tr>
-                        <th scope="row">
+                        <th scope="row" className={statusClassNames}>
                           {submissionNeedsEdits ? (
                             <button
                               className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
@@ -268,7 +269,7 @@ form for the fields to be displayed. */
                           ) : null}
                         </th>
 
-                        <td className={statusStyles}>
+                        <td className={statusClassNames}>
                           {bap.applicationId ? (
                             bap.applicationId
                           ) : (
@@ -279,7 +280,7 @@ form for the fields to be displayed. */
                           )}
                         </td>
 
-                        <td className={statusStyles}>
+                        <td className={statusClassNames}>
                           <span title={_id}>Application</span>
                           <br />
                           <span className="display-flex flex-align-center font-sans-2xs">
@@ -307,7 +308,7 @@ form for the fields to be displayed. */
                           </span>
                         </td>
 
-                        <td className={statusStyles}>
+                        <td className={statusClassNames}>
                           <>
                             {Boolean(applicantUEI) ? (
                               applicantUEI
@@ -370,7 +371,7 @@ save the form for the EFT indicator to be displayed. */
                           </>
                         </td>
 
-                        <td className={statusStyles}>
+                        <td className={statusClassNames}>
                           <>
                             {Boolean(applicantOrganizationName) ? (
                               applicantOrganizationName
@@ -392,7 +393,7 @@ save the form for the EFT indicator to be displayed. */
                           </>
                         </td>
 
-                        <td className={statusStyles}>
+                        <td className={statusClassNames}>
                           {last_updated_by}
                           <br />
                           <span title={`${date} ${time}`}>{date}</span>
