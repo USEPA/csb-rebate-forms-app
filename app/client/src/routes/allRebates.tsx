@@ -54,9 +54,8 @@ export default function AllRebates() {
   }
 
   /**
-   * Formio submissions, merged with the CSB rebate status returned from the
-   * submission data returned from the BAP: currently only used to handle
-   * submitted submissions that require edits (via the "Edits Requested" status)
+   * Formio submissions, merged with rebate submissions returned from the BAP,
+   * so we can include CSB rebate status and CSB review item ID
    */
   const submissions = rebateFormSubmissions.data.map((formioSubmission) => {
     const matchedSubmission = bapUserData.data.rebateSubmissions.find(
@@ -66,8 +65,11 @@ export default function AllRebates() {
     return {
       ...formioSubmission,
       bap: {
+        applicationId: matchedSubmission
+          ? matchedSubmission?.CSB_Review_Item_ID__c
+          : null,
         rebateStatus: matchedSubmission
-          ? matchedSubmission.Parent_CSB_Rebate__r.CSB_Rebate_Status__c
+          ? matchedSubmission?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c
           : null,
       },
     };
@@ -254,10 +256,14 @@ form for the fields to be displayed. */
                         </th>
 
                         <td className={statusStyles}>
-                          <TextWithTooltip
-                            text=" "
-                            tooltip="Application ID will be displayed within 24hrs. after starting a new rebate form application"
-                          />
+                          {bap.applicationId ? (
+                            bap.applicationId
+                          ) : (
+                            <TextWithTooltip
+                              text=" "
+                              tooltip="Application ID will be displayed within 24hrs. after starting a new rebate form application"
+                            />
+                          )}
                         </td>
 
                         <td className={statusStyles}>
