@@ -80,7 +80,7 @@ export default function NewRebate() {
               {csbData.data.enrollmentClosed ? (
                 <Message type="info" text={messages.enrollmentClosed} />
               ) : activeSamEntities.length <= 0 ? (
-                <Message type="info" text={messages.samNoResults} />
+                <Message type="info" text={messages.noSamResults} />
               ) : (
                 <>
                   {content.status === "success" && (

@@ -35,11 +35,11 @@ export default function Welcome() {
       });
     }
 
-    if (searchParams.get("error") === "sam-fetch") {
+    if (searchParams.get("error") === "bap-fetch") {
       setMessage({
         displayed: true,
         type: "error",
-        text: messages.samFetchError,
+        text: messages.bapFetchError,
       });
     }
 
@@ -47,7 +47,7 @@ export default function Welcome() {
       setMessage({
         displayed: true,
         type: "info",
-        text: messages.samNoResults,
+        text: messages.noSamResults,
       });
     }
 
