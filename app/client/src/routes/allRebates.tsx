@@ -1,5 +1,5 @@
 import { Fragment, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, fetchData, messages } from "../config";
@@ -12,6 +12,7 @@ import { useUserState } from "contexts/user";
 import { useFormsState, useFormsDispatch } from "contexts/forms";
 
 export default function AllRebates() {
+  const navigate = useNavigate();
   const { content } = useContentState();
   const { csbData, bapUserData } = useUserState();
   const { rebateFormSubmissions } = useFormsState();
@@ -176,6 +177,10 @@ export default function AllRebates() {
                   const date = new Date(modified).toLocaleDateString();
                   const time = new Date(modified).toLocaleTimeString();
 
+                  const submissionNeedsEdits =
+                    state === "submitted" &&
+                    bap.rebateStatus === "Edits Requested";
+
                   const statusStyles =
                     enrollmentClosed || state === "submitted"
                       ? "text-italic text-base-dark"
@@ -196,14 +201,22 @@ form for the fields to be displayed. */
                     <Fragment key={_id}>
                       <tr>
                         <th scope="row">
-                          {bap.rebateStatus === "Edits Requested" ? (
+                          {submissionNeedsEdits ? (
                             <button
                               className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
                               onClick={(ev) => {
-                                // TODO: post an update to the submission,
-                                // changing the status to draft, and on success
-                                // redirect to the `/rebate/${_id}` page
-                                console.log(ev);
+                                // change the submission's state to draft, then
+                                // redirect to the form to allow user to edit
+                                fetchData(
+                                  `${serverUrl}/api/rebate-form-submission/${_id}`,
+                                  { data, state: "draft" }
+                                )
+                                  .then((res) => {
+                                    navigate(`/rebate/${res._id}`);
+                                  })
+                                  .catch((err) => {
+                                    console.log(err);
+                                  });
                               }}
                             >
                               <span className="display-flex flex-align-center">
@@ -278,7 +291,7 @@ form for the fields to be displayed. */
                             >
                               <use
                                 href={
-                                  bap.rebateStatus === "Edits Requested"
+                                  submissionNeedsEdits
                                     ? `${icons}#priority_high`
                                     : state === "draft"
                                     ? `${icons}#more_horiz`
@@ -289,9 +302,7 @@ form for the fields to be displayed. */
                               />
                             </svg>
                             <span className="margin-left-05">
-                              {bap.rebateStatus === "Edits Requested"
-                                ? bap.rebateStatus
-                                : state}
+                              {submissionNeedsEdits ? bap.rebateStatus : state}
                             </span>
                           </span>
                         </td>
