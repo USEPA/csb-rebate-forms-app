@@ -53,6 +53,17 @@ export type SamEntityData = {
   attributes: { type: string; url: string };
 };
 
+type BapSubmissionData = {
+  CSB_Form_ID__c: string; // MongoDB ObjectId string
+  CSB_Review_Item_ID__c: string;
+  UEI_EFTI_Combo_Key__c: string;
+  Parent_CSB_Rebate__r: {
+    CSB_Rebate_Status__c: "Draft" | "Submitted" | "Edits Requested";
+    attributes: { type: string; url: string };
+  };
+  attributes: { type: string; url: string };
+};
+
 type State = {
   isAuthenticating: boolean;
   isAuthenticated: boolean;
@@ -72,8 +83,16 @@ type State = {
     | {
         status: "success";
         data:
-          | { samResults: true; samEntities: SamEntityData[] }
-          | { samResults: false; samEntities: [] };
+          | {
+              samResults: false;
+              samEntities: [];
+              rebateSubmissions: [];
+            }
+          | {
+              samResults: true;
+              samEntities: SamEntityData[];
+              rebateSubmissions: BapSubmissionData[];
+            };
       }
     | { status: "failure"; data: {} };
 };
@@ -98,8 +117,16 @@ type Action =
       type: "FETCH_BAP_USER_DATA_SUCCESS";
       payload: {
         bapUserData:
-          | { samResults: true; samEntities: SamEntityData[] }
-          | { samResults: false; samEntities: [] };
+          | {
+              samResults: false;
+              samEntities: [];
+              rebateSubmissions: [];
+            }
+          | {
+              samResults: true;
+              samEntities: SamEntityData[];
+              rebateSubmissions: BapSubmissionData[];
+            };
       };
     }
   | { type: "FETCH_BAP_USER_DATA_FAILURE" };

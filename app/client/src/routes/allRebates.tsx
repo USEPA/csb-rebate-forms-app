@@ -37,19 +37,48 @@ export default function AllRebates() {
   }, [bapUserData, dispatch]);
 
   if (
+    bapUserData.status === "idle" ||
+    bapUserData.status === "pending" ||
     rebateFormSubmissions.status === "idle" ||
     rebateFormSubmissions.status === "pending"
   ) {
     return <Loading />;
   }
 
+  if (bapUserData.status === "failure") {
+    return <Message type="error" text={messages.bapFetchError} />;
+  }
+
   if (rebateFormSubmissions.status === "failure") {
     return <Message type="error" text={messages.rebateSubmissionsError} />;
   }
 
+  /**
+   * Formio submissions, merged with the CSB rebate status returned from the
+   * submission data returned from the BAP: currently only used to handle
+   * submitted submissions that require edits (via the "Edits Requested" status)
+   */
+  const submissions = rebateFormSubmissions.data.map((formioSubmission) => {
+    const matchedSubmission = bapUserData.data.rebateSubmissions.find(
+      (bapSubmission) => bapSubmission.CSB_Form_ID__c === formioSubmission._id
+    );
+
+    return {
+      ...formioSubmission,
+      bap: {
+        rebateStatus: matchedSubmission
+          ? matchedSubmission.Parent_CSB_Rebate__r.CSB_Rebate_Status__c
+          : null,
+      },
+    };
+  });
+
+  const enrollmentClosed =
+    csbData.status === "success" && csbData.data.enrollmentClosed;
+
   return (
     <>
-      {rebateFormSubmissions.data.length === 0 ? (
+      {submissions.length === 0 ? (
         <div className="margin-top-4">
           <Message type="info" text={messages.newRebateApplication} />
         </div>
@@ -131,8 +160,8 @@ export default function AllRebates() {
               </thead>
 
               <tbody>
-                {rebateFormSubmissions.data.map((submission) => {
-                  const { _id, state, modified, data } = submission;
+                {submissions.map((submission) => {
+                  const { bap, _id, state, modified, data } = submission;
                   const {
                     applicantUEI,
                     applicantEfti,
@@ -146,9 +175,7 @@ export default function AllRebates() {
                   const time = new Date(modified).toLocaleTimeString();
 
                   const statusStyles =
-                    state === "submitted" ||
-                    (csbData.status === "success" &&
-                      csbData.data.enrollmentClosed)
+                    enrollmentClosed || state === "submitted"
                       ? "text-italic text-base-dark"
                       : "";
 
@@ -167,33 +194,63 @@ form for the fields to be displayed. */
                     <Fragment key={_id}>
                       <tr>
                         <th scope="row">
-                          <Link
-                            to={`/rebate/${_id}`}
-                            className={`usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1 ${
-                              state === "submitted" && "usa-button--base"
-                            }`}
-                          >
-                            <span className="display-flex flex-align-center">
-                              <svg
-                                className="usa-icon"
-                                aria-hidden="true"
-                                focusable="false"
-                                role="img"
-                              >
-                                <use
-                                  href={
-                                    state === "draft"
-                                      ? `${icons}#edit`
-                                      : `${icons}#visibility`
-                                  }
-                                />
-                              </svg>
-                              <span className="margin-left-1">
-                                {state === "draft" && <>Edit</>}
-                                {state === "submitted" && <>View</>}
+                          {bap.rebateStatus === "Edits Requested" ? (
+                            <button
+                              className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
+                              onClick={(ev) => {
+                                // TODO: post an update to the submission,
+                                // changing the status to draft, and on success
+                                // redirect to the `/rebate/${_id}` page
+                                console.log(ev);
+                              }}
+                            >
+                              <span className="display-flex flex-align-center">
+                                <svg
+                                  className="usa-icon"
+                                  aria-hidden="true"
+                                  focusable="false"
+                                  role="img"
+                                >
+                                  <use href={`${icons}#edit`} />
+                                </svg>
+                                <span className="margin-left-1">Edit</span>
                               </span>
-                            </span>
-                          </Link>
+                            </button>
+                          ) : state === "draft" ? (
+                            <Link
+                              to={`/rebate/${_id}`}
+                              className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
+                            >
+                              <span className="display-flex flex-align-center">
+                                <svg
+                                  className="usa-icon"
+                                  aria-hidden="true"
+                                  focusable="false"
+                                  role="img"
+                                >
+                                  <use href={`${icons}#edit`} />
+                                </svg>
+                                <span className="margin-left-1">Edit</span>
+                              </span>
+                            </Link>
+                          ) : state === "submitted" ? (
+                            <Link
+                              to={`/rebate/${_id}`}
+                              className="usa-button usa-button--base font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
+                            >
+                              <span className="display-flex flex-align-center">
+                                <svg
+                                  className="usa-icon"
+                                  aria-hidden="true"
+                                  focusable="false"
+                                  role="img"
+                                >
+                                  <use href={`${icons}#visibility`} />
+                                </svg>
+                                <span className="margin-left-1">View</span>
+                              </span>
+                            </Link>
+                          ) : null}
                         </th>
 
                         <td className={statusStyles}>
@@ -215,13 +272,21 @@ form for the fields to be displayed. */
                             >
                               <use
                                 href={
-                                  state === "draft"
-                                    ? `${icons}#remove`
-                                    : `${icons}#check`
+                                  bap.rebateStatus === "Edits Requested"
+                                    ? `${icons}#priority_high`
+                                    : state === "draft"
+                                    ? `${icons}#more_horiz`
+                                    : state === "submitted"
+                                    ? `${icons}#check`
+                                    : `${icons}#remove` // fallback, not used
                                 }
                               />
                             </svg>
-                            <span className="margin-left-05">{state}</span>
+                            <span className="margin-left-05">
+                              {bap.rebateStatus === "Edits Requested"
+                                ? bap.rebateStatus
+                                : state}
+                            </span>
                           </span>
                         </td>
 

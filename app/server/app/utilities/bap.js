@@ -194,9 +194,9 @@ function queryForRebateFormSubmissions(comboKeys, req) {
     .query(
       `
         SELECT
-          id,
+          CSB_Form_ID__c,
           CSB_Review_Item_ID__c,
-          Parent_CSB_Rebate__r.id,
+          UEI_EFTI_Combo_Key__c,
           Parent_CSB_Rebate__r.CSB_Rebate_Status__c
         FROM
           ${BAP_FORMS_TABLE}
