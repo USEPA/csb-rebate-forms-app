@@ -220,22 +220,22 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
 
   // Check if user is already logged in or needs to be redirected to /welcome route
   const verifyUser = useCallback(() => {
-    fetchData(`${serverUrl}/api/csb-data`)
+    fetchData(`${serverUrl}/api/epa-data`)
       .then((res) => {
         dispatch({
-          type: "FETCH_CSB_DATA_SUCCESS",
-          payload: { csbData: res },
+          type: "FETCH_EPA_USER_DATA_SUCCESS",
+          payload: { epaUserData: res },
         });
         dispatch({ type: "USER_SIGN_IN" });
       })
       .catch((err) => {
-        dispatch({ type: "FETCH_CSB_DATA_FAILURE" });
+        dispatch({ type: "FETCH_EPA_USER_DATA_FAILURE" });
         dispatch({ type: "USER_SIGN_OUT" });
       });
   }, [dispatch]);
 
   useEffect(() => {
-    dispatch({ type: "FETCH_CSB_DATA_REQUEST" });
+    dispatch({ type: "FETCH_EPA_USER_DATA_REQUEST" });
     verifyUser();
   }, [verifyUser, dispatch, pathname]);
 
