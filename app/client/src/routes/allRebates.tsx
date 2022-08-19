@@ -81,7 +81,7 @@ export default function AllRebates() {
           ? matchedSubmission?.CSB_Form_Modified__c
           : null,
         rebateId: matchedSubmission
-          ? matchedSubmission?.CSB_Review_Item_ID__c
+          ? matchedSubmission?.Parent_Rebate_ID__c
           : null,
         rebateStatus: matchedSubmission
           ? matchedSubmission?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c
