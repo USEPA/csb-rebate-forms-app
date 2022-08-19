@@ -77,11 +77,11 @@ export default function AllRebates() {
     return {
       ...formioSubmission,
       bap: {
-        applicationId: matchedSubmission
-          ? matchedSubmission?.CSB_Review_Item_ID__c
-          : null,
         lastModified: matchedSubmission
           ? matchedSubmission?.CSB_Form_Modified__c
+          : null,
+        rebateId: matchedSubmission
+          ? matchedSubmission?.CSB_Review_Item_ID__c
           : null,
         rebateStatus: matchedSubmission
           ? matchedSubmission?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c
@@ -125,8 +125,8 @@ export default function AllRebates() {
 
                   <th scope="col">
                     <TextWithTooltip
-                      text="Application ID"
-                      tooltip="Unique Clean School Bus Application ID"
+                      text="Rebate ID"
+                      tooltip="Unique Clean School Bus Rebate ID"
                     />
                   </th>
 
@@ -258,7 +258,7 @@ form for the fields to be displayed. */
                                     setMessage({
                                       displayed: true,
                                       type: "error",
-                                      text: `Error updating Application ${bap.applicationId}. Please try again.`,
+                                      text: `Error updating Rebate ${bap.rebateId}. Please try again.`,
                                     });
                                   });
                               }}
@@ -313,14 +313,14 @@ form for the fields to be displayed. */
                         </th>
 
                         <td className={statusClassNames}>
-                          {bap.applicationId ? (
+                          {bap.rebateId ? (
                             <span title={`Form ID: ${_id}`}>
-                              {bap.applicationId}
+                              {bap.rebateId}
                             </span>
                           ) : (
                             <TextWithTooltip
                               text=" "
-                              tooltip="Application ID will be displayed within 24hrs. after starting a new rebate form application"
+                              tooltip="Rebate ID will be displayed within 24hrs. after starting a new rebate form application"
                             />
                           )}
                         </td>
