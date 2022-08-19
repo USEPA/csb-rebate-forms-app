@@ -314,7 +314,7 @@ form for the fields to be displayed. */
 
                         <td className={statusClassNames}>
                           {bap.rebateId ? (
-                            <span title={`Form ID: ${_id}`}>
+                            <span title={`Application ID: ${_id}`}>
                               {bap.rebateId}
                             </span>
                           ) : (
