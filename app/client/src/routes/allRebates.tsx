@@ -1,4 +1,4 @@
-import { Fragment, useEffect } from "react";
+import { Fragment, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import icons from "uswds/img/sprite.svg";
 // ---
@@ -17,6 +17,16 @@ export default function AllRebates() {
   const { csbData, bapUserData } = useUserState();
   const { rebateFormSubmissions } = useFormsState();
   const dispatch = useFormsDispatch();
+
+  const [message, setMessage] = useState<{
+    displayed: boolean;
+    type: "info" | "success" | "warning" | "error";
+    text: string;
+  }>({
+    displayed: false,
+    type: "info",
+    text: "",
+  });
 
   useEffect(() => {
     if (bapUserData.status !== "success" || !bapUserData.data.samResults) {
@@ -96,6 +106,10 @@ export default function AllRebates() {
               className="margin-top-4"
               children={content.data?.allRebatesIntro || ""}
             />
+          )}
+
+          {message.displayed && (
+            <Message type={message.type} text={message.text} />
           )}
 
           <div className="usa-table-container--scrollable" tabIndex={0}>
@@ -223,6 +237,13 @@ form for the fields to be displayed. */
                             <button
                               className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
                               onClick={(ev) => {
+                                // clear out existing message
+                                setMessage({
+                                  displayed: false,
+                                  type: "info",
+                                  text: "",
+                                });
+
                                 // change the submission's state to draft, then
                                 // redirect to the form to allow user to edit
                                 fetchData(
@@ -233,7 +254,11 @@ form for the fields to be displayed. */
                                     navigate(`/rebate/${res._id}`);
                                   })
                                   .catch((err) => {
-                                    console.log(err);
+                                    setMessage({
+                                      displayed: true,
+                                      type: "error",
+                                      text: `Error updating Application ${bap.applicationId}. Please try again.`,
+                                    });
                                   });
                               }}
                             >
@@ -424,6 +449,10 @@ save the form for the EFT indicator to be displayed. */
               </tbody>
             </table>
           </div>
+
+          {message.displayed && (
+            <Message type={message.type} text={message.text} />
+          )}
         </>
       )}
 
