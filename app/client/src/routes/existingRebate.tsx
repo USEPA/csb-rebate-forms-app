@@ -11,6 +11,7 @@ import {
 import { useNavigate, useParams } from "react-router-dom";
 import { Formio, Form } from "@formio/react";
 import { cloneDeep, isEqual } from "lodash";
+import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, fetchData } from "../config";
 import { getUserInfo } from "../utilities";
@@ -345,6 +346,10 @@ function ExistingRebateContent() {
     return <Loading />;
   }
 
+  const rebateId = bapUserData.data.rebateSubmissions.find(
+    (bapSubmission) => bapSubmission.CSB_Form_ID__c === id
+  )?.Parent_Rebate_ID__c;
+
   const entityComboKey = storedSubmissionData.bap_hidden_entity_combo_key;
   const entity = bapUserData.data.samEntities.find((entity) => {
     return (
@@ -375,7 +380,31 @@ function ExistingRebateContent() {
 
       <FormMessage />
 
-      <h3>Application ID: {submissionData._id}</h3>
+      <ul className="usa-icon-list">
+        <li className="usa-icon-list__item">
+          <div className="usa-icon-list__icon text-primary">
+            <svg className="usa-icon" aria-hidden="true" role="img">
+              <use href={`${icons}#local_offer`} />
+            </svg>
+          </div>
+          <div className="usa-icon-list__content">
+            <strong>Application ID:</strong> {submissionData._id}
+          </div>
+        </li>
+
+        {rebateId && (
+          <li className="usa-icon-list__item">
+            <div className="usa-icon-list__icon text-primary">
+              <svg className="usa-icon" aria-hidden="true" role="img">
+                <use href={`${icons}#local_offer`} />
+              </svg>
+            </div>
+            <div className="usa-icon-list__content">
+              <strong>Rebate ID:</strong> {rebateId}
+            </div>
+          </li>
+        )}
+      </ul>
 
       <div className="csb-form">
         <Form
