@@ -41,7 +41,7 @@ function createNewRebate(email: string, entity: SamEntityData) {
 export default function NewRebate() {
   const navigate = useNavigate();
   const { content } = useContentState();
-  const { epaUserData, bapUserData } = useUserState();
+  const { csbData, epaUserData, bapUserData } = useUserState();
 
   const [message, setMessage] = useState<{
     displayed: boolean;
@@ -53,7 +53,11 @@ export default function NewRebate() {
     text: "",
   });
 
-  if (epaUserData.status !== "success" || bapUserData.status !== "success") {
+  if (
+    csbData.status !== "success" ||
+    epaUserData.status !== "success" ||
+    bapUserData.status !== "success"
+  ) {
     return <Loading />;
   }
 
@@ -73,10 +77,10 @@ export default function NewRebate() {
         >
           <div className="usa-modal__content">
             <div className="usa-modal__main">
-              {epaUserData.data.enrollmentClosed ? (
+              {csbData.data.enrollmentClosed ? (
                 <Message type="info" text={messages.enrollmentClosed} />
               ) : activeSamEntities.length <= 0 ? (
-                <Message type="info" text={messages.samNoResults} />
+                <Message type="info" text={messages.noSamResults} />
               ) : (
                 <>
                   {content.status === "success" && (

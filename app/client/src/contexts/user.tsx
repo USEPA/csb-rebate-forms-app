@@ -10,8 +10,11 @@ type Props = {
   children: ReactNode;
 };
 
-type EpaUserData = {
+type CsbData = {
   enrollmentClosed: boolean;
+};
+
+type EpaUserData = {
   mail: string;
   memberof: string;
   exp: number;
@@ -50,9 +53,26 @@ export type SamEntityData = {
   attributes: { type: string; url: string };
 };
 
+type BapSubmissionData = {
+  CSB_Form_ID__c: string; // MongoDB ObjectId string
+  CSB_Form_Modified__c: string; // ISO 8601 date string
+  CSB_Review_Item_ID__c: string;
+  UEI_EFTI_Combo_Key__c: string;
+  Parent_CSB_Rebate__r: {
+    CSB_Rebate_Status__c: "Draft" | "Submitted" | "Edits Requested";
+    attributes: { type: string; url: string };
+  };
+  attributes: { type: string; url: string };
+};
+
 type State = {
   isAuthenticating: boolean;
   isAuthenticated: boolean;
+  csbData:
+    | { status: "idle"; data: {} }
+    | { status: "pending"; data: {} }
+    | { status: "success"; data: CsbData }
+    | { status: "failure"; data: {} };
   epaUserData:
     | { status: "idle"; data: {} }
     | { status: "pending"; data: {} }
@@ -64,8 +84,16 @@ type State = {
     | {
         status: "success";
         data:
-          | { samResults: true; samEntities: SamEntityData[] }
-          | { samResults: false; samEntities: [] };
+          | {
+              samResults: false;
+              samEntities: [];
+              rebateSubmissions: [];
+            }
+          | {
+              samResults: true;
+              samEntities: SamEntityData[];
+              rebateSubmissions: BapSubmissionData[];
+            };
       }
     | { status: "failure"; data: {} };
 };
@@ -73,12 +101,16 @@ type State = {
 type Action =
   | { type: "USER_SIGN_IN" }
   | { type: "USER_SIGN_OUT" }
+  | { type: "FETCH_CSB_DATA_REQUEST" }
+  | {
+      type: "FETCH_CSB_DATA_SUCCESS";
+      payload: { csbData: CsbData };
+    }
+  | { type: "FETCH_CSB_DATA_FAILURE" }
   | { type: "FETCH_EPA_USER_DATA_REQUEST" }
   | {
       type: "FETCH_EPA_USER_DATA_SUCCESS";
-      payload: {
-        epaUserData: EpaUserData;
-      };
+      payload: { epaUserData: EpaUserData };
     }
   | { type: "FETCH_EPA_USER_DATA_FAILURE" }
   | { type: "FETCH_BAP_USER_DATA_REQUEST" }
@@ -86,8 +118,16 @@ type Action =
       type: "FETCH_BAP_USER_DATA_SUCCESS";
       payload: {
         bapUserData:
-          | { samResults: true; samEntities: SamEntityData[] }
-          | { samResults: false; samEntities: [] };
+          | {
+              samResults: false;
+              samEntities: [];
+              rebateSubmissions: [];
+            }
+          | {
+              samResults: true;
+              samEntities: SamEntityData[];
+              rebateSubmissions: BapSubmissionData[];
+            };
       };
     }
   | { type: "FETCH_BAP_USER_DATA_FAILURE" };
@@ -110,12 +150,47 @@ function reducer(state: State, action: Action): State {
         ...state,
         isAuthenticating: false,
         isAuthenticated: false,
+        csbData: {
+          status: "idle",
+          data: {},
+        },
         epaUserData: {
           status: "idle",
           data: {},
         },
         bapUserData: {
           status: "idle",
+          data: {},
+        },
+      };
+    }
+
+    case "FETCH_CSB_DATA_REQUEST": {
+      return {
+        ...state,
+        csbData: {
+          status: "pending",
+          data: {},
+        },
+      };
+    }
+
+    case "FETCH_CSB_DATA_SUCCESS": {
+      const { csbData } = action.payload;
+      return {
+        ...state,
+        csbData: {
+          status: "success",
+          data: csbData,
+        },
+      };
+    }
+
+    case "FETCH_CSB_DATA_FAILURE": {
+      return {
+        ...state,
+        csbData: {
+          status: "failure",
           data: {},
         },
       };
@@ -193,6 +268,10 @@ export function UserProvider({ children }: Props) {
   const initialState: State = {
     isAuthenticating: true,
     isAuthenticated: false,
+    csbData: {
+      status: "idle",
+      data: {},
+    },
     epaUserData: {
       status: "idle",
       data: {},

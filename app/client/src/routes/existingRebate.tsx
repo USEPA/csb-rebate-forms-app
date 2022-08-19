@@ -233,7 +233,7 @@ function ExistingRebateContent() {
   const navigate = useNavigate();
   const { id } = useParams<"id">();
   const { content } = useContentState();
-  const { epaUserData, bapUserData } = useUserState();
+  const { csbData, epaUserData, bapUserData } = useUserState();
   const dispatch = useExistingRebateDispatch();
 
   const [rebateFormSubmission, setRebateFormSubmission] =
@@ -337,7 +337,11 @@ function ExistingRebateContent() {
     );
   }
 
-  if (epaUserData.status !== "success" || bapUserData.status !== "success") {
+  if (
+    csbData.status !== "success" ||
+    epaUserData.status !== "success" ||
+    bapUserData.status !== "success"
+  ) {
     return <Loading />;
   }
 
@@ -390,7 +394,7 @@ function ExistingRebateContent() {
           options={{
             readOnly:
               submissionData.state === "submitted" ||
-              epaUserData.data.enrollmentClosed
+              csbData.data.enrollmentClosed
                 ? true
                 : false,
             noAlerts: true,
