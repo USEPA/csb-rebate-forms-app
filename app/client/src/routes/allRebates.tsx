@@ -119,7 +119,7 @@ export default function AllRebates() {
                   <th scope="col">
                     <TextWithTooltip
                       text="Form Type"
-                      tooltip="Application, Payment Request, or Close-Out"
+                      tooltip="Application, Payment Request, or Close-Out form"
                     />
                     <br />
                     <TextWithTooltip
