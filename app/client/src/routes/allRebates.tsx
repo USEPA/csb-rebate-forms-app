@@ -1,4 +1,4 @@
-import { Fragment, useEffect } from "react";
+import { Fragment, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import icons from "uswds/img/sprite.svg";
 // ---
@@ -17,6 +17,16 @@ export default function AllRebates() {
   const { csbData, bapUserData } = useUserState();
   const { rebateFormSubmissions } = useFormsState();
   const dispatch = useFormsDispatch();
+
+  const [message, setMessage] = useState<{
+    displayed: boolean;
+    type: "info" | "success" | "warning" | "error";
+    text: string;
+  }>({
+    displayed: false,
+    type: "info",
+    text: "",
+  });
 
   useEffect(() => {
     if (bapUserData.status !== "success" || !bapUserData.data.samResults) {
@@ -96,6 +106,10 @@ export default function AllRebates() {
               className="margin-top-4"
               children={content.data?.allRebatesIntro || ""}
             />
+          )}
+
+          {message.displayed && (
+            <Message type={message.type} text={message.text} />
           )}
 
           <div className="usa-table-container--scrollable" tabIndex={0}>
@@ -189,14 +203,15 @@ export default function AllRebates() {
                     ? new Date(modified) > new Date(bap.lastModified)
                     : false;
 
-                  /**
-                   * The previously submitted submission has been flagged by
-                   * EPA as needing edits, and it has not yet been updated.
-                   */
                   const submissionNeedsEdits =
-                    state === "submitted" &&
                     bap.rebateStatus === "Edits Requested" &&
-                    !submissionHasBeenUpdated;
+                    (state === "draft" ||
+                      (state === "submitted" && !submissionHasBeenUpdated));
+
+                  const submissionHasBeenResubmitted =
+                    bap.rebateStatus === "Edits Requested" &&
+                    state === "submitted" &&
+                    submissionHasBeenUpdated;
 
                   const statusClassNames = submissionNeedsEdits
                     ? "csb-needs-edits"
@@ -223,6 +238,13 @@ form for the fields to be displayed. */
                             <button
                               className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
                               onClick={(ev) => {
+                                // clear out existing message
+                                setMessage({
+                                  displayed: false,
+                                  type: "info",
+                                  text: "",
+                                });
+
                                 // change the submission's state to draft, then
                                 // redirect to the form to allow user to edit
                                 fetchData(
@@ -233,7 +255,11 @@ form for the fields to be displayed. */
                                     navigate(`/rebate/${res._id}`);
                                   })
                                   .catch((err) => {
-                                    console.log(err);
+                                    setMessage({
+                                      displayed: true,
+                                      type: "error",
+                                      text: `Error updating Application ${bap.applicationId}. Please try again.`,
+                                    });
                                   });
                               }}
                             >
@@ -313,16 +339,21 @@ form for the fields to be displayed. */
                                 href={
                                   submissionNeedsEdits
                                     ? `${icons}#priority_high`
+                                    : submissionHasBeenResubmitted ||
+                                      state === "submitted"
+                                    ? `${icons}#check`
                                     : state === "draft"
                                     ? `${icons}#more_horiz`
-                                    : state === "submitted"
-                                    ? `${icons}#check`
                                     : `${icons}#remove` // fallback, not used
                                 }
                               />
                             </svg>
                             <span className="margin-left-05">
-                              {submissionNeedsEdits ? bap.rebateStatus : state}
+                              {submissionHasBeenResubmitted
+                                ? "resubmitted"
+                                : submissionNeedsEdits
+                                ? bap.rebateStatus
+                                : state}
                             </span>
                           </span>
                         </td>
@@ -424,6 +455,10 @@ save the form for the EFT indicator to be displayed. */
               </tbody>
             </table>
           </div>
+
+          {message.displayed && (
+            <Message type={message.type} text={message.text} />
+          )}
         </>
       )}
 
