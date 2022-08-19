@@ -275,6 +275,23 @@ form for the fields to be displayed. */
                                 <span className="margin-left-1">Edit</span>
                               </span>
                             </button>
+                          ) : enrollmentClosed || state === "submitted" ? (
+                            <Link
+                              to={`/rebate/${_id}`}
+                              className="usa-button usa-button--base font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
+                            >
+                              <span className="display-flex flex-align-center">
+                                <svg
+                                  className="usa-icon"
+                                  aria-hidden="true"
+                                  focusable="false"
+                                  role="img"
+                                >
+                                  <use href={`${icons}#visibility`} />
+                                </svg>
+                                <span className="margin-left-1">View</span>
+                              </span>
+                            </Link>
                           ) : state === "draft" ? (
                             <Link
                               to={`/rebate/${_id}`}
@@ -290,23 +307,6 @@ form for the fields to be displayed. */
                                   <use href={`${icons}#edit`} />
                                 </svg>
                                 <span className="margin-left-1">Edit</span>
-                              </span>
-                            </Link>
-                          ) : state === "submitted" ? (
-                            <Link
-                              to={`/rebate/${_id}`}
-                              className="usa-button usa-button--base font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-                            >
-                              <span className="display-flex flex-align-center">
-                                <svg
-                                  className="usa-icon"
-                                  aria-hidden="true"
-                                  focusable="false"
-                                  role="img"
-                                >
-                                  <use href={`${icons}#visibility`} />
-                                </svg>
-                                <span className="margin-left-1">View</span>
                               </span>
                             </Link>
                           ) : null}
