@@ -195,6 +195,7 @@ function queryForRebateFormSubmissions(comboKeys, req) {
       `
         SELECT
           CSB_Form_ID__c,
+          CSB_Form_Modified__c,
           CSB_Review_Item_ID__c,
           UEI_EFTI_Combo_Key__c,
           Parent_CSB_Rebate__r.CSB_Rebate_Status__c

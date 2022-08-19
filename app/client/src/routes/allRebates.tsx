@@ -69,6 +69,9 @@ export default function AllRebates() {
         applicationId: matchedSubmission
           ? matchedSubmission?.CSB_Review_Item_ID__c
           : null,
+        lastModified: matchedSubmission
+          ? matchedSubmission?.CSB_Form_Modified__c
+          : null,
         rebateStatus: matchedSubmission
           ? matchedSubmission?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c
           : null,
@@ -177,9 +180,18 @@ export default function AllRebates() {
                   const date = new Date(modified).toLocaleDateString();
                   const time = new Date(modified).toLocaleTimeString();
 
+                  /** the submission has been updated since the last time the
+                   * BAP's submissions ETL process has succesfully run */
+                  const submissionHasBeenUpdated = bap.lastModified
+                    ? new Date(modified) > new Date(bap.lastModified)
+                    : false;
+
+                  /** the previously submitted submission has been flagged by
+                   * EPA as needing edits, and it has not yet been updated */
                   const submissionNeedsEdits =
                     state === "submitted" &&
-                    bap.rebateStatus === "Edits Requested";
+                    bap.rebateStatus === "Edits Requested" &&
+                    !submissionHasBeenUpdated;
 
                   const statusClassNames = submissionNeedsEdits
                     ? "csb-needs-edits"
@@ -271,7 +283,9 @@ form for the fields to be displayed. */
 
                         <td className={statusClassNames}>
                           {bap.applicationId ? (
-                            bap.applicationId
+                            <span title={`Form ID: ${_id}`}>
+                              {bap.applicationId}
+                            </span>
                           ) : (
                             <TextWithTooltip
                               text=" "
@@ -281,7 +295,7 @@ form for the fields to be displayed. */
                         </td>
 
                         <td className={statusClassNames}>
-                          <span title={_id}>Application</span>
+                          <span>Application</span>
                           <br />
                           <span className="display-flex flex-align-center font-sans-2xs">
                             <svg
