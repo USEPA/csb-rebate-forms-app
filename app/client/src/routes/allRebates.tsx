@@ -203,14 +203,15 @@ export default function AllRebates() {
                     ? new Date(modified) > new Date(bap.lastModified)
                     : false;
 
-                  /**
-                   * The previously submitted submission has been flagged by
-                   * EPA as needing edits, and it has not yet been updated.
-                   */
                   const submissionNeedsEdits =
-                    state === "submitted" &&
                     bap.rebateStatus === "Edits Requested" &&
-                    !submissionHasBeenUpdated;
+                    (state === "draft" ||
+                      (state === "submitted" && !submissionHasBeenUpdated));
+
+                  const submissionHasBeenResubmitted =
+                    bap.rebateStatus === "Edits Requested" &&
+                    state === "submitted" &&
+                    submissionHasBeenUpdated;
 
                   const statusClassNames = submissionNeedsEdits
                     ? "csb-needs-edits"
@@ -338,16 +339,21 @@ form for the fields to be displayed. */
                                 href={
                                   submissionNeedsEdits
                                     ? `${icons}#priority_high`
+                                    : submissionHasBeenResubmitted ||
+                                      state === "submitted"
+                                    ? `${icons}#check`
                                     : state === "draft"
                                     ? `${icons}#more_horiz`
-                                    : state === "submitted"
-                                    ? `${icons}#check`
                                     : `${icons}#remove` // fallback, not used
                                 }
                               />
                             </svg>
                             <span className="margin-left-05">
-                              {submissionNeedsEdits ? bap.rebateStatus : state}
+                              {submissionHasBeenResubmitted
+                                ? "resubmitted"
+                                : submissionNeedsEdits
+                                ? bap.rebateStatus
+                                : state}
                             </span>
                           </span>
                         </td>
