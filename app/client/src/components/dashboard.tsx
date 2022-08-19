@@ -22,21 +22,21 @@ Formio.setProjectUrl(formioProjectUrl);
 Formio.use(premium);
 Formio.use(uswds);
 
-// Custom hook to fetch EPA data
-function useFetchedEpaData() {
+// Custom hook to fetch CSP app specific data
+function useFetchedCsbData() {
   const dispatch = useUserDispatch();
 
   useEffect(() => {
-    dispatch({ type: "FETCH_EPA_USER_DATA_REQUEST" });
-    fetchData(`${serverUrl}/api/epa-data`)
+    dispatch({ type: "FETCH_CSB_DATA_REQUEST" });
+    fetchData(`${serverUrl}/api/csb-data`)
       .then((res) => {
         dispatch({
-          type: "FETCH_EPA_USER_DATA_SUCCESS",
-          payload: { epaUserData: res },
+          type: "FETCH_CSB_DATA_SUCCESS",
+          payload: { csbData: res },
         });
       })
       .catch((err) => {
-        dispatch({ type: "FETCH_EPA_USER_DATA_FAILURE" });
+        dispatch({ type: "FETCH_CSB_DATA_FAILURE" });
       });
   }, [dispatch]);
 }
@@ -108,7 +108,7 @@ export default function Dashboard() {
   const dispatch = useDialogDispatch();
   const helpdeskAccess = useHelpdeskAccess();
 
-  useFetchedEpaData();
+  useFetchedCsbData();
   useFetchedBapData();
 
   /**
