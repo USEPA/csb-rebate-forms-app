@@ -48,6 +48,7 @@ export default function AllRebates() {
   }, [bapUserData, dispatch]);
 
   if (
+    csbData.status !== "success" ||
     bapUserData.status === "idle" ||
     bapUserData.status === "pending" ||
     rebateFormSubmissions.status === "idle" ||
@@ -64,34 +65,29 @@ export default function AllRebates() {
     return <Message type="error" text={messages.rebateSubmissionsError} />;
   }
 
+  const { enrollmentClosed } = csbData.data;
+
   /**
    * Formio submissions, merged with rebate submissions returned from the BAP,
    * so we can include CSB rebate status, CSB review item ID, and last updated
    * datetime.
    */
   const submissions = rebateFormSubmissions.data.map((formioSubmission) => {
-    const matchedSubmission = bapUserData.data.rebateSubmissions.find(
+    const matchedBapSubmission = bapUserData.data.rebateSubmissions.find(
       (bapSubmission) => bapSubmission.CSB_Form_ID__c === formioSubmission._id
     );
 
     return {
       ...formioSubmission,
       bap: {
-        lastModified: matchedSubmission
-          ? matchedSubmission?.CSB_Form_Modified__c
-          : null,
-        rebateId: matchedSubmission
-          ? matchedSubmission?.Parent_Rebate_ID__c
-          : null,
-        rebateStatus: matchedSubmission
-          ? matchedSubmission?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c
-          : null,
+        lastModified: matchedBapSubmission?.CSB_Form_Modified__c || null,
+        rebateId: matchedBapSubmission?.Parent_Rebate_ID__c || null,
+        rebateStatus:
+          matchedBapSubmission?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c ||
+          null,
       },
     };
   });
-
-  const enrollmentClosed =
-    csbData.status === "success" && csbData.data.enrollmentClosed;
 
   return (
     <>
