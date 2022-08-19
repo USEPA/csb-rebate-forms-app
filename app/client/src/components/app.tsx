@@ -220,7 +220,6 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
 
   // Check if user is already logged in or needs to be redirected to /welcome route
   const verifyUser = useCallback(() => {
-    dispatch({ type: "FETCH_CSB_DATA_REQUEST" });
     fetchData(`${serverUrl}/api/csb-data`)
       .then((res) => {
         dispatch({
@@ -236,8 +235,9 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
   }, [dispatch]);
 
   useEffect(() => {
+    dispatch({ type: "FETCH_CSB_DATA_REQUEST" });
     verifyUser();
-  }, [verifyUser, pathname]);
+  }, [verifyUser, dispatch, pathname]);
 
   useInactivityDialog(verifyUser);
 
