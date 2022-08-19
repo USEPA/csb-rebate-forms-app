@@ -56,7 +56,8 @@ export default function AllRebates() {
 
   /**
    * Formio submissions, merged with rebate submissions returned from the BAP,
-   * so we can include CSB rebate status and CSB review item ID
+   * so we can include CSB rebate status, CSB review item ID, and last updated
+   * datetime.
    */
   const submissions = rebateFormSubmissions.data.map((formioSubmission) => {
     const matchedSubmission = bapUserData.data.rebateSubmissions.find(
@@ -180,14 +181,18 @@ export default function AllRebates() {
                   const date = new Date(modified).toLocaleDateString();
                   const time = new Date(modified).toLocaleTimeString();
 
-                  /** the submission has been updated since the last time the
-                   * BAP's submissions ETL process has succesfully run */
+                  /**
+                   * The submission has been updated since the last time the
+                   * BAP's submissions ETL process has succesfully run.
+                   */
                   const submissionHasBeenUpdated = bap.lastModified
                     ? new Date(modified) > new Date(bap.lastModified)
                     : false;
 
-                  /** the previously submitted submission has been flagged by
-                   * EPA as needing edits, and it has not yet been updated */
+                  /**
+                   * The previously submitted submission has been flagged by
+                   * EPA as needing edits, and it has not yet been updated.
+                   */
                   const submissionNeedsEdits =
                     state === "submitted" &&
                     bap.rebateStatus === "Edits Requested" &&
