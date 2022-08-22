@@ -55,7 +55,7 @@ export type SamEntityData = {
 
 type BapSubmissionData = {
   CSB_Form_ID__c: string; // MongoDB ObjectId string
-  CSB_Form_Modified__c: string; // ISO 8601 date string
+  CSB_Modified_Full_String__c: string; // ISO 8601 date string
   UEI_EFTI_Combo_Key__c: string;
   Parent_Rebate_ID__c: string; // CSB Rebate ID
   Parent_CSB_Rebate__r: {
