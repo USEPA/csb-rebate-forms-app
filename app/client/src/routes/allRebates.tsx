@@ -80,7 +80,7 @@ export default function AllRebates() {
     return {
       ...formioSubmission,
       bap: {
-        lastModified: matchedBapSubmission?.CSB_Form_Modified__c || null,
+        lastModified: matchedBapSubmission?.CSB_Modified_Full_String__c || null,
         rebateId: matchedBapSubmission?.Parent_Rebate_ID__c || null,
         rebateStatus:
           matchedBapSubmission?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c ||
