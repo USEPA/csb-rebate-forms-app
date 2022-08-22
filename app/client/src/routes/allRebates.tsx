@@ -78,7 +78,7 @@ export default function AllRebates() {
       ...formioSubmission,
       bap: {
         lastModified: matchedSubmission
-          ? matchedSubmission?.CSB_Form_Modified__c
+          ? matchedSubmission?.CSB_Modified_Full_String__c
           : null,
         rebateId: matchedSubmission
           ? matchedSubmission?.Parent_Rebate_ID__c
