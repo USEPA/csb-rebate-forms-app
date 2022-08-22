@@ -13,11 +13,13 @@ const {
   ensureAuthenticated,
   ensureHelpdesk,
   checkCsbEnrollmentPeriod,
-  checkBapComboKeys,
+  storeBapComboKeys,
   verifyMongoObjectId,
 } = require("../middleware");
 const { getSamData, getRebateSubmissionsData } = require("../utilities/bap");
 const log = require("../utilities/logger");
+
+const enrollmentClosed = process.env.CSB_ENROLLMENT_PERIOD === "closed";
 
 const router = express.Router();
 
@@ -70,15 +72,12 @@ router.get("/content", (req, res) => {
       if (typeof error.toJSON === "function") {
         log({ level: "debug", message: error.toJSON(), req });
       }
-      log({
-        level: "error",
-        message: `S3 Error: ${
-          error.response?.status
-        } ${error.response?.config?.method?.toUpperCase()} ${
-          error.response?.config?.url
-        }`,
-        req,
-      });
+
+      const errorStatus = error.response?.status;
+      const errorMethod = error.response?.config?.method?.toUpperCase();
+      const errorUrl = error.response?.config?.url;
+      const message = `S3 Error: ${errorStatus} ${errorMethod} ${errorUrl}`;
+      log({ level: "error", message, req });
 
       res
         .status(error?.response?.status || 500)
@@ -95,7 +94,6 @@ router.get("/helpdesk-access", ensureHelpdesk, (req, res) => {
 
 // --- get CSB app specific data (open enrollment status, etc.)
 router.get("/csb-data", (req, res) => {
-  const enrollmentClosed = process.env.CSB_ENROLLMENT_PERIOD === "closed";
   res.json({ enrollmentClosed });
 });
 
@@ -115,11 +113,8 @@ router.get("/bap-data", (req, res) => {
         userRoles.includes("csb_admin") || userRoles.includes("csb_helpdesk");
 
       if (!helpdeskUser && samEntities?.length === 0) {
-        log({
-          level: "error",
-          message: `User with email ${req.user.mail} tried to use app without any associated SAM records.`,
-          req,
-        });
+        const message = `User with email ${req.user.mail} tried to use app without any associated SAM records.`;
+        log({ level: "error", message, req });
 
         return res.json({
           samResults: false,
@@ -151,7 +146,7 @@ router.get("/bap-data", (req, res) => {
 router.get(
   "/rebate-form-submission/:id",
   verifyMongoObjectId,
-  checkBapComboKeys,
+  storeBapComboKeys,
   async (req, res) => {
     const id = req.params.id;
 
@@ -166,11 +161,8 @@ router.get(
             const { bap_hidden_entity_combo_key } = submission.data;
 
             if (!req.bapComboKeys.includes(bap_hidden_entity_combo_key)) {
-              log({
-                level: "warn",
-                message: `User with email ${req.user.mail} attempted to access submission ${id} that they do not have access to.`,
-                req,
-              });
+              const message = `User with email ${req.user.mail} attempted to access submission ${id} that they do not have access to.`;
+              log({ level: "warn", message, req });
 
               res.json({
                 userAccess: false,
@@ -200,21 +192,17 @@ router.get(
 // --- post an update to an existing draft rebate form submission to Forms.gov
 router.post(
   "/rebate-form-submission/:id",
-  checkCsbEnrollmentPeriod,
   verifyMongoObjectId,
-  checkBapComboKeys,
+  checkCsbEnrollmentPeriod,
+  storeBapComboKeys,
   (req, res) => {
-    const id = req.params.id;
+    const { id } = req.params;
+    const comboKey = req.body.data?.bap_hidden_entity_combo_key;
 
     // Verify post data includes one of user's BAP combo keys
-    if (
-      !req.bapComboKeys.includes(req.body.data?.bap_hidden_entity_combo_key)
-    ) {
-      log({
-        level: "error",
-        message: `User with email ${req.user.mail} attempted to update existing form without a matching BAP combo key`,
-        req,
-      });
+    if (!req.bapComboKeys.includes(comboKey)) {
+      const message = `User with email ${req.user.mail} attempted to update existing form without a matching BAP combo key`;
+      log({ level: "error", message, req });
       return res.status(401).json({ message: "Unauthorized" });
     }
 
@@ -237,76 +225,61 @@ router.post(
 );
 
 // --- post a new rebate form submission to Forms.gov
-router.post(
-  "/rebate-form-submission",
-  checkCsbEnrollmentPeriod,
-  checkBapComboKeys,
-  (req, res) => {
-    // Verify post data includes one of user's BAP combo keys
-    if (
-      !req.bapComboKeys.includes(req.body.data?.bap_hidden_entity_combo_key)
-    ) {
-      log({
-        level: "error",
-        message: `User with email ${req.user.mail} attempted to post new form without a matching BAP combo key`,
-        req,
-      });
-      return res.status(401).json({ message: "Unauthorized" });
-    }
+router.post("/rebate-form-submission", storeBapComboKeys, (req, res) => {
+  const comboKey = req.body.data?.bap_hidden_entity_combo_key;
 
-    // Add custom metadata to track formio submissions from wrapper
-    req.body.metadata = {
-      ...req.body.metadata,
-      ...formioCsbMetadata,
-    };
-
-    axiosFormio(req)
-      .post(`${formioProjectUrl}/${formioFormName}/submission`, req.body)
-      .then((axiosRes) => axiosRes.data)
-      .then((submission) => res.json(submission))
-      .catch((error) => {
-        res
-          .status(error?.response?.status || 500)
-          .json({ message: "Error posting Forms.gov rebate form submission" });
-      });
+  if (enrollmentClosed) {
+    return res.status(400).json({ message: `CSB enrollment period is closed` });
   }
-);
+
+  // Verify post data includes one of user's BAP combo keys
+  if (!req.bapComboKeys.includes(comboKey)) {
+    const message = `User with email ${req.user.mail} attempted to post new form without a matching BAP combo key`;
+    log({ level: "error", message, req });
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  // Add custom metadata to track formio submissions from wrapper
+  req.body.metadata = {
+    ...req.body.metadata,
+    ...formioCsbMetadata,
+  };
+
+  axiosFormio(req)
+    .post(`${formioProjectUrl}/${formioFormName}/submission`, req.body)
+    .then((axiosRes) => axiosRes.data)
+    .then((submission) => res.json(submission))
+    .catch((error) => {
+      res
+        .status(error?.response?.status || 500)
+        .json({ message: "Error posting Forms.gov rebate form submission" });
+    });
+});
 
 // --- upload s3 file metadata to Forms.gov
-router.post(
-  "/:bapComboKey/storage/s3",
-  checkCsbEnrollmentPeriod,
-  checkBapComboKeys,
-  (req, res) => {
-    if (!req.bapComboKeys.includes(req.params.bapComboKey)) {
-      log({
-        level: "error",
-        message: `User with email ${req.user.mail} attempted to upload file without a matching BAP combo key`,
-        req,
-      });
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
-    axiosFormio(req)
-      .post(`${formioProjectUrl}/${formioFormName}/storage/s3`, req.body)
-      .then((axiosRes) => axiosRes.data)
-      .then((fileMetadata) => res.json(fileMetadata))
-      .catch((error) => {
-        res
-          .status(error?.response?.status || 500)
-          .json({ message: "Error uploading Forms.gov file" });
-      });
+router.post("/:bapComboKey/storage/s3", storeBapComboKeys, (req, res) => {
+  if (!req.bapComboKeys.includes(req.params.bapComboKey)) {
+    const message = `User with email ${req.user.mail} attempted to upload file without a matching BAP combo key`;
+    log({ level: "error", message, req });
+    return res.status(401).json({ message: "Unauthorized" });
   }
-);
+
+  axiosFormio(req)
+    .post(`${formioProjectUrl}/${formioFormName}/storage/s3`, req.body)
+    .then((axiosRes) => axiosRes.data)
+    .then((fileMetadata) => res.json(fileMetadata))
+    .catch((error) => {
+      res
+        .status(error?.response?.status || 500)
+        .json({ message: "Error uploading Forms.gov file" });
+    });
+});
 
 // --- download s3 file metadata from Forms.gov
-router.get("/:bapComboKey/storage/s3", checkBapComboKeys, (req, res) => {
+router.get("/:bapComboKey/storage/s3", storeBapComboKeys, (req, res) => {
   if (!req.bapComboKeys.includes(req.params.bapComboKey)) {
-    log({
-      level: "error",
-      message: `User with email ${req.user.mail} attempted to download file without a matching BAP combo key`,
-      req,
-    });
+    const message = `User with email ${req.user.mail} attempted to download file without a matching BAP combo key`;
+    log({ level: "error", message, req });
     return res.status(401).json({ message: "Unauthorized" });
   }
 
@@ -324,7 +297,7 @@ router.get("/:bapComboKey/storage/s3", checkBapComboKeys, (req, res) => {
 });
 
 // --- get all rebate form submissions from Forms.gov
-router.get("/rebate-form-submissions", checkBapComboKeys, (req, res) => {
+router.get("/rebate-form-submissions", storeBapComboKeys, (req, res) => {
   // NOTE: Helpdesk users might not have any SAM.gov records associated with
   // their email address so we should not return any submissions to those users.
   // The only reason we explicitly need to do this is because there could be

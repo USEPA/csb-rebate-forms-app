@@ -3,6 +3,7 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const ObjectId = require("mongodb").ObjectId;
 // ---
+const { getRebateSubmissionsData } = require("./utilities/bap");
 const { createJwt, jwtAlgorithm } = require("./utilities/createJwt");
 const log = require("./utilities/logger");
 const { getComboKeys } = require("./utilities/bap");
@@ -136,17 +137,33 @@ function protectClientRoutes(req, res, next) {
 }
 
 /**
+ * Intercepting middleware that returns an error if the enrollment period is
+ * closed (as set via the `CSB_ENROLLMENT_PERIOD` environment variable), and if
+ * the form submission does not have the status "Edits Requested" (as stored in
+ * and returned from the BAP).
  * @param {express.Request} req
  * @param {express.Response} res
  * @param {express.NextFunction} next
  */
 function checkCsbEnrollmentPeriod(req, res, next) {
-  const enrollmentClosed = process.env.CSB_ENROLLMENT_PERIOD === "closed";
-  if (enrollmentClosed) {
-    return res.status(400).json({ message: `CSB enrollment period is closed` });
-  }
+  if (process.env.CSB_ENROLLMENT_PERIOD !== "closed") next();
 
-  next();
+  const id = req.params?.id;
+  const comboKey = req.body.data?.bap_hidden_entity_combo_key;
+  if (!id && !comboKey) next();
+
+  return getRebateSubmissionsData([comboKey], req)
+    .then((submissions) => {
+      const submission = submissions.find((s) => s.CSB_Form_ID__c === id);
+      const status = submission?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c;
+      if (status !== "Edits Requested") throw error;
+      next();
+    })
+    .catch((error) => {
+      return res
+        .status(400)
+        .json({ message: `CSB enrollment period is closed` });
+    });
 }
 
 /**
@@ -180,12 +197,13 @@ function appScan(req, res, next) {
 }
 
 /**
- * Get user's SAM.gov unique combo keys and add "bapComboKeys" to request object if successful
+ * Fetch user's SAM.gov unique combo keys from the BAP and add "bapComboKeys"
+ * to request object if successful.
  * @param {express.Request} req
  * @param {express.Response} res
  * @param {express.NextFunction} next
  */
-function checkBapComboKeys(req, res, next) {
+function storeBapComboKeys(req, res, next) {
   getComboKeys(req.user.mail, req)
     .then((bapComboKeys) => {
       req.bapComboKeys = bapComboKeys;
@@ -220,6 +238,6 @@ module.exports = {
   protectClientRoutes,
   checkCsbEnrollmentPeriod,
   checkClientRouteExists,
-  checkBapComboKeys,
+  storeBapComboKeys,
   verifyMongoObjectId,
 };

@@ -346,9 +346,20 @@ function ExistingRebateContent() {
     return <Loading />;
   }
 
-  const rebateId = bapUserData.data.rebateSubmissions.find(
+  const { enrollmentClosed } = csbData.data;
+
+  const matchedBapSubmission = bapUserData.data.rebateSubmissions.find(
     (bapSubmission) => bapSubmission.CSB_Form_ID__c === id
-  )?.Parent_Rebate_ID__c;
+  );
+
+  const bap = {
+    lastModified: matchedBapSubmission?.CSB_Modified_Full_String__c || null,
+    rebateId: matchedBapSubmission?.Parent_Rebate_ID__c || null,
+    rebateStatus:
+      matchedBapSubmission?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c || null,
+  };
+
+  const submissionNeedsEdits = bap.rebateStatus === "Edits Requested";
 
   const entityComboKey = storedSubmissionData.bap_hidden_entity_combo_key;
   const entity = bapUserData.data.samEntities.find((entity) => {
@@ -392,7 +403,7 @@ function ExistingRebateContent() {
           </div>
         </li>
 
-        {rebateId && (
+        {bap.rebateId && (
           <li className="usa-icon-list__item">
             <div className="usa-icon-list__icon text-primary">
               <svg className="usa-icon" aria-hidden="true" role="img">
@@ -400,7 +411,7 @@ function ExistingRebateContent() {
               </svg>
             </div>
             <div className="usa-icon-list__content">
-              <strong>Rebate ID:</strong> {rebateId}
+              <strong>Rebate ID:</strong> {bap.rebateId}
             </div>
           </li>
         )}
@@ -422,8 +433,8 @@ function ExistingRebateContent() {
           }}
           options={{
             readOnly:
-              submissionData.state === "submitted" ||
-              csbData.data.enrollmentClosed
+              (enrollmentClosed && !submissionNeedsEdits) ||
+              submissionData.state === "submitted"
                 ? true
                 : false,
             noAlerts: true,
