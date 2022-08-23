@@ -59,7 +59,11 @@ type BapSubmissionData = {
   UEI_EFTI_Combo_Key__c: string;
   Parent_Rebate_ID__c: string; // CSB Rebate ID
   Parent_CSB_Rebate__r: {
-    CSB_Rebate_Status__c: "Draft" | "Submitted" | "Edits Requested";
+    CSB_Rebate_Status__c:
+      | "Draft"
+      | "Submitted"
+      | "Edits Requested"
+      | "Withdrawn";
     attributes: { type: string; url: string };
   };
   attributes: { type: string; url: string };
