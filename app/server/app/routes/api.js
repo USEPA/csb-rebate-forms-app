@@ -193,7 +193,7 @@ router.get(
 router.post(
   "/rebate-form-submission/:id",
   verifyMongoObjectId,
-  checkCsbEnrollmentPeriod,
+  // checkCsbEnrollmentPeriod,
   storeBapComboKeys,
   (req, res) => {
     const { id } = req.params;
