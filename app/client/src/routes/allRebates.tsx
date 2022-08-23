@@ -314,7 +314,7 @@ form for the fields to be displayed. */
                           ) : (
                             <TextWithTooltip
                               text=" "
-                              tooltip="Please edit and save the form and the Rebate ID will be displayed"
+                              tooltip="Rebate ID should be displayed within 24hrs. after starting a new rebate form application"
                             />
                           )}
                         </td>
