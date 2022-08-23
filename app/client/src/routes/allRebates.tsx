@@ -204,10 +204,8 @@ export default function AllRebates() {
                     (state === "draft" ||
                       (state === "submitted" && !submissionHasBeenUpdated));
 
-                  const submissionHasBeenResubmitted =
-                    bap.rebateStatus === "Edits Requested" &&
-                    state === "submitted" &&
-                    submissionHasBeenUpdated;
+                  const submissionHasBeenWithdrawn =
+                    bap.rebateStatus === "Withdrawn";
 
                   const statusClassNames = submissionNeedsEdits
                     ? "csb-needs-edits"
@@ -335,8 +333,9 @@ form for the fields to be displayed. */
                                 href={
                                   submissionNeedsEdits
                                     ? `${icons}#priority_high`
-                                    : submissionHasBeenResubmitted ||
-                                      state === "submitted"
+                                    : submissionHasBeenWithdrawn
+                                    ? `${icons}#close`
+                                    : state === "submitted"
                                     ? `${icons}#check`
                                     : state === "draft"
                                     ? `${icons}#more_horiz`
@@ -345,9 +344,8 @@ form for the fields to be displayed. */
                               />
                             </svg>
                             <span className="margin-left-05">
-                              {submissionHasBeenResubmitted
-                                ? "resubmitted"
-                                : submissionNeedsEdits
+                              {submissionNeedsEdits ||
+                              submissionHasBeenWithdrawn
                                 ? bap.rebateStatus
                                 : state}
                             </span>
