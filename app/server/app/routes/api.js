@@ -263,14 +263,14 @@ router.post("/rebate-form-submission", storeBapComboKeys, (req, res) => {
     return res.status(400).json({ message });
   }
 
-  // Verify post data includes one of user's BAP combo keys
+  // verify post data includes one of user's BAP combo keys
   if (!req.bapComboKeys.includes(comboKey)) {
     const message = `User with email ${req.user.mail} attempted to post new form without a matching BAP combo key`;
     log({ level: "error", message, req });
     return res.status(401).json({ message: "Unauthorized" });
   }
 
-  // Add custom metadata to track formio submissions from wrapper
+  // add custom metadata to track formio submissions from wrapper
   req.body.metadata = {
     ...req.body.metadata,
     ...formioCsbMetadata,
