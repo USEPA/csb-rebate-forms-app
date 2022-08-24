@@ -18,7 +18,7 @@ const {
 const { getSamData, getRebateSubmissionsData } = require("../utilities/bap");
 const log = require("../utilities/logger");
 
-const enrollmentClosed = process.env.CSB_ENROLLMENT_PERIOD === "closed";
+const enrollmentClosed = process.env.CSB_ENROLLMENT_PERIOD !== "open";
 
 /**
  * Returns a resolved or rejected promise, depending on if the enrollment period
