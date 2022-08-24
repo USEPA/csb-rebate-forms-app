@@ -279,7 +279,8 @@ function ExistingRebateContent() {
         const s3Provider = Formio.Providers.providers.storage.s3;
         Formio.Providers.providers.storage.s3 = function (formio: any) {
           const s3Formio = cloneDeep(formio);
-          s3Formio.formUrl = `${serverUrl}/api/${res.submissionData.data.bap_hidden_entity_combo_key}`;
+          const comboKey = res.submissionData.data.bap_hidden_entity_combo_key;
+          s3Formio.formUrl = `${serverUrl}/api/${id}/${comboKey}`;
           return s3Provider(s3Formio);
         };
 
