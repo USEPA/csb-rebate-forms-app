@@ -319,7 +319,7 @@ router.post("/:id/:comboKey/storage/s3", storeBapComboKeys, (req, res) => {
 
 // --- download s3 file metadata from Forms.gov
 router.get("/:id/:comboKey/storage/s3", storeBapComboKeys, (req, res) => {
-  const { id, comboKey } = req.params;
+  const { comboKey } = req.params;
 
   if (!req.bapComboKeys.includes(comboKey)) {
     const message = `User with email ${req.user.mail} attempted to download file without a matching BAP combo key`;
