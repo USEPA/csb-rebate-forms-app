@@ -35,7 +35,7 @@ function checkEnrollmentPeriodAndBapStatus({ id, comboKey, req }) {
   if (!enrollmentClosed) {
     return Promise.resolve();
   }
-  // else, enrollment isn't closed, so only continue if edits are requested
+  // else, enrollment is closed, so only continue if edits are requested
   return getRebateSubmissionsData([comboKey], req).then((submissions) => {
     const submission = submissions.find((s) => s.CSB_Form_ID__c === id);
     const status = submission?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c;
