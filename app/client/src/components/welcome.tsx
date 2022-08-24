@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrlForLinks, messages } from "../config";
+import { serverUrlForHrefs, messages } from "../config";
 import Message from "components/message";
 
 export default function Welcome() {
@@ -35,11 +35,11 @@ export default function Welcome() {
       });
     }
 
-    if (searchParams.get("error") === "sam-fetch") {
+    if (searchParams.get("error") === "bap-fetch") {
       setMessage({
         displayed: true,
         type: "error",
-        text: messages.samFetchError,
+        text: messages.bapFetchError,
       });
     }
 
@@ -47,7 +47,7 @@ export default function Welcome() {
       setMessage({
         displayed: true,
         type: "info",
-        text: messages.samNoResults,
+        text: messages.noSamResults,
       });
     }
 
@@ -84,7 +84,7 @@ export default function Welcome() {
 
         <a
           className="usa-button margin-top-1 margin-right-0 font-sans-2xs"
-          href={`${serverUrlForLinks}/login`}
+          href={`${serverUrlForHrefs}/login`}
         >
           <span className="display-flex flex-align-center">
             <span className="margin-right-1">Sign in</span>

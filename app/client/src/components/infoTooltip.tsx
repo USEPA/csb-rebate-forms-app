@@ -13,7 +13,7 @@ export function InfoTooltip({ label }: InfoTooltipProps) {
       style={{ backgroundColor: "rgba(0, 0, 0, 0.875)" }}
     >
       <svg
-        className="usa-icon margin-left-05 text-base"
+        className="usa-icon margin-right-05 text-base"
         aria-hidden="true"
         focusable="false"
         role="img"
@@ -31,9 +31,9 @@ type TextWithTooltipProps = {
 
 export function TextWithTooltip({ text, tooltip }: TextWithTooltipProps) {
   return (
-    <span className="display-flex flex-align-center text-no-wrap">
-      {text}
+    <span className="display-inline-flex flex-align-center text-no-wrap">
       <InfoTooltip label={tooltip} />
+      {text}
     </span>
   );
 }

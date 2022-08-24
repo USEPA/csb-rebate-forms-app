@@ -35,11 +35,10 @@ export const serverBasePath =
 // is needed for production.
 export const serverUrl = window.location.origin + serverBasePath;
 
-// NOTE: This local development setup unfortunately doesn't proxy GET requests
-// from links though because they set an "Accept" request header to "text/html",
-// so we need to use a different environment variable for when the serverUrl is
-// used in the href of anchor tags (e.g. login and logout links).
-export const serverUrlForLinks =
+// NOTE: Create React App's local development proxy setup doesn't proxy requests
+// that set an "Accept" request header to "text/html", so in those cases we need
+// to explicitly use the server app's URL/port (localhost:3001)
+export const serverUrlForHrefs =
   NODE_ENV === "development" ? "http://localhost:3001" : serverUrl;
 
 export const cloudSpace =
@@ -55,8 +54,9 @@ export const messages = {
   genericError: "Something went wrong.",
   authError: "Authentication error. Please log in again or contact support.",
   samlError: "Error logging in. Please try again or contact support.",
-  samFetchError: "Error retrieving SAM.gov data. Please contact support.",
-  samNoResults:
+  bapFetchError:
+    "Error loading SAM.gov or rebate submission data. Please contact support.",
+  noSamResults:
     "No SAM.gov records match your email. Only Government and Electronic Business SAM.gov Points of Contacts (and alternates) may edit and submit Clean School Bus Rebate Forms.",
   rebateSubmissionsError: "Error loading rebate form submissions.",
   newRebateApplication:

@@ -11,6 +11,7 @@ import {
 import { useNavigate, useParams } from "react-router-dom";
 import { Formio, Form } from "@formio/react";
 import { cloneDeep, isEqual } from "lodash";
+import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, fetchData } from "../config";
 import { getUserInfo } from "../utilities";
@@ -233,7 +234,7 @@ function ExistingRebateContent() {
   const navigate = useNavigate();
   const { id } = useParams<"id">();
   const { content } = useContentState();
-  const { epaUserData, samUserData } = useUserState();
+  const { csbData, epaUserData, bapUserData } = useUserState();
   const dispatch = useExistingRebateDispatch();
 
   const [rebateFormSubmission, setRebateFormSubmission] =
@@ -278,7 +279,8 @@ function ExistingRebateContent() {
         const s3Provider = Formio.Providers.providers.storage.s3;
         Formio.Providers.providers.storage.s3 = function (formio: any) {
           const s3Formio = cloneDeep(formio);
-          s3Formio.formUrl = `${serverUrl}/api/${res.submissionData.data.bap_hidden_entity_combo_key}`;
+          const comboKey = res.submissionData.data.bap_hidden_entity_combo_key;
+          s3Formio.formUrl = `${serverUrl}/api/${id}/${comboKey}`;
           return s3Provider(s3Formio);
         };
 
@@ -337,22 +339,41 @@ function ExistingRebateContent() {
     );
   }
 
-  if (epaUserData.status !== "success" || samUserData.status !== "success") {
+  if (
+    csbData.status !== "success" ||
+    epaUserData.status !== "success" ||
+    bapUserData.status !== "success"
+  ) {
     return <Loading />;
   }
 
+  const { enrollmentClosed } = csbData.data;
+
+  const matchedBapSubmission = bapUserData.data.rebateSubmissions.find(
+    (bapSubmission) => bapSubmission.CSB_Form_ID__c === id
+  );
+
+  const bap = {
+    lastModified: matchedBapSubmission?.CSB_Modified_Full_String__c || null,
+    rebateId: matchedBapSubmission?.Parent_Rebate_ID__c || null,
+    rebateStatus:
+      matchedBapSubmission?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c || null,
+  };
+
+  const submissionNeedsEdits = bap.rebateStatus === "Edits Requested";
+
   const entityComboKey = storedSubmissionData.bap_hidden_entity_combo_key;
-  const record = samUserData.data.records.find((record) => {
+  const entity = bapUserData.data.samEntities.find((entity) => {
     return (
-      record.ENTITY_STATUS__c === "Active" &&
-      record.ENTITY_COMBO_KEY__c === entityComboKey
+      entity.ENTITY_STATUS__c === "Active" &&
+      entity.ENTITY_COMBO_KEY__c === entityComboKey
     );
   });
 
-  if (!record) return null;
+  if (!entity) return null;
 
   const email = epaUserData.data.mail;
-  const { title, name } = getUserInfo(email, record);
+  const { title, name } = getUserInfo(email, entity);
 
   return (
     <div className="margin-top-2">
@@ -371,7 +392,31 @@ function ExistingRebateContent() {
 
       <FormMessage />
 
-      <h3>Application ID: {submissionData._id}</h3>
+      <ul className="usa-icon-list">
+        <li className="usa-icon-list__item">
+          <div className="usa-icon-list__icon text-primary">
+            <svg className="usa-icon" aria-hidden="true" role="img">
+              <use href={`${icons}#local_offer`} />
+            </svg>
+          </div>
+          <div className="usa-icon-list__content">
+            <strong>Application ID:</strong> {submissionData._id}
+          </div>
+        </li>
+
+        {bap.rebateId && (
+          <li className="usa-icon-list__item">
+            <div className="usa-icon-list__icon text-primary">
+              <svg className="usa-icon" aria-hidden="true" role="img">
+                <use href={`${icons}#local_offer`} />
+              </svg>
+            </div>
+            <div className="usa-icon-list__content">
+              <strong>Rebate ID:</strong> {bap.rebateId}
+            </div>
+          </li>
+        )}
+      </ul>
 
       <div className="csb-form">
         <Form
@@ -389,8 +434,8 @@ function ExistingRebateContent() {
           }}
           options={{
             readOnly:
-              submissionData.state === "submitted" ||
-              epaUserData.data.enrollmentClosed
+              (enrollmentClosed && !submissionNeedsEdits) ||
+              submissionData.state === "submitted"
                 ? true
                 : false,
             noAlerts: true,
