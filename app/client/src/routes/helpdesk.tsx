@@ -62,7 +62,7 @@ export default function Helpdesk() {
   const [formDisplayed, setFormDisplayed] = useState(false);
 
   const { content } = useContentState();
-  const { epaUserData } = useUserState();
+  const { csbData, epaUserData } = useUserState();
   const dispatch = useDialogDispatch();
   const helpdeskAccess = useHelpdeskAccess();
 
@@ -76,6 +76,7 @@ export default function Helpdesk() {
     });
 
   if (
+    csbData.status !== "success" ||
     epaUserData.status !== "success" ||
     helpdeskAccess === "idle" ||
     helpdeskAccess === "pending"
@@ -86,6 +87,8 @@ export default function Helpdesk() {
   if (helpdeskAccess === "failure") {
     navigate("/", { replace: true });
   }
+
+  const { enrollmentClosed } = csbData.data;
 
   const { formSchema, submissionData } = rebateFormSubmission.data;
 
@@ -252,7 +255,9 @@ export default function Helpdesk() {
                     <td>
                       <button
                         className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-                        disabled={submissionData.state === "draft"}
+                        disabled={
+                          enrollmentClosed || submissionData.state === "draft"
+                        }
                         onClick={(ev) => {
                           dispatch({
                             type: "DISPLAY_DIALOG",
