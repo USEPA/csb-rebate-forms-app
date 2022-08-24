@@ -137,7 +137,6 @@ router.get("/bap-data", (req, res) => {
       if (!helpdeskUser && samEntities?.length === 0) {
         const message = `User with email ${req.user.mail} tried to use app without any associated SAM records.`;
         log({ level: "error", message, req });
-
         return res.json({
           samResults: false,
           samEntities: [],
@@ -160,7 +159,7 @@ router.get("/bap-data", (req, res) => {
         });
     })
     .catch((error) => {
-      res.status(401).json({ message: "Error getting data from BAP" });
+      return res.status(401).json({ message: "Error getting data from BAP" });
     });
 });
 
@@ -170,22 +169,25 @@ router.get(
   verifyMongoObjectId,
   storeBapComboKeys,
   async (req, res) => {
-    const id = req.params.id;
+    const { id } = req.params;
+
+    const existingSubmissionUrl = `${formioProjectUrl}/${formioFormName}/submission/${id}`;
 
     axiosFormio(req)
-      .get(`${formioProjectUrl}/${formioFormName}/submission/${id}`)
+      .get(existingSubmissionUrl)
       .then((axiosRes) => axiosRes.data)
       .then((submission) => {
+        const formUrl = `${formioProjectUrl}/form/${submission.form}`;
+
         axiosFormio(req)
-          .get(`${formioProjectUrl}/form/${submission.form}`)
+          .get(formUrl)
           .then((axiosRes) => axiosRes.data)
           .then((schema) => {
-            const { bap_hidden_entity_combo_key } = submission.data;
+            const comboKey = submission.data.bap_hidden_entity_combo_key;
 
-            if (!req.bapComboKeys.includes(bap_hidden_entity_combo_key)) {
+            if (!req.bapComboKeys.includes(comboKey)) {
               const message = `User with email ${req.user.mail} attempted to access submission ${id} that they do not have access to.`;
               log({ level: "warn", message, req });
-
               res.json({
                 userAccess: false,
                 formSchema: null,
@@ -204,9 +206,8 @@ router.get(
           });
       })
       .catch((error) => {
-        res.status(error?.response?.status || 500).json({
-          message: `Error getting Forms.gov rebate form submission ${id}`,
-        });
+        const message = `Error getting Forms.gov rebate form submission ${id}`;
+        res.status(error?.response?.status || 500).json({ message });
       });
   }
 );
@@ -215,7 +216,6 @@ router.get(
 router.post(
   "/rebate-form-submission/:id",
   verifyMongoObjectId,
-  // checkCsbEnrollmentPeriod,
   storeBapComboKeys,
   (req, res) => {
     const { id } = req.params;
@@ -224,25 +224,25 @@ router.post(
     checkEnrollmentPeriodAndBapStatus({ id, comboKey, req })
       .then(() => {
         // verify post data includes one of user's BAP combo keys
-    if (!req.bapComboKeys.includes(comboKey)) {
-      const message = `User with email ${req.user.mail} attempted to update existing form without a matching BAP combo key`;
-      log({ level: "error", message, req });
-      return res.status(401).json({ message: "Unauthorized" });
-    }
+        if (!req.bapComboKeys.includes(comboKey)) {
+          const message = `User with email ${req.user.mail} attempted to update existing form without a matching BAP combo key`;
+          log({ level: "error", message, req });
+          return res.status(401).json({ message: "Unauthorized" });
+        }
 
         // add custom metadata to track formio submissions from wrapper
-    req.body.metadata = {
-      ...req.body.metadata,
-      ...formioCsbMetadata,
-    };
+        req.body.metadata = {
+          ...req.body.metadata,
+          ...formioCsbMetadata,
+        };
 
         const existingSubmissionUrl = `${formioProjectUrl}/${formioFormName}/submission/${id}`;
 
-    axiosFormio(req)
+        axiosFormio(req)
           .put(existingSubmissionUrl, req.body)
-      .then((axiosRes) => axiosRes.data)
-      .then((submission) => res.json(submission))
-      .catch((error) => {
+          .then((axiosRes) => axiosRes.data)
+          .then((submission) => res.json(submission))
+          .catch((error) => {
             const message = "Error updating Forms.gov rebate form submission";
             res.status(error?.response?.status || 500).json({ message });
           });
@@ -259,7 +259,8 @@ router.post("/rebate-form-submission", storeBapComboKeys, (req, res) => {
   const comboKey = req.body.data?.bap_hidden_entity_combo_key;
 
   if (enrollmentClosed) {
-    return res.status(400).json({ message: `CSB enrollment period is closed` });
+    const message = "CSB enrollment period is closed";
+    return res.status(400).json({ message });
   }
 
   // Verify post data includes one of user's BAP combo keys
@@ -275,54 +276,59 @@ router.post("/rebate-form-submission", storeBapComboKeys, (req, res) => {
     ...formioCsbMetadata,
   };
 
+  const newSubmissionUrl = `${formioProjectUrl}/${formioFormName}/submission`;
+
   axiosFormio(req)
-    .post(`${formioProjectUrl}/${formioFormName}/submission`, req.body)
+    .post(newSubmissionUrl, req.body)
     .then((axiosRes) => axiosRes.data)
     .then((submission) => res.json(submission))
     .catch((error) => {
-      res
-        .status(error?.response?.status || 500)
-        .json({ message: "Error posting Forms.gov rebate form submission" });
+      const message = "Error posting Forms.gov rebate form submission";
+      return res.status(error?.response?.status || 500).json({ message });
     });
 });
 
 // --- upload s3 file metadata to Forms.gov
-router.post("/:bapComboKey/storage/s3", storeBapComboKeys, (req, res) => {
-  if (!req.bapComboKeys.includes(req.params.bapComboKey)) {
+router.post("/:comboKey/storage/s3", storeBapComboKeys, (req, res) => {
+  const { comboKey } = req.params;
+
+  if (!req.bapComboKeys.includes(comboKey)) {
     const message = `User with email ${req.user.mail} attempted to upload file without a matching BAP combo key`;
     log({ level: "error", message, req });
     return res.status(401).json({ message: "Unauthorized" });
   }
 
+  const storageUrl = `${formioProjectUrl}/${formioFormName}/storage/s3`;
+
   axiosFormio(req)
-    .post(`${formioProjectUrl}/${formioFormName}/storage/s3`, req.body)
+    .post(storageUrl, req.body)
     .then((axiosRes) => axiosRes.data)
     .then((fileMetadata) => res.json(fileMetadata))
     .catch((error) => {
-      res
-        .status(error?.response?.status || 500)
-        .json({ message: "Error uploading Forms.gov file" });
+      const message = "Error uploading Forms.gov file";
+      return res.status(error?.response?.status || 500).json({ message });
     });
 });
 
 // --- download s3 file metadata from Forms.gov
-router.get("/:bapComboKey/storage/s3", storeBapComboKeys, (req, res) => {
-  if (!req.bapComboKeys.includes(req.params.bapComboKey)) {
+router.get("/:comboKey/storage/s3", storeBapComboKeys, (req, res) => {
+  const { comboKey } = req.params;
+
+  if (!req.bapComboKeys.includes(comboKey)) {
     const message = `User with email ${req.user.mail} attempted to download file without a matching BAP combo key`;
     log({ level: "error", message, req });
     return res.status(401).json({ message: "Unauthorized" });
   }
 
+  const storageUrl = `${formioProjectUrl}/${formioFormName}/storage/s3`;
+
   axiosFormio(req)
-    .get(`${formioProjectUrl}/${formioFormName}/storage/s3`, {
-      params: req.query,
-    })
+    .get(storageUrl, { params: req.query })
     .then((axiosRes) => axiosRes.data)
     .then((fileMetadata) => res.json(fileMetadata))
     .catch((error) => {
-      res
-        .status(error?.response?.status || 500)
-        .json({ message: "Error downloading Forms.gov file" });
+      const message = "Error downloading Forms.gov file";
+      return res.status(error?.response?.status || 500).json({ message });
     });
 });
 
@@ -337,7 +343,7 @@ router.get("/rebate-form-submissions", storeBapComboKeys, (req, res) => {
   // is testing posting data (e.g. from a REST client, or the Formio Viewer)
   if (req.bapComboKeys.length === 0) return res.json([]);
 
-  const formioUserSubmissionsUrl =
+  const userSubmissionsUrl =
     `${formioProjectUrl}/${formioFormName}/submission` +
     `?sort=-modified` +
     `&limit=1000000` +
@@ -346,13 +352,12 @@ router.get("/rebate-form-submissions", storeBapComboKeys, (req, res) => {
     )}`;
 
   axiosFormio(req)
-    .get(formioUserSubmissionsUrl)
+    .get(userSubmissionsUrl)
     .then((axiosRes) => axiosRes.data)
     .then((submissions) => res.json(submissions))
     .catch((error) => {
-      res
-        .status(error?.response?.status || 500)
-        .json({ message: "Error getting Forms.gov rebate form submissions" });
+      const message = "Error getting Forms.gov rebate form submissions";
+      return res.status(error?.response?.status || 500).json({ message });
     });
 });
 
