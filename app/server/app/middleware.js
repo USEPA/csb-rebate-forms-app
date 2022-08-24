@@ -137,36 +137,6 @@ function protectClientRoutes(req, res, next) {
 }
 
 /**
- * Intercepting middleware that returns an error if the enrollment period is
- * closed (as set via the `CSB_ENROLLMENT_PERIOD` environment variable), and if
- * the form submission does not have the status "Edits Requested" (as stored in
- * and returned from the BAP).
- * @param {express.Request} req
- * @param {express.Response} res
- * @param {express.NextFunction} next
- */
-function checkCsbEnrollmentPeriod(req, res, next) {
-  if (process.env.CSB_ENROLLMENT_PERIOD !== "closed") next();
-
-  const id = req.params?.id;
-  const comboKey = req.body.data?.bap_hidden_entity_combo_key;
-  if (!id && !comboKey) next();
-
-  return getRebateSubmissionsData([comboKey], req)
-    .then((submissions) => {
-      const submission = submissions.find((s) => s.CSB_Form_ID__c === id);
-      const status = submission?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c;
-      if (status !== "Edits Requested") throw error;
-      next();
-    })
-    .catch((error) => {
-      return res
-        .status(400)
-        .json({ message: `CSB enrollment period is closed` });
-    });
-}
-
-/**
  * @param {express.Request} req
  * @param {express.Response} res
  * @param {express.NextFunction} next
@@ -236,7 +206,6 @@ module.exports = {
   ensureHelpdesk,
   appScan,
   protectClientRoutes,
-  checkCsbEnrollmentPeriod,
   checkClientRouteExists,
   storeBapComboKeys,
   verifyMongoObjectId,
