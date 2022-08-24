@@ -12,7 +12,6 @@ const {
 const {
   ensureAuthenticated,
   ensureHelpdesk,
-  checkCsbEnrollmentPeriod,
   storeBapComboKeys,
   verifyMongoObjectId,
 } = require("../middleware");
@@ -20,6 +19,29 @@ const { getSamData, getRebateSubmissionsData } = require("../utilities/bap");
 const log = require("../utilities/logger");
 
 const enrollmentClosed = process.env.CSB_ENROLLMENT_PERIOD === "closed";
+
+/**
+ * Returns a resolved or rejected promise, depending on if the enrollment period
+ * is closed (as set via the `CSB_ENROLLMENT_PERIOD` environment variable), and
+ * if the form submission has the status of "Edits Requested" or not (as stored
+ * in and returned from the BAP).
+ * @param {Object} param
+ * @param {string} param.id
+ * @param {string} param.comboKey
+ * @param {express.Request} param.req
+ */
+function checkEnrollmentPeriodAndBapStatus({ id, comboKey, req }) {
+  // continue if enrollment isn't closed
+  if (!enrollmentClosed) {
+    return Promise.resolve();
+  }
+  // else, enrollment isn't closed, so only continue if edits are requested
+  return getRebateSubmissionsData([comboKey], req).then((submissions) => {
+    const submission = submissions.find((s) => s.CSB_Form_ID__c === id);
+    const status = submission?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c;
+    return status === "Edits Requested" ? Promise.resolve() : Promise.reject();
+  });
+}
 
 const router = express.Router();
 
@@ -199,27 +221,35 @@ router.post(
     const { id } = req.params;
     const comboKey = req.body.data?.bap_hidden_entity_combo_key;
 
-    // Verify post data includes one of user's BAP combo keys
+    checkEnrollmentPeriodAndBapStatus({ id, comboKey, req })
+      .then(() => {
+        // verify post data includes one of user's BAP combo keys
     if (!req.bapComboKeys.includes(comboKey)) {
       const message = `User with email ${req.user.mail} attempted to update existing form without a matching BAP combo key`;
       log({ level: "error", message, req });
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    // Add custom metadata to track formio submissions from wrapper
+        // add custom metadata to track formio submissions from wrapper
     req.body.metadata = {
       ...req.body.metadata,
       ...formioCsbMetadata,
     };
 
+        const existingSubmissionUrl = `${formioProjectUrl}/${formioFormName}/submission/${id}`;
+
     axiosFormio(req)
-      .put(`${formioProjectUrl}/${formioFormName}/submission/${id}`, req.body)
+          .put(existingSubmissionUrl, req.body)
       .then((axiosRes) => axiosRes.data)
       .then((submission) => res.json(submission))
       .catch((error) => {
-        res
-          .status(error?.response?.status || 500)
-          .json({ message: "Error updating Forms.gov rebate form submission" });
+            const message = "Error updating Forms.gov rebate form submission";
+            res.status(error?.response?.status || 500).json({ message });
+          });
+      })
+      .catch((error) => {
+        const message = "CSB enrollment period is closed";
+        return res.status(400).json({ message });
       });
   }
 );
