@@ -51,6 +51,18 @@
     "web-vitals": "2.1.4"
   },
   "proxy": "http://localhost:3001",
+  "nyc": {
+      "all": true,
+      "cache": false,
+      "include": [
+          "src"
+      ],
+      "extension": [
+          ".js",
+          ".ts",
+          ".tsx"
+      ]
+  },
   "eslintConfig": {
     "extends": [
       "react-app",
