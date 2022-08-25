@@ -319,30 +319,23 @@ router.post("/:id/:comboKey/storage/s3", storeBapComboKeys, (req, res) => {
 
 // --- download s3 file metadata from Forms.gov
 router.get("/:id/:comboKey/storage/s3", storeBapComboKeys, (req, res) => {
-  const { id, comboKey } = req.params;
+  const { comboKey } = req.params;
 
-  checkEnrollmentPeriodAndBapStatus({ id, comboKey, req })
-    .then(() => {
-      if (!req.bapComboKeys.includes(comboKey)) {
-        const message = `User with email ${req.user.mail} attempted to download file without a matching BAP combo key`;
-        log({ level: "error", message, req });
-        return res.status(401).json({ message: "Unauthorized" });
-      }
+  if (!req.bapComboKeys.includes(comboKey)) {
+    const message = `User with email ${req.user.mail} attempted to download file without a matching BAP combo key`;
+    log({ level: "error", message, req });
+    return res.status(401).json({ message: "Unauthorized" });
+  }
 
-      const storageUrl = `${formioProjectUrl}/${formioFormName}/storage/s3`;
+  const storageUrl = `${formioProjectUrl}/${formioFormName}/storage/s3`;
 
-      axiosFormio(req)
-        .get(storageUrl, { params: req.query })
-        .then((axiosRes) => axiosRes.data)
-        .then((fileMetadata) => res.json(fileMetadata))
-        .catch((error) => {
-          const message = "Error downloading Forms.gov file";
-          return res.status(error?.response?.status || 500).json({ message });
-        });
-    })
+  axiosFormio(req)
+    .get(storageUrl, { params: req.query })
+    .then((axiosRes) => axiosRes.data)
+    .then((fileMetadata) => res.json(fileMetadata))
     .catch((error) => {
-      const message = "CSB enrollment period is closed";
-      return res.status(400).json({ message });
+      const message = "Error downloading Forms.gov file";
+      return res.status(error?.response?.status || 500).json({ message });
     });
 });
 
