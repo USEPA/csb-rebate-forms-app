@@ -11,6 +11,7 @@ import {
 import { useNavigate, useParams } from "react-router-dom";
 import { Formio, Form } from "@formio/react";
 import { cloneDeep, isEqual } from "lodash";
+import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, fetchData } from "../config";
 import { getUserInfo } from "../utilities";
@@ -169,15 +170,13 @@ export default function ExistingRebate() {
 // -----------------------------------------------------------------------------
 
 type FormioSubmissionData = {
-  // NOTE: more fields are in a form.io submission,
-  // but we're only concerned with the fields below
+  [field: string]: unknown;
   hidden_current_user_email?: string;
   hidden_current_user_title?: string;
   hidden_current_user_name?: string;
   bap_hidden_entity_combo_key?: string;
   ncesDataSource?: string;
   ncesDataLookup?: string[];
-  // (other fields...)
 };
 
 type SubmissionState =
@@ -204,12 +203,10 @@ type SubmissionState =
             userAccess: true;
             formSchema: { url: string; json: object };
             submissionData: {
-              // NOTE: more fields are in a form.io submission,
-              // but we're only concerned with the fields below
-              _id: string;
+              [field: string]: unknown;
+              _id: string; // MongoDB ObjectId string
               data: object;
               state: "submitted" | "draft";
-              // (other fields...)
             };
           }
         | {
@@ -237,7 +234,7 @@ function ExistingRebateContent() {
   const navigate = useNavigate();
   const { id } = useParams<"id">();
   const { content } = useContentState();
-  const { epaUserData, samUserData } = useUserState();
+  const { csbData, epaUserData, bapUserData } = useUserState();
   const dispatch = useExistingRebateDispatch();
 
   const [rebateFormSubmission, setRebateFormSubmission] =
@@ -282,7 +279,8 @@ function ExistingRebateContent() {
         const s3Provider = Formio.Providers.providers.storage.s3;
         Formio.Providers.providers.storage.s3 = function (formio: any) {
           const s3Formio = cloneDeep(formio);
-          s3Formio.formUrl = `${serverUrl}/api/${res.submissionData.data.bap_hidden_entity_combo_key}`;
+          const comboKey = res.submissionData.data.bap_hidden_entity_combo_key;
+          s3Formio.formUrl = `${serverUrl}/api/${id}/${comboKey}`;
           return s3Provider(s3Formio);
         };
 
@@ -341,22 +339,41 @@ function ExistingRebateContent() {
     );
   }
 
-  if (epaUserData.status !== "success" || samUserData.status !== "success") {
+  if (
+    csbData.status !== "success" ||
+    epaUserData.status !== "success" ||
+    bapUserData.status !== "success"
+  ) {
     return <Loading />;
   }
 
+  const { enrollmentClosed } = csbData.data;
+
+  const matchedBapSubmission = bapUserData.data.rebateSubmissions.find(
+    (bapSubmission) => bapSubmission.CSB_Form_ID__c === id
+  );
+
+  const bap = {
+    lastModified: matchedBapSubmission?.CSB_Modified_Full_String__c || null,
+    rebateId: matchedBapSubmission?.Parent_Rebate_ID__c || null,
+    rebateStatus:
+      matchedBapSubmission?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c || null,
+  };
+
+  const submissionNeedsEdits = bap.rebateStatus === "Edits Requested";
+
   const entityComboKey = storedSubmissionData.bap_hidden_entity_combo_key;
-  const record = samUserData.data.records.find((record) => {
+  const entity = bapUserData.data.samEntities.find((entity) => {
     return (
-      record.ENTITY_STATUS__c === "Active" &&
-      record.ENTITY_COMBO_KEY__c === entityComboKey
+      entity.ENTITY_STATUS__c === "Active" &&
+      entity.ENTITY_COMBO_KEY__c === entityComboKey
     );
   });
 
-  if (!record) return null;
+  if (!entity) return null;
 
   const email = epaUserData.data.mail;
-  const { title, name } = getUserInfo(email, record);
+  const { title, name } = getUserInfo(email, entity);
 
   return (
     <div className="margin-top-2">
@@ -375,7 +392,31 @@ function ExistingRebateContent() {
 
       <FormMessage />
 
-      <h3>Application ID: {submissionData._id}</h3>
+      <ul className="usa-icon-list">
+        <li className="usa-icon-list__item">
+          <div className="usa-icon-list__icon text-primary">
+            <svg className="usa-icon" aria-hidden="true" role="img">
+              <use href={`${icons}#local_offer`} />
+            </svg>
+          </div>
+          <div className="usa-icon-list__content">
+            <strong>Application ID:</strong> {submissionData._id}
+          </div>
+        </li>
+
+        {bap.rebateId && (
+          <li className="usa-icon-list__item">
+            <div className="usa-icon-list__icon text-primary">
+              <svg className="usa-icon" aria-hidden="true" role="img">
+                <use href={`${icons}#local_offer`} />
+              </svg>
+            </div>
+            <div className="usa-icon-list__content">
+              <strong>Rebate ID:</strong> {bap.rebateId}
+            </div>
+          </li>
+        )}
+      </ul>
 
       <div className="csb-form">
         <Form
@@ -393,16 +434,50 @@ function ExistingRebateContent() {
           }}
           options={{
             readOnly:
-              submissionData.state === "submitted" ||
-              epaUserData.data.enrollmentClosed
+              (enrollmentClosed && !submissionNeedsEdits) ||
+              submissionData.state === "submitted"
                 ? true
                 : false,
             noAlerts: true,
           }}
+          onChange={(submission: {
+            changed: {
+              component: {
+                [field: string]: unknown;
+                key: string;
+              };
+              flags: unknown;
+              instance: unknown;
+              value: unknown;
+            };
+            data: FormioSubmissionData;
+            isValid: boolean;
+            metadata: unknown;
+          }) => {
+            // NOTE: For some unknown reason, whenever the bus info's "Save"
+            // button (the component w/ the key "busInformation") is clicked
+            // the `storedSubmissionDataRef` value is mutated, which invalidates
+            // the isEqual() early return "dirty check" used in the onNextPage
+            // event callback below (as the two object being compared are now
+            // equal). That means if the user changed any of the bus info fields
+            // (which are displayed via a Formio "Edit Grid" component, which
+            // includes its own "Save" button that must be clicked) and clicked
+            // the form's "Next" button without making any other form field
+            // changes, the "dirty check" incorrectly fails, and the updated
+            // form data was not posted. The fix below should resolve that issue
+            // as now we're intentionally mutating the `storedSubmissionDataRef`
+            // to an empty object whenever the Edit Grid's "Save" button is
+            // clicked (which must be clicked to close the bus info fields) to
+            // guarantee the "dirty check" succeeds the next time the form's
+            // "Next" button is clicked.
+            if (submission?.changed?.component?.key === "busInformation") {
+              storedSubmissionDataRef.current = {};
+            }
+          }}
           onSubmit={(submission: {
             state: "submitted" | "draft";
             data: FormioSubmissionData;
-            metadata: object;
+            metadata: unknown;
           }) => {
             // remove `ncesDataSource` and `ncesDataLookup` fields
             const data = { ...submission.data };
@@ -479,7 +554,7 @@ function ExistingRebateContent() {
             page: number;
             submission: {
               data: FormioSubmissionData;
-              metadata: object;
+              metadata: unknown;
             };
           }) => {
             // remove `ncesDataSource` and `ncesDataLookup` fields

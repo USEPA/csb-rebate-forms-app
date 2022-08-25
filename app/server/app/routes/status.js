@@ -5,7 +5,7 @@ const {
   formioProjectUrl,
   formioFormName,
 } = require("../config/formio");
-const { getSamData } = require("../utilities/getSamData");
+const { getSamData } = require("../utilities/bap");
 
 const router = express.Router();
 
