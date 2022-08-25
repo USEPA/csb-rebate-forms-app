@@ -134,7 +134,7 @@ export default function AllRebates() {
                     <br />
                     <TextWithTooltip
                       text="Form Status"
-                      tooltip="submitted or draft"
+                      tooltip="Draft, Edits Requested, Submitted, or Withdrawn"
                     />
                   </th>
 
@@ -344,10 +344,16 @@ form for the fields to be displayed. */
                               />
                             </svg>
                             <span className="margin-left-05">
-                              {submissionNeedsEdits ||
-                              submissionHasBeenWithdrawn
-                                ? bap.rebateStatus
-                                : state}
+                              {
+                                submissionNeedsEdits ||
+                                submissionHasBeenWithdrawn
+                                  ? bap.rebateStatus
+                                  : state === "draft"
+                                  ? "Draft"
+                                  : state === "submitted"
+                                  ? "Submitted"
+                                  : state // fallback, not used
+                              }
                             </span>
                           </span>
                         </td>
