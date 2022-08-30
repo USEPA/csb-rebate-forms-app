@@ -6,7 +6,7 @@ const axios = require("axios").default;
 const {
   axiosFormio,
   formioProjectUrl,
-  formioFormName,
+  formioRebateFormPath,
   formioCsbMetadata,
 } = require("../config/formio");
 const {
@@ -171,7 +171,7 @@ router.get(
   async (req, res) => {
     const { id } = req.params;
 
-    const existingSubmissionUrl = `${formioProjectUrl}/${formioFormName}/submission/${id}`;
+    const existingSubmissionUrl = `${formioProjectUrl}/${formioRebateFormPath}/submission/${id}`;
 
     axiosFormio(req)
       .get(existingSubmissionUrl)
@@ -236,7 +236,7 @@ router.post(
           ...formioCsbMetadata,
         };
 
-        const existingSubmissionUrl = `${formioProjectUrl}/${formioFormName}/submission/${id}`;
+        const existingSubmissionUrl = `${formioProjectUrl}/${formioRebateFormPath}/submission/${id}`;
 
         axiosFormio(req)
           .put(existingSubmissionUrl, req.body)
@@ -276,7 +276,7 @@ router.post("/rebate-form-submission", storeBapComboKeys, (req, res) => {
     ...formioCsbMetadata,
   };
 
-  const newSubmissionUrl = `${formioProjectUrl}/${formioFormName}/submission`;
+  const newSubmissionUrl = `${formioProjectUrl}/${formioRebateFormPath}/submission`;
 
   axiosFormio(req)
     .post(newSubmissionUrl, req.body)
@@ -300,7 +300,7 @@ router.post("/:id/:comboKey/storage/s3", storeBapComboKeys, (req, res) => {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
-      const storageUrl = `${formioProjectUrl}/${formioFormName}/storage/s3`;
+      const storageUrl = `${formioProjectUrl}/${formioRebateFormPath}/storage/s3`;
 
       axiosFormio(req)
         .post(storageUrl, req.body)
@@ -327,7 +327,7 @@ router.get("/:id/:comboKey/storage/s3", storeBapComboKeys, (req, res) => {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
-  const storageUrl = `${formioProjectUrl}/${formioFormName}/storage/s3`;
+  const storageUrl = `${formioProjectUrl}/${formioRebateFormPath}/storage/s3`;
 
   axiosFormio(req)
     .get(storageUrl, { params: req.query })
@@ -351,7 +351,7 @@ router.get("/rebate-form-submissions", storeBapComboKeys, (req, res) => {
   if (req.bapComboKeys.length === 0) return res.json([]);
 
   const userSubmissionsUrl =
-    `${formioProjectUrl}/${formioFormName}/submission` +
+    `${formioProjectUrl}/${formioRebateFormPath}/submission` +
     `?sort=-modified` +
     `&limit=1000000` +
     `&data.bap_hidden_entity_combo_key=${req.bapComboKeys.join(
