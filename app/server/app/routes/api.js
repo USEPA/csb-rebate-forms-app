@@ -6,7 +6,7 @@ const axios = require("axios").default;
 const {
   axiosFormio,
   formioProjectUrl,
-  formioRebateFormPath,
+  formioApplicationFormPath,
   formioCsbMetadata,
 } = require("../config/formio");
 const {
@@ -163,7 +163,7 @@ router.get("/bap-data", (req, res) => {
     });
 });
 
-const rebateFormApiPath = `${formioProjectUrl}/${formioRebateFormPath}`;
+const applicationFormApiPath = `${formioProjectUrl}/${formioApplicationFormPath}`;
 
 // --- get all rebate form submissions from Forms.gov
 router.get("/rebate-form-submissions", storeBapComboKeys, (req, res) => {
@@ -177,7 +177,7 @@ router.get("/rebate-form-submissions", storeBapComboKeys, (req, res) => {
   if (req.bapComboKeys.length === 0) return res.json([]);
 
   const userSubmissionsUrl =
-    `${rebateFormApiPath}/submission` +
+    `${applicationFormApiPath}/submission` +
     `?sort=-modified` +
     `&limit=1000000` +
     `&data.bap_hidden_entity_combo_key=${req.bapComboKeys.join(
@@ -217,7 +217,7 @@ router.post("/rebate-form-submission", storeBapComboKeys, (req, res) => {
   };
 
   axiosFormio(req)
-    .post(`${rebateFormApiPath}/submission`, req.body)
+    .post(`${applicationFormApiPath}/submission`, req.body)
     .then((axiosRes) => axiosRes.data)
     .then((submission) => res.json(submission))
     .catch((error) => {
@@ -235,7 +235,7 @@ router.get(
     const { id } = req.params;
 
     axiosFormio(req)
-      .get(`${rebateFormApiPath}/submission/${id}`)
+      .get(`${applicationFormApiPath}/submission/${id}`)
       .then((axiosRes) => axiosRes.data)
       .then((submission) => {
         axiosFormio(req)
@@ -296,7 +296,7 @@ router.post(
         };
 
         axiosFormio(req)
-          .put(`${rebateFormApiPath}/submission/${id}`, req.body)
+          .put(`${applicationFormApiPath}/submission/${id}`, req.body)
           .then((axiosRes) => axiosRes.data)
           .then((submission) => res.json(submission))
           .catch((error) => {
@@ -324,7 +324,7 @@ router.post("/:id/:comboKey/storage/s3", storeBapComboKeys, (req, res) => {
       }
 
       axiosFormio(req)
-        .post(`${rebateFormApiPath}/storage/s3`, req.body)
+        .post(`${applicationFormApiPath}/storage/s3`, req.body)
         .then((axiosRes) => axiosRes.data)
         .then((fileMetadata) => res.json(fileMetadata))
         .catch((error) => {
@@ -349,7 +349,7 @@ router.get("/:id/:comboKey/storage/s3", storeBapComboKeys, (req, res) => {
   }
 
   axiosFormio(req)
-    .get(`${rebateFormApiPath}/storage/s3`, { params: req.query })
+    .get(`${applicationFormApiPath}/storage/s3`, { params: req.query })
     .then((axiosRes) => axiosRes.data)
     .then((fileMetadata) => res.json(fileMetadata))
     .catch((error) => {
