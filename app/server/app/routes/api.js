@@ -7,6 +7,7 @@ const {
   axiosFormio,
   formioProjectUrl,
   formioApplicationFormPath,
+  formioPaymentFormPath,
   formioCsbMetadata,
 } = require("../config/formio");
 const {
@@ -189,7 +190,7 @@ router.get("/rebate-form-submissions", storeBapComboKeys, (req, res) => {
     .then((axiosRes) => axiosRes.data)
     .then((submissions) => res.json(submissions))
     .catch((error) => {
-      const message = "Error getting Forms.gov rebate form submissions";
+      const message = `Error getting Forms.gov rebate form submissions`;
       return res.status(error?.response?.status || 500).json({ message });
     });
 });
@@ -199,7 +200,7 @@ router.post("/rebate-form-submission", storeBapComboKeys, (req, res) => {
   const comboKey = req.body.data?.bap_hidden_entity_combo_key;
 
   if (enrollmentClosed) {
-    const message = "CSB enrollment period is closed";
+    const message = `CSB enrollment period is closed`;
     return res.status(400).json({ message });
   }
 
@@ -221,7 +222,7 @@ router.post("/rebate-form-submission", storeBapComboKeys, (req, res) => {
     .then((axiosRes) => axiosRes.data)
     .then((submission) => res.json(submission))
     .catch((error) => {
-      const message = "Error posting Forms.gov rebate form submission";
+      const message = `Error posting Forms.gov rebate form submission`;
       return res.status(error?.response?.status || 500).json({ message });
     });
 });
@@ -300,12 +301,12 @@ router.post(
           .then((axiosRes) => axiosRes.data)
           .then((submission) => res.json(submission))
           .catch((error) => {
-            const message = "Error updating Forms.gov rebate form submission";
+            const message = `Error updating Forms.gov rebate form submission`;
             return res.status(error?.response?.status || 500).json({ message });
           });
       })
       .catch((error) => {
-        const message = "CSB enrollment period is closed";
+        const message = `CSB enrollment period is closed`;
         return res.status(400).json({ message });
       });
   }
@@ -328,12 +329,12 @@ router.post("/:id/:comboKey/storage/s3", storeBapComboKeys, (req, res) => {
         .then((axiosRes) => axiosRes.data)
         .then((fileMetadata) => res.json(fileMetadata))
         .catch((error) => {
-          const message = "Error uploading Forms.gov file";
+          const message = `Error uploading Forms.gov file`;
           return res.status(error?.response?.status || 500).json({ message });
         });
     })
     .catch((error) => {
-      const message = "CSB enrollment period is closed";
+      const message = `CSB enrollment period is closed`;
       return res.status(400).json({ message });
     });
 });
@@ -353,7 +354,21 @@ router.get("/:id/:comboKey/storage/s3", storeBapComboKeys, (req, res) => {
     .then((axiosRes) => axiosRes.data)
     .then((fileMetadata) => res.json(fileMetadata))
     .catch((error) => {
-      const message = "Error downloading Forms.gov file";
+      const message = `Error downloading Forms.gov file`;
+      return res.status(error?.response?.status || 500).json({ message });
+    });
+});
+
+const paymentFormApiPath = `${formioProjectUrl}/${formioPaymentFormPath}`;
+
+// --- get all payment request form submissions from Forms.gov
+router.get("/payment-form-submissions", storeBapComboKeys, (req, res) => {
+  axiosFormio(req)
+    .get(`${paymentFormApiPath}/submission?sort=-modified&limit=1000000`)
+    .then((axiosRes) => axiosRes.data)
+    .then((submissions) => res.json(submissions))
+    .catch((error) => {
+      const message = `Error getting Forms.gov payment request form submissions`;
       return res.status(error?.response?.status || 500).json({ message });
     });
 });
