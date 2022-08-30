@@ -44,7 +44,8 @@ jobs:
       FORMIO_PKG_AUTH_TOKEN: ${{ secrets.FORMIO_PKG_AUTH_TOKEN }}
       FORMIO_BASE_URL: ${{ secrets.FORMIO_BASE_URL }}
       FORMIO_PROJECT_NAME: ${{ secrets.FORMIO_PROJECT_NAME }}
-      FORMIO_FORM_NAME: ${{ secrets.FORMIO_FORM_NAME }}
+      FORMIO_REBATE_FORM_PATH: ${{ secrets.FORMIO_REBATE_FORM_PATH }}
+      FORMIO_PAYMENT_REQUEST_FORM_PATH: ${{ secrets.FORMIO_PAYMENT_REQUEST_FORM_PATH }}
       FORMIO_API_KEY: ${{ secrets.FORMIO_API_KEY }}
       BAP_CLIENT_ID: ${{ secrets.BAP_CLIENT_ID }}
       BAP_CLIENT_SECRET: ${{ secrets.BAP_CLIENT_SECRET }}
@@ -120,7 +121,8 @@ jobs:
           cf set-env $APP_NAME "CSB_ENROLLMENT_PERIOD" "$CSB_ENROLLMENT_PERIOD" > /dev/null
           cf set-env $APP_NAME "FORMIO_BASE_URL" "$FORMIO_BASE_URL" > /dev/null
           cf set-env $APP_NAME "FORMIO_PROJECT_NAME" "$FORMIO_PROJECT_NAME" > /dev/null
-          cf set-env $APP_NAME "FORMIO_FORM_NAME" "$FORMIO_FORM_NAME" > /dev/null
+          cf set-env $APP_NAME "FORMIO_REBATE_FORM_PATH" "$FORMIO_REBATE_FORM_PATH" > /dev/null
+          cf set-env $APP_NAME "FORMIO_PAYMENT_REQUEST_FORM_PATH" "$FORMIO_PAYMENT_REQUEST_FORM_PATH" > /dev/null
           cf set-env $APP_NAME "FORMIO_API_KEY" "$FORMIO_API_KEY" > /dev/null
           cf set-env $APP_NAME "BAP_CLIENT_ID" "$BAP_CLIENT_ID" > /dev/null
           cf set-env $APP_NAME "BAP_CLIENT_SECRET" "$BAP_CLIENT_SECRET" > /dev/null
