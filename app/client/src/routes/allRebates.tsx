@@ -111,7 +111,7 @@ export function AllRebates() {
           <div className="usa-table-container--scrollable" tabIndex={0}>
             <table
               aria-label="Your Rebate Forms"
-              className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full"
+              className="usa-table usa-table--stacked usa-table--borderless width-full"
             >
               <thead>
                 <tr className="font-sans-2xs text-no-wrap text-bottom">
@@ -177,7 +177,7 @@ export function AllRebates() {
               </thead>
 
               <tbody>
-                {submissions.map((submission) => {
+                {submissions.map((submission, index) => {
                   const { bap, _id, state, modified, data } = submission;
                   const {
                     applicantUEI,
@@ -193,7 +193,7 @@ export function AllRebates() {
 
                   /**
                    * The submission has been updated since the last time the
-                   * BAP's submissions ETL process has succesfully run.
+                   * BAP's submissions ETL process has last succesfully run.
                    */
                   const submissionHasBeenUpdated = bap.lastModified
                     ? new Date(modified) > new Date(bap.lastModified)
@@ -207,14 +207,29 @@ export function AllRebates() {
                   const submissionHasBeenWithdrawn =
                     bap.rebateStatus === "Withdrawn";
 
-                  const statusClassNames = submissionNeedsEdits
+                  const statusStyles = submissionNeedsEdits
                     ? "csb-needs-edits"
                     : enrollmentClosed || state === "submitted"
-                    ? "text-italic text-base-dark"
+                    ? "text-italic"
                     : "";
 
+                  /**
+                   * Apply USWDS `usa-table--striped` styles to each rebate,
+                   * which can include up to three rows – one for each of the
+                   * forms: Application, Purchase Order, and Close-Out.
+                   */
+                  const rebateStyles = index % 2 ? "bg-white" : "bg-gray-5";
+
+                  /**
+                   * Use the BAP Rebate ID if it exists, but fall back to the
+                   * Formio submission ID for cases where the BAP Rebate ID has
+                   * not yet been created (e.g. the form is brand new and the
+                   * BAP's ETL process has not yet run to pick up the new form).
+                   */
+                  const uniqueId = bap.rebateId || _id;
+
                   /* NOTE: when a form is first initially created, and the user
-has not yet clicked the "Next" or "Save" buttons, any fields that the formio
+has not yet clicked the "Next" or "Save" buttons, any fields that the Formio
 form definition sets automatically (based on hidden fields we inject on form
 creation) will not yet be part of the form submission data. As soon as the user
 clicks the "Next" or "Save" buttons the first time, those fields will be set and
@@ -225,9 +240,9 @@ believe is a bit of an edge case, as most users will likely do that after
 starting a new application), indicate to the user they need to first save the
 form for the fields to be displayed. */
                   return (
-                    <Fragment key={_id}>
-                      <tr>
-                        <th scope="row" className={statusClassNames}>
+                    <Fragment key={uniqueId}>
+                      <tr className={rebateStyles}>
+                        <th scope="row" className={statusStyles}>
                           {submissionNeedsEdits ? (
                             <button
                               className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
@@ -306,7 +321,7 @@ form for the fields to be displayed. */
                           ) : null}
                         </th>
 
-                        <td className={statusClassNames}>
+                        <td className={statusStyles}>
                           {bap.rebateId ? (
                             <span title={`Application ID: ${_id}`}>
                               {bap.rebateId}
@@ -319,7 +334,7 @@ form for the fields to be displayed. */
                           )}
                         </td>
 
-                        <td className={statusClassNames}>
+                        <td className={statusStyles}>
                           <span>Application</span>
                           <br />
                           <span className="display-flex flex-align-center font-sans-2xs">
@@ -358,7 +373,7 @@ form for the fields to be displayed. */
                           </span>
                         </td>
 
-                        <td className={statusClassNames}>
+                        <td className={statusStyles}>
                           <>
                             {Boolean(applicantUEI) ? (
                               applicantUEI
@@ -372,12 +387,12 @@ form for the fields to be displayed. */
                             {
                               /* NOTE:
 Initial version of the application form definition included the `applicantEfti`
-field, which is configured via the form definition (in formio/forms.gov) to set
+field, which is configured via the form definition (in Formio/Forms.gov) to set
 its value based on the value of the `sam_hidden_applicant_efti` field, which we
 inject on initial form submission. That value comes from the BAP (SAM.gov data),
 which could be an empty string.
 
-To handle the potentially empty string, the formio form definition was updated
+To handle the potentially empty string, the Formio form definition was updated
 to include a new `applicantEfti_display` field that's configured in the form
 definition to set it's value to the string '0000' if the `applicantEfti` field's
 value is an empty string. This logic (again, built into the form definition)
@@ -421,7 +436,7 @@ save the form for the EFT indicator to be displayed. */
                           </>
                         </td>
 
-                        <td className={statusClassNames}>
+                        <td className={statusStyles}>
                           <>
                             {Boolean(applicantOrganizationName) ? (
                               applicantOrganizationName
@@ -443,12 +458,37 @@ save the form for the EFT indicator to be displayed. */
                           </>
                         </td>
 
-                        <td className={statusClassNames}>
+                        <td className={statusStyles}>
                           {last_updated_by}
                           <br />
                           <span title={`${date} ${time}`}>{date}</span>
                         </td>
                       </tr>
+
+                      {state === "submitted" && (
+                        <tr className={rebateStyles}>
+                          <th scope="row" colSpan={6}>
+                            <Link
+                              to="/"
+                              className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
+                            >
+                              <span className="display-flex flex-align-center">
+                                <svg
+                                  className="usa-icon"
+                                  aria-hidden="true"
+                                  focusable="false"
+                                  role="img"
+                                >
+                                  <use href={`${icons}#add_circle`} />
+                                </svg>
+                                <span className="margin-left-1">
+                                  New Payment Request
+                                </span>
+                              </span>
+                            </Link>
+                          </th>
+                        </tr>
+                      )}
                     </Fragment>
                   );
                 })}
