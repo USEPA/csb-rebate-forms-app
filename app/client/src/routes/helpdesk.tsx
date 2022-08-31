@@ -6,9 +6,9 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages, fetchData } from "../config";
 import { useHelpdeskAccess } from "components/app";
-import Loading from "components/loading";
-import Message from "components/message";
-import MarkdownContent from "components/markdownContent";
+import { Loading } from "components/loading";
+import { Message } from "components/message";
+import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/infoTooltip";
 import { useContentState } from "contexts/content";
 import { useUserState } from "contexts/user";
@@ -54,7 +54,7 @@ type SubmissionState =
       };
     };
 
-export default function Helpdesk() {
+export function Helpdesk() {
   const navigate = useNavigate();
 
   const [searchText, setSearchText] = useState("");

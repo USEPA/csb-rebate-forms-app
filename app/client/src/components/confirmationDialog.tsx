@@ -9,7 +9,7 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import { useDialogState, useDialogDispatch } from "contexts/dialog";
 
-export default function ConfirmationDialog() {
+export function ConfirmationDialog() {
   const {
     dialogShown,
     dismissable,

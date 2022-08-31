@@ -19,13 +19,13 @@ import "@formio/premium/dist/premium.css";
 import "formiojs/dist/formio.full.min.css";
 // ---
 import { serverBasePath, serverUrl, cloudSpace, fetchData } from "../config";
-import Loading from "components/loading";
-import MarkdownContent from "components/markdownContent";
-import Welcome from "components/welcome";
-import Dashboard from "components/dashboard";
-import ConfirmationDialog from "components/confirmationDialog";
-import Helpdesk from "routes/helpdesk";
-import AllRebates from "routes/allRebates";
+import { Loading } from "components/loading";
+import { MarkdownContent } from "components/markdownContent";
+import { Welcome } from "routes/welcome";
+import { Dashboard } from "components/dashboard";
+import { ConfirmationDialog } from "components/confirmationDialog";
+import { Helpdesk } from "routes/helpdesk";
+import { AllRebates } from "routes/allRebates";
 import { NewApplication } from "routes/newApplication";
 import { ExistingApplication } from "routes/existingApplication";
 import { useContentState, useContentDispatch } from "contexts/content";
@@ -257,7 +257,7 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
   );
 }
 
-export default function App() {
+export function App() {
   useFetchedContent();
   useSiteAlertBanner();
   useDisclaimerBanner();

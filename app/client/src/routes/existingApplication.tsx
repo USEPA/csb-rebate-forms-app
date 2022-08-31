@@ -15,9 +15,9 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, fetchData } from "../config";
 import { getUserInfo } from "../utilities";
-import Loading from "components/loading";
-import Message from "components/message";
-import MarkdownContent from "components/markdownContent";
+import { Loading } from "components/loading";
+import { Message } from "components/message";
+import { MarkdownContent } from "components/markdownContent";
 import { useContentState } from "contexts/content";
 import { useUserState } from "contexts/user";
 

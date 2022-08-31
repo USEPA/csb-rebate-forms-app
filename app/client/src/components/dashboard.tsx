@@ -13,7 +13,7 @@ import {
   fetchData,
 } from "../config";
 import { useHelpdeskAccess } from "components/app";
-import Loading from "components/loading";
+import { Loading } from "components/loading";
 import { useUserState, useUserDispatch } from "contexts/user";
 import { Action, useDialogDispatch } from "contexts/dialog";
 
@@ -100,7 +100,7 @@ function IconText({ order, icon, text }: IconTextProps) {
   );
 }
 
-export default function Dashboard() {
+export function Dashboard() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
