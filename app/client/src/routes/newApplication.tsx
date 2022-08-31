@@ -12,7 +12,7 @@ import { TextWithTooltip } from "components/infoTooltip";
 import { useContentState } from "contexts/content";
 import { SamEntityData, useUserState } from "contexts/user";
 
-function createNewRebate(email: string, entity: SamEntityData) {
+function createNewApplication(email: string, entity: SamEntityData) {
   const { title, name } = getUserInfo(email, entity);
 
   return fetchData(`${serverUrl}/api/application-form-submission/`, {
@@ -38,7 +38,7 @@ function createNewRebate(email: string, entity: SamEntityData) {
   });
 }
 
-export default function NewRebate() {
+export function NewApplication() {
   const navigate = useNavigate();
   const { content } = useContentState();
   const { csbData, epaUserData, bapUserData } = useUserState();
@@ -155,7 +155,7 @@ export default function NewRebate() {
                                     text: "Creating new rebate form application...",
                                   });
 
-                                  createNewRebate(email, entity)
+                                  createNewApplication(email, entity)
                                     .then((res) => {
                                       navigate(`/rebate/${res._id}`);
                                     })
