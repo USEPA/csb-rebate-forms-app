@@ -249,7 +249,7 @@ export function AllRebates() {
 
                   // TODO: update to use the accepted BAP rebate status,
                   // once it's being returned from the BAP
-                  const submissionHasBeenAccepted = state === "submitted";
+                  const submissionHasBeenAccepted = false;
 
                   const statusStyles = submissionNeedsEdits
                     ? "csb-needs-edits"
