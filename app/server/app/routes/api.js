@@ -57,9 +57,9 @@ router.get("/content", (req, res) => {
     "helpdesk-intro.md",
     "all-rebates-intro.md",
     "all-rebates-outro.md",
-    "new-rebate-dialog.md",
-    "draft-rebate-intro.md",
-    "submitted-rebate-intro.md",
+    "new-application-dialog.md",
+    "draft-application-intro.md",
+    "submitted-application-intro.md",
   ];
 
   const s3BucketUrl = `https://${s3Bucket}.s3-${s3Region}.amazonaws.com`;
@@ -86,9 +86,9 @@ router.get("/content", (req, res) => {
         helpdeskIntro: data[1],
         allRebatesIntro: data[2],
         allRebatesOutro: data[3],
-        newRebateDialog: data[4],
-        draftRebateIntro: data[5],
-        submittedRebateIntro: data[6],
+        newApplicationDialog: data[4],
+        draftApplicationIntro: data[5],
+        submittedApplicationIntro: data[6],
       });
     })
     .catch((error) => {

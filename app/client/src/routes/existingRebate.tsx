@@ -382,9 +382,9 @@ function ExistingRebateContent() {
           className="margin-top-4"
           children={
             submissionData.state === "draft"
-              ? content.data?.draftRebateIntro || ""
+              ? content.data?.draftApplicationIntro || ""
               : submissionData.state === "submitted"
-              ? content.data?.submittedRebateIntro || ""
+              ? content.data?.submittedApplicationIntro || ""
               : ""
           }
         />

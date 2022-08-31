@@ -15,9 +15,9 @@ type Content = {
   helpdeskIntro: string;
   allRebatesIntro: string;
   allRebatesOutro: string;
-  newRebateDialog: string;
-  draftRebateIntro: string;
-  submittedRebateIntro: string;
+  newApplicationDialog: string;
+  draftApplicationIntro: string;
+  submittedApplicationIntro: string;
 };
 
 type State = {
@@ -57,9 +57,9 @@ function reducer(state: State, action: Action): State {
         helpdeskIntro,
         allRebatesIntro,
         allRebatesOutro,
-        newRebateDialog,
-        draftRebateIntro,
-        submittedRebateIntro,
+        newApplicationDialog,
+        draftApplicationIntro,
+        submittedApplicationIntro,
       } = action.payload;
 
       return {
@@ -71,9 +71,9 @@ function reducer(state: State, action: Action): State {
             helpdeskIntro,
             allRebatesIntro,
             allRebatesOutro,
-            newRebateDialog,
-            draftRebateIntro,
-            submittedRebateIntro,
+            newApplicationDialog,
+            draftApplicationIntro,
+            submittedApplicationIntro,
           },
         },
       };
