@@ -349,7 +349,7 @@ function ExistingRebateContent() {
 
   const { enrollmentClosed } = csbData.data;
 
-  const matchedBapSubmission = bapUserData.data.rebateSubmissions.find(
+  const matchedBapSubmission = bapUserData.data.applicationSubmissions.find(
     (bapSubmission) => bapSubmission.CSB_Form_ID__c === id
   );
 

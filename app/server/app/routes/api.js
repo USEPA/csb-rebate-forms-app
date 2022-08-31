@@ -16,7 +16,10 @@ const {
   storeBapComboKeys,
   verifyMongoObjectId,
 } = require("../middleware");
-const { getSamData, getRebateSubmissionsData } = require("../utilities/bap");
+const {
+  getSamData,
+  getApplicationSubmissionsData,
+} = require("../utilities/bap");
 const log = require("../utilities/logger");
 
 const enrollmentClosed = process.env.CSB_ENROLLMENT_PERIOD !== "open";
@@ -37,7 +40,7 @@ function checkEnrollmentPeriodAndBapStatus({ id, comboKey, req }) {
     return Promise.resolve();
   }
   // else, enrollment is closed, so only continue if edits are requested
-  return getRebateSubmissionsData([comboKey], req).then((submissions) => {
+  return getApplicationSubmissionsData([comboKey], req).then((submissions) => {
     const submission = submissions.find((s) => s.CSB_Form_ID__c === id);
     const status = submission?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c;
     return status === "Edits Requested" ? Promise.resolve() : Promise.reject();
@@ -141,18 +144,18 @@ router.get("/bap-data", (req, res) => {
         return res.json({
           samResults: false,
           samEntities: [],
-          rebateSubmissions: [],
+          applicationSubmissions: [],
         });
       }
 
       const comboKeys = samEntities.map((e) => e.ENTITY_COMBO_KEY__c);
 
-      getRebateSubmissionsData(comboKeys, req)
+      getApplicationSubmissionsData(comboKeys, req)
         .then((submissions) => {
           return res.json({
             samResults: true,
             samEntities,
-            rebateSubmissions: submissions,
+            applicationSubmissions: submissions,
           });
         })
         .catch((error) => {

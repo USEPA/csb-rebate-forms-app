@@ -182,12 +182,12 @@ function getComboKeys(email, req) {
 }
 
 /**
- * Uses cached JSforce connection to query the BAP for rebate form submissions.
+ * Uses cached JSforce connection to query the BAP for application form submissions.
  * @param {string[]} comboKeys
  * @param {express.Request} req
- * @returns {Promise<Object[]>} collection of rebate form submissions
+ * @returns {Promise<Object[]>} collection of application form submissions
  */
-function queryForRebateFormSubmissions(comboKeys, req) {
+function queryForApplicationFormSubmissions(comboKeys, req) {
   /** @type {jsforce.Connection} */
   const bapConnection = req.app.locals.bapConnection;
   return bapConnection
@@ -218,18 +218,18 @@ function queryForRebateFormSubmissions(comboKeys, req) {
 }
 
 /**
- * Fetches rebate form submissions associated with a provided set of combo keys.
+ * Fetches application form submissions associated with a provided set of combo keys.
  * @param {string[]} comboKeys
  * @param {express.Request} req
  */
-function getRebateSubmissionsData(comboKeys, req) {
+function getApplicationSubmissionsData(comboKeys, req) {
   // Make sure BAP connection has been initialized
   if (!req.app.locals.bapConnection) {
     const message = `BAP Connection has not yet been initialized.`;
     log({ level: "info", message });
 
     return setupConnection(req.app)
-      .then(() => queryForRebateFormSubmissions(comboKeys, req))
+      .then(() => queryForApplicationFormSubmissions(comboKeys, req))
       .catch((err) => {
         const message = `BAP Error: ${err}`;
         log({ level: "error", message, req });
@@ -237,7 +237,7 @@ function getRebateSubmissionsData(comboKeys, req) {
       });
   }
 
-  return queryForRebateFormSubmissions(comboKeys, req).catch((err) => {
+  return queryForApplicationFormSubmissions(comboKeys, req).catch((err) => {
     if (err?.toString() === "invalid_grant: expired access/refresh token") {
       const message = `BAP access token expired`;
       log({ level: "info", message, req });
@@ -247,7 +247,7 @@ function getRebateSubmissionsData(comboKeys, req) {
     }
 
     return setupConnection(req.app)
-      .then(() => queryForRebateFormSubmissions(comboKeys, req))
+      .then(() => queryForApplicationFormSubmissions(comboKeys, req))
       .catch((retryErr) => {
         const message = `BAP Error: ${retryErr}`;
         log({ level: "error", message, req });
@@ -256,4 +256,4 @@ function getRebateSubmissionsData(comboKeys, req) {
   });
 }
 
-module.exports = { getSamData, getComboKeys, getRebateSubmissionsData };
+module.exports = { getSamData, getComboKeys, getApplicationSubmissionsData };

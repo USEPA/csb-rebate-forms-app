@@ -73,7 +73,7 @@ export default function AllRebates() {
    * datetime.
    */
   const submissions = rebateFormSubmissions.data.map((formioSubmission) => {
-    const matchedBapSubmission = bapUserData.data.rebateSubmissions.find(
+    const matchedBapSubmission = bapUserData.data.applicationSubmissions.find(
       (bapSubmission) => bapSubmission.CSB_Form_ID__c === formioSubmission._id
     );
 

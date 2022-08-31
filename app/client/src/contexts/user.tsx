@@ -91,12 +91,12 @@ type State = {
           | {
               samResults: false;
               samEntities: [];
-              rebateSubmissions: [];
+              applicationSubmissions: [];
             }
           | {
               samResults: true;
               samEntities: SamEntityData[];
-              rebateSubmissions: BapSubmissionData[];
+              applicationSubmissions: BapSubmissionData[];
             };
       }
     | { status: "failure"; data: {} };
@@ -125,12 +125,12 @@ type Action =
           | {
               samResults: false;
               samEntities: [];
-              rebateSubmissions: [];
+              applicationSubmissions: [];
             }
           | {
               samResults: true;
               samEntities: SamEntityData[];
-              rebateSubmissions: BapSubmissionData[];
+              applicationSubmissions: BapSubmissionData[];
             };
       };
     }
