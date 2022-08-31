@@ -32,7 +32,7 @@ import { useContentState, useContentDispatch } from "contexts/content";
 import { useUserState, useUserDispatch } from "contexts/user";
 import { useDialogDispatch, useDialogState } from "contexts/dialog";
 
-// Custom hook to fetch static content
+/** Custom hook to fetch static content */
 function useFetchedContent() {
   const dispatch = useContentDispatch();
 
@@ -51,7 +51,7 @@ function useFetchedContent() {
   }, [dispatch]);
 }
 
-// Custom hook to display a site-wide alert banner
+/** Custom hook to display a site-wide alert banner */
 function useSiteAlertBanner() {
   const { content } = useContentState();
 
@@ -89,7 +89,7 @@ function useSiteAlertBanner() {
   }, [content]);
 }
 
-// Custom hook to display the CSB disclaimer banner for development/staging
+/** Custom hook to display the CSB disclaimer banner for development/staging */
 function useDisclaimerBanner() {
   useEffect(() => {
     if (!(cloudSpace === "dev" || cloudSpace === "staging")) return;
@@ -112,7 +112,7 @@ function useDisclaimerBanner() {
   }, []);
 }
 
-// Custom hook to set up inactivity timer to auto-logout user if they're inactive for >15 minutes
+/** Custom hook to set up inactivity timer to auto-logout user if they're inactive for >15 minutes */
 function useInactivityDialog(callback: () => void) {
   const { epaUserData } = useUserState();
   const { dialogShown, heading } = useDialogState();
@@ -196,7 +196,7 @@ function useInactivityDialog(callback: () => void) {
   }, [dialogShown, heading, logoutTimer, dispatch]);
 }
 
-// Custom hook to check if user should have access to helpdesk pages
+/** Custom hook to check if user should have access to helpdesk pages */
 export function useHelpdeskAccess() {
   const [helpdeskAccess, setHelpdeskAccess] = useState<
     "idle" | "pending" | "success" | "failure"

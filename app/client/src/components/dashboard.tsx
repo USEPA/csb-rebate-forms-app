@@ -22,7 +22,7 @@ Formio.setProjectUrl(formioProjectUrl);
 Formio.use(premium);
 Formio.use(uswds);
 
-// Custom hook to fetch CSP app specific data
+/** Custom hook to fetch CSP app specific data */
 function useFetchedCsbData() {
   const dispatch = useUserDispatch();
 
@@ -41,7 +41,7 @@ function useFetchedCsbData() {
   }, [dispatch]);
 }
 
-// Custom hook to fetch BAP data
+/** Custom hook to fetch BAP data */
 function useFetchedBapData() {
   const dispatch = useUserDispatch();
 
