@@ -273,7 +273,7 @@ function ExistingRebateContent() {
       },
     });
 
-    fetchData(`${serverUrl}/api/rebate-form-submission/${id}`)
+    fetchData(`${serverUrl}/api/application-form-submission/${id}`)
       .then((res) => {
         // Set up s3 re-route to wrapper app
         const s3Provider = Formio.Providers.providers.storage.s3;
@@ -505,7 +505,7 @@ function ExistingRebateContent() {
             setPendingSubmissionData(data);
 
             fetchData(
-              `${serverUrl}/api/rebate-form-submission/${submissionData._id}`,
+              `${serverUrl}/api/application-form-submission/${submissionData._id}`,
               { ...submission, data }
             )
               .then((res) => {
@@ -590,7 +590,7 @@ function ExistingRebateContent() {
             setPendingSubmissionData(data);
 
             fetchData(
-              `${serverUrl}/api/rebate-form-submission/${submissionData._id}`,
+              `${serverUrl}/api/application-form-submission/${submissionData._id}`,
               { ...submission, data, state: "draft" }
             )
               .then((res) => {

@@ -35,7 +35,7 @@ export default function AllRebates() {
 
     dispatch({ type: "FETCH_REBATE_FORM_SUBMISSIONS_REQUEST" });
 
-    fetchData(`${serverUrl}/api/rebate-form-submissions`)
+    fetchData(`${serverUrl}/api/application-form-submissions`)
       .then((res) => {
         dispatch({
           type: "FETCH_REBATE_FORM_SUBMISSIONS_SUCCESS",
@@ -242,7 +242,7 @@ form for the fields to be displayed. */
                                 // change the submission's state to draft, then
                                 // redirect to the form to allow user to edit
                                 fetchData(
-                                  `${serverUrl}/api/rebate-form-submission/${_id}`,
+                                  `${serverUrl}/api/application-form-submission/${_id}`,
                                   { data, state: "draft" }
                                 )
                                   .then((res) => {

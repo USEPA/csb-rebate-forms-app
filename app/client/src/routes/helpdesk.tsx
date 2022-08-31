@@ -119,7 +119,9 @@ export default function Helpdesk() {
               },
             });
 
-            fetchData(`${serverUrl}/help/rebate-form-submission/${searchText}`)
+            fetchData(
+              `${serverUrl}/help/application-form-submission/${searchText}`
+            )
               .then((res) => {
                 setFormId(res.submissionData._id);
                 setRebateFormSubmission({
@@ -281,7 +283,7 @@ export default function Helpdesk() {
                                 });
 
                                 fetchData(
-                                  `${serverUrl}/help/rebate-form-submission/${formId}`,
+                                  `${serverUrl}/help/application-form-submission/${formId}`,
                                   {}
                                 )
                                   .then((res) => {

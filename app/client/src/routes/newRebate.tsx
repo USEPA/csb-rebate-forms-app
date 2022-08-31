@@ -15,7 +15,7 @@ import { SamEntityData, useUserState } from "contexts/user";
 function createNewRebate(email: string, entity: SamEntityData) {
   const { title, name } = getUserInfo(email, entity);
 
-  return fetchData(`${serverUrl}/api/rebate-form-submission/`, {
+  return fetchData(`${serverUrl}/api/application-form-submission/`, {
     data: {
       last_updated_by: email,
       hidden_current_user_email: email,

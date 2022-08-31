@@ -166,8 +166,8 @@ router.get("/bap-data", (req, res) => {
 
 const applicationFormApiPath = `${formioProjectUrl}/${formioApplicationFormPath}`;
 
-// --- get all rebate form submissions from Forms.gov
-router.get("/rebate-form-submissions", storeBapComboKeys, (req, res) => {
+// --- get all application form submissions from Forms.gov
+router.get("/application-form-submissions", storeBapComboKeys, (req, res) => {
   // NOTE: Helpdesk users might not have any SAM.gov records associated with
   // their email address so we should not return any submissions to those users.
   // The only reason we explicitly need to do this is because there could be
@@ -190,13 +190,13 @@ router.get("/rebate-form-submissions", storeBapComboKeys, (req, res) => {
     .then((axiosRes) => axiosRes.data)
     .then((submissions) => res.json(submissions))
     .catch((error) => {
-      const message = `Error getting Forms.gov rebate form submissions`;
+      const message = `Error getting Forms.gov application form submissions`;
       return res.status(error?.response?.status || 500).json({ message });
     });
 });
 
-// --- post a new rebate form submission to Forms.gov
-router.post("/rebate-form-submission", storeBapComboKeys, (req, res) => {
+// --- post a new application form submission to Forms.gov
+router.post("/application-form-submission", storeBapComboKeys, (req, res) => {
   const comboKey = req.body.data?.bap_hidden_entity_combo_key;
 
   if (enrollmentClosed) {
@@ -222,14 +222,14 @@ router.post("/rebate-form-submission", storeBapComboKeys, (req, res) => {
     .then((axiosRes) => axiosRes.data)
     .then((submission) => res.json(submission))
     .catch((error) => {
-      const message = `Error posting Forms.gov rebate form submission`;
+      const message = `Error posting Forms.gov application form submission`;
       return res.status(error?.response?.status || 500).json({ message });
     });
 });
 
-// --- get an existing rebate form's schema and submission data from Forms.gov
+// --- get an existing application form's schema and submission data from Forms.gov
 router.get(
-  "/rebate-form-submission/:id",
+  "/application-form-submission/:id",
   verifyMongoObjectId,
   storeBapComboKeys,
   async (req, res) => {
@@ -266,15 +266,15 @@ router.get(
           });
       })
       .catch((error) => {
-        const message = `Error getting Forms.gov rebate form submission ${id}`;
+        const message = `Error getting Forms.gov application form submission ${id}`;
         res.status(error?.response?.status || 500).json({ message });
       });
   }
 );
 
-// --- post an update to an existing draft rebate form submission to Forms.gov
+// --- post an update to an existing draft application form submission to Forms.gov
 router.post(
-  "/rebate-form-submission/:id",
+  "/application-form-submission/:id",
   verifyMongoObjectId,
   storeBapComboKeys,
   (req, res) => {
@@ -301,7 +301,7 @@ router.post(
           .then((axiosRes) => axiosRes.data)
           .then((submission) => res.json(submission))
           .catch((error) => {
-            const message = `Error updating Forms.gov rebate form submission`;
+            const message = `Error updating Forms.gov application form submission`;
             return res.status(error?.response?.status || 500).json({ message });
           });
       })
