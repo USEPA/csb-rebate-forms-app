@@ -62,7 +62,7 @@ export default function AllRebates() {
   }
 
   if (rebateFormSubmissions.status === "failure") {
-    return <Message type="error" text={messages.rebateSubmissionsError} />;
+    return <Message type="error" text={messages.applicationSubmissionsError} />;
   }
 
   const { enrollmentClosed } = csbData.data;
@@ -93,7 +93,7 @@ export default function AllRebates() {
     <>
       {submissions.length === 0 ? (
         <div className="margin-top-4">
-          <Message type="info" text={messages.newRebateApplication} />
+          <Message type="info" text={messages.newApplication} />
         </div>
       ) : (
         <>

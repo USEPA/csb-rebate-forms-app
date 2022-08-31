@@ -162,7 +162,10 @@ export default function Helpdesk() {
       {rebateFormSubmission.status === "pending" && <Loading />}
 
       {rebateFormSubmission.status === "failure" && (
-        <Message type="error" text={messages.helpdeskRebateFormError} />
+        <Message
+          type="error"
+          text={messages.helpdeskApplicationSubmissionError}
+        />
       )}
 
       {/*
@@ -172,7 +175,10 @@ export default function Helpdesk() {
       */}
       {rebateFormSubmission.status === "success" &&
         !rebateFormSubmission.data && (
-          <Message type="error" text={messages.helpdeskRebateFormError} />
+          <Message
+            type="error"
+            text={messages.helpdeskApplicationSubmissionError}
+          />
         )}
 
       {rebateFormSubmission.status === "success" &&

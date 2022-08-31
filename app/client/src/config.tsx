@@ -58,11 +58,11 @@ export const messages = {
     "Error loading SAM.gov or rebate submission data. Please contact support.",
   noSamResults:
     "No SAM.gov records match your email. Only Government and Electronic Business SAM.gov Points of Contacts (and alternates) may edit and submit Clean School Bus Rebate Forms.",
-  rebateSubmissionsError: "Error loading rebate form submissions.",
-  newRebateApplication:
+  applicationSubmissionsError: "Error loading application form submissions.",
+  newApplication:
     "Please select the “New Application” button above to create your first rebate application.",
-  helpdeskRebateFormError:
-    "Error loading rebate form submission. Please confirm the form ID is correct and search again.",
+  helpdeskApplicationSubmissionError:
+    "Error loading application form submission. Please confirm the Application ID is correct and search again.",
   timeout:
     "For security reasons, you have been logged out due to 15 minutes of inactivity.",
   logout: "You have successfully logged out.",
