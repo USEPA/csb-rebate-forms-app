@@ -90,7 +90,8 @@ function reducer(state: State, action: Action): State {
     }
 
     default: {
-      throw new Error(`Unhandled action type: ${action}`);
+      const message = `Unhandled action type: ${action}`;
+      throw new Error(message);
     }
   }
 }
@@ -120,7 +121,8 @@ export function ContentProvider({ children }: Props) {
 export function useContentState() {
   const context = useContext(StateContext);
   if (context === undefined) {
-    throw new Error("useContentState must be called within a ContentProvider");
+    const message = `useContentState must be called within a ContentProvider`;
+    throw new Error(message);
   }
   return context;
 }
@@ -132,7 +134,8 @@ export function useContentState() {
 export function useContentDispatch() {
   const context = useContext(DispatchContext);
   if (context === undefined) {
-    throw new Error("useContentDispatch must be used within a ContentProvider");
+    const message = `useContentDispatch must be used within a ContentProvider`;
+    throw new Error(message);
   }
   return context;
 }

@@ -107,7 +107,8 @@ function reducer(state: State, action: Action): State {
     }
 
     default: {
-      throw new Error(`Unhandled action type: ${action}`);
+      const message = `Unhandled action type: ${action}`;
+      throw new Error(message);
     }
   }
 }

@@ -81,7 +81,8 @@ function reducer(state: State, action: Action): State {
     }
 
     default: {
-      throw new Error(`Unhandled action type: ${action}`);
+      const message = `Unhandled action type: ${action}`;
+      throw new Error(message);
     }
   }
 }
@@ -111,7 +112,8 @@ export function FormsProvider({ children }: Props) {
 export function useFormsState() {
   const context = useContext(StateContext);
   if (context === undefined) {
-    throw new Error("useFormsState must be called within a FormsProvider");
+    const message = `useFormsState must be called within a FormsProvider`;
+    throw new Error(message);
   }
   return context;
 }
@@ -123,7 +125,8 @@ export function useFormsState() {
 export function useFormsDispatch() {
   const context = useContext(DispatchContext);
   if (context === undefined) {
-    throw new Error("useFormsDispatch must be used within a FormsProvider");
+    const message = `useFormsDispatch must be used within a FormsProvider`;
+    throw new Error(message);
   }
   return context;
 }

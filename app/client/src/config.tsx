@@ -7,15 +7,13 @@ const {
 } = process.env;
 
 if (!REACT_APP_FORMIO_BASE_URL) {
-  throw new Error(
-    "Required REACT_APP_FORMIO_BASE_URL environment variable not found."
-  );
+  const message = `Required REACT_APP_FORMIO_BASE_URL environment variable not found.`;
+  throw new Error(message);
 }
 
 if (!REACT_APP_FORMIO_PROJECT_NAME) {
-  throw new Error(
-    "Required REACT_APP_FORMIO_PROJECT_NAME environment variable not found."
-  );
+  const message = `Required REACT_APP_FORMIO_PROJECT_NAME environment variable not found.`;
+  throw new Error(message);
 }
 
 // allows the app to be accessed from a sub directory of a server (e.g. /csb)
