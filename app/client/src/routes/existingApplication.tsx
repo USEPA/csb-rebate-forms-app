@@ -112,7 +112,7 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-function ExistingRebateProvider({ children }: Props) {
+function ExistingApplicationProvider({ children }: Props) {
   const initialState: State = {
     displayed: false,
     type: "info",
@@ -131,39 +131,37 @@ function ExistingRebateProvider({ children }: Props) {
 }
 
 /**
- * Returns state stored in `ExistingRebateProvider` context component.
+ * Returns state stored in `ExistingApplicationProvider` context component.
  */
-function useExistingRebateState() {
+function useApplicationRebateState() {
   const context = useContext(StateContext);
   if (context === undefined) {
-    throw new Error(
-      "useExistingRebateState must be called within a ExistingRebateProvider"
-    );
+    const message = `useApplicationRebateState must be called within a ExistingApplicationProvider`;
+    throw new Error(message);
   }
   return context;
 }
 
 /**
  * Returns `dispatch` method for dispatching actions to update state stored in
- * `ExistingRebateProvider` context component.
+ * `ExistingApplicationProvider` context component.
  */
-function useExistingRebateDispatch() {
+function useExistingApplicationDispatch() {
   const context = useContext(DispatchContext);
   if (context === undefined) {
-    throw new Error(
-      "useExistingRebateDispatch must be used within a ExistingRebateProvider"
-    );
+    const message = `useExistingApplicationDispatch must be used within a ExistingApplicationProvider`;
+    throw new Error(message);
   }
   return context;
 }
 
 // -----------------------------------------------------------------------------
 
-export default function ExistingRebate() {
+export function ExistingApplication() {
   return (
-    <ExistingRebateProvider>
-      <ExistingRebateContent />
-    </ExistingRebateProvider>
+    <ExistingApplicationProvider>
+      <ExistingApplicationContent />
+    </ExistingApplicationProvider>
   );
 }
 
@@ -225,17 +223,17 @@ type SubmissionState =
     };
 
 function FormMessage() {
-  const { displayed, type, text } = useExistingRebateState();
+  const { displayed, type, text } = useApplicationRebateState();
   if (!displayed) return null;
   return <Message type={type} text={text} />;
 }
 
-function ExistingRebateContent() {
+function ExistingApplicationContent() {
   const navigate = useNavigate();
   const { id } = useParams<"id">();
   const { content } = useContentState();
   const { csbData, epaUserData, bapUserData } = useUserState();
-  const dispatch = useExistingRebateDispatch();
+  const dispatch = useExistingApplicationDispatch();
 
   const [rebateFormSubmission, setRebateFormSubmission] =
     useState<SubmissionState>({

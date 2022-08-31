@@ -27,7 +27,7 @@ import ConfirmationDialog from "components/confirmationDialog";
 import Helpdesk from "routes/helpdesk";
 import AllRebates from "routes/allRebates";
 import NewRebate from "routes/newRebate";
-import ExistingRebate from "routes/existingRebate";
+import { ExistingApplication } from "routes/existingApplication";
 import { useContentState, useContentDispatch } from "contexts/content";
 import { useUserState, useUserDispatch } from "contexts/user";
 import { useDialogDispatch, useDialogState } from "contexts/dialog";
@@ -289,7 +289,7 @@ export default function App() {
           */}
           <Route path="helpdesk" element={<Helpdesk />} />
           <Route path="rebate/new" element={<NewRebate />} />
-          <Route path="rebate/:id" element={<ExistingRebate />} />
+          <Route path="rebate/:id" element={<ExistingApplication />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
