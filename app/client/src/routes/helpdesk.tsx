@@ -66,7 +66,7 @@ export function Helpdesk() {
   const dispatch = useDialogDispatch();
   const helpdeskAccess = useHelpdeskAccess();
 
-  const [rebateFormSubmission, setRebateFormSubmission] =
+  const [applicationFormSubmission, setApplicationFormSubmission] =
     useState<SubmissionState>({
       status: "idle",
       data: {
@@ -90,7 +90,7 @@ export function Helpdesk() {
 
   const { enrollmentClosed } = csbData.data;
 
-  const { formSchema, submissionData } = rebateFormSubmission.data;
+  const { formSchema, submissionData } = applicationFormSubmission.data;
 
   return (
     <>
@@ -111,7 +111,7 @@ export function Helpdesk() {
             setFormId("");
             setFormDisplayed(false);
 
-            setRebateFormSubmission({
+            setApplicationFormSubmission({
               status: "pending",
               data: {
                 formSchema: null,
@@ -124,14 +124,14 @@ export function Helpdesk() {
             )
               .then((res) => {
                 setFormId(res.submissionData._id);
-                setRebateFormSubmission({
+                setApplicationFormSubmission({
                   status: "success",
                   data: res,
                 });
               })
               .catch((err) => {
                 setFormId("");
-                setRebateFormSubmission({
+                setApplicationFormSubmission({
                   status: "failure",
                   data: {
                     formSchema: null,
@@ -141,11 +141,11 @@ export function Helpdesk() {
               });
           }}
         >
-          <label className="usa-sr-only" htmlFor="search-field-rebate-form-id">
-            Search by Form ID
+          <label className="usa-sr-only" htmlFor="search-field-application-id">
+            Search by Application ID
           </label>
           <input
-            id="search-field-rebate-form-id"
+            id="search-field-application-id"
             className="usa-input"
             type="search"
             name="search"
@@ -159,9 +159,9 @@ export function Helpdesk() {
         </form>
       </div>
 
-      {rebateFormSubmission.status === "pending" && <Loading />}
+      {applicationFormSubmission.status === "pending" && <Loading />}
 
-      {rebateFormSubmission.status === "failure" && (
+      {applicationFormSubmission.status === "failure" && (
         <Message
           type="error"
           text={messages.helpdeskApplicationSubmissionError}
@@ -169,25 +169,26 @@ export function Helpdesk() {
       )}
 
       {/*
-        NOTE: when the rebate form submission data is successfully fetched, the
-        response should contain the submission data, but since it's coming from
-        an external server, we should check that it exists first before using it
+        NOTE: when the application form submission data is successfully fetched,
+        the response should contain the submission data, but since it's coming
+        from an external server, we should check that it exists first before
+        using it
       */}
-      {rebateFormSubmission.status === "success" &&
-        !rebateFormSubmission.data && (
+      {applicationFormSubmission.status === "success" &&
+        !applicationFormSubmission.data && (
           <Message
             type="error"
             text={messages.helpdeskApplicationSubmissionError}
           />
         )}
 
-      {rebateFormSubmission.status === "success" &&
+      {applicationFormSubmission.status === "success" &&
         formSchema &&
         submissionData && (
           <>
             <div className="usa-table-container--scrollable" tabIndex={0}>
               <table
-                aria-label="Rebate Form Search Results"
+                aria-label="Application Form Search Results"
                 className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full"
               >
                 <thead>
@@ -280,7 +281,7 @@ export function Helpdesk() {
                               confirmedAction: () => {
                                 setFormDisplayed(false);
 
-                                setRebateFormSubmission({
+                                setApplicationFormSubmission({
                                   status: "pending",
                                   data: {
                                     formSchema: null,
@@ -293,13 +294,13 @@ export function Helpdesk() {
                                   {}
                                 )
                                   .then((res) => {
-                                    setRebateFormSubmission({
+                                    setApplicationFormSubmission({
                                       status: "success",
                                       data: res,
                                     });
                                   })
                                   .catch((err) => {
-                                    setRebateFormSubmission({
+                                    setApplicationFormSubmission({
                                       status: "failure",
                                       data: {
                                         formSchema: null,

@@ -10,7 +10,7 @@ type Props = {
   children: ReactNode;
 };
 
-type RebateFormSubmission = {
+type ApplicationFormSubmission = {
   [field: string]: unknown;
   _id: string; // MongoDB ObjectId string
   state: "submitted" | "draft";
@@ -27,53 +27,53 @@ type RebateFormSubmission = {
 };
 
 type State = {
-  rebateFormSubmissions:
+  applicationFormSubmissions:
     | { status: "idle"; data: [] }
     | { status: "pending"; data: [] }
-    | { status: "success"; data: RebateFormSubmission[] }
+    | { status: "success"; data: ApplicationFormSubmission[] }
     | { status: "failure"; data: [] };
 };
 
 type Action =
-  | { type: "FETCH_REBATE_FORM_SUBMISSIONS_REQUEST" }
+  | { type: "FETCH_APPLICATION_FORM_SUBMISSIONS_REQUEST" }
   | {
-      type: "FETCH_REBATE_FORM_SUBMISSIONS_SUCCESS";
+      type: "FETCH_APPLICATION_FORM_SUBMISSIONS_SUCCESS";
       payload: {
-        rebateFormSubmissions: RebateFormSubmission[];
+        applicationFormSubmissions: ApplicationFormSubmission[];
       };
     }
-  | { type: "FETCH_REBATE_FORM_SUBMISSIONS_FAILURE" };
+  | { type: "FETCH_APPLICATION_FORM_SUBMISSIONS_FAILURE" };
 
 const StateContext = createContext<State | undefined>(undefined);
 const DispatchContext = createContext<Dispatch<Action> | undefined>(undefined);
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
-    case "FETCH_REBATE_FORM_SUBMISSIONS_REQUEST": {
+    case "FETCH_APPLICATION_FORM_SUBMISSIONS_REQUEST": {
       return {
         ...state,
-        rebateFormSubmissions: {
+        applicationFormSubmissions: {
           status: "pending",
           data: [],
         },
       };
     }
 
-    case "FETCH_REBATE_FORM_SUBMISSIONS_SUCCESS": {
-      const { rebateFormSubmissions } = action.payload;
+    case "FETCH_APPLICATION_FORM_SUBMISSIONS_SUCCESS": {
+      const { applicationFormSubmissions } = action.payload;
       return {
         ...state,
-        rebateFormSubmissions: {
+        applicationFormSubmissions: {
           status: "success",
-          data: rebateFormSubmissions,
+          data: applicationFormSubmissions,
         },
       };
     }
 
-    case "FETCH_REBATE_FORM_SUBMISSIONS_FAILURE": {
+    case "FETCH_APPLICATION_FORM_SUBMISSIONS_FAILURE": {
       return {
         ...state,
-        rebateFormSubmissions: {
+        applicationFormSubmissions: {
           status: "failure",
           data: [],
         },
@@ -88,7 +88,7 @@ function reducer(state: State, action: Action): State {
 
 export function FormsProvider({ children }: Props) {
   const initialState: State = {
-    rebateFormSubmissions: {
+    applicationFormSubmissions: {
       status: "idle",
       data: [],
     },

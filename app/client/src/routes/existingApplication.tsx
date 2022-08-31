@@ -133,10 +133,10 @@ function ExistingApplicationProvider({ children }: Props) {
 /**
  * Returns state stored in `ExistingApplicationProvider` context component.
  */
-function useApplicationRebateState() {
+function useExistingApplicationState() {
   const context = useContext(StateContext);
   if (context === undefined) {
-    const message = `useApplicationRebateState must be called within a ExistingApplicationProvider`;
+    const message = `useExistingApplicationState must be called within a ExistingApplicationProvider`;
     throw new Error(message);
   }
   return context;
@@ -223,7 +223,7 @@ type SubmissionState =
     };
 
 function FormMessage() {
-  const { displayed, type, text } = useApplicationRebateState();
+  const { displayed, type, text } = useExistingApplicationState();
   if (!displayed) return null;
   return <Message type={type} text={text} />;
 }
@@ -235,7 +235,7 @@ function ExistingApplicationContent() {
   const { csbData, epaUserData, bapUserData } = useUserState();
   const dispatch = useExistingApplicationDispatch();
 
-  const [rebateFormSubmission, setRebateFormSubmission] =
+  const [applicationFormSubmission, setApplicationFormSubmission] =
     useState<SubmissionState>({
       status: "idle",
       data: {
@@ -245,8 +245,9 @@ function ExistingApplicationContent() {
       },
     });
 
-  // set when rebate form submission data is initially fetched, and then re-set
-  // each time a successful update of the submission data is posted to forms.gov
+  // set when application form submission data is initially fetched, and then
+  // re-set each time a successful update of the submission data is posted to
+  // forms.gov
   const [storedSubmissionData, setStoredSubmissionData] =
     useState<FormioSubmissionData>({});
 
@@ -262,7 +263,7 @@ function ExistingApplicationContent() {
     useState<FormioSubmissionData>({});
 
   useEffect(() => {
-    setRebateFormSubmission({
+    setApplicationFormSubmission({
       status: "pending",
       data: {
         userAccess: false,
@@ -273,7 +274,7 @@ function ExistingApplicationContent() {
 
     fetchData(`${serverUrl}/api/application-form-submission/${id}`)
       .then((res) => {
-        // Set up s3 re-route to wrapper app
+        // set up s3 re-route to wrapper app
         const s3Provider = Formio.Providers.providers.storage.s3;
         Formio.Providers.providers.storage.s3 = function (formio: any) {
           const s3Formio = cloneDeep(formio);
@@ -296,13 +297,13 @@ function ExistingApplicationContent() {
           return data;
         });
 
-        setRebateFormSubmission({
+        setApplicationFormSubmission({
           status: "success",
           data: res,
         });
       })
       .catch((err) => {
-        setRebateFormSubmission({
+        setApplicationFormSubmission({
           status: "failure",
           data: {
             userAccess: false,
@@ -313,18 +314,19 @@ function ExistingApplicationContent() {
       });
   }, [id]);
 
-  if (rebateFormSubmission.status === "idle") {
+  if (applicationFormSubmission.status === "idle") {
     return null;
   }
 
-  if (rebateFormSubmission.status === "pending") {
+  if (applicationFormSubmission.status === "pending") {
     return <Loading />;
   }
 
-  const { userAccess, formSchema, submissionData } = rebateFormSubmission.data;
+  const { userAccess, formSchema, submissionData } =
+    applicationFormSubmission.data;
 
   if (
-    rebateFormSubmission.status === "failure" ||
+    applicationFormSubmission.status === "failure" ||
     !userAccess ||
     !formSchema ||
     !submissionData
@@ -347,15 +349,15 @@ function ExistingApplicationContent() {
 
   const { enrollmentClosed } = csbData.data;
 
-  const matchedBapSubmission = bapUserData.data.applicationSubmissions.find(
+  const matchedBapMetadata = bapUserData.data.applicationSubmissions.find(
     (bapSubmission) => bapSubmission.CSB_Form_ID__c === id
   );
 
   const bap = {
-    lastModified: matchedBapSubmission?.CSB_Modified_Full_String__c || null,
-    rebateId: matchedBapSubmission?.Parent_Rebate_ID__c || null,
+    lastModified: matchedBapMetadata?.CSB_Modified_Full_String__c || null,
+    rebateId: matchedBapMetadata?.Parent_Rebate_ID__c || null,
     rebateStatus:
-      matchedBapSubmission?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c || null,
+      matchedBapMetadata?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c || null,
   };
 
   const submissionNeedsEdits = bap.rebateStatus === "Edits Requested";
@@ -541,7 +543,7 @@ function ExistingApplicationContent() {
               .catch((err) => {
                 dispatch({
                   type: "DISPLAY_ERROR_MESSAGE",
-                  payload: { text: "Error submitting rebate form." },
+                  payload: { text: "Error submitting application form." },
                 });
               });
           }}
@@ -611,7 +613,7 @@ function ExistingApplicationContent() {
               .catch((err) => {
                 dispatch({
                   type: "DISPLAY_ERROR_MESSAGE",
-                  payload: { text: "Error saving draft rebate form." },
+                  payload: { text: "Error saving draft application form." },
                 });
               });
           }}

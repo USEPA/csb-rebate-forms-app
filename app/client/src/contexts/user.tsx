@@ -20,7 +20,7 @@ type EpaUserData = {
   exp: number;
 };
 
-export type SamEntityData = {
+export type SamEntity = {
   ENTITY_COMBO_KEY__c: string;
   UNIQUE_ENTITY_ID__c: string;
   ENTITY_EFT_INDICATOR__c: string;
@@ -53,7 +53,7 @@ export type SamEntityData = {
   attributes: { type: string; url: string };
 };
 
-type BapSubmissionData = {
+type ApplicationFormSubmissionMetadata = {
   CSB_Form_ID__c: string; // MongoDB ObjectId string
   CSB_Modified_Full_String__c: string; // ISO 8601 date string
   UEI_EFTI_Combo_Key__c: string;
@@ -95,8 +95,8 @@ type State = {
             }
           | {
               samResults: true;
-              samEntities: SamEntityData[];
-              applicationSubmissions: BapSubmissionData[];
+              samEntities: SamEntity[];
+              applicationSubmissions: ApplicationFormSubmissionMetadata[];
             };
       }
     | { status: "failure"; data: {} };
@@ -129,8 +129,8 @@ type Action =
             }
           | {
               samResults: true;
-              samEntities: SamEntityData[];
-              applicationSubmissions: BapSubmissionData[];
+              samEntities: SamEntity[];
+              applicationSubmissions: ApplicationFormSubmissionMetadata[];
             };
       };
     }

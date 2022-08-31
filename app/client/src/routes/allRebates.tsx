@@ -15,7 +15,7 @@ export function AllRebates() {
   const navigate = useNavigate();
   const { content } = useContentState();
   const { csbData, bapUserData } = useUserState();
-  const { rebateFormSubmissions } = useFormsState();
+  const { applicationFormSubmissions } = useFormsState();
   const dispatch = useFormsDispatch();
 
   const [message, setMessage] = useState<{
@@ -33,17 +33,17 @@ export function AllRebates() {
       return;
     }
 
-    dispatch({ type: "FETCH_REBATE_FORM_SUBMISSIONS_REQUEST" });
+    dispatch({ type: "FETCH_APPLICATION_FORM_SUBMISSIONS_REQUEST" });
 
     fetchData(`${serverUrl}/api/application-form-submissions`)
       .then((res) => {
         dispatch({
-          type: "FETCH_REBATE_FORM_SUBMISSIONS_SUCCESS",
-          payload: { rebateFormSubmissions: res },
+          type: "FETCH_APPLICATION_FORM_SUBMISSIONS_SUCCESS",
+          payload: { applicationFormSubmissions: res },
         });
       })
       .catch((err) => {
-        dispatch({ type: "FETCH_REBATE_FORM_SUBMISSIONS_FAILURE" });
+        dispatch({ type: "FETCH_APPLICATION_FORM_SUBMISSIONS_FAILURE" });
       });
   }, [bapUserData, dispatch]);
 
@@ -51,8 +51,8 @@ export function AllRebates() {
     csbData.status !== "success" ||
     bapUserData.status === "idle" ||
     bapUserData.status === "pending" ||
-    rebateFormSubmissions.status === "idle" ||
-    rebateFormSubmissions.status === "pending"
+    applicationFormSubmissions.status === "idle" ||
+    applicationFormSubmissions.status === "pending"
   ) {
     return <Loading />;
   }
@@ -61,29 +61,29 @@ export function AllRebates() {
     return <Message type="error" text={messages.bapFetchError} />;
   }
 
-  if (rebateFormSubmissions.status === "failure") {
+  if (applicationFormSubmissions.status === "failure") {
     return <Message type="error" text={messages.applicationSubmissionsError} />;
   }
 
   const { enrollmentClosed } = csbData.data;
 
   /**
-   * Formio submissions, merged with rebate submissions returned from the BAP,
-   * so we can include CSB rebate status, CSB review item ID, and last updated
-   * datetime.
+   * Formio application submissions, merged with submissions returned from the
+   * BAP, so we can include CSB rebate status, CSB review item ID, and last
+   * updated datetime.
    */
-  const submissions = rebateFormSubmissions.data.map((formioSubmission) => {
-    const matchedBapSubmission = bapUserData.data.applicationSubmissions.find(
-      (bapSubmission) => bapSubmission.CSB_Form_ID__c === formioSubmission._id
+  const submissions = applicationFormSubmissions.data.map((submission) => {
+    const matchedBapMetadata = bapUserData.data.applicationSubmissions.find(
+      (bapSubmission) => bapSubmission.CSB_Form_ID__c === submission._id
     );
 
     return {
-      ...formioSubmission,
+      ...submission,
       bap: {
-        lastModified: matchedBapSubmission?.CSB_Modified_Full_String__c || null,
-        rebateId: matchedBapSubmission?.Parent_Rebate_ID__c || null,
+        lastModified: matchedBapMetadata?.CSB_Modified_Full_String__c || null,
+        rebateId: matchedBapMetadata?.Parent_Rebate_ID__c || null,
         rebateStatus:
-          matchedBapSubmission?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c ||
+          matchedBapMetadata?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c ||
           null,
       },
     };
@@ -371,7 +371,7 @@ form for the fields to be displayed. */
                             <br />
                             {
                               /* NOTE:
-The initial version of the rebate form definition included the `applicantEfti`
+Initial version of the application form definition included the `applicantEfti`
 field, which is configured via the form definition (in formio/forms.gov) to set
 its value based on the value of the `sam_hidden_applicant_efti` field, which we
 inject on initial form submission. That value comes from the BAP (SAM.gov data),
