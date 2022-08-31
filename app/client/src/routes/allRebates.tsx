@@ -207,6 +207,10 @@ export function AllRebates() {
                   const submissionHasBeenWithdrawn =
                     bap.rebateStatus === "Withdrawn";
 
+                  // TODO: update to use the accepted BAP rebate status,
+                  // once it's being returned from the BAP
+                  const submissionHasBeenAccepted = state === "submitted";
+
                   const statusStyles = submissionNeedsEdits
                     ? "csb-needs-edits"
                     : enrollmentClosed || state === "submitted"
@@ -465,12 +469,14 @@ save the form for the EFT indicator to be displayed. */
                         </td>
                       </tr>
 
-                      {state === "submitted" && (
+                      {submissionHasBeenAccepted && (
                         <tr className={rebateStyles}>
                           <th scope="row" colSpan={6}>
-                            <Link
-                              to="/"
+                            <button
                               className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
+                              onClick={(ev) => {
+                                // TODO: create new payment request form draft submission and redirect to page rendering Form
+                              }}
                             >
                               <span className="display-flex flex-align-center">
                                 <svg
@@ -485,7 +491,7 @@ save the form for the EFT indicator to be displayed. */
                                   New Payment Request
                                 </span>
                               </span>
-                            </Link>
+                            </button>
                           </th>
                         </tr>
                       )}
