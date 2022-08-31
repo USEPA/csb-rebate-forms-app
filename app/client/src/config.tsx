@@ -56,7 +56,8 @@ export const messages = {
     "Error loading SAM.gov or rebate submission data. Please contact support.",
   noSamResults:
     "No SAM.gov records match your email. Only Government and Electronic Business SAM.gov Points of Contacts (and alternates) may edit and submit Clean School Bus Rebate Forms.",
-  applicationSubmissionsError: "Error loading application form submissions.",
+  applicationSubmissionsError: "Error loading Application form submissions.",
+  paymentSubmissionsError: "Error loading Payment Request form submissions.",
   newApplication:
     "Please select the “New Application” button above to create your first rebate application.",
   helpdeskApplicationSubmissionError:

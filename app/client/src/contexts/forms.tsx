@@ -26,11 +26,26 @@ type ApplicationFormSubmission = {
   };
 };
 
+type PaymentFormSubmission = {
+  [field: string]: unknown;
+  _id: string; // MongoDB ObjectId string
+  state: "submitted" | "draft";
+  modified: string; // ISO 8601 date string
+  data: {
+    [field: string]: unknown;
+  };
+};
+
 type State = {
   applicationFormSubmissions:
     | { status: "idle"; data: [] }
     | { status: "pending"; data: [] }
     | { status: "success"; data: ApplicationFormSubmission[] }
+    | { status: "failure"; data: [] };
+  paymentFormSubmissions:
+    | { status: "idle"; data: [] }
+    | { status: "pending"; data: [] }
+    | { status: "success"; data: PaymentFormSubmission[] }
     | { status: "failure"; data: [] };
 };
 
@@ -42,7 +57,16 @@ type Action =
         applicationFormSubmissions: ApplicationFormSubmission[];
       };
     }
-  | { type: "FETCH_APPLICATION_FORM_SUBMISSIONS_FAILURE" };
+  | { type: "FETCH_APPLICATION_FORM_SUBMISSIONS_FAILURE" }
+  | { type: "FETCH_PAYMENT_FORM_SUBMISSIONS_REQUEST" }
+  | { type: "FETCH_PAYMENT_FORM_SUBMISSIONS_REQUEST" }
+  | {
+      type: "FETCH_PAYMENT_FORM_SUBMISSIONS_SUCCESS";
+      payload: {
+        paymentFormSubmissions: PaymentFormSubmission[];
+      };
+    }
+  | { type: "FETCH_PAYMENT_FORM_SUBMISSIONS_FAILURE" };
 
 const StateContext = createContext<State | undefined>(undefined);
 const DispatchContext = createContext<Dispatch<Action> | undefined>(undefined);
@@ -80,6 +104,37 @@ function reducer(state: State, action: Action): State {
       };
     }
 
+    case "FETCH_PAYMENT_FORM_SUBMISSIONS_REQUEST": {
+      return {
+        ...state,
+        paymentFormSubmissions: {
+          status: "pending",
+          data: [],
+        },
+      };
+    }
+
+    case "FETCH_PAYMENT_FORM_SUBMISSIONS_SUCCESS": {
+      const { paymentFormSubmissions } = action.payload;
+      return {
+        ...state,
+        paymentFormSubmissions: {
+          status: "success",
+          data: paymentFormSubmissions,
+        },
+      };
+    }
+
+    case "FETCH_PAYMENT_FORM_SUBMISSIONS_FAILURE": {
+      return {
+        ...state,
+        paymentFormSubmissions: {
+          status: "failure",
+          data: [],
+        },
+      };
+    }
+
     default: {
       const message = `Unhandled action type: ${action}`;
       throw new Error(message);
@@ -90,6 +145,10 @@ function reducer(state: State, action: Action): State {
 export function FormsProvider({ children }: Props) {
   const initialState: State = {
     applicationFormSubmissions: {
+      status: "idle",
+      data: [],
+    },
+    paymentFormSubmissions: {
       status: "idle",
       data: [],
     },

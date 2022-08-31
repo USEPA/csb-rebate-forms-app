@@ -11,22 +11,10 @@ import { useContentState } from "contexts/content";
 import { useUserState } from "contexts/user";
 import { useFormsState, useFormsDispatch } from "contexts/forms";
 
-export function AllRebates() {
-  const navigate = useNavigate();
-  const { content } = useContentState();
-  const { csbData, bapUserData } = useUserState();
-  const { applicationFormSubmissions } = useFormsState();
+/** Custom hook to fetch Application form submissions */
+function useFetchedApplicationFormSubmissions() {
+  const { bapUserData } = useUserState();
   const dispatch = useFormsDispatch();
-
-  const [message, setMessage] = useState<{
-    displayed: boolean;
-    type: "info" | "success" | "warning" | "error";
-    text: string;
-  }>({
-    displayed: false,
-    type: "info",
-    text: "",
-  });
 
   useEffect(() => {
     if (bapUserData.status !== "success" || !bapUserData.data.samResults) {
@@ -46,13 +34,61 @@ export function AllRebates() {
         dispatch({ type: "FETCH_APPLICATION_FORM_SUBMISSIONS_FAILURE" });
       });
   }, [bapUserData, dispatch]);
+}
+
+/** Custom hook to fetch Payment Request form submissions */
+function useFetchedPaymentFormSubmissions() {
+  const { bapUserData } = useUserState();
+  const dispatch = useFormsDispatch();
+
+  useEffect(() => {
+    if (bapUserData.status !== "success" || !bapUserData.data.samResults) {
+      return;
+    }
+
+    dispatch({ type: "FETCH_PAYMENT_FORM_SUBMISSIONS_REQUEST" });
+
+    fetchData(`${serverUrl}/api/payment-form-submissions`)
+      .then((res) => {
+        dispatch({
+          type: "FETCH_PAYMENT_FORM_SUBMISSIONS_SUCCESS",
+          payload: { paymentFormSubmissions: res },
+        });
+      })
+      .catch((err) => {
+        dispatch({ type: "FETCH_PAYMENT_FORM_SUBMISSIONS_FAILURE" });
+      });
+  }, [bapUserData, dispatch]);
+}
+
+export function AllRebates() {
+  const navigate = useNavigate();
+  const { content } = useContentState();
+  const { csbData, bapUserData } = useUserState();
+  const { applicationFormSubmissions, paymentFormSubmissions } =
+    useFormsState();
+
+  const [message, setMessage] = useState<{
+    displayed: boolean;
+    type: "info" | "success" | "warning" | "error";
+    text: string;
+  }>({
+    displayed: false,
+    type: "info",
+    text: "",
+  });
+
+  useFetchedApplicationFormSubmissions();
+  useFetchedPaymentFormSubmissions();
 
   if (
     csbData.status !== "success" ||
     bapUserData.status === "idle" ||
     bapUserData.status === "pending" ||
     applicationFormSubmissions.status === "idle" ||
-    applicationFormSubmissions.status === "pending"
+    applicationFormSubmissions.status === "pending" ||
+    paymentFormSubmissions.status === "idle" ||
+    paymentFormSubmissions.status === "pending"
   ) {
     return <Loading />;
   }
@@ -63,6 +99,10 @@ export function AllRebates() {
 
   if (applicationFormSubmissions.status === "failure") {
     return <Message type="error" text={messages.applicationSubmissionsError} />;
+  }
+
+  if (paymentFormSubmissions.status === "failure") {
+    return <Message type="error" text={messages.paymentSubmissionsError} />;
   }
 
   const { enrollmentClosed } = csbData.data;
