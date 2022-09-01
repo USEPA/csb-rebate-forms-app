@@ -13,7 +13,7 @@ import { Formio, Form } from "@formio/react";
 import { cloneDeep, isEqual } from "lodash";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl, fetchData } from "../config";
+import { serverUrl, getData, postData } from "../config";
 import { getUserInfo } from "../utilities";
 import { Loading } from "components/loading";
 import { Message } from "components/message";
@@ -273,7 +273,7 @@ function ApplicationFormContent() {
       },
     });
 
-    fetchData(`${serverUrl}/api/application-form-submission/${id}`)
+    getData(`${serverUrl}/api/application-form-submission/${id}`)
       .then((res) => {
         // set up s3 re-route to wrapper app
         const s3Provider = Formio.Providers.providers.storage.s3;
@@ -505,7 +505,7 @@ function ApplicationFormContent() {
 
             setPendingSubmissionData(data);
 
-            fetchData(
+            postData(
               `${serverUrl}/api/application-form-submission/${submissionData._id}`,
               { ...submission, data }
             )
@@ -590,7 +590,7 @@ function ApplicationFormContent() {
 
             setPendingSubmissionData(data);
 
-            fetchData(
+            postData(
               `${serverUrl}/api/application-form-submission/${submissionData._id}`,
               { ...submission, data, state: "draft" }
             )

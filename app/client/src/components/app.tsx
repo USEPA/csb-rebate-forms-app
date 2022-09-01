@@ -18,7 +18,7 @@ import "@formio/choices.js/public/assets/styles/choices.min.css";
 import "@formio/premium/dist/premium.css";
 import "formiojs/dist/formio.full.min.css";
 // ---
-import { serverBasePath, serverUrl, cloudSpace, fetchData } from "../config";
+import { serverBasePath, serverUrl, cloudSpace, getData } from "../config";
 import { Loading } from "components/loading";
 import { MarkdownContent } from "components/markdownContent";
 import { Welcome } from "routes/welcome";
@@ -39,7 +39,7 @@ function useFetchedContent() {
 
   useEffect(() => {
     dispatch({ type: "FETCH_CONTENT_REQUEST" });
-    fetchData(`${serverUrl}/api/content`)
+    getData(`${serverUrl}/api/content`)
       .then((res) => {
         dispatch({
           type: "FETCH_CONTENT_SUCCESS",
@@ -205,7 +205,7 @@ export function useHelpdeskAccess() {
 
   useEffect(() => {
     setHelpdeskAccess("pending");
-    fetchData(`${serverUrl}/api/helpdesk-access`)
+    getData(`${serverUrl}/api/helpdesk-access`)
       .then((res) => setHelpdeskAccess("success"))
       .catch((err) => setHelpdeskAccess("failure"));
   }, []);
@@ -221,7 +221,7 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
 
   // Check if user is already logged in or needs to be redirected to /welcome route
   const verifyUser = useCallback(() => {
-    fetchData(`${serverUrl}/api/epa-data`)
+    getData(`${serverUrl}/api/epa-data`)
       .then((res) => {
         dispatch({
           type: "FETCH_EPA_USER_DATA_SUCCESS",

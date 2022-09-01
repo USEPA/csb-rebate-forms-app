@@ -4,7 +4,7 @@ import { Form } from "@formio/react";
 import icon from "uswds/img/usa-icons-bg/search--white.svg";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl, messages, fetchData } from "../config";
+import { serverUrl, messages, getData, postData } from "../config";
 import { useHelpdeskAccess } from "components/app";
 import { Loading } from "components/loading";
 import { Message } from "components/message";
@@ -119,7 +119,7 @@ export function Helpdesk() {
               },
             });
 
-            fetchData(
+            getData(
               `${serverUrl}/help/application-form-submission/${searchText}`
             )
               .then((res) => {
@@ -289,7 +289,7 @@ export function Helpdesk() {
                                   },
                                 });
 
-                                fetchData(
+                                postData(
                                   `${serverUrl}/help/application-form-submission/${formId}`,
                                   {}
                                 )

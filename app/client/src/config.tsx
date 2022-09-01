@@ -68,31 +68,39 @@ export const messages = {
   enrollmentClosed: "The CSB enrollment period is closed.",
 };
 
-/**
- * Returns a promise containing JSON fetched from a provided web service URL
- * or handles any other OK response returned from the server
- */
-export async function fetchData(url: string, data?: object) {
-  const options = !data
-    ? {
-        method: "GET",
-        credentials: "include" as const,
-      }
-    : {
-        method: "POST",
-        credentials: "include" as const,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      };
-
+async function fetchData(url: string, options: RequestInit) {
   try {
-    const res = await fetch(url, options);
-    if (!res.ok) throw new Error(res.statusText);
-    const contentType = res.headers.get("content-type");
+    const response = await fetch(url, options);
+    if (!response.ok) throw new Error(response.statusText);
+    const contentType = response.headers.get("content-type");
     return contentType?.includes("application/json")
-      ? await res.json()
+      ? await response.json()
       : Promise.resolve();
   } catch (error) {
     return await Promise.reject(error);
   }
+}
+
+/**
+ * Fetches data and returns a promise containing JSON fetched from a provided
+ * web service URL or handles any other OK response returned from the server
+ */
+export function getData(url: string) {
+  return fetchData(url, {
+    method: "GET",
+    credentials: "include" as const,
+  });
+}
+
+/**
+ * Posts JSON data and returns a promise containing JSON fetched from a provided
+ * web service URL or handles any other OK response returned from the server
+ */
+export function postData(url: string, data: object) {
+  return fetchData(url, {
+    method: "POST",
+    credentials: "include" as const,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
 }

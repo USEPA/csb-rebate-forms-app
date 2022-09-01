@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { DialogOverlay, DialogContent } from "@reach/dialog";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl, messages, fetchData } from "../config";
+import { serverUrl, messages, postData } from "../config";
 import { getUserInfo } from "../utilities";
 import { Loading } from "components/loading";
 import { Message } from "components/message";
@@ -15,7 +15,7 @@ import { SamEntity, useUserState } from "contexts/user";
 function createNewApplication(email: string, entity: SamEntity) {
   const { title, name } = getUserInfo(email, entity);
 
-  return fetchData(`${serverUrl}/api/application-form-submission/`, {
+  return postData(`${serverUrl}/api/application-form-submission/`, {
     data: {
       last_updated_by: email,
       hidden_current_user_email: email,

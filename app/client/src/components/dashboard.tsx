@@ -10,7 +10,7 @@ import {
   serverUrlForHrefs,
   formioBaseUrl,
   formioProjectUrl,
-  fetchData,
+  getData,
 } from "../config";
 import { useHelpdeskAccess } from "components/app";
 import { Loading } from "components/loading";
@@ -28,7 +28,7 @@ function useFetchedCsbData() {
 
   useEffect(() => {
     dispatch({ type: "FETCH_CSB_DATA_REQUEST" });
-    fetchData(`${serverUrl}/api/csb-data`)
+    getData(`${serverUrl}/api/csb-data`)
       .then((res) => {
         dispatch({
           type: "FETCH_CSB_DATA_SUCCESS",
@@ -47,7 +47,7 @@ function useFetchedBapData() {
 
   useEffect(() => {
     dispatch({ type: "FETCH_BAP_USER_DATA_REQUEST" });
-    fetchData(`${serverUrl}/api/bap-data`)
+    getData(`${serverUrl}/api/bap-data`)
       .then((res) => {
         if (res.samResults) {
           dispatch({

@@ -2,7 +2,7 @@ import { Fragment, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl, fetchData, messages } from "../config";
+import { serverUrl, messages, getData, postData } from "../config";
 import { Loading } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
@@ -23,7 +23,7 @@ function useFetchedApplicationFormSubmissions() {
 
     dispatch({ type: "FETCH_APPLICATION_FORM_SUBMISSIONS_REQUEST" });
 
-    fetchData(`${serverUrl}/api/application-form-submissions`)
+    getData(`${serverUrl}/api/application-form-submissions`)
       .then((res) => {
         dispatch({
           type: "FETCH_APPLICATION_FORM_SUBMISSIONS_SUCCESS",
@@ -48,7 +48,7 @@ function useFetchedPaymentFormSubmissions() {
 
     dispatch({ type: "FETCH_PAYMENT_FORM_SUBMISSIONS_REQUEST" });
 
-    fetchData(`${serverUrl}/api/payment-form-submissions`)
+    getData(`${serverUrl}/api/payment-form-submissions`)
       .then((res) => {
         dispatch({
           type: "FETCH_PAYMENT_FORM_SUBMISSIONS_SUCCESS",
@@ -300,7 +300,7 @@ form for the fields to be displayed. */
 
                                 // change the submission's state to draft, then
                                 // redirect to the form to allow user to edit
-                                fetchData(
+                                postData(
                                   `${serverUrl}/api/application-form-submission/${_id}`,
                                   { data, state: "draft" }
                                 )
