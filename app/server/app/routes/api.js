@@ -169,13 +169,13 @@ router.get("/bap-data", (req, res) => {
 
 const applicationFormApiPath = `${formioProjectUrl}/${formioApplicationFormPath}`;
 
-// --- get all application form submissions from Forms.gov
+// --- get all Application form submissions user has access to from Forms.gov
 router.get("/application-form-submissions", storeBapComboKeys, (req, res) => {
   // NOTE: Helpdesk users might not have any SAM.gov records associated with
   // their email address so we should not return any submissions to those users.
   // The only reason we explicitly need to do this is because there could be
   // some submissions without `bap_hidden_entity_combo_key` field values in the
-  // forms.gov database – that will never be the case for submissions created
+  // Forms.gov database – that will never be the case for submissions created
   // from this app, but there could be submissions created externally if someone
   // is testing posting data (e.g. from a REST client, or the Formio Viewer)
   if (req.bapComboKeys.length === 0) return res.json([]);
@@ -193,12 +193,12 @@ router.get("/application-form-submissions", storeBapComboKeys, (req, res) => {
     .then((axiosRes) => axiosRes.data)
     .then((submissions) => res.json(submissions))
     .catch((error) => {
-      const message = `Error getting Forms.gov application form submissions`;
+      const message = `Error getting Forms.gov Application form submissions`;
       return res.status(error?.response?.status || 500).json({ message });
     });
 });
 
-// --- post a new application form submission to Forms.gov
+// --- post a new Application form submission to Forms.gov
 router.post("/application-form-submission", storeBapComboKeys, (req, res) => {
   const comboKey = req.body.data?.bap_hidden_entity_combo_key;
 
@@ -230,7 +230,7 @@ router.post("/application-form-submission", storeBapComboKeys, (req, res) => {
     });
 });
 
-// --- get an existing application form's schema and submission data from Forms.gov
+// --- get an existing Application form's schema and submission data from Forms.gov
 router.get(
   "/application-form-submission/:id",
   verifyMongoObjectId,
@@ -269,13 +269,13 @@ router.get(
           });
       })
       .catch((error) => {
-        const message = `Error getting Forms.gov application form submission ${id}`;
+        const message = `Error getting Forms.gov Application form submission ${id}`;
         res.status(error?.response?.status || 500).json({ message });
       });
   }
 );
 
-// --- post an update to an existing draft application form submission to Forms.gov
+// --- post an update to an existing draft Application form submission to Forms.gov
 router.post(
   "/application-form-submission/:id",
   verifyMongoObjectId,
@@ -364,14 +364,27 @@ router.get("/:id/:comboKey/storage/s3", storeBapComboKeys, (req, res) => {
 
 const paymentFormApiPath = `${formioProjectUrl}/${formioPaymentFormPath}`;
 
-// --- get all payment request form submissions from Forms.gov
+// --- get all Payment Request form submissions from Forms.gov
 router.get("/payment-form-submissions", storeBapComboKeys, (req, res) => {
+  // TODO: update URL, passing in data fields as needed to scope submissions to user
   axiosFormio(req)
     .get(`${paymentFormApiPath}/submission?sort=-modified&limit=1000000`)
     .then((axiosRes) => axiosRes.data)
     .then((submissions) => res.json(submissions))
     .catch((error) => {
-      const message = `Error getting Forms.gov payment request form submissions`;
+      const message = `Error getting Forms.gov Payment Request form submissions`;
+      return res.status(error?.response?.status || 500).json({ message });
+    });
+});
+
+// --- TODO: WIP, as we'll eventually mirror `router.get("/application-form-submission/:id")`
+router.get("/payment-form-schema", storeBapComboKeys, (req, res) => {
+  axiosFormio(req)
+    .get(paymentFormApiPath)
+    .then((axiosRes) => axiosRes.data)
+    .then((schema) => res.json(schema))
+    .catch((error) => {
+      const message = `Error...`;
       return res.status(error?.response?.status || 500).json({ message });
     });
 });
