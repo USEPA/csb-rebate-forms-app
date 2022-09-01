@@ -38,7 +38,7 @@ function createNewApplication(email: string, entity: SamEntity) {
   });
 }
 
-export function NewApplication() {
+export function NewApplicationForm() {
   const navigate = useNavigate();
   const { content } = useContentState();
   const { csbData, epaUserData, bapUserData } = useUserState();

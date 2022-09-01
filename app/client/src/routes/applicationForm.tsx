@@ -113,7 +113,7 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-function ExistingApplicationProvider({ children }: Props) {
+function ApplicationFormProvider({ children }: Props) {
   const initialState: State = {
     displayed: false,
     type: "info",
@@ -132,12 +132,12 @@ function ExistingApplicationProvider({ children }: Props) {
 }
 
 /**
- * Returns state stored in `ExistingApplicationProvider` context component.
+ * Returns state stored in `ApplicationFormProvider` context component.
  */
-function useExistingApplicationState() {
+function useApplicationFormState() {
   const context = useContext(StateContext);
   if (context === undefined) {
-    const message = `useExistingApplicationState must be called within a ExistingApplicationProvider`;
+    const message = `useApplicationFormState must be called within a ApplicationFormProvider`;
     throw new Error(message);
   }
   return context;
@@ -145,12 +145,12 @@ function useExistingApplicationState() {
 
 /**
  * Returns `dispatch` method for dispatching actions to update state stored in
- * `ExistingApplicationProvider` context component.
+ * `ApplicationFormProvider` context component.
  */
-function useExistingApplicationDispatch() {
+function useApplicationFormDispatch() {
   const context = useContext(DispatchContext);
   if (context === undefined) {
-    const message = `useExistingApplicationDispatch must be used within a ExistingApplicationProvider`;
+    const message = `useApplicationFormDispatch must be used within a ApplicationFormProvider`;
     throw new Error(message);
   }
   return context;
@@ -158,11 +158,11 @@ function useExistingApplicationDispatch() {
 
 // -----------------------------------------------------------------------------
 
-export function ExistingApplication() {
+export function ApplicationForm() {
   return (
-    <ExistingApplicationProvider>
-      <ExistingApplicationContent />
-    </ExistingApplicationProvider>
+    <ApplicationFormProvider>
+      <ApplicationFormContent />
+    </ApplicationFormProvider>
   );
 }
 
@@ -224,17 +224,17 @@ type SubmissionState =
     };
 
 function FormMessage() {
-  const { displayed, type, text } = useExistingApplicationState();
+  const { displayed, type, text } = useApplicationFormState();
   if (!displayed) return null;
   return <Message type={type} text={text} />;
 }
 
-function ExistingApplicationContent() {
+function ApplicationFormContent() {
   const navigate = useNavigate();
   const { id } = useParams<"id">();
   const { content } = useContentState();
   const { csbData, epaUserData, bapUserData } = useUserState();
-  const dispatch = useExistingApplicationDispatch();
+  const dispatch = useApplicationFormDispatch();
 
   const [applicationFormSubmission, setApplicationFormSubmission] =
     useState<SubmissionState>({

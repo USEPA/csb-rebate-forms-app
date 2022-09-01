@@ -26,8 +26,8 @@ import { Dashboard } from "components/dashboard";
 import { ConfirmationDialog } from "components/confirmationDialog";
 import { Helpdesk } from "routes/helpdesk";
 import { AllRebates } from "routes/allRebates";
-import { NewApplication } from "routes/newApplication";
-import { ExistingApplication } from "routes/existingApplication";
+import { NewApplicationForm } from "routes/newApplicationForm";
+import { ApplicationForm } from "routes/applicationForm";
 import { useContentState, useContentDispatch } from "contexts/content";
 import { useUserState, useUserDispatch } from "contexts/user";
 import { useDialogDispatch, useDialogState } from "contexts/dialog";
@@ -288,8 +288,8 @@ export function App() {
             displayed.
           */}
           <Route path="helpdesk" element={<Helpdesk />} />
-          <Route path="rebate/new" element={<NewApplication />} />
-          <Route path="rebate/:id" element={<ExistingApplication />} />
+          <Route path="rebate/new" element={<NewApplicationForm />} />
+          <Route path="rebate/:id" element={<ApplicationForm />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
