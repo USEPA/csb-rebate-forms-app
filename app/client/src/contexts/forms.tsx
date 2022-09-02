@@ -10,19 +10,36 @@ type Props = {
   children: ReactNode;
 };
 
-type ApplicationFormSubmission = {
+export type ApplicationFormSubmission = {
   [field: string]: unknown;
   _id: string; // MongoDB ObjectId string
   state: "submitted" | "draft";
   modified: string; // ISO 8601 date string
   data: {
     [field: string]: unknown;
+    // fields injected by wrapper upon new application creation:
+    last_updated_by: string;
+    hidden_current_user_email: string;
+    hidden_current_user_title: string;
+    hidden_current_user_name: string;
+    bap_hidden_entity_combo_key: string;
+    sam_hidden_applicant_email: string;
+    sam_hidden_applicant_title: string;
+    sam_hidden_applicant_name: string;
+    sam_hidden_applicant_efti: string;
+    sam_hidden_applicant_uei: string;
+    sam_hidden_applicant_organization_name: string;
+    sam_hidden_applicant_street_address_1: string;
+    sam_hidden_applicant_street_address_2: string;
+    sam_hidden_applicant_city: string;
+    sam_hidden_applicant_state: string;
+    sam_hidden_applicant_zip_code: string;
+    // fields set by form definition (among others):
     applicantUEI: string;
     applicantEfti: string;
     applicantEfti_display: string;
     applicantOrganizationName: string;
     schoolDistrictName: string;
-    last_updated_by: string;
   };
 };
 

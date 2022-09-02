@@ -3,13 +3,18 @@ import { Link, useNavigate } from "react-router-dom";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages, getData, postData } from "../config";
+import { getUserInfo } from "../utilities";
 import { Loading } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/infoTooltip";
 import { useContentState } from "contexts/content";
-import { useUserState } from "contexts/user";
-import { useFormsState, useFormsDispatch } from "contexts/forms";
+import { SamEntity, useUserState } from "contexts/user";
+import {
+  ApplicationFormSubmission,
+  useFormsState,
+  useFormsDispatch,
+} from "contexts/forms";
 
 /** Custom hook to fetch Application form submissions */
 function useFetchedApplicationFormSubmissions() {
@@ -61,10 +66,62 @@ function useFetchedPaymentFormSubmissions() {
   }, [bapUserData, dispatch]);
 }
 
+function createNewPaymentRequest(
+  email: string,
+  entity: SamEntity,
+  rebateId: string,
+  applicationData: ApplicationFormSubmission["data"]
+) {
+  const { title, name } = getUserInfo(email, entity);
+  const {
+    bap_hidden_entity_combo_key,
+    ncesDistrictId,
+    totalRebateFundsRequested,
+    primaryContactName,
+    primaryContactTitle,
+    primaryContactPhoneNumber,
+    primaryContactEmail,
+    alternateContactName,
+    alternateContactTitle,
+    alternateContactPhoneNumber,
+    alternateContactEmail,
+    applicantOrganizationName,
+    schoolDistrictName,
+  } = applicationData;
+
+  return postData(`${serverUrl}/api/payment-form-submission/`, {
+    data: {
+      last_updated_by: email,
+      hidden_current_user_email: email,
+      hidden_current_user_title: title,
+      hidden_current_user_name: name,
+      bap_hidden_entity_combo_key,
+      hidden_bap_review_item_id: rebateId,
+      hidden_bap_prioritized: null, // TODO: get from BAP
+      hidden_bap_bus_data: null, // TODO: get from BAP (to include bus numbers)
+      hidden_bap_district_id: ncesDistrictId,
+      hidden_bap_requested_funds: totalRebateFundsRequested,
+      hidden_bap_primary_name: primaryContactName,
+      hidden_bap_primary_title: primaryContactTitle,
+      hidden_bap_primary_phone_number: primaryContactPhoneNumber,
+      hidden_bap_primary_email: primaryContactEmail,
+      hidden_bap_alternate_name: alternateContactName,
+      hidden_bap_alternate_title: alternateContactTitle,
+      hidden_bap_alternate_phone_number: alternateContactPhoneNumber,
+      hidden_bap_alternate_email: alternateContactEmail,
+      hidden_bap_org_name: applicantOrganizationName,
+      hidden_bap_fleet_name: "", // TODO: investigate where this come from
+      hidden_bap_district_name: schoolDistrictName,
+      hidden_bap_infra_max_rebate: null, // TODO: get from BAP
+    },
+    state: "draft",
+  });
+}
+
 export function AllRebates() {
   const navigate = useNavigate();
   const { content } = useContentState();
-  const { csbData, bapUserData } = useUserState();
+  const { csbData, epaUserData, bapUserData } = useUserState();
   const { applicationFormSubmissions, paymentFormSubmissions } =
     useFormsState();
 
@@ -83,6 +140,7 @@ export function AllRebates() {
 
   if (
     csbData.status !== "success" ||
+    epaUserData.status !== "success" ||
     bapUserData.status === "idle" ||
     bapUserData.status === "pending" ||
     applicationFormSubmissions.status === "idle" ||
@@ -106,6 +164,7 @@ export function AllRebates() {
   }
 
   const { enrollmentClosed } = csbData.data;
+  const email = epaUserData.data.mail;
 
   /**
    * Formio application submissions, merged with submissions returned from the
@@ -220,6 +279,7 @@ export function AllRebates() {
                 {submissions.map((submission, index) => {
                   const { bap, _id, state, modified, data } = submission;
                   const {
+                    bap_hidden_entity_combo_key,
                     applicantUEI,
                     applicantEfti,
                     applicantEfti_display,
@@ -265,12 +325,15 @@ export function AllRebates() {
                   const rebateStyles = index % 2 ? "bg-white" : "bg-gray-5";
 
                   /**
-                   * Use the BAP Rebate ID if it exists, but fall back to the
-                   * Formio submission ID for cases where the BAP Rebate ID has
-                   * not yet been created (e.g. the form is brand new and the
-                   * BAP's ETL process has not yet run to pick up the new form).
+                   * matched SAM.gov entity for each submission (used to set the
+                   * user's name and title in a new payment request form)
                    */
-                  const uniqueId = bap.rebateId || _id;
+                  const entity = bapUserData.data.samEntities.find((entity) => {
+                    return (
+                      entity.ENTITY_STATUS__c === "Active" &&
+                      entity.ENTITY_COMBO_KEY__c === bap_hidden_entity_combo_key
+                    );
+                  });
 
                   /* NOTE: when a form is first initially created, and the user
 has not yet clicked the "Next" or "Save" buttons, any fields that the Formio
@@ -284,7 +347,7 @@ believe is a bit of an edge case, as most users will likely do that after
 starting a new application), indicate to the user they need to first save the
 form for the fields to be displayed. */
                   return (
-                    <Fragment key={uniqueId}>
+                    <Fragment key={_id}>
                       <tr className={rebateStyles}>
                         <th scope="row" className={statusStyles}>
                           {submissionNeedsEdits ? (
@@ -515,7 +578,27 @@ save the form for the EFT indicator to be displayed. */
                             <button
                               className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
                               onClick={(ev) => {
-                                // TODO: create new payment request form draft submission and redirect to page rendering Form
+                                const id = bap.rebateId;
+                                if (!id || !entity) return;
+
+                                // clear out existing message
+                                setMessage({
+                                  displayed: false,
+                                  type: "info",
+                                  text: "",
+                                });
+
+                                createNewPaymentRequest(email, entity, id, data)
+                                  .then((res) => {
+                                    navigate(`/payment/${id}`);
+                                  })
+                                  .catch((err) => {
+                                    setMessage({
+                                      displayed: true,
+                                      type: "error",
+                                      text: `Error updating Rebate ${id}. Please try again.`,
+                                    });
+                                  });
                               }}
                             >
                               <span className="display-flex flex-align-center">
