@@ -86,7 +86,9 @@ function createNewPaymentRequest(
     alternateContactPhoneNumber,
     alternateContactEmail,
     applicantOrganizationName,
+    privateFleetName,
     schoolDistrictName,
+    schoolDistricPrioritized,
   } = applicationData;
 
   return postData(`${serverUrl}/api/payment-form-submission/`, {
@@ -97,7 +99,7 @@ function createNewPaymentRequest(
       hidden_current_user_name: name,
       bap_hidden_entity_combo_key,
       hidden_bap_review_item_id: rebateId,
-      hidden_bap_prioritized: null, // TODO: get from BAP
+      hidden_bap_prioritized: schoolDistricPrioritized,
       hidden_bap_bus_data: null, // TODO: get from BAP (to include bus numbers)
       hidden_bap_district_id: ncesDistrictId,
       hidden_bap_requested_funds: totalRebateFundsRequested,
@@ -110,7 +112,7 @@ function createNewPaymentRequest(
       hidden_bap_alternate_phone_number: alternateContactPhoneNumber,
       hidden_bap_alternate_email: alternateContactEmail,
       hidden_bap_org_name: applicantOrganizationName,
-      hidden_bap_fleet_name: "", // TODO: investigate where this come from
+      hidden_bap_fleet_name: privateFleetName,
       hidden_bap_district_name: schoolDistrictName,
       hidden_bap_infra_max_rebate: null, // TODO: get from BAP
     },
