@@ -243,7 +243,7 @@ router.get(
       .then((axiosRes) => axiosRes.data)
       .then((submission) => {
         axiosFormio(req)
-          .get(`${formioProjectUrl}/form/${submission.form}`)
+          .get(formioProjectUrl)
           .then((axiosRes) => axiosRes.data)
           .then((schema) => {
             const comboKey = submission.data.bap_hidden_entity_combo_key;
@@ -260,7 +260,7 @@ router.get(
               return res.json({
                 userAccess: true,
                 formSchema: {
-                  url: `${formioProjectUrl}/form/${submission.form}`,
+                  url: formioProjectUrl,
                   json: schema,
                 },
                 submissionData: submission,
