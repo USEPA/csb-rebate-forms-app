@@ -242,30 +242,27 @@ router.get(
       .get(`${applicationFormApiPath}/submission/${id}`)
       .then((axiosRes) => axiosRes.data)
       .then((submission) => {
+        const comboKey = submission.data.bap_hidden_entity_combo_key;
+
+        if (!req.bapComboKeys.includes(comboKey)) {
+          const message = `User with email ${req.user.mail} attempted to access Application form submission ${id} that they do not have access to.`;
+          log({ level: "warn", message, req });
+          return res.json({
+            userAccess: false,
+            formSchema: null,
+            submissionData: null,
+          });
+        }
+
         axiosFormio(req)
-          .get(formioProjectUrl)
+          .get(applicationFormApiPath)
           .then((axiosRes) => axiosRes.data)
           .then((schema) => {
-            const comboKey = submission.data.bap_hidden_entity_combo_key;
-
-            if (!req.bapComboKeys.includes(comboKey)) {
-              const message = `User with email ${req.user.mail} attempted to access Application form submission ${id} that they do not have access to.`;
-              log({ level: "warn", message, req });
-              return res.json({
-                userAccess: false,
-                formSchema: null,
-                submissionData: null,
-              });
-            } else {
-              return res.json({
-                userAccess: true,
-                formSchema: {
-                  url: formioProjectUrl,
-                  json: schema,
-                },
-                submissionData: submission,
-              });
-            }
+            return res.json({
+              userAccess: true,
+              formSchema: { url: applicationFormApiPath, json: schema },
+              submissionData: submission,
+            });
           });
       })
       .catch((error) => {
