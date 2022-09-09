@@ -187,34 +187,24 @@ function getComboKeys(email, req) {
  * @param {express.Request} req
  * @returns {Promise<Object[]>} collection of application form submissions
  */
-function queryForApplicationFormSubmissions(comboKeys, req) {
+async function queryForApplicationFormSubmissions(comboKeys, req) {
   /** @type {jsforce.Connection} */
   const bapConnection = req.app.locals.bapConnection;
-  return bapConnection
-    .query(
-      `
-        SELECT
-          CSB_Form_ID__c,
-          CSB_Modified_Full_String__c,
-          UEI_EFTI_Combo_Key__c,
-          Parent_Rebate_ID__c,
-          Parent_CSB_Rebate__r.CSB_Rebate_Status__c
-        FROM
-          ${BAP_FORMS_TABLE}
-        WHERE
-          ${comboKeys
-            .map((key) => `UEI_EFTI_Combo_Key__c = '${key}'`)
-            .join(" OR ")}
-        ORDER BY
-          createddate DESC
-      `
+
+  return await bapConnection
+    .sobject(BAP_FORMS_TABLE)
+    .find(
+      { UEI_EFTI_Combo_Key__c: { $in: comboKeys } },
+      {
+        CSB_Form_ID__c: 1,
+        CSB_Modified_Full_String__c: 1,
+        UEI_EFTI_Combo_Key__c: 1,
+        Parent_Rebate_ID__c: 1,
+        "Parent_CSB_Rebate__r.CSB_Rebate_Status__c": 1,
+      }
     )
-    .then((res) => {
-      return res.records;
-    })
-    .catch((err) => {
-      throw err;
-    });
+    .sort({ CreatedDate: -1 })
+    .execute(async (err, records) => ((await err) ? err : records));
 }
 
 /**
