@@ -8,7 +8,6 @@ const log = require("../utilities/logger");
 
 /**
  * @typedef {Object} SamEntity
- * @property {Object} attributes
  * @property {string} ENTITY_COMBO_KEY__c
  * @property {string} ENTITY_STATUS__c
  * @property {string} UNIQUE_ENTITY_ID__c
@@ -32,6 +31,22 @@ const log = require("../utilities/logger");
  * @property {string} PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c
  * @property {string} PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c
  * @property {string} PHYSICAL_ADDRESS_ZIP_CODE_4__c
+ * @property {Object} attributes
+ * @property {string} attributes.type
+ * @property {string} attributes.url
+ */
+
+/**
+ * @typedef {Object} ApplicationFormSubmission
+ * @property {string} CSB_Form_ID__c
+ * @property {string} CSB_Modified_Full_String__c
+ * @property {string} UEI_EFTI_Combo_Key__c
+ * @property {string} Parent_Rebate_ID__c
+ * @property {Object} Parent_CSB_Rebate__r
+ * @property {string} Parent_CSB_Rebate__r.CSB_Rebate_Status__c
+ * @property {Object} attributes
+ * @property {string} attributes.type
+ * @property {string} attributes.url
  */
 
 const {
@@ -180,7 +195,7 @@ function getComboKeys(email, req) {
  * Uses cached JSforce connection to query the BAP for application form submissions.
  * @param {string[]} comboKeys
  * @param {express.Request} req
- * @returns {Promise<Object[]>} collection of application form submissions
+ * @returns {Promise<ApplicationFormSubmission[]>} collection of application form submissions
  */
 async function queryForApplicationFormSubmissions(comboKeys, req) {
   /** @type {jsforce.Connection} */
