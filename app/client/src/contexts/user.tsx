@@ -63,7 +63,8 @@ type ApplicationFormSubmissionMetadata = {
       | "Draft"
       | "Submitted"
       | "Edits Requested"
-      | "Withdrawn";
+      | "Withdrawn"
+      | "Selected";
     attributes: { type: string; url: string };
   };
   attributes: { type: string; url: string };

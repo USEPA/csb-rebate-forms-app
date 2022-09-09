@@ -173,19 +173,17 @@ export function AllRebates() {
    * BAP, so we can include CSB rebate status, CSB review item ID, and last
    * updated datetime.
    */
-  const submissions = applicationFormSubmissions.data.map((submission) => {
-    const matchedBapMetadata = bapUserData.data.applicationSubmissions.find(
-      (bapSubmission) => bapSubmission.CSB_Form_ID__c === submission._id
-    );
+  const submissions = applicationFormSubmissions.data.map((formioSub) => {
+    const match = bapUserData.data.applicationSubmissions.find((bapSub) => {
+      return bapSub.CSB_Form_ID__c === formioSub._id;
+    });
 
     return {
-      ...submission,
+      ...formioSub,
       bap: {
-        lastModified: matchedBapMetadata?.CSB_Modified_Full_String__c || null,
-        rebateId: matchedBapMetadata?.Parent_Rebate_ID__c || null,
-        rebateStatus:
-          matchedBapMetadata?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c ||
-          null,
+        lastModified: match?.CSB_Modified_Full_String__c || null,
+        rebateId: match?.Parent_Rebate_ID__c || null,
+        rebateStatus: match?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c || null,
       },
     };
   });
@@ -309,9 +307,8 @@ export function AllRebates() {
                   const submissionHasBeenWithdrawn =
                     bap.rebateStatus === "Withdrawn";
 
-                  // TODO: update to use the accepted BAP rebate status,
-                  // once it's being returned from the BAP
-                  const submissionHasBeenAccepted = false;
+                  const submissionHasBeenSelected =
+                    bap.rebateStatus === "Selected";
 
                   const statusStyles = submissionNeedsEdits
                     ? "csb-needs-edits"
@@ -574,7 +571,7 @@ save the form for the EFT indicator to be displayed. */
                         </td>
                       </tr>
 
-                      {submissionHasBeenAccepted && (
+                      {submissionHasBeenSelected && (
                         <tr className={rebateStyles}>
                           <th scope="row" colSpan={6}>
                             <button
