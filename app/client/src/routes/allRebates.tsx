@@ -115,6 +115,17 @@ function createNewPaymentRequest(
       hidden_bap_fleet_name: privateFleetName,
       hidden_bap_district_name: schoolDistrictName,
       hidden_bap_infra_max_rebate: null, // TODO: get from BAP
+      busInfo: [
+        {
+          busNum: 1, // from BAP
+          maxRebate: 250000, // from Formio
+          newBusFuelType: "Electric", // from Formio
+          oldBusFuelType: "Diesel", // from Formio
+          oldBusModelYear: 2007, // from Formio
+          oldBusVin: "ETBBT123710161315", // from Formio
+          oldBusNcesDistrictId: "3407500", // from Formio
+        },
+      ],
     },
     state: "draft",
   });
@@ -233,7 +244,7 @@ export function AllRebates() {
                     <br />
                     <TextWithTooltip
                       text="Form Status"
-                      tooltip="Draft, Edits Requested, Submitted, or Withdrawn"
+                      tooltip="Draft, Edits Requested, Submitted, Withdrawn, or Selected"
                     />
                   </th>
 
@@ -307,8 +318,9 @@ export function AllRebates() {
                   const submissionHasBeenWithdrawn =
                     bap.rebateStatus === "Withdrawn";
 
-                  const submissionHasBeenSelected =
-                    bap.rebateStatus === "Selected";
+                  const submissionHasBeenSelected = false;
+                  // const submissionHasBeenSelected =
+                  //   bap.rebateStatus === "Selected";
 
                   const statusStyles = submissionNeedsEdits
                     ? "csb-needs-edits"
