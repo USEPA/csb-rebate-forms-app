@@ -24,7 +24,6 @@ export type SamEntity = {
   ENTITY_COMBO_KEY__c: string;
   UNIQUE_ENTITY_ID__c: string;
   ENTITY_EFT_INDICATOR__c: string;
-  CAGE_CODE__c: string;
   ENTITY_STATUS__c: "Active" | string;
   LEGAL_BUSINESS_NAME__c: string;
   PHYSICAL_ADDRESS_LINE_1__c: string;
