@@ -6,8 +6,8 @@ import { ContentProvider } from "contexts/content";
 import { UserProvider } from "contexts/user";
 import { FormsProvider } from "contexts/forms";
 import { DialogProvider } from "contexts/dialog";
-import ErrorBoundary from "components/errorBoundary";
-import App from "components/app";
+import { ErrorBoundary } from "components/errorBoundary";
+import { App } from "components/app";
 import "./styles.css";
 
 const container = document.getElementById("root") as HTMLElement;

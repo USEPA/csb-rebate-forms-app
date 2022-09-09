@@ -10,70 +10,142 @@ type Props = {
   children: ReactNode;
 };
 
-type RebateFormSubmission = {
+export type ApplicationFormSubmission = {
   [field: string]: unknown;
   _id: string; // MongoDB ObjectId string
   state: "submitted" | "draft";
   modified: string; // ISO 8601 date string
   data: {
     [field: string]: unknown;
+    // fields injected by wrapper upon new application creation:
+    last_updated_by: string;
+    hidden_current_user_email: string;
+    hidden_current_user_title: string;
+    hidden_current_user_name: string;
+    bap_hidden_entity_combo_key: string;
+    sam_hidden_applicant_email: string;
+    sam_hidden_applicant_title: string;
+    sam_hidden_applicant_name: string;
+    sam_hidden_applicant_efti: string;
+    sam_hidden_applicant_uei: string;
+    sam_hidden_applicant_organization_name: string;
+    sam_hidden_applicant_street_address_1: string;
+    sam_hidden_applicant_street_address_2: string;
+    sam_hidden_applicant_city: string;
+    sam_hidden_applicant_state: string;
+    sam_hidden_applicant_zip_code: string;
+    // fields set by form definition (among others):
     applicantUEI: string;
     applicantEfti: string;
     applicantEfti_display: string;
     applicantOrganizationName: string;
     schoolDistrictName: string;
-    last_updated_by: string;
+  };
+};
+
+type PaymentFormSubmission = {
+  [field: string]: unknown;
+  _id: string; // MongoDB ObjectId string
+  state: "submitted" | "draft";
+  modified: string; // ISO 8601 date string
+  data: {
+    [field: string]: unknown;
   };
 };
 
 type State = {
-  rebateFormSubmissions:
+  applicationFormSubmissions:
     | { status: "idle"; data: [] }
     | { status: "pending"; data: [] }
-    | { status: "success"; data: RebateFormSubmission[] }
+    | { status: "success"; data: ApplicationFormSubmission[] }
+    | { status: "failure"; data: [] };
+  paymentFormSubmissions:
+    | { status: "idle"; data: [] }
+    | { status: "pending"; data: [] }
+    | { status: "success"; data: PaymentFormSubmission[] }
     | { status: "failure"; data: [] };
 };
 
 type Action =
-  | { type: "FETCH_REBATE_FORM_SUBMISSIONS_REQUEST" }
+  | { type: "FETCH_APPLICATION_FORM_SUBMISSIONS_REQUEST" }
   | {
-      type: "FETCH_REBATE_FORM_SUBMISSIONS_SUCCESS";
+      type: "FETCH_APPLICATION_FORM_SUBMISSIONS_SUCCESS";
       payload: {
-        rebateFormSubmissions: RebateFormSubmission[];
+        applicationFormSubmissions: ApplicationFormSubmission[];
       };
     }
-  | { type: "FETCH_REBATE_FORM_SUBMISSIONS_FAILURE" };
+  | { type: "FETCH_APPLICATION_FORM_SUBMISSIONS_FAILURE" }
+  | { type: "FETCH_PAYMENT_FORM_SUBMISSIONS_REQUEST" }
+  | { type: "FETCH_PAYMENT_FORM_SUBMISSIONS_REQUEST" }
+  | {
+      type: "FETCH_PAYMENT_FORM_SUBMISSIONS_SUCCESS";
+      payload: {
+        paymentFormSubmissions: PaymentFormSubmission[];
+      };
+    }
+  | { type: "FETCH_PAYMENT_FORM_SUBMISSIONS_FAILURE" };
 
 const StateContext = createContext<State | undefined>(undefined);
 const DispatchContext = createContext<Dispatch<Action> | undefined>(undefined);
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
-    case "FETCH_REBATE_FORM_SUBMISSIONS_REQUEST": {
+    case "FETCH_APPLICATION_FORM_SUBMISSIONS_REQUEST": {
       return {
         ...state,
-        rebateFormSubmissions: {
+        applicationFormSubmissions: {
           status: "pending",
           data: [],
         },
       };
     }
 
-    case "FETCH_REBATE_FORM_SUBMISSIONS_SUCCESS": {
-      const { rebateFormSubmissions } = action.payload;
+    case "FETCH_APPLICATION_FORM_SUBMISSIONS_SUCCESS": {
+      const { applicationFormSubmissions } = action.payload;
       return {
         ...state,
-        rebateFormSubmissions: {
+        applicationFormSubmissions: {
           status: "success",
-          data: rebateFormSubmissions,
+          data: applicationFormSubmissions,
         },
       };
     }
 
-    case "FETCH_REBATE_FORM_SUBMISSIONS_FAILURE": {
+    case "FETCH_APPLICATION_FORM_SUBMISSIONS_FAILURE": {
       return {
         ...state,
-        rebateFormSubmissions: {
+        applicationFormSubmissions: {
+          status: "failure",
+          data: [],
+        },
+      };
+    }
+
+    case "FETCH_PAYMENT_FORM_SUBMISSIONS_REQUEST": {
+      return {
+        ...state,
+        paymentFormSubmissions: {
+          status: "pending",
+          data: [],
+        },
+      };
+    }
+
+    case "FETCH_PAYMENT_FORM_SUBMISSIONS_SUCCESS": {
+      const { paymentFormSubmissions } = action.payload;
+      return {
+        ...state,
+        paymentFormSubmissions: {
+          status: "success",
+          data: paymentFormSubmissions,
+        },
+      };
+    }
+
+    case "FETCH_PAYMENT_FORM_SUBMISSIONS_FAILURE": {
+      return {
+        ...state,
+        paymentFormSubmissions: {
           status: "failure",
           data: [],
         },
@@ -81,14 +153,19 @@ function reducer(state: State, action: Action): State {
     }
 
     default: {
-      throw new Error(`Unhandled action type: ${action}`);
+      const message = `Unhandled action type: ${action}`;
+      throw new Error(message);
     }
   }
 }
 
 export function FormsProvider({ children }: Props) {
   const initialState: State = {
-    rebateFormSubmissions: {
+    applicationFormSubmissions: {
+      status: "idle",
+      data: [],
+    },
+    paymentFormSubmissions: {
       status: "idle",
       data: [],
     },
@@ -111,7 +188,8 @@ export function FormsProvider({ children }: Props) {
 export function useFormsState() {
   const context = useContext(StateContext);
   if (context === undefined) {
-    throw new Error("useFormsState must be called within a FormsProvider");
+    const message = `useFormsState must be called within a FormsProvider`;
+    throw new Error(message);
   }
   return context;
 }
@@ -123,7 +201,8 @@ export function useFormsState() {
 export function useFormsDispatch() {
   const context = useContext(DispatchContext);
   if (context === undefined) {
-    throw new Error("useFormsDispatch must be used within a FormsProvider");
+    const message = `useFormsDispatch must be used within a FormsProvider`;
+    throw new Error(message);
   }
   return context;
 }

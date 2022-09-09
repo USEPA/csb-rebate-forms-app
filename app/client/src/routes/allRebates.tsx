@@ -2,21 +2,141 @@ import { Fragment, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl, fetchData, messages } from "../config";
-import Loading from "components/loading";
-import Message from "components/message";
-import MarkdownContent from "components/markdownContent";
+import { serverUrl, messages, getData, postData } from "../config";
+import { getUserInfo } from "../utilities";
+import { Loading } from "components/loading";
+import { Message } from "components/message";
+import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/infoTooltip";
 import { useContentState } from "contexts/content";
-import { useUserState } from "contexts/user";
-import { useFormsState, useFormsDispatch } from "contexts/forms";
+import { SamEntity, useUserState } from "contexts/user";
+import {
+  ApplicationFormSubmission,
+  useFormsState,
+  useFormsDispatch,
+} from "contexts/forms";
 
-export default function AllRebates() {
+/** Custom hook to fetch Application form submissions */
+function useFetchedApplicationFormSubmissions() {
+  const { bapUserData } = useUserState();
+  const dispatch = useFormsDispatch();
+
+  useEffect(() => {
+    if (bapUserData.status !== "success" || !bapUserData.data.samResults) {
+      return;
+    }
+
+    dispatch({ type: "FETCH_APPLICATION_FORM_SUBMISSIONS_REQUEST" });
+
+    getData(`${serverUrl}/api/application-form-submissions`)
+      .then((res) => {
+        dispatch({
+          type: "FETCH_APPLICATION_FORM_SUBMISSIONS_SUCCESS",
+          payload: { applicationFormSubmissions: res },
+        });
+      })
+      .catch((err) => {
+        dispatch({ type: "FETCH_APPLICATION_FORM_SUBMISSIONS_FAILURE" });
+      });
+  }, [bapUserData, dispatch]);
+}
+
+/** Custom hook to fetch Payment Request form submissions */
+function useFetchedPaymentFormSubmissions() {
+  const { bapUserData } = useUserState();
+  const dispatch = useFormsDispatch();
+
+  useEffect(() => {
+    if (bapUserData.status !== "success" || !bapUserData.data.samResults) {
+      return;
+    }
+
+    dispatch({ type: "FETCH_PAYMENT_FORM_SUBMISSIONS_REQUEST" });
+
+    getData(`${serverUrl}/api/payment-form-submissions`)
+      .then((res) => {
+        dispatch({
+          type: "FETCH_PAYMENT_FORM_SUBMISSIONS_SUCCESS",
+          payload: { paymentFormSubmissions: res },
+        });
+      })
+      .catch((err) => {
+        dispatch({ type: "FETCH_PAYMENT_FORM_SUBMISSIONS_FAILURE" });
+      });
+  }, [bapUserData, dispatch]);
+}
+
+function createNewPaymentRequest(
+  email: string,
+  entity: SamEntity,
+  rebateId: string,
+  applicationData: ApplicationFormSubmission["data"]
+) {
+  const { title, name } = getUserInfo(email, entity);
+  const {
+    bap_hidden_entity_combo_key,
+    ncesDistrictId,
+    totalRebateFundsRequested,
+    primaryContactName,
+    primaryContactTitle,
+    primaryContactPhoneNumber,
+    primaryContactEmail,
+    alternateContactName,
+    alternateContactTitle,
+    alternateContactPhoneNumber,
+    alternateContactEmail,
+    applicantOrganizationName,
+    privateFleetName,
+    schoolDistrictName,
+    schoolDistricPrioritized,
+  } = applicationData;
+
+  return postData(`${serverUrl}/api/payment-form-submission/`, {
+    data: {
+      last_updated_by: email,
+      hidden_current_user_email: email,
+      hidden_current_user_title: title,
+      hidden_current_user_name: name,
+      bap_hidden_entity_combo_key,
+      hidden_bap_review_item_id: rebateId,
+      hidden_bap_prioritized: schoolDistricPrioritized,
+      hidden_bap_bus_data: null, // TODO: get from BAP (to include bus numbers)
+      hidden_bap_district_id: ncesDistrictId,
+      hidden_bap_requested_funds: totalRebateFundsRequested,
+      hidden_bap_primary_name: primaryContactName,
+      hidden_bap_primary_title: primaryContactTitle,
+      hidden_bap_primary_phone_number: primaryContactPhoneNumber,
+      hidden_bap_primary_email: primaryContactEmail,
+      hidden_bap_alternate_name: alternateContactName,
+      hidden_bap_alternate_title: alternateContactTitle,
+      hidden_bap_alternate_phone_number: alternateContactPhoneNumber,
+      hidden_bap_alternate_email: alternateContactEmail,
+      hidden_bap_org_name: applicantOrganizationName,
+      hidden_bap_fleet_name: privateFleetName,
+      hidden_bap_district_name: schoolDistrictName,
+      hidden_bap_infra_max_rebate: null, // TODO: get from BAP
+      busInfo: [
+        {
+          busNum: 1, // from BAP
+          maxRebate: 250000, // from Formio
+          newBusFuelType: "Electric", // from Formio
+          oldBusFuelType: "Diesel", // from Formio
+          oldBusModelYear: 2007, // from Formio
+          oldBusVin: "ETBBT123710161315", // from Formio
+          oldBusNcesDistrictId: "3407500", // from Formio
+        },
+      ],
+    },
+    state: "draft",
+  });
+}
+
+export function AllRebates() {
   const navigate = useNavigate();
   const { content } = useContentState();
-  const { csbData, bapUserData } = useUserState();
-  const { rebateFormSubmissions } = useFormsState();
-  const dispatch = useFormsDispatch();
+  const { csbData, epaUserData, bapUserData } = useUserState();
+  const { applicationFormSubmissions, paymentFormSubmissions } =
+    useFormsState();
 
   const [message, setMessage] = useState<{
     displayed: boolean;
@@ -28,31 +148,18 @@ export default function AllRebates() {
     text: "",
   });
 
-  useEffect(() => {
-    if (bapUserData.status !== "success" || !bapUserData.data.samResults) {
-      return;
-    }
-
-    dispatch({ type: "FETCH_REBATE_FORM_SUBMISSIONS_REQUEST" });
-
-    fetchData(`${serverUrl}/api/rebate-form-submissions`)
-      .then((res) => {
-        dispatch({
-          type: "FETCH_REBATE_FORM_SUBMISSIONS_SUCCESS",
-          payload: { rebateFormSubmissions: res },
-        });
-      })
-      .catch((err) => {
-        dispatch({ type: "FETCH_REBATE_FORM_SUBMISSIONS_FAILURE" });
-      });
-  }, [bapUserData, dispatch]);
+  useFetchedApplicationFormSubmissions();
+  useFetchedPaymentFormSubmissions();
 
   if (
     csbData.status !== "success" ||
+    epaUserData.status !== "success" ||
     bapUserData.status === "idle" ||
     bapUserData.status === "pending" ||
-    rebateFormSubmissions.status === "idle" ||
-    rebateFormSubmissions.status === "pending"
+    applicationFormSubmissions.status === "idle" ||
+    applicationFormSubmissions.status === "pending" ||
+    paymentFormSubmissions.status === "idle" ||
+    paymentFormSubmissions.status === "pending"
   ) {
     return <Loading />;
   }
@@ -61,30 +168,33 @@ export default function AllRebates() {
     return <Message type="error" text={messages.bapFetchError} />;
   }
 
-  if (rebateFormSubmissions.status === "failure") {
-    return <Message type="error" text={messages.rebateSubmissionsError} />;
+  if (applicationFormSubmissions.status === "failure") {
+    return <Message type="error" text={messages.applicationSubmissionsError} />;
+  }
+
+  if (paymentFormSubmissions.status === "failure") {
+    return <Message type="error" text={messages.paymentSubmissionsError} />;
   }
 
   const { enrollmentClosed } = csbData.data;
+  const email = epaUserData.data.mail;
 
   /**
-   * Formio submissions, merged with rebate submissions returned from the BAP,
-   * so we can include CSB rebate status, CSB review item ID, and last updated
-   * datetime.
+   * Formio application submissions, merged with submissions returned from the
+   * BAP, so we can include CSB rebate status, CSB review item ID, and last
+   * updated datetime.
    */
-  const submissions = rebateFormSubmissions.data.map((formioSubmission) => {
-    const matchedBapSubmission = bapUserData.data.rebateSubmissions.find(
-      (bapSubmission) => bapSubmission.CSB_Form_ID__c === formioSubmission._id
-    );
+  const submissions = applicationFormSubmissions.data.map((formioSub) => {
+    const match = bapUserData.data.applicationSubmissions.find((bapSub) => {
+      return bapSub.CSB_Form_ID__c === formioSub._id;
+    });
 
     return {
-      ...formioSubmission,
+      ...formioSub,
       bap: {
-        lastModified: matchedBapSubmission?.CSB_Modified_Full_String__c || null,
-        rebateId: matchedBapSubmission?.Parent_Rebate_ID__c || null,
-        rebateStatus:
-          matchedBapSubmission?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c ||
-          null,
+        lastModified: match?.CSB_Modified_Full_String__c || null,
+        rebateId: match?.Parent_Rebate_ID__c || null,
+        rebateStatus: match?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c || null,
       },
     };
   });
@@ -93,7 +203,7 @@ export default function AllRebates() {
     <>
       {submissions.length === 0 ? (
         <div className="margin-top-4">
-          <Message type="info" text={messages.newRebateApplication} />
+          <Message type="info" text={messages.newApplication} />
         </div>
       ) : (
         <>
@@ -111,7 +221,7 @@ export default function AllRebates() {
           <div className="usa-table-container--scrollable" tabIndex={0}>
             <table
               aria-label="Your Rebate Forms"
-              className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full"
+              className="usa-table usa-table--stacked usa-table--borderless width-full"
             >
               <thead>
                 <tr className="font-sans-2xs text-no-wrap text-bottom">
@@ -134,7 +244,7 @@ export default function AllRebates() {
                     <br />
                     <TextWithTooltip
                       text="Form Status"
-                      tooltip="Draft, Edits Requested, Submitted, or Withdrawn"
+                      tooltip="Draft, Edits Requested, Submitted, Withdrawn, or Selected"
                     />
                   </th>
 
@@ -177,9 +287,10 @@ export default function AllRebates() {
               </thead>
 
               <tbody>
-                {submissions.map((submission) => {
+                {submissions.map((submission, index) => {
                   const { bap, _id, state, modified, data } = submission;
                   const {
+                    bap_hidden_entity_combo_key,
                     applicantUEI,
                     applicantEfti,
                     applicantEfti_display,
@@ -193,7 +304,7 @@ export default function AllRebates() {
 
                   /**
                    * The submission has been updated since the last time the
-                   * BAP's submissions ETL process has succesfully run.
+                   * BAP's submissions ETL process has last succesfully run.
                    */
                   const submissionHasBeenUpdated = bap.lastModified
                     ? new Date(modified) > new Date(bap.lastModified)
@@ -207,14 +318,36 @@ export default function AllRebates() {
                   const submissionHasBeenWithdrawn =
                     bap.rebateStatus === "Withdrawn";
 
-                  const statusClassNames = submissionNeedsEdits
+                  const submissionHasBeenSelected = false;
+                  // const submissionHasBeenSelected =
+                  //   bap.rebateStatus === "Selected";
+
+                  const statusStyles = submissionNeedsEdits
                     ? "csb-needs-edits"
                     : enrollmentClosed || state === "submitted"
-                    ? "text-italic text-base-dark"
+                    ? "text-italic"
                     : "";
 
+                  /**
+                   * Apply USWDS `usa-table--striped` styles to each rebate,
+                   * which can include up to three rows – one for each of the
+                   * forms: Application, Purchase Order, and Close-Out.
+                   */
+                  const rebateStyles = index % 2 ? "bg-white" : "bg-gray-5";
+
+                  /**
+                   * matched SAM.gov entity for each submission (used to set the
+                   * user's name and title in a new payment request form)
+                   */
+                  const entity = bapUserData.data.samEntities.find((entity) => {
+                    return (
+                      entity.ENTITY_STATUS__c === "Active" &&
+                      entity.ENTITY_COMBO_KEY__c === bap_hidden_entity_combo_key
+                    );
+                  });
+
                   /* NOTE: when a form is first initially created, and the user
-has not yet clicked the "Next" or "Save" buttons, any fields that the formio
+has not yet clicked the "Next" or "Save" buttons, any fields that the Formio
 form definition sets automatically (based on hidden fields we inject on form
 creation) will not yet be part of the form submission data. As soon as the user
 clicks the "Next" or "Save" buttons the first time, those fields will be set and
@@ -226,8 +359,8 @@ starting a new application), indicate to the user they need to first save the
 form for the fields to be displayed. */
                   return (
                     <Fragment key={_id}>
-                      <tr>
-                        <th scope="row" className={statusClassNames}>
+                      <tr className={rebateStyles}>
+                        <th scope="row" className={statusStyles}>
                           {submissionNeedsEdits ? (
                             <button
                               className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
@@ -241,8 +374,8 @@ form for the fields to be displayed. */
 
                                 // change the submission's state to draft, then
                                 // redirect to the form to allow user to edit
-                                fetchData(
-                                  `${serverUrl}/api/rebate-form-submission/${_id}`,
+                                postData(
+                                  `${serverUrl}/api/application-form-submission/${_id}`,
                                   { data, state: "draft" }
                                 )
                                   .then((res) => {
@@ -306,7 +439,7 @@ form for the fields to be displayed. */
                           ) : null}
                         </th>
 
-                        <td className={statusClassNames}>
+                        <td className={statusStyles}>
                           {bap.rebateId ? (
                             <span title={`Application ID: ${_id}`}>
                               {bap.rebateId}
@@ -319,7 +452,7 @@ form for the fields to be displayed. */
                           )}
                         </td>
 
-                        <td className={statusClassNames}>
+                        <td className={statusStyles}>
                           <span>Application</span>
                           <br />
                           <span className="display-flex flex-align-center font-sans-2xs">
@@ -358,7 +491,7 @@ form for the fields to be displayed. */
                           </span>
                         </td>
 
-                        <td className={statusClassNames}>
+                        <td className={statusStyles}>
                           <>
                             {Boolean(applicantUEI) ? (
                               applicantUEI
@@ -371,13 +504,13 @@ form for the fields to be displayed. */
                             <br />
                             {
                               /* NOTE:
-The initial version of the rebate form definition included the `applicantEfti`
-field, which is configured via the form definition (in formio/forms.gov) to set
+Initial version of the application form definition included the `applicantEfti`
+field, which is configured via the form definition (in Formio/Forms.gov) to set
 its value based on the value of the `sam_hidden_applicant_efti` field, which we
 inject on initial form submission. That value comes from the BAP (SAM.gov data),
 which could be an empty string.
 
-To handle the potentially empty string, the formio form definition was updated
+To handle the potentially empty string, the Formio form definition was updated
 to include a new `applicantEfti_display` field that's configured in the form
 definition to set it's value to the string '0000' if the `applicantEfti` field's
 value is an empty string. This logic (again, built into the form definition)
@@ -421,7 +554,7 @@ save the form for the EFT indicator to be displayed. */
                           </>
                         </td>
 
-                        <td className={statusClassNames}>
+                        <td className={statusStyles}>
                           <>
                             {Boolean(applicantOrganizationName) ? (
                               applicantOrganizationName
@@ -443,12 +576,59 @@ save the form for the EFT indicator to be displayed. */
                           </>
                         </td>
 
-                        <td className={statusClassNames}>
+                        <td className={statusStyles}>
                           {last_updated_by}
                           <br />
                           <span title={`${date} ${time}`}>{date}</span>
                         </td>
                       </tr>
+
+                      {submissionHasBeenSelected && (
+                        <tr className={rebateStyles}>
+                          <th scope="row" colSpan={6}>
+                            <button
+                              className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
+                              onClick={(ev) => {
+                                const id = bap.rebateId;
+                                if (!id || !entity) return;
+
+                                // clear out existing message
+                                setMessage({
+                                  displayed: false,
+                                  type: "info",
+                                  text: "",
+                                });
+
+                                createNewPaymentRequest(email, entity, id, data)
+                                  .then((res) => {
+                                    navigate(`/payment/${id}`);
+                                  })
+                                  .catch((err) => {
+                                    setMessage({
+                                      displayed: true,
+                                      type: "error",
+                                      text: `Error updating Rebate ${id}. Please try again.`,
+                                    });
+                                  });
+                              }}
+                            >
+                              <span className="display-flex flex-align-center">
+                                <svg
+                                  className="usa-icon"
+                                  aria-hidden="true"
+                                  focusable="false"
+                                  role="img"
+                                >
+                                  <use href={`${icons}#add_circle`} />
+                                </svg>
+                                <span className="margin-left-1">
+                                  New Payment Request
+                                </span>
+                              </span>
+                            </button>
+                          </th>
+                        </tr>
+                      )}
                     </Fragment>
                   );
                 })}

@@ -10,10 +10,10 @@ import {
   serverUrlForHrefs,
   formioBaseUrl,
   formioProjectUrl,
-  fetchData,
+  getData,
 } from "../config";
 import { useHelpdeskAccess } from "components/app";
-import Loading from "components/loading";
+import { Loading } from "components/loading";
 import { useUserState, useUserDispatch } from "contexts/user";
 import { Action, useDialogDispatch } from "contexts/dialog";
 
@@ -22,13 +22,13 @@ Formio.setProjectUrl(formioProjectUrl);
 Formio.use(premium);
 Formio.use(uswds);
 
-// Custom hook to fetch CSP app specific data
+/** Custom hook to fetch CSP app specific data */
 function useFetchedCsbData() {
   const dispatch = useUserDispatch();
 
   useEffect(() => {
     dispatch({ type: "FETCH_CSB_DATA_REQUEST" });
-    fetchData(`${serverUrl}/api/csb-data`)
+    getData(`${serverUrl}/api/csb-data`)
       .then((res) => {
         dispatch({
           type: "FETCH_CSB_DATA_SUCCESS",
@@ -41,13 +41,13 @@ function useFetchedCsbData() {
   }, [dispatch]);
 }
 
-// Custom hook to fetch BAP data
+/** Custom hook to fetch BAP data */
 function useFetchedBapData() {
   const dispatch = useUserDispatch();
 
   useEffect(() => {
     dispatch({ type: "FETCH_BAP_USER_DATA_REQUEST" });
-    fetchData(`${serverUrl}/api/bap-data`)
+    getData(`${serverUrl}/api/bap-data`)
       .then((res) => {
         if (res.samResults) {
           dispatch({
@@ -100,7 +100,7 @@ function IconText({ order, icon, text }: IconTextProps) {
   );
 }
 
-export default function Dashboard() {
+export function Dashboard() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
 

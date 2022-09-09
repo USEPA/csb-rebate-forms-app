@@ -20,11 +20,10 @@ type EpaUserData = {
   exp: number;
 };
 
-export type SamEntityData = {
+export type SamEntity = {
   ENTITY_COMBO_KEY__c: string;
   UNIQUE_ENTITY_ID__c: string;
   ENTITY_EFT_INDICATOR__c: string;
-  CAGE_CODE__c: string;
   ENTITY_STATUS__c: "Active" | string;
   LEGAL_BUSINESS_NAME__c: string;
   PHYSICAL_ADDRESS_LINE_1__c: string;
@@ -53,7 +52,7 @@ export type SamEntityData = {
   attributes: { type: string; url: string };
 };
 
-type BapSubmissionData = {
+type ApplicationFormSubmissionMetadata = {
   CSB_Form_ID__c: string; // MongoDB ObjectId string
   CSB_Modified_Full_String__c: string; // ISO 8601 date string
   UEI_EFTI_Combo_Key__c: string;
@@ -63,7 +62,8 @@ type BapSubmissionData = {
       | "Draft"
       | "Submitted"
       | "Edits Requested"
-      | "Withdrawn";
+      | "Withdrawn"
+      | "Selected";
     attributes: { type: string; url: string };
   };
   attributes: { type: string; url: string };
@@ -91,12 +91,12 @@ type State = {
           | {
               samResults: false;
               samEntities: [];
-              rebateSubmissions: [];
+              applicationSubmissions: [];
             }
           | {
               samResults: true;
-              samEntities: SamEntityData[];
-              rebateSubmissions: BapSubmissionData[];
+              samEntities: SamEntity[];
+              applicationSubmissions: ApplicationFormSubmissionMetadata[];
             };
       }
     | { status: "failure"; data: {} };
@@ -125,12 +125,12 @@ type Action =
           | {
               samResults: false;
               samEntities: [];
-              rebateSubmissions: [];
+              applicationSubmissions: [];
             }
           | {
               samResults: true;
-              samEntities: SamEntityData[];
-              rebateSubmissions: BapSubmissionData[];
+              samEntities: SamEntity[];
+              applicationSubmissions: ApplicationFormSubmissionMetadata[];
             };
       };
     }
@@ -263,7 +263,8 @@ function reducer(state: State, action: Action): State {
     }
 
     default: {
-      throw new Error(`Unhandled action type: ${action}`);
+      const message = `Unhandled action type: ${action}`;
+      throw new Error(message);
     }
   }
 }
@@ -303,7 +304,8 @@ export function UserProvider({ children }: Props) {
 export function useUserState() {
   const context = useContext(StateContext);
   if (context === undefined) {
-    throw new Error("useUserState must be called within a UserProvider");
+    const message = `useUserState must be called within a UserProvider`;
+    throw new Error(message);
   }
   return context;
 }
@@ -315,7 +317,8 @@ export function useUserState() {
 export function useUserDispatch() {
   const context = useContext(DispatchContext);
   if (context === undefined) {
-    throw new Error("useUserDispatch must be used within a UserProvider");
+    const message = `useUserDispatch must be used within a UserProvider`;
+    throw new Error(message);
   }
   return context;
 }

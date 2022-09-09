@@ -7,15 +7,13 @@ const {
 } = process.env;
 
 if (!REACT_APP_FORMIO_BASE_URL) {
-  throw new Error(
-    "Required REACT_APP_FORMIO_BASE_URL environment variable not found."
-  );
+  const message = `Required REACT_APP_FORMIO_BASE_URL environment variable not found.`;
+  throw new Error(message);
 }
 
 if (!REACT_APP_FORMIO_PROJECT_NAME) {
-  throw new Error(
-    "Required REACT_APP_FORMIO_PROJECT_NAME environment variable not found."
-  );
+  const message = `Required REACT_APP_FORMIO_PROJECT_NAME environment variable not found.`;
+  throw new Error(message);
 }
 
 // allows the app to be accessed from a sub directory of a server (e.g. /csb)
@@ -58,42 +56,51 @@ export const messages = {
     "Error loading SAM.gov or rebate submission data. Please contact support.",
   noSamResults:
     "No SAM.gov records match your email. Only Government and Electronic Business SAM.gov Points of Contacts (and alternates) may edit and submit Clean School Bus Rebate Forms.",
-  rebateSubmissionsError: "Error loading rebate form submissions.",
-  newRebateApplication:
+  applicationSubmissionsError: "Error loading Application form submissions.",
+  paymentSubmissionsError: "Error loading Payment Request form submissions.",
+  newApplication:
     "Please select the “New Application” button above to create your first rebate application.",
-  helpdeskRebateFormError:
-    "Error loading rebate form submission. Please confirm the form ID is correct and search again.",
+  helpdeskApplicationSubmissionError:
+    "Error loading Application form submission. Please confirm the Application ID is correct and search again.",
   timeout:
     "For security reasons, you have been logged out due to 15 minutes of inactivity.",
   logout: "You have successfully logged out.",
   enrollmentClosed: "The CSB enrollment period is closed.",
 };
 
-/**
- * Returns a promise containing JSON fetched from a provided web service URL
- * or handles any other OK response returned from the server
- */
-export async function fetchData(url: string, data?: object) {
-  const options = !data
-    ? {
-        method: "GET",
-        credentials: "include" as const,
-      }
-    : {
-        method: "POST",
-        credentials: "include" as const,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      };
-
+async function fetchData(url: string, options: RequestInit) {
   try {
-    const res = await fetch(url, options);
-    if (!res.ok) throw new Error(res.statusText);
-    const contentType = res.headers.get("content-type");
+    const response = await fetch(url, options);
+    if (!response.ok) throw new Error(response.statusText);
+    const contentType = response.headers.get("content-type");
     return contentType?.includes("application/json")
-      ? await res.json()
+      ? await response.json()
       : Promise.resolve();
   } catch (error) {
     return await Promise.reject(error);
   }
+}
+
+/**
+ * Fetches data and returns a promise containing JSON fetched from a provided
+ * web service URL or handles any other OK response returned from the server
+ */
+export function getData(url: string) {
+  return fetchData(url, {
+    method: "GET",
+    credentials: "include" as const,
+  });
+}
+
+/**
+ * Posts JSON data and returns a promise containing JSON fetched from a provided
+ * web service URL or handles any other OK response returned from the server
+ */
+export function postData(url: string, data: object) {
+  return fetchData(url, {
+    method: "POST",
+    credentials: "include" as const,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
 }

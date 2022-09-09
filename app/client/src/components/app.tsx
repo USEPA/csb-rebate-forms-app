@@ -18,27 +18,28 @@ import "@formio/choices.js/public/assets/styles/choices.min.css";
 import "@formio/premium/dist/premium.css";
 import "formiojs/dist/formio.full.min.css";
 // ---
-import { serverBasePath, serverUrl, cloudSpace, fetchData } from "../config";
-import Loading from "components/loading";
-import MarkdownContent from "components/markdownContent";
-import Welcome from "components/welcome";
-import Dashboard from "components/dashboard";
-import ConfirmationDialog from "components/confirmationDialog";
-import Helpdesk from "routes/helpdesk";
-import AllRebates from "routes/allRebates";
-import NewRebate from "routes/newRebate";
-import ExistingRebate from "routes/existingRebate";
+import { serverBasePath, serverUrl, cloudSpace, getData } from "../config";
+import { Loading } from "components/loading";
+import { MarkdownContent } from "components/markdownContent";
+import { Welcome } from "routes/welcome";
+import { Dashboard } from "components/dashboard";
+import { ConfirmationDialog } from "components/confirmationDialog";
+import { Helpdesk } from "routes/helpdesk";
+import { AllRebates } from "routes/allRebates";
+import { NewApplicationForm } from "routes/newApplicationForm";
+import { ApplicationForm } from "routes/applicationForm";
+import { PaymentForm } from "routes/paymentForm";
 import { useContentState, useContentDispatch } from "contexts/content";
 import { useUserState, useUserDispatch } from "contexts/user";
 import { useDialogDispatch, useDialogState } from "contexts/dialog";
 
-// Custom hook to fetch static content
+/** Custom hook to fetch static content */
 function useFetchedContent() {
   const dispatch = useContentDispatch();
 
   useEffect(() => {
     dispatch({ type: "FETCH_CONTENT_REQUEST" });
-    fetchData(`${serverUrl}/api/content`)
+    getData(`${serverUrl}/api/content`)
       .then((res) => {
         dispatch({
           type: "FETCH_CONTENT_SUCCESS",
@@ -51,7 +52,7 @@ function useFetchedContent() {
   }, [dispatch]);
 }
 
-// Custom hook to display a site-wide alert banner
+/** Custom hook to display a site-wide alert banner */
 function useSiteAlertBanner() {
   const { content } = useContentState();
 
@@ -89,7 +90,7 @@ function useSiteAlertBanner() {
   }, [content]);
 }
 
-// Custom hook to display the CSB disclaimer banner for development/staging
+/** Custom hook to display the CSB disclaimer banner for development/staging */
 function useDisclaimerBanner() {
   useEffect(() => {
     if (!(cloudSpace === "dev" || cloudSpace === "staging")) return;
@@ -112,7 +113,7 @@ function useDisclaimerBanner() {
   }, []);
 }
 
-// Custom hook to set up inactivity timer to auto-logout user if they're inactive for >15 minutes
+/** Custom hook to set up inactivity timer to auto-logout user if they're inactive for >15 minutes */
 function useInactivityDialog(callback: () => void) {
   const { epaUserData } = useUserState();
   const { dialogShown, heading } = useDialogState();
@@ -196,7 +197,7 @@ function useInactivityDialog(callback: () => void) {
   }, [dialogShown, heading, logoutTimer, dispatch]);
 }
 
-// Custom hook to check if user should have access to helpdesk pages
+/** Custom hook to check if user should have access to helpdesk pages */
 export function useHelpdeskAccess() {
   const [helpdeskAccess, setHelpdeskAccess] = useState<
     "idle" | "pending" | "success" | "failure"
@@ -204,7 +205,7 @@ export function useHelpdeskAccess() {
 
   useEffect(() => {
     setHelpdeskAccess("pending");
-    fetchData(`${serverUrl}/api/helpdesk-access`)
+    getData(`${serverUrl}/api/helpdesk-access`)
       .then((res) => setHelpdeskAccess("success"))
       .catch((err) => setHelpdeskAccess("failure"));
   }, []);
@@ -220,7 +221,7 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
 
   // Check if user is already logged in or needs to be redirected to /welcome route
   const verifyUser = useCallback(() => {
-    fetchData(`${serverUrl}/api/epa-data`)
+    getData(`${serverUrl}/api/epa-data`)
       .then((res) => {
         dispatch({
           type: "FETCH_EPA_USER_DATA_SUCCESS",
@@ -257,7 +258,7 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
   );
 }
 
-export default function App() {
+export function App() {
   useFetchedContent();
   useSiteAlertBanner();
   useDisclaimerBanner();
@@ -288,8 +289,9 @@ export default function App() {
             displayed.
           */}
           <Route path="helpdesk" element={<Helpdesk />} />
-          <Route path="rebate/new" element={<NewRebate />} />
-          <Route path="rebate/:id" element={<ExistingRebate />} />
+          <Route path="rebate/new" element={<NewApplicationForm />} />
+          <Route path="rebate/:id" element={<ApplicationForm />} />
+          <Route path="payment-request/:id" element={<PaymentForm />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

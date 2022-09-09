@@ -3,19 +3,19 @@ import { useNavigate } from "react-router-dom";
 import { DialogOverlay, DialogContent } from "@reach/dialog";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl, messages, fetchData } from "../config";
+import { serverUrl, messages, postData } from "../config";
 import { getUserInfo } from "../utilities";
-import Loading from "components/loading";
-import Message from "components/message";
-import MarkdownContent from "components/markdownContent";
+import { Loading } from "components/loading";
+import { Message } from "components/message";
+import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/infoTooltip";
 import { useContentState } from "contexts/content";
-import { SamEntityData, useUserState } from "contexts/user";
+import { SamEntity, useUserState } from "contexts/user";
 
-function createNewRebate(email: string, entity: SamEntityData) {
+function createNewApplication(email: string, entity: SamEntity) {
   const { title, name } = getUserInfo(email, entity);
 
-  return fetchData(`${serverUrl}/api/rebate-form-submission/`, {
+  return postData(`${serverUrl}/api/application-form-submission/`, {
     data: {
       last_updated_by: email,
       hidden_current_user_email: email,
@@ -38,7 +38,7 @@ function createNewRebate(email: string, entity: SamEntityData) {
   });
 }
 
-export default function NewRebate() {
+export function NewApplicationForm() {
   const navigate = useNavigate();
   const { content } = useContentState();
   const { csbData, epaUserData, bapUserData } = useUserState();
@@ -72,8 +72,8 @@ export default function NewRebate() {
       <DialogOverlay isOpen={true} onDismiss={(ev) => navigate("/")}>
         <DialogContent
           className="usa-modal usa-modal--lg"
-          aria-labelledby="csb-new-rebate-modal-heading"
-          aria-describedby="csb-new-rebate-modal-description"
+          aria-labelledby="csb-new-application-modal-heading"
+          aria-describedby="csb-new-application-modal-description"
         >
           <div className="usa-modal__content">
             <div className="usa-modal__main">
@@ -86,11 +86,11 @@ export default function NewRebate() {
                   {content.status === "success" && (
                     <MarkdownContent
                       className="margin-top-4"
-                      children={content.data?.newRebateDialog || ""}
+                      children={content.data?.newApplicationDialog || ""}
                       components={{
                         h2: (props) => (
                           <h2
-                            id="csb-new-rebate-modal-heading"
+                            id="csb-new-application-modal-heading"
                             className="usa-modal__heading text-center"
                           >
                             {props.children}
@@ -98,7 +98,7 @@ export default function NewRebate() {
                         ),
                         p: (props) => (
                           <p
-                            id="csb-new-rebate-modal-description"
+                            id="csb-new-application-modal-description"
                             className="text-center"
                           >
                             {props.children}
@@ -155,7 +155,7 @@ export default function NewRebate() {
                                     text: "Creating new rebate form application...",
                                   });
 
-                                  createNewRebate(email, entity)
+                                  createNewApplication(email, entity)
                                     .then((res) => {
                                       navigate(`/rebate/${res._id}`);
                                     })

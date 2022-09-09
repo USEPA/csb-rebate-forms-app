@@ -5,7 +5,8 @@ const log = require("../utilities/logger");
 const formioBaseUrl = process.env.FORMIO_BASE_URL;
 const formioProjectName = process.env.FORMIO_PROJECT_NAME;
 const formioProjectUrl = `${formioBaseUrl}/${formioProjectName}`;
-const formioFormName = process.env.FORMIO_FORM_NAME;
+const formioApplicationFormPath = process.env.FORMIO_APPLICATION_FORM_PATH;
+const formioPaymentFormPath = process.env.FORMIO_PAYMENT_FORM_PATH;
 const formioApiKey = process.env.FORMIO_API_KEY;
 
 function axiosFormio(req) {
@@ -75,6 +76,7 @@ const formioCsbMetadata = {
 module.exports = {
   axiosFormio,
   formioProjectUrl,
-  formioFormName,
+  formioApplicationFormPath,
+  formioPaymentFormPath,
   formioCsbMetadata,
 };

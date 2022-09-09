@@ -2,7 +2,7 @@
 // into app's `images/loader.svg` with namespace tags removed
 import loader from "images/loader.svg";
 
-export default function Loading() {
+export function Loading() {
   return (
     <div className="margin-top-2 padding-1 text-center">
       <span className="usa-sr-only">Loading...</span>

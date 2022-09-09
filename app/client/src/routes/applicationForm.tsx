@@ -13,11 +13,11 @@ import { Formio, Form } from "@formio/react";
 import { cloneDeep, isEqual } from "lodash";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl, fetchData } from "../config";
+import { serverUrl, getData, postData } from "../config";
 import { getUserInfo } from "../utilities";
-import Loading from "components/loading";
-import Message from "components/message";
-import MarkdownContent from "components/markdownContent";
+import { Loading } from "components/loading";
+import { Message } from "components/message";
+import { MarkdownContent } from "components/markdownContent";
 import { useContentState } from "contexts/content";
 import { useUserState } from "contexts/user";
 
@@ -107,12 +107,13 @@ function reducer(state: State, action: Action): State {
     }
 
     default: {
-      throw new Error(`Unhandled action type: ${action}`);
+      const message = `Unhandled action type: ${action}`;
+      throw new Error(message);
     }
   }
 }
 
-function ExistingRebateProvider({ children }: Props) {
+function ApplicationFormProvider({ children }: Props) {
   const initialState: State = {
     displayed: false,
     type: "info",
@@ -131,39 +132,37 @@ function ExistingRebateProvider({ children }: Props) {
 }
 
 /**
- * Returns state stored in `ExistingRebateProvider` context component.
+ * Returns state stored in `ApplicationFormProvider` context component.
  */
-function useExistingRebateState() {
+function useApplicationFormState() {
   const context = useContext(StateContext);
   if (context === undefined) {
-    throw new Error(
-      "useExistingRebateState must be called within a ExistingRebateProvider"
-    );
+    const message = `useApplicationFormState must be called within a ApplicationFormProvider`;
+    throw new Error(message);
   }
   return context;
 }
 
 /**
  * Returns `dispatch` method for dispatching actions to update state stored in
- * `ExistingRebateProvider` context component.
+ * `ApplicationFormProvider` context component.
  */
-function useExistingRebateDispatch() {
+function useApplicationFormDispatch() {
   const context = useContext(DispatchContext);
   if (context === undefined) {
-    throw new Error(
-      "useExistingRebateDispatch must be used within a ExistingRebateProvider"
-    );
+    const message = `useApplicationFormDispatch must be used within a ApplicationFormProvider`;
+    throw new Error(message);
   }
   return context;
 }
 
 // -----------------------------------------------------------------------------
 
-export default function ExistingRebate() {
+export function ApplicationForm() {
   return (
-    <ExistingRebateProvider>
-      <ExistingRebateContent />
-    </ExistingRebateProvider>
+    <ApplicationFormProvider>
+      <ApplicationFormContent />
+    </ApplicationFormProvider>
   );
 }
 
@@ -225,19 +224,19 @@ type SubmissionState =
     };
 
 function FormMessage() {
-  const { displayed, type, text } = useExistingRebateState();
+  const { displayed, type, text } = useApplicationFormState();
   if (!displayed) return null;
   return <Message type={type} text={text} />;
 }
 
-function ExistingRebateContent() {
+function ApplicationFormContent() {
   const navigate = useNavigate();
   const { id } = useParams<"id">();
   const { content } = useContentState();
   const { csbData, epaUserData, bapUserData } = useUserState();
-  const dispatch = useExistingRebateDispatch();
+  const dispatch = useApplicationFormDispatch();
 
-  const [rebateFormSubmission, setRebateFormSubmission] =
+  const [applicationFormSubmission, setApplicationFormSubmission] =
     useState<SubmissionState>({
       status: "idle",
       data: {
@@ -247,8 +246,9 @@ function ExistingRebateContent() {
       },
     });
 
-  // set when rebate form submission data is initially fetched, and then re-set
-  // each time a successful update of the submission data is posted to forms.gov
+  // set when application form submission data is initially fetched, and then
+  // re-set each time a successful update of the submission data is posted to
+  // forms.gov
   const [storedSubmissionData, setStoredSubmissionData] =
     useState<FormioSubmissionData>({});
 
@@ -264,7 +264,7 @@ function ExistingRebateContent() {
     useState<FormioSubmissionData>({});
 
   useEffect(() => {
-    setRebateFormSubmission({
+    setApplicationFormSubmission({
       status: "pending",
       data: {
         userAccess: false,
@@ -273,9 +273,9 @@ function ExistingRebateContent() {
       },
     });
 
-    fetchData(`${serverUrl}/api/rebate-form-submission/${id}`)
+    getData(`${serverUrl}/api/application-form-submission/${id}`)
       .then((res) => {
-        // Set up s3 re-route to wrapper app
+        // set up s3 re-route to wrapper app
         const s3Provider = Formio.Providers.providers.storage.s3;
         Formio.Providers.providers.storage.s3 = function (formio: any) {
           const s3Formio = cloneDeep(formio);
@@ -298,13 +298,13 @@ function ExistingRebateContent() {
           return data;
         });
 
-        setRebateFormSubmission({
+        setApplicationFormSubmission({
           status: "success",
           data: res,
         });
       })
       .catch((err) => {
-        setRebateFormSubmission({
+        setApplicationFormSubmission({
           status: "failure",
           data: {
             userAccess: false,
@@ -315,18 +315,19 @@ function ExistingRebateContent() {
       });
   }, [id]);
 
-  if (rebateFormSubmission.status === "idle") {
+  if (applicationFormSubmission.status === "idle") {
     return null;
   }
 
-  if (rebateFormSubmission.status === "pending") {
+  if (applicationFormSubmission.status === "pending") {
     return <Loading />;
   }
 
-  const { userAccess, formSchema, submissionData } = rebateFormSubmission.data;
+  const { userAccess, formSchema, submissionData } =
+    applicationFormSubmission.data;
 
   if (
-    rebateFormSubmission.status === "failure" ||
+    applicationFormSubmission.status === "failure" ||
     !userAccess ||
     !formSchema ||
     !submissionData
@@ -349,15 +350,15 @@ function ExistingRebateContent() {
 
   const { enrollmentClosed } = csbData.data;
 
-  const matchedBapSubmission = bapUserData.data.rebateSubmissions.find(
+  const matchedBapMetadata = bapUserData.data.applicationSubmissions.find(
     (bapSubmission) => bapSubmission.CSB_Form_ID__c === id
   );
 
   const bap = {
-    lastModified: matchedBapSubmission?.CSB_Modified_Full_String__c || null,
-    rebateId: matchedBapSubmission?.Parent_Rebate_ID__c || null,
+    lastModified: matchedBapMetadata?.CSB_Modified_Full_String__c || null,
+    rebateId: matchedBapMetadata?.Parent_Rebate_ID__c || null,
     rebateStatus:
-      matchedBapSubmission?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c || null,
+      matchedBapMetadata?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c || null,
   };
 
   const submissionNeedsEdits = bap.rebateStatus === "Edits Requested";
@@ -382,9 +383,9 @@ function ExistingRebateContent() {
           className="margin-top-4"
           children={
             submissionData.state === "draft"
-              ? content.data?.draftRebateIntro || ""
+              ? content.data?.draftApplicationIntro || ""
               : submissionData.state === "submitted"
-              ? content.data?.submittedRebateIntro || ""
+              ? content.data?.submittedApplicationIntro || ""
               : ""
           }
         />
@@ -504,8 +505,8 @@ function ExistingRebateContent() {
 
             setPendingSubmissionData(data);
 
-            fetchData(
-              `${serverUrl}/api/rebate-form-submission/${submissionData._id}`,
+            postData(
+              `${serverUrl}/api/application-form-submission/${submissionData._id}`,
               { ...submission, data }
             )
               .then((res) => {
@@ -543,7 +544,7 @@ function ExistingRebateContent() {
               .catch((err) => {
                 dispatch({
                   type: "DISPLAY_ERROR_MESSAGE",
-                  payload: { text: "Error submitting rebate form." },
+                  payload: { text: "Error submitting application form." },
                 });
               });
           }}
@@ -589,8 +590,8 @@ function ExistingRebateContent() {
 
             setPendingSubmissionData(data);
 
-            fetchData(
-              `${serverUrl}/api/rebate-form-submission/${submissionData._id}`,
+            postData(
+              `${serverUrl}/api/application-form-submission/${submissionData._id}`,
               { ...submission, data, state: "draft" }
             )
               .then((res) => {
@@ -613,7 +614,7 @@ function ExistingRebateContent() {
               .catch((err) => {
                 dispatch({
                   type: "DISPLAY_ERROR_MESSAGE",
-                  payload: { text: "Error saving draft rebate form." },
+                  payload: { text: "Error saving draft application form." },
                 });
               });
           }}

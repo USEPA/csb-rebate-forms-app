@@ -3,7 +3,7 @@ const express = require("express");
 const {
   axiosFormio,
   formioProjectUrl,
-  formioFormName,
+  formioApplicationFormPath,
 } = require("../config/formio");
 const { getSamData } = require("../utilities/bap");
 
@@ -23,9 +23,11 @@ router.get("/bap", (req, res) => {
     });
 });
 
-router.get("/form", (req, res) => {
+const applicationFormApiPath = `${formioProjectUrl}/${formioApplicationFormPath}`;
+
+router.get("/application-form", (req, res) => {
   axiosFormio(req)
-    .get(`${formioProjectUrl}/${formioFormName}`)
+    .get(applicationFormApiPath)
     .then((axiosRes) => axiosRes.data)
     .then((schema) =>
       // Verify that schema has type of form and a title exists (confirming formio returned a valid schema)

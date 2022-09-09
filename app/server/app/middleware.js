@@ -3,7 +3,6 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const ObjectId = require("mongodb").ObjectId;
 // ---
-const { getRebateSubmissionsData } = require("./utilities/bap");
 const { createJwt, jwtAlgorithm } = require("./utilities/createJwt");
 const log = require("./utilities/logger");
 const { getComboKeys } = require("./utilities/bap");
