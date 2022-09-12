@@ -20,6 +20,7 @@ import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { useContentState } from "contexts/content";
 import { useUserState } from "contexts/user";
+import { useCsbState } from "contexts/csb";
 import { useBapState } from "contexts/bap";
 
 // -----------------------------------------------------------------------------
@@ -234,7 +235,8 @@ function ApplicationFormContent() {
   const navigate = useNavigate();
   const { id } = useParams<"id">();
   const { content } = useContentState();
-  const { csbData, epaUserData } = useUserState();
+  const { epaUserData } = useUserState();
+  const { csbData } = useCsbState();
   const { samEntities, applicationSubmissions: bapApplicationSubmissions } =
     useBapState();
   const dispatch = useApplicationFormDispatch();

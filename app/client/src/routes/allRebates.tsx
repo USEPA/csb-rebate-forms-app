@@ -10,6 +10,7 @@ import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/infoTooltip";
 import { useContentState } from "contexts/content";
 import { useUserState } from "contexts/user";
+import { useCsbState } from "contexts/csb";
 import { BapSamEntity, useBapState, useBapDispatch } from "contexts/bap";
 import {
   FormioApplicationSubmission,
@@ -160,7 +161,8 @@ function createNewPaymentRequest(
 export function AllRebates() {
   const navigate = useNavigate();
   const { content } = useContentState();
-  const { csbData, epaUserData } = useUserState();
+  const { epaUserData } = useUserState();
+  const { csbData } = useCsbState();
   const { samEntities, applicationSubmissions: bapApplicationSubmissions } =
     useBapState();
   const {

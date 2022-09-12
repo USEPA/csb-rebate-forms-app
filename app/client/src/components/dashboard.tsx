@@ -14,7 +14,8 @@ import {
 } from "../config";
 import { useHelpdeskAccess } from "components/app";
 import { Loading } from "components/loading";
-import { useUserState, useUserDispatch } from "contexts/user";
+import { useUserState } from "contexts/user";
+import { useCsbState, useCsbDispatch } from "contexts/csb";
 import { useBapState, useBapDispatch } from "contexts/bap";
 import { Action, useDialogDispatch } from "contexts/dialog";
 
@@ -25,7 +26,7 @@ Formio.use(uswds);
 
 /** Custom hook to fetch CSP app specific data */
 function useFetchedCsbData() {
-  const dispatch = useUserDispatch();
+  const dispatch = useCsbDispatch();
 
   useEffect(() => {
     dispatch({ type: "FETCH_CSB_DATA_REQUEST" });
@@ -105,7 +106,8 @@ export function Dashboard() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
-  const { csbData, epaUserData } = useUserState();
+  const { epaUserData } = useUserState();
+  const { csbData } = useCsbState();
   const { samEntities } = useBapState();
   const dispatch = useDialogDispatch();
   const helpdeskAccess = useHelpdeskAccess();

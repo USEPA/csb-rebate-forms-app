@@ -4,6 +4,7 @@ import reportWebVitals from "./reportWebVitals";
 // ---
 import { ContentProvider } from "contexts/content";
 import { UserProvider } from "contexts/user";
+import { CsbProvider } from "contexts/csb";
 import { BapProvider } from "contexts/bap";
 import { FormioProvider } from "contexts/formio";
 import { DialogProvider } from "contexts/dialog";
@@ -18,13 +19,15 @@ render(
     <ErrorBoundary>
       <ContentProvider>
         <UserProvider>
-          <BapProvider>
-            <FormioProvider>
-              <DialogProvider>
-                <App />
-              </DialogProvider>
-            </FormioProvider>
-          </BapProvider>
+          <CsbProvider>
+            <BapProvider>
+              <FormioProvider>
+                <DialogProvider>
+                  <App />
+                </DialogProvider>
+              </FormioProvider>
+            </BapProvider>
+          </CsbProvider>
         </UserProvider>
       </ContentProvider>
     </ErrorBoundary>

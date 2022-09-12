@@ -11,6 +11,7 @@ import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/infoTooltip";
 import { useContentState } from "contexts/content";
 import { useUserState } from "contexts/user";
+import { useCsbState } from "contexts/csb";
 import { BapSamEntity, useBapState } from "contexts/bap";
 
 function createNewApplication(email: string, entity: BapSamEntity) {
@@ -42,7 +43,8 @@ function createNewApplication(email: string, entity: BapSamEntity) {
 export function NewApplicationForm() {
   const navigate = useNavigate();
   const { content } = useContentState();
-  const { csbData, epaUserData } = useUserState();
+  const { epaUserData } = useUserState();
+  const { csbData } = useCsbState();
   const { samEntities } = useBapState();
 
   const [message, setMessage] = useState<{
