@@ -124,52 +124,46 @@ router.get("/csb-data", (req, res) => {
 });
 
 // --- get user data from EPA Gateway/Login.gov
-router.get("/epa-data", (req, res) => {
+router.get("/epa-user-data", (req, res) => {
   const { mail, memberof, exp } = req.user;
   return res.json({ mail, memberof, exp });
 });
 
-// --- get data from EPA's Business Automation Platform (BAP)
-router.get("/bap-data", (req, res) => {
+// --- get user's SAM.gov data from EPA's Business Automation Platform (BAP)
+router.get("/bap-sam-data", (req, res) => {
   getSamData(req.user.mail, req)
-    .then((samEntities) => {
+    .then((entities) => {
       // NOTE: allow admin or helpdesk users access to the app, even without SAM.gov data
       const userRoles = req.user.memberof.split(",");
       const helpdeskUser =
         userRoles.includes("csb_admin") || userRoles.includes("csb_helpdesk");
 
-      if (!helpdeskUser && samEntities?.length === 0) {
+      if (!helpdeskUser && entities?.length === 0) {
         const message = `User with email ${req.user.mail} tried to use app without any associated SAM records.`;
         log({ level: "error", message, req });
-        return res.json({
-          samResults: false,
-          samEntities: [],
-          applicationSubmissions: [],
-        });
+        return res.json({ results: false, entities: [] });
       }
-
-      const comboKeys = samEntities.map((e) => e.ENTITY_COMBO_KEY__c);
-
-      getApplicationSubmissionsData(comboKeys, req)
-        .then((submissions) => {
-          return res.json({
-            samResults: true,
-            samEntities,
-            applicationSubmissions: submissions,
-          });
+      return res.json({ results: true, entities });
         })
         .catch((error) => {
-          throw error;
+      const message = `Error getting SAM.gov data from BAP`;
+      return res.status(401).json({ message });
         });
-    })
+});
+
+// --- get user's Application form submissions from EPA's BAP
+router.get("/bap-application-submissions", storeBapComboKeys, (req, res) => {
+  getApplicationSubmissionsData(req.bapComboKeys, req)
+    .then((submissions) => res.json(submissions))
     .catch((error) => {
-      return res.status(401).json({ message: "Error getting data from BAP" });
+      const message = `Error getting application form submissions from BAP`;
+      return res.status(401).json({ message });
     });
 });
 
 const applicationFormApiPath = `${formioProjectUrl}/${formioApplicationFormPath}`;
 
-// --- get all Application form submissions user has access to from Forms.gov
+// --- get user's Application form submissions from Forms.gov
 router.get("/application-form-submissions", storeBapComboKeys, (req, res) => {
   // NOTE: Helpdesk users might not have any SAM.gov records associated with
   // their email address so we should not return any submissions to those users.

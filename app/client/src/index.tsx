@@ -4,6 +4,7 @@ import reportWebVitals from "./reportWebVitals";
 // ---
 import { ContentProvider } from "contexts/content";
 import { UserProvider } from "contexts/user";
+import { BapProvider } from "contexts/bap";
 import { FormsProvider } from "contexts/forms";
 import { DialogProvider } from "contexts/dialog";
 import { ErrorBoundary } from "components/errorBoundary";
@@ -17,11 +18,13 @@ render(
     <ErrorBoundary>
       <ContentProvider>
         <UserProvider>
-          <FormsProvider>
-            <DialogProvider>
-              <App />
-            </DialogProvider>
-          </FormsProvider>
+          <BapProvider>
+            <FormsProvider>
+              <DialogProvider>
+                <App />
+              </DialogProvider>
+            </FormsProvider>
+          </BapProvider>
         </UserProvider>
       </ContentProvider>
     </ErrorBoundary>

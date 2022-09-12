@@ -10,7 +10,8 @@ import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/infoTooltip";
 import { useContentState } from "contexts/content";
-import { SamEntity, useUserState } from "contexts/user";
+import { useUserState } from "contexts/user";
+import { SamEntity, useBapState } from "contexts/bap";
 
 function createNewApplication(email: string, entity: SamEntity) {
   const { title, name } = getUserInfo(email, entity);
@@ -41,7 +42,8 @@ function createNewApplication(email: string, entity: SamEntity) {
 export function NewApplicationForm() {
   const navigate = useNavigate();
   const { content } = useContentState();
-  const { csbData, epaUserData, bapUserData } = useUserState();
+  const { csbData, epaUserData } = useUserState();
+  const { samEntities } = useBapState();
 
   const [message, setMessage] = useState<{
     displayed: boolean;
@@ -56,14 +58,14 @@ export function NewApplicationForm() {
   if (
     csbData.status !== "success" ||
     epaUserData.status !== "success" ||
-    bapUserData.status !== "success"
+    samEntities.status !== "success"
   ) {
     return <Loading />;
   }
 
   const email = epaUserData.data.mail;
 
-  const activeSamEntities = bapUserData.data.samEntities.filter((entity) => {
+  const activeSamEntities = samEntities.data.entities.filter((entity) => {
     return entity.ENTITY_STATUS__c === "Active";
   });
 
@@ -80,7 +82,7 @@ export function NewApplicationForm() {
               {csbData.data.enrollmentClosed ? (
                 <Message type="info" text={messages.enrollmentClosed} />
               ) : activeSamEntities.length <= 0 ? (
-                <Message type="info" text={messages.noSamResults} />
+                <Message type="info" text={messages.bapNoSamResults} />
               ) : (
                 <>
                   {content.status === "success" && (

@@ -183,9 +183,7 @@ function getSamData(email, req) {
  */
 function getComboKeys(email, req) {
   return getSamData(email, req)
-    .then((samEntities) => {
-      return samEntities.map((samEntity) => samEntity.ENTITY_COMBO_KEY__c);
-    })
+    .then((entities) => entities.map((entity) => entity.ENTITY_COMBO_KEY__c))
     .catch((err) => {
       throw err;
     });

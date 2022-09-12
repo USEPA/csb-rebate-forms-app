@@ -1,4 +1,4 @@
-import { SamEntity } from "contexts/user";
+import { SamEntity } from "contexts/bap";
 
 /**
  * Returns a user’s title and name when provided an email address and a SAM.gov

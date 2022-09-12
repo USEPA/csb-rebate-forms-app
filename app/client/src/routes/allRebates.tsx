@@ -9,20 +9,21 @@ import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/infoTooltip";
 import { useContentState } from "contexts/content";
-import { SamEntity, useUserState } from "contexts/user";
+import { useUserState } from "contexts/user";
+import { SamEntity, useBapState, useBapDispatch } from "contexts/bap";
 import {
   ApplicationFormSubmission,
   useFormsState,
   useFormsDispatch,
 } from "contexts/forms";
 
-/** Custom hook to fetch Application form submissions */
-function useFetchedApplicationFormSubmissions() {
-  const { bapUserData } = useUserState();
+/** Custom hook to fetch Application form submissions from Forms.gov */
+function useFetchedFormioApplicationSubmissions() {
+  const { samEntities } = useBapState();
   const dispatch = useFormsDispatch();
 
   useEffect(() => {
-    if (bapUserData.status !== "success" || !bapUserData.data.samResults) {
+    if (samEntities.status !== "success" || !samEntities.data.results) {
       return;
     }
 
@@ -38,16 +39,41 @@ function useFetchedApplicationFormSubmissions() {
       .catch((err) => {
         dispatch({ type: "FETCH_APPLICATION_FORM_SUBMISSIONS_FAILURE" });
       });
-  }, [bapUserData, dispatch]);
+  }, [samEntities, dispatch]);
 }
 
-/** Custom hook to fetch Payment Request form submissions */
-function useFetchedPaymentFormSubmissions() {
-  const { bapUserData } = useUserState();
+/** Custom hook to fetch Application form submissions from the BAP */
+function useFetchedBapApplicationSubmissions() {
+  const { samEntities } = useBapState();
+  const dispatch = useBapDispatch();
+
+  useEffect(() => {
+    if (samEntities.status !== "success" || !samEntities.data.results) {
+      return;
+    }
+
+    dispatch({ type: "FETCH_BAP_APPLICATION_SUBMISSIONS_REQUEST" });
+
+    getData(`${serverUrl}/api/bap-application-submissions`)
+      .then((res) => {
+        dispatch({
+          type: "FETCH_BAP_APPLICATION_SUBMISSIONS_SUCCESS",
+          payload: { applicationSubmissions: res },
+        });
+      })
+      .catch((err) => {
+        dispatch({ type: "FETCH_BAP_APPLICATION_SUBMISSIONS_FAILURE" });
+      });
+  }, [samEntities, dispatch]);
+}
+
+/** Custom hook to fetch Payment Request form submissions from Forms.gov */
+function useFetchedFormioPaymentRequestSubmissions() {
+  const { samEntities } = useBapState();
   const dispatch = useFormsDispatch();
 
   useEffect(() => {
-    if (bapUserData.status !== "success" || !bapUserData.data.samResults) {
+    if (samEntities.status !== "success" || !samEntities.data.results) {
       return;
     }
 
@@ -63,7 +89,7 @@ function useFetchedPaymentFormSubmissions() {
       .catch((err) => {
         dispatch({ type: "FETCH_PAYMENT_FORM_SUBMISSIONS_FAILURE" });
       });
-  }, [bapUserData, dispatch]);
+  }, [samEntities, dispatch]);
 }
 
 function createNewPaymentRequest(
@@ -134,7 +160,9 @@ function createNewPaymentRequest(
 export function AllRebates() {
   const navigate = useNavigate();
   const { content } = useContentState();
-  const { csbData, epaUserData, bapUserData } = useUserState();
+  const { csbData, epaUserData } = useUserState();
+  const { samEntities, applicationSubmissions: bapApplicationSubmissions } =
+    useBapState();
   const { applicationFormSubmissions, paymentFormSubmissions } =
     useFormsState();
 
@@ -148,14 +176,18 @@ export function AllRebates() {
     text: "",
   });
 
-  useFetchedApplicationFormSubmissions();
-  useFetchedPaymentFormSubmissions();
+  useFetchedFormioApplicationSubmissions();
+  useFetchedBapApplicationSubmissions();
+
+  useFetchedFormioPaymentRequestSubmissions();
 
   if (
     csbData.status !== "success" ||
     epaUserData.status !== "success" ||
-    bapUserData.status === "idle" ||
-    bapUserData.status === "pending" ||
+    samEntities.status === "idle" ||
+    samEntities.status === "pending" ||
+    bapApplicationSubmissions.status === "idle" ||
+    bapApplicationSubmissions.status === "pending" ||
     applicationFormSubmissions.status === "idle" ||
     applicationFormSubmissions.status === "pending" ||
     paymentFormSubmissions.status === "idle" ||
@@ -164,11 +196,14 @@ export function AllRebates() {
     return <Loading />;
   }
 
-  if (bapUserData.status === "failure") {
-    return <Message type="error" text={messages.bapFetchError} />;
+  if (samEntities.status === "failure") {
+    return <Message type="error" text={messages.bapSamFetchError} />;
   }
 
-  if (applicationFormSubmissions.status === "failure") {
+  if (
+    bapApplicationSubmissions.status === "failure" ||
+    applicationFormSubmissions.status === "failure"
+  ) {
     return <Message type="error" text={messages.applicationSubmissionsError} />;
   }
 
@@ -185,8 +220,8 @@ export function AllRebates() {
    * updated datetime.
    */
   const submissions = applicationFormSubmissions.data.map((formioSub) => {
-    const match = bapUserData.data.applicationSubmissions.find((bapSub) => {
-      return bapSub.CSB_Form_ID__c === formioSub._id;
+    const match = bapApplicationSubmissions.data.find((bapSubmission) => {
+      return bapSubmission.CSB_Form_ID__c === formioSub._id;
     });
 
     return {
@@ -339,7 +374,7 @@ export function AllRebates() {
                    * matched SAM.gov entity for each submission (used to set the
                    * user's name and title in a new payment request form)
                    */
-                  const entity = bapUserData.data.samEntities.find((entity) => {
+                  const entity = samEntities.data.entities.find((entity) => {
                     return (
                       entity.ENTITY_STATUS__c === "Active" &&
                       entity.ENTITY_COMBO_KEY__c === bap_hidden_entity_combo_key

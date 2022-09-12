@@ -35,19 +35,19 @@ export function Welcome() {
       });
     }
 
-    if (searchParams.get("error") === "bap-fetch") {
+    if (searchParams.get("error") === "bap-sam-fetch") {
       setMessage({
         displayed: true,
         type: "error",
-        text: messages.bapFetchError,
+        text: messages.bapSamFetchError,
       });
     }
 
-    if (searchParams.get("info") === "sam-results") {
+    if (searchParams.get("info") === "bap-sam-results") {
       setMessage({
         displayed: true,
         type: "info",
-        text: messages.noSamResults,
+        text: messages.bapNoSamResults,
       });
     }
 
