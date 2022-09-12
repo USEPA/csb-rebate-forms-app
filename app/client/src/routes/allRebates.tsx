@@ -29,7 +29,7 @@ function useFetchedFormioApplicationSubmissions() {
 
     dispatch({ type: "FETCH_APPLICATION_FORM_SUBMISSIONS_REQUEST" });
 
-    getData(`${serverUrl}/api/application-form-submissions`)
+    getData(`${serverUrl}/api/formio-application-submissions`)
       .then((res) => {
         dispatch({
           type: "FETCH_APPLICATION_FORM_SUBMISSIONS_SUCCESS",

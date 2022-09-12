@@ -144,11 +144,11 @@ router.get("/bap-sam-data", (req, res) => {
         return res.json({ results: false, entities: [] });
       }
       return res.json({ results: true, entities });
-        })
-        .catch((error) => {
+    })
+    .catch((error) => {
       const message = `Error getting SAM.gov data from BAP`;
       return res.status(401).json({ message });
-        });
+    });
 });
 
 // --- get user's Application form submissions from EPA's BAP
@@ -164,7 +164,7 @@ router.get("/bap-application-submissions", storeBapComboKeys, (req, res) => {
 const applicationFormApiPath = `${formioProjectUrl}/${formioApplicationFormPath}`;
 
 // --- get user's Application form submissions from Forms.gov
-router.get("/application-form-submissions", storeBapComboKeys, (req, res) => {
+router.get("/formio-application-submissions", storeBapComboKeys, (req, res) => {
   // NOTE: Helpdesk users might not have any SAM.gov records associated with
   // their email address so we should not return any submissions to those users.
   // The only reason we explicitly need to do this is because there could be
