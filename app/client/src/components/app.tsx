@@ -28,7 +28,7 @@ import { Helpdesk } from "routes/helpdesk";
 import { AllRebates } from "routes/allRebates";
 import { NewApplicationForm } from "routes/newApplicationForm";
 import { ApplicationForm } from "routes/applicationForm";
-import { PaymentForm } from "routes/paymentForm";
+import { PaymentRequestForm } from "routes/paymentRequestForm";
 import { useContentState, useContentDispatch } from "contexts/content";
 import { useUserState, useUserDispatch } from "contexts/user";
 import { useDialogDispatch, useDialogState } from "contexts/dialog";
@@ -291,7 +291,7 @@ export function App() {
           <Route path="helpdesk" element={<Helpdesk />} />
           <Route path="rebate/new" element={<NewApplicationForm />} />
           <Route path="rebate/:id" element={<ApplicationForm />} />
-          <Route path="payment-request/:id" element={<PaymentForm />} />
+          <Route path="payment-request/:id" element={<PaymentRequestForm />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

@@ -13,28 +13,32 @@ type FormSchema =
   | { status: "success"; data: object }
   | { status: "failure"; data: null };
 
-export function PaymentForm() {
+export function PaymentRequestForm() {
   const { id } = useParams<"id">();
 
-  const [paymentFormSchema, setPaymentFormSchema] = useState<FormSchema>({
+  const [paymentRequestSchema, setPaymentRequestSchema] = useState<FormSchema>({
     status: "idle",
     data: null,
   });
 
   useEffect(() => {
     getData(`${serverUrl}/api/formio-payment-request-schema`)
-      .then((res) => setPaymentFormSchema({ status: "success", data: res }))
-      .catch((err) => setPaymentFormSchema({ status: "failure", data: null }));
+      .then((res) => {
+        setPaymentRequestSchema({ status: "success", data: res });
+      })
+      .catch((err) => {
+        setPaymentRequestSchema({ status: "failure", data: null });
+      });
   }, []);
 
   if (
-    paymentFormSchema.status === "idle" ||
-    paymentFormSchema.status === "pending"
+    paymentRequestSchema.status === "idle" ||
+    paymentRequestSchema.status === "pending"
   ) {
     return <Loading />;
   }
 
-  if (paymentFormSchema.status === "failure") {
+  if (paymentRequestSchema.status === "failure") {
     return (
       <Message type="error" text="Error loading Payment Request form schema." />
     );
@@ -55,7 +59,7 @@ export function PaymentForm() {
         </li>
       </ul>
 
-      <Form form={paymentFormSchema.data} />
+      <Form form={paymentRequestSchema.data} />
     </div>
   );
 }
