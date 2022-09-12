@@ -40,7 +40,7 @@ jobs:
       SAML_PUBLIC_KEY: ${{ secrets.SAML_PUBLIC_KEY }}
       JWT_PUBLIC_KEY: ${{ secrets.JWT_PUBLIC_KEY }}
       JWT_PRIVATE_KEY: ${{ secrets.JWT_PRIVATE_KEY }}
-      CSB_ENROLLMENT_PERIOD: closed
+      CSB_ENROLLMENT_PERIOD: open
       FORMIO_PKG_AUTH_TOKEN: ${{ secrets.FORMIO_PKG_AUTH_TOKEN }}
       FORMIO_BASE_URL: ${{ secrets.FORMIO_BASE_URL }}
       FORMIO_PROJECT_NAME: ${{ secrets.FORMIO_PROJECT_NAME }}
