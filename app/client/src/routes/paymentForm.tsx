@@ -22,7 +22,7 @@ export function PaymentForm() {
   });
 
   useEffect(() => {
-    getData(`${serverUrl}/api/payment-form-schema`)
+    getData(`${serverUrl}/api/formio-payment-request-schema`)
       .then((res) => setPaymentFormSchema({ status: "success", data: res }))
       .catch((err) => setPaymentFormSchema({ status: "failure", data: null }));
   }, []);

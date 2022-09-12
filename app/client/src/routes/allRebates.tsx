@@ -79,7 +79,7 @@ function useFetchedFormioPaymentRequestSubmissions() {
 
     dispatch({ type: "FETCH_PAYMENT_FORM_SUBMISSIONS_REQUEST" });
 
-    getData(`${serverUrl}/api/payment-form-submissions`)
+    getData(`${serverUrl}/api/formio-payment-request-submissions`)
       .then((res) => {
         dispatch({
           type: "FETCH_PAYMENT_FORM_SUBMISSIONS_SUCCESS",
@@ -117,7 +117,7 @@ function createNewPaymentRequest(
     schoolDistricPrioritized,
   } = applicationData;
 
-  return postData(`${serverUrl}/api/payment-form-submission/`, {
+  return postData(`${serverUrl}/api/formio-payment-request-submission/`, {
     data: {
       last_updated_by: email,
       hidden_current_user_email: email,

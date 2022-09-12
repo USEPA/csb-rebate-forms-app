@@ -355,55 +355,63 @@ router.get("/:id/:comboKey/storage/s3", storeBapComboKeys, (req, res) => {
 
 const paymentFormApiPath = `${formioProjectUrl}/${formioPaymentFormPath}`;
 
-// --- get all Payment Request form submissions from Forms.gov
-router.get("/payment-form-submissions", storeBapComboKeys, (req, res) => {
-  const userSubmissionsUrl =
-    `${paymentFormApiPath}/submission` +
-    `?sort=-modified` +
-    `&limit=1000000` +
-    `&data.bap_hidden_entity_combo_key=${req.bapComboKeys.join(
-      "&data.bap_hidden_entity_combo_key="
-    )}`;
+// --- get user's Payment Request form submissions from Forms.gov
+router.get(
+  "/formio-payment-request-submissions",
+  storeBapComboKeys,
+  (req, res) => {
+    const userSubmissionsUrl =
+      `${paymentFormApiPath}/submission` +
+      `?sort=-modified` +
+      `&limit=1000000` +
+      `&data.bap_hidden_entity_combo_key=${req.bapComboKeys.join(
+        "&data.bap_hidden_entity_combo_key="
+      )}`;
 
-  axiosFormio(req)
-    .get(userSubmissionsUrl)
-    .then((axiosRes) => axiosRes.data)
-    .then((submissions) => res.json(submissions))
-    .catch((error) => {
-      const message = `Error getting Forms.gov Payment Request form submissions`;
-      return res.status(error?.response?.status || 500).json({ message });
-    });
-});
+    axiosFormio(req)
+      .get(userSubmissionsUrl)
+      .then((axiosRes) => axiosRes.data)
+      .then((submissions) => res.json(submissions))
+      .catch((error) => {
+        const message = `Error getting Forms.gov Payment Request form submissions`;
+        return res.status(error?.response?.status || 500).json({ message });
+      });
+  }
+);
 
 // --- post a new Payment Request form submission to Forms.gov
-router.post("/payment-form-submission", storeBapComboKeys, (req, res) => {
-  const comboKey = req.body.data?.bap_hidden_entity_combo_key;
+router.post(
+  "/formio-payment-request-submission",
+  storeBapComboKeys,
+  (req, res) => {
+    const comboKey = req.body.data?.bap_hidden_entity_combo_key;
 
-  // verify post data includes one of user's BAP combo keys
-  if (!req.bapComboKeys.includes(comboKey)) {
-    const message = `User with email ${req.user.mail} attempted to post a new Payment Request form without a matching BAP combo key`;
-    log({ level: "error", message, req });
-    return res.status(401).json({ message: "Unauthorized" });
+    // verify post data includes one of user's BAP combo keys
+    if (!req.bapComboKeys.includes(comboKey)) {
+      const message = `User with email ${req.user.mail} attempted to post a new Payment Request form without a matching BAP combo key`;
+      log({ level: "error", message, req });
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    // add custom metadata to track formio submissions from wrapper
+    req.body.metadata = {
+      ...req.body.metadata,
+      ...formioCsbMetadata,
+    };
+
+    axiosFormio(req)
+      .post(`${paymentFormApiPath}/submission`, req.body)
+      .then((axiosRes) => axiosRes.data)
+      .then((submission) => res.json(submission))
+      .catch((error) => {
+        const message = `Error posting Forms.gov Payment Request form submission`;
+        return res.status(error?.response?.status || 500).json({ message });
+      });
   }
-
-  // add custom metadata to track formio submissions from wrapper
-  req.body.metadata = {
-    ...req.body.metadata,
-    ...formioCsbMetadata,
-  };
-
-  axiosFormio(req)
-    .post(`${paymentFormApiPath}/submission`, req.body)
-    .then((axiosRes) => axiosRes.data)
-    .then((submission) => res.json(submission))
-    .catch((error) => {
-      const message = `Error posting Forms.gov Payment Request form submission`;
-      return res.status(error?.response?.status || 500).json({ message });
-    });
-});
+);
 
 // --- TODO: WIP, as we'll eventually mirror `router.get("/formio-application-submission/:id")`
-router.get("/payment-form-schema", storeBapComboKeys, (req, res) => {
+router.get("/formio-payment-request-schema", storeBapComboKeys, (req, res) => {
   axiosFormio(req)
     .get(paymentFormApiPath)
     .then((axiosRes) => axiosRes.data)
