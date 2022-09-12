@@ -10,9 +10,9 @@ import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/infoTooltip";
 import { useContentState } from "contexts/content";
 import { useUserState } from "contexts/user";
-import { SamEntity, useBapState, useBapDispatch } from "contexts/bap";
+import { BapSamEntity, useBapState, useBapDispatch } from "contexts/bap";
 import {
-  ApplicationFormSubmission,
+  FormioApplicationSubmission,
   useFormsState,
   useFormsDispatch,
 } from "contexts/forms";
@@ -27,17 +27,17 @@ function useFetchedFormioApplicationSubmissions() {
       return;
     }
 
-    dispatch({ type: "FETCH_APPLICATION_FORM_SUBMISSIONS_REQUEST" });
+    dispatch({ type: "FETCH_FORMIO_APPLICATION_SUBMISSIONS_REQUEST" });
 
     getData(`${serverUrl}/api/formio-application-submissions`)
       .then((res) => {
         dispatch({
-          type: "FETCH_APPLICATION_FORM_SUBMISSIONS_SUCCESS",
-          payload: { applicationFormSubmissions: res },
+          type: "FETCH_FORMIO_APPLICATION_SUBMISSIONS_SUCCESS",
+          payload: { applicationSubmissions: res },
         });
       })
       .catch((err) => {
-        dispatch({ type: "FETCH_APPLICATION_FORM_SUBMISSIONS_FAILURE" });
+        dispatch({ type: "FETCH_FORMIO_APPLICATION_SUBMISSIONS_FAILURE" });
       });
   }, [samEntities, dispatch]);
 }
@@ -77,26 +77,26 @@ function useFetchedFormioPaymentRequestSubmissions() {
       return;
     }
 
-    dispatch({ type: "FETCH_PAYMENT_FORM_SUBMISSIONS_REQUEST" });
+    dispatch({ type: "FETCH_FORMIO_PAYMENT_REQUEST_SUBMISSIONS_REQUEST" });
 
     getData(`${serverUrl}/api/formio-payment-request-submissions`)
       .then((res) => {
         dispatch({
-          type: "FETCH_PAYMENT_FORM_SUBMISSIONS_SUCCESS",
-          payload: { paymentFormSubmissions: res },
+          type: "FETCH_FORMIO_PAYMENT_REQUEST_SUBMISSIONS_SUCCESS",
+          payload: { paymentRequestSubmissions: res },
         });
       })
       .catch((err) => {
-        dispatch({ type: "FETCH_PAYMENT_FORM_SUBMISSIONS_FAILURE" });
+        dispatch({ type: "FETCH_FORMIO_PAYMENT_REQUEST_SUBMISSIONS_FAILURE" });
       });
   }, [samEntities, dispatch]);
 }
 
 function createNewPaymentRequest(
   email: string,
-  entity: SamEntity,
+  entity: BapSamEntity,
   rebateId: string,
-  applicationData: ApplicationFormSubmission["data"]
+  applicationData: FormioApplicationSubmission["data"]
 ) {
   const { title, name } = getUserInfo(email, entity);
   const {
@@ -163,8 +163,10 @@ export function AllRebates() {
   const { csbData, epaUserData } = useUserState();
   const { samEntities, applicationSubmissions: bapApplicationSubmissions } =
     useBapState();
-  const { applicationFormSubmissions, paymentFormSubmissions } =
-    useFormsState();
+  const {
+    applicationSubmissions: formioApplicationSubmissions,
+    paymentRequestSubmissions: formioPaymentRequestSubmissions,
+  } = useFormsState();
 
   const [message, setMessage] = useState<{
     displayed: boolean;
@@ -188,10 +190,10 @@ export function AllRebates() {
     samEntities.status === "pending" ||
     bapApplicationSubmissions.status === "idle" ||
     bapApplicationSubmissions.status === "pending" ||
-    applicationFormSubmissions.status === "idle" ||
-    applicationFormSubmissions.status === "pending" ||
-    paymentFormSubmissions.status === "idle" ||
-    paymentFormSubmissions.status === "pending"
+    formioApplicationSubmissions.status === "idle" ||
+    formioApplicationSubmissions.status === "pending" ||
+    formioPaymentRequestSubmissions.status === "idle" ||
+    formioPaymentRequestSubmissions.status === "pending"
   ) {
     return <Loading />;
   }
@@ -202,13 +204,15 @@ export function AllRebates() {
 
   if (
     bapApplicationSubmissions.status === "failure" ||
-    applicationFormSubmissions.status === "failure"
+    formioApplicationSubmissions.status === "failure"
   ) {
     return <Message type="error" text={messages.applicationSubmissionsError} />;
   }
 
-  if (paymentFormSubmissions.status === "failure") {
-    return <Message type="error" text={messages.paymentSubmissionsError} />;
+  if (formioPaymentRequestSubmissions.status === "failure") {
+    return (
+      <Message type="error" text={messages.paymentRequestSubmissionsError} />
+    );
   }
 
   const { enrollmentClosed } = csbData.data;
@@ -219,7 +223,7 @@ export function AllRebates() {
    * BAP, so we can include CSB rebate status, CSB review item ID, and last
    * updated datetime.
    */
-  const submissions = applicationFormSubmissions.data.map((formioSub) => {
+  const submissions = formioApplicationSubmissions.data.map((formioSub) => {
     const match = bapApplicationSubmissions.data.find((bapSubmission) => {
       return bapSubmission.CSB_Form_ID__c === formioSub._id;
     });

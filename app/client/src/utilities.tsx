@@ -1,10 +1,10 @@
-import { SamEntity } from "contexts/bap";
+import { BapSamEntity } from "contexts/bap";
 
 /**
  * Returns a user’s title and name when provided an email address and a SAM.gov
  * entity/record.
  */
-export function getUserInfo(email: string, entity: SamEntity) {
+export function getUserInfo(email: string, entity: BapSamEntity) {
   const samEmailFields = [
     "ELEC_BUS_POC_EMAIL__c",
     "ALT_ELEC_BUS_POC_EMAIL__c",
@@ -30,7 +30,7 @@ export function getUserInfo(email: string, entity: SamEntity) {
   const fieldPrefix = matchedEmailField?.split("_EMAIL__c").shift();
 
   return {
-    title: entity[`${fieldPrefix}_TITLE__c` as keyof SamEntity] as string,
-    name: entity[`${fieldPrefix}_NAME__c` as keyof SamEntity] as string,
+    title: entity[`${fieldPrefix}_TITLE__c` as keyof BapSamEntity] as string,
+    name: entity[`${fieldPrefix}_NAME__c` as keyof BapSamEntity] as string,
   };
 }

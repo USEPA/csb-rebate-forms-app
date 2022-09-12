@@ -239,7 +239,7 @@ function ApplicationFormContent() {
     useBapState();
   const dispatch = useApplicationFormDispatch();
 
-  const [applicationFormSubmission, setApplicationFormSubmission] =
+  const [formioApplicationSubmission, setFormioApplicationSubmission] =
     useState<SubmissionState>({
       status: "idle",
       data: {
@@ -267,7 +267,7 @@ function ApplicationFormContent() {
     useState<FormioSubmissionData>({});
 
   useEffect(() => {
-    setApplicationFormSubmission({
+    setFormioApplicationSubmission({
       status: "pending",
       data: {
         userAccess: false,
@@ -301,13 +301,13 @@ function ApplicationFormContent() {
           return data;
         });
 
-        setApplicationFormSubmission({
+        setFormioApplicationSubmission({
           status: "success",
           data: res,
         });
       })
       .catch((err) => {
-        setApplicationFormSubmission({
+        setFormioApplicationSubmission({
           status: "failure",
           data: {
             userAccess: false,
@@ -318,19 +318,19 @@ function ApplicationFormContent() {
       });
   }, [id]);
 
-  if (applicationFormSubmission.status === "idle") {
+  if (formioApplicationSubmission.status === "idle") {
     return null;
   }
 
-  if (applicationFormSubmission.status === "pending") {
+  if (formioApplicationSubmission.status === "pending") {
     return <Loading />;
   }
 
   const { userAccess, formSchema, submissionData } =
-    applicationFormSubmission.data;
+    formioApplicationSubmission.data;
 
   if (
-    applicationFormSubmission.status === "failure" ||
+    formioApplicationSubmission.status === "failure" ||
     !userAccess ||
     !formSchema ||
     !submissionData

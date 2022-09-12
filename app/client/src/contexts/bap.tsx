@@ -10,7 +10,7 @@ type Props = {
   children: ReactNode;
 };
 
-export type SamEntity = {
+export type BapSamEntity = {
   ENTITY_COMBO_KEY__c: string;
   UNIQUE_ENTITY_ID__c: string;
   ENTITY_EFT_INDICATOR__c: string;
@@ -42,7 +42,7 @@ export type SamEntity = {
   attributes: { type: string; url: string };
 };
 
-type ApplicationFormSubmission = {
+type BapApplicationSubmission = {
   CSB_Form_ID__c: string; // MongoDB ObjectId string
   CSB_Modified_Full_String__c: string; // ISO 8601 date string
   UEI_EFTI_Combo_Key__c: string;
@@ -67,13 +67,13 @@ type State = {
         status: "success";
         data:
           | { results: false; entities: [] }
-          | { results: true; entities: SamEntity[] };
+          | { results: true; entities: BapSamEntity[] };
       }
     | { status: "failure"; data: {} };
   applicationSubmissions:
     | { status: "idle"; data: {} }
     | { status: "pending"; data: {} }
-    | { status: "success"; data: ApplicationFormSubmission[] }
+    | { status: "success"; data: BapApplicationSubmission[] }
     | { status: "failure"; data: {} };
 };
 
@@ -84,14 +84,14 @@ type Action =
       payload: {
         samEntities:
           | { results: false; entities: [] }
-          | { results: true; entities: SamEntity[] };
+          | { results: true; entities: BapSamEntity[] };
       };
     }
   | { type: "FETCH_BAP_SAM_DATA_FAILURE" }
   | { type: "FETCH_BAP_APPLICATION_SUBMISSIONS_REQUEST" }
   | {
       type: "FETCH_BAP_APPLICATION_SUBMISSIONS_SUCCESS";
-      payload: { applicationSubmissions: ApplicationFormSubmission[] };
+      payload: { applicationSubmissions: BapApplicationSubmission[] };
     }
   | { type: "FETCH_BAP_APPLICATION_SUBMISSIONS_FAILURE" };
 

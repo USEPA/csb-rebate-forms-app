@@ -66,7 +66,7 @@ export function Helpdesk() {
   const dispatch = useDialogDispatch();
   const helpdeskAccess = useHelpdeskAccess();
 
-  const [applicationFormSubmission, setApplicationFormSubmission] =
+  const [formioApplicationSubmission, setFormioApplicationSubmission] =
     useState<SubmissionState>({
       status: "idle",
       data: {
@@ -90,7 +90,7 @@ export function Helpdesk() {
 
   const { enrollmentClosed } = csbData.data;
 
-  const { formSchema, submissionData } = applicationFormSubmission.data;
+  const { formSchema, submissionData } = formioApplicationSubmission.data;
 
   return (
     <>
@@ -111,7 +111,7 @@ export function Helpdesk() {
             setFormId("");
             setFormDisplayed(false);
 
-            setApplicationFormSubmission({
+            setFormioApplicationSubmission({
               status: "pending",
               data: {
                 formSchema: null,
@@ -124,14 +124,14 @@ export function Helpdesk() {
             )
               .then((res) => {
                 setFormId(res.submissionData._id);
-                setApplicationFormSubmission({
+                setFormioApplicationSubmission({
                   status: "success",
                   data: res,
                 });
               })
               .catch((err) => {
                 setFormId("");
-                setApplicationFormSubmission({
+                setFormioApplicationSubmission({
                   status: "failure",
                   data: {
                     formSchema: null,
@@ -159,9 +159,9 @@ export function Helpdesk() {
         </form>
       </div>
 
-      {applicationFormSubmission.status === "pending" && <Loading />}
+      {formioApplicationSubmission.status === "pending" && <Loading />}
 
-      {applicationFormSubmission.status === "failure" && (
+      {formioApplicationSubmission.status === "failure" && (
         <Message
           type="error"
           text={messages.helpdeskApplicationSubmissionError}
@@ -174,15 +174,15 @@ export function Helpdesk() {
         from an external server, we should check that it exists first before
         using it
       */}
-      {applicationFormSubmission.status === "success" &&
-        !applicationFormSubmission.data && (
+      {formioApplicationSubmission.status === "success" &&
+        !formioApplicationSubmission.data && (
           <Message
             type="error"
             text={messages.helpdeskApplicationSubmissionError}
           />
         )}
 
-      {applicationFormSubmission.status === "success" &&
+      {formioApplicationSubmission.status === "success" &&
         formSchema &&
         submissionData && (
           <>
@@ -281,7 +281,7 @@ export function Helpdesk() {
                               confirmedAction: () => {
                                 setFormDisplayed(false);
 
-                                setApplicationFormSubmission({
+                                setFormioApplicationSubmission({
                                   status: "pending",
                                   data: {
                                     formSchema: null,
@@ -294,13 +294,13 @@ export function Helpdesk() {
                                   {}
                                 )
                                   .then((res) => {
-                                    setApplicationFormSubmission({
+                                    setFormioApplicationSubmission({
                                       status: "success",
                                       data: res,
                                     });
                                   })
                                   .catch((err) => {
-                                    setApplicationFormSubmission({
+                                    setFormioApplicationSubmission({
                                       status: "failure",
                                       data: {
                                         formSchema: null,

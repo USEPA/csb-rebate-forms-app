@@ -7,7 +7,7 @@ const express = require("express");
 const log = require("../utilities/logger");
 
 /**
- * @typedef {Object} SamEntity
+ * @typedef {Object} BapSamEntity
  * @property {string} ENTITY_COMBO_KEY__c
  * @property {string} ENTITY_STATUS__c
  * @property {string} UNIQUE_ENTITY_ID__c
@@ -37,7 +37,7 @@ const log = require("../utilities/logger");
  */
 
 /**
- * @typedef {Object} ApplicationFormSubmission
+ * @typedef {Object} BapApplicationSubmission
  * @property {string} CSB_Form_ID__c
  * @property {string} CSB_Modified_Full_String__c
  * @property {string} UEI_EFTI_Combo_Key__c
@@ -91,7 +91,7 @@ function setupConnection(app) {
  * Uses cached JSforce connection to query the BAP for SAM.gov entities.
  * @param {string} email
  * @param {express.Request} req
- * @returns {Promise<SamEntity[]>} collection of SAM.gov entities
+ * @returns {Promise<BapSamEntity[]>} collection of SAM.gov entities
  */
 async function queryForSamEntities(email, req) {
   /** @type {jsforce.Connection} */
@@ -193,9 +193,9 @@ function getComboKeys(email, req) {
  * Uses cached JSforce connection to query the BAP for application form submissions.
  * @param {string[]} comboKeys
  * @param {express.Request} req
- * @returns {Promise<ApplicationFormSubmission[]>} collection of application form submissions
+ * @returns {Promise<BapApplicationSubmission[]>} collection of application form submissions
  */
-async function queryForApplicationFormSubmissions(comboKeys, req) {
+async function queryForApplicationSubmissions(comboKeys, req) {
   /** @type {jsforce.Connection} */
   const bapConnection = req.app.locals.bapConnection;
   return await bapConnection
@@ -227,7 +227,7 @@ function getApplicationSubmissionsData(comboKeys, req) {
     log({ level: "info", message });
 
     return setupConnection(req.app)
-      .then(() => queryForApplicationFormSubmissions(comboKeys, req))
+      .then(() => queryForApplicationSubmissions(comboKeys, req))
       .catch((err) => {
         const message = `BAP Error: ${err}`;
         log({ level: "error", message, req });
@@ -235,7 +235,7 @@ function getApplicationSubmissionsData(comboKeys, req) {
       });
   }
 
-  return queryForApplicationFormSubmissions(comboKeys, req).catch((err) => {
+  return queryForApplicationSubmissions(comboKeys, req).catch((err) => {
     if (err?.toString() === "invalid_grant: expired access/refresh token") {
       const message = `BAP access token expired`;
       log({ level: "info", message, req });
@@ -245,7 +245,7 @@ function getApplicationSubmissionsData(comboKeys, req) {
     }
 
     return setupConnection(req.app)
-      .then(() => queryForApplicationFormSubmissions(comboKeys, req))
+      .then(() => queryForApplicationSubmissions(comboKeys, req))
       .catch((retryErr) => {
         const message = `BAP Error: ${retryErr}`;
         log({ level: "error", message, req });

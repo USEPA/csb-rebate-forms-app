@@ -11,9 +11,9 @@ import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/infoTooltip";
 import { useContentState } from "contexts/content";
 import { useUserState } from "contexts/user";
-import { SamEntity, useBapState } from "contexts/bap";
+import { BapSamEntity, useBapState } from "contexts/bap";
 
-function createNewApplication(email: string, entity: SamEntity) {
+function createNewApplication(email: string, entity: BapSamEntity) {
   const { title, name } = getUserInfo(email, entity);
 
   return postData(`${serverUrl}/api/formio-application-submission/`, {
