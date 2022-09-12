@@ -13,14 +13,14 @@ import { useUserState } from "contexts/user";
 import { BapSamEntity, useBapState, useBapDispatch } from "contexts/bap";
 import {
   FormioApplicationSubmission,
-  useFormsState,
-  useFormsDispatch,
-} from "contexts/forms";
+  useFormioState,
+  useFormioDispatch,
+} from "contexts/formio";
 
 /** Custom hook to fetch Application form submissions from Forms.gov */
 function useFetchedFormioApplicationSubmissions() {
   const { samEntities } = useBapState();
-  const dispatch = useFormsDispatch();
+  const dispatch = useFormioDispatch();
 
   useEffect(() => {
     if (samEntities.status !== "success" || !samEntities.data.results) {
@@ -70,7 +70,7 @@ function useFetchedBapApplicationSubmissions() {
 /** Custom hook to fetch Payment Request form submissions from Forms.gov */
 function useFetchedFormioPaymentRequestSubmissions() {
   const { samEntities } = useBapState();
-  const dispatch = useFormsDispatch();
+  const dispatch = useFormioDispatch();
 
   useEffect(() => {
     if (samEntities.status !== "success" || !samEntities.data.results) {
@@ -166,7 +166,7 @@ export function AllRebates() {
   const {
     applicationSubmissions: formioApplicationSubmissions,
     paymentRequestSubmissions: formioPaymentRequestSubmissions,
-  } = useFormsState();
+  } = useFormioState();
 
   const [message, setMessage] = useState<{
     displayed: boolean;
