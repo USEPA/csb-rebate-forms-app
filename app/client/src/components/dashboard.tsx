@@ -14,7 +14,9 @@ import {
 } from "../config";
 import { useHelpdeskAccess } from "components/app";
 import { Loading } from "components/loading";
-import { useUserState, useUserDispatch } from "contexts/user";
+import { useUserState } from "contexts/user";
+import { useCsbState, useCsbDispatch } from "contexts/csb";
+import { useBapState, useBapDispatch } from "contexts/bap";
 import { Action, useDialogDispatch } from "contexts/dialog";
 
 Formio.setBaseUrl(formioBaseUrl);
@@ -24,7 +26,7 @@ Formio.use(uswds);
 
 /** Custom hook to fetch CSP app specific data */
 function useFetchedCsbData() {
-  const dispatch = useUserDispatch();
+  const dispatch = useCsbDispatch();
 
   useEffect(() => {
     dispatch({ type: "FETCH_CSB_DATA_REQUEST" });
@@ -41,26 +43,26 @@ function useFetchedCsbData() {
   }, [dispatch]);
 }
 
-/** Custom hook to fetch BAP data */
-function useFetchedBapData() {
-  const dispatch = useUserDispatch();
+/** Custom hook to fetch SAM.gov data */
+function useFetchedSamData() {
+  const dispatch = useBapDispatch();
 
   useEffect(() => {
-    dispatch({ type: "FETCH_BAP_USER_DATA_REQUEST" });
-    getData(`${serverUrl}/api/bap-data`)
+    dispatch({ type: "FETCH_BAP_SAM_DATA_REQUEST" });
+    getData(`${serverUrl}/api/bap-sam-data`)
       .then((res) => {
-        if (res.samResults) {
+        if (res.results) {
           dispatch({
-            type: "FETCH_BAP_USER_DATA_SUCCESS",
-            payload: { bapUserData: res },
+            type: "FETCH_BAP_SAM_DATA_SUCCESS",
+            payload: { samEntities: res },
           });
         } else {
-          window.location.href = `${serverUrlForHrefs}/logout?RelayState=/welcome?info=sam-results`;
+          window.location.href = `${serverUrlForHrefs}/logout?RelayState=/welcome?info=bap-sam-results`;
         }
       })
       .catch((err) => {
-        dispatch({ type: "FETCH_BAP_USER_DATA_FAILURE" });
-        window.location.href = `${serverUrlForHrefs}/logout?RelayState=/welcome?error=bap-fetch`;
+        dispatch({ type: "FETCH_BAP_SAM_DATA_FAILURE" });
+        window.location.href = `${serverUrlForHrefs}/logout?RelayState=/welcome?error=bap-sam-fetch`;
       });
   }, [dispatch]);
 }
@@ -104,12 +106,14 @@ export function Dashboard() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
-  const { csbData, epaUserData, bapUserData } = useUserState();
+  const { epaUserData } = useUserState();
+  const { csbData } = useCsbState();
+  const { samEntities } = useBapState();
   const dispatch = useDialogDispatch();
   const helpdeskAccess = useHelpdeskAccess();
 
   useFetchedCsbData();
-  useFetchedBapData();
+  useFetchedSamData();
 
   /**
    * When provided a destination location to navigate to, creates an action
@@ -132,7 +136,7 @@ export function Dashboard() {
     };
   }
 
-  if (bapUserData.status !== "success") {
+  if (samEntities.status !== "success") {
     return <Loading />;
   }
 

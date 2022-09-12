@@ -20,6 +20,8 @@ import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { useContentState } from "contexts/content";
 import { useUserState } from "contexts/user";
+import { useCsbState } from "contexts/csb";
+import { useBapState } from "contexts/bap";
 
 // -----------------------------------------------------------------------------
 
@@ -233,10 +235,13 @@ function ApplicationFormContent() {
   const navigate = useNavigate();
   const { id } = useParams<"id">();
   const { content } = useContentState();
-  const { csbData, epaUserData, bapUserData } = useUserState();
+  const { epaUserData } = useUserState();
+  const { csbData } = useCsbState();
+  const { samEntities, applicationSubmissions: bapApplicationSubmissions } =
+    useBapState();
   const dispatch = useApplicationFormDispatch();
 
-  const [applicationFormSubmission, setApplicationFormSubmission] =
+  const [formioApplicationSubmission, setFormioApplicationSubmission] =
     useState<SubmissionState>({
       status: "idle",
       data: {
@@ -264,7 +269,7 @@ function ApplicationFormContent() {
     useState<FormioSubmissionData>({});
 
   useEffect(() => {
-    setApplicationFormSubmission({
+    setFormioApplicationSubmission({
       status: "pending",
       data: {
         userAccess: false,
@@ -273,7 +278,7 @@ function ApplicationFormContent() {
       },
     });
 
-    getData(`${serverUrl}/api/application-form-submission/${id}`)
+    getData(`${serverUrl}/api/formio-application-submission/${id}`)
       .then((res) => {
         // set up s3 re-route to wrapper app
         const s3Provider = Formio.Providers.providers.storage.s3;
@@ -298,13 +303,13 @@ function ApplicationFormContent() {
           return data;
         });
 
-        setApplicationFormSubmission({
+        setFormioApplicationSubmission({
           status: "success",
           data: res,
         });
       })
       .catch((err) => {
-        setApplicationFormSubmission({
+        setFormioApplicationSubmission({
           status: "failure",
           data: {
             userAccess: false,
@@ -315,19 +320,19 @@ function ApplicationFormContent() {
       });
   }, [id]);
 
-  if (applicationFormSubmission.status === "idle") {
+  if (formioApplicationSubmission.status === "idle") {
     return null;
   }
 
-  if (applicationFormSubmission.status === "pending") {
+  if (formioApplicationSubmission.status === "pending") {
     return <Loading />;
   }
 
   const { userAccess, formSchema, submissionData } =
-    applicationFormSubmission.data;
+    formioApplicationSubmission.data;
 
   if (
-    applicationFormSubmission.status === "failure" ||
+    formioApplicationSubmission.status === "failure" ||
     !userAccess ||
     !formSchema ||
     !submissionData
@@ -343,28 +348,28 @@ function ApplicationFormContent() {
   if (
     csbData.status !== "success" ||
     epaUserData.status !== "success" ||
-    bapUserData.status !== "success"
+    samEntities.status !== "success" ||
+    bapApplicationSubmissions.status !== "success"
   ) {
     return <Loading />;
   }
 
   const { enrollmentClosed } = csbData.data;
 
-  const matchedBapMetadata = bapUserData.data.applicationSubmissions.find(
-    (bapSubmission) => bapSubmission.CSB_Form_ID__c === id
-  );
+  const match = bapApplicationSubmissions.data.find((bapSubmission) => {
+    return bapSubmission.CSB_Form_ID__c === id;
+  });
 
   const bap = {
-    lastModified: matchedBapMetadata?.CSB_Modified_Full_String__c || null,
-    rebateId: matchedBapMetadata?.Parent_Rebate_ID__c || null,
-    rebateStatus:
-      matchedBapMetadata?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c || null,
+    lastModified: match?.CSB_Modified_Full_String__c || null,
+    rebateId: match?.Parent_Rebate_ID__c || null,
+    rebateStatus: match?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c || null,
   };
 
   const submissionNeedsEdits = bap.rebateStatus === "Edits Requested";
 
   const entityComboKey = storedSubmissionData.bap_hidden_entity_combo_key;
-  const entity = bapUserData.data.samEntities.find((entity) => {
+  const entity = samEntities.data.entities.find((entity) => {
     return (
       entity.ENTITY_STATUS__c === "Active" &&
       entity.ENTITY_COMBO_KEY__c === entityComboKey
@@ -506,7 +511,7 @@ function ApplicationFormContent() {
             setPendingSubmissionData(data);
 
             postData(
-              `${serverUrl}/api/application-form-submission/${submissionData._id}`,
+              `${serverUrl}/api/formio-application-submission/${submissionData._id}`,
               { ...submission, data }
             )
               .then((res) => {
@@ -591,7 +596,7 @@ function ApplicationFormContent() {
             setPendingSubmissionData(data);
 
             postData(
-              `${serverUrl}/api/application-form-submission/${submissionData._id}`,
+              `${serverUrl}/api/formio-application-submission/${submissionData._id}`,
               { ...submission, data, state: "draft" }
             )
               .then((res) => {

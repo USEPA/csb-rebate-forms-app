@@ -52,12 +52,12 @@ export const messages = {
   genericError: "Something went wrong.",
   authError: "Authentication error. Please log in again or contact support.",
   samlError: "Error logging in. Please try again or contact support.",
-  bapFetchError:
-    "Error loading SAM.gov or rebate submission data. Please contact support.",
-  noSamResults:
+  bapSamFetchError: "Error loading SAM.gov data. Please contact support.",
+  bapNoSamResults:
     "No SAM.gov records match your email. Only Government and Electronic Business SAM.gov Points of Contacts (and alternates) may edit and submit Clean School Bus Rebate Forms.",
   applicationSubmissionsError: "Error loading Application form submissions.",
-  paymentSubmissionsError: "Error loading Payment Request form submissions.",
+  paymentRequestSubmissionsError:
+    "Error loading Payment Request form submissions.",
   newApplication:
     "Please select the “New Application” button above to create your first rebate application.",
   helpdeskApplicationSubmissionError:

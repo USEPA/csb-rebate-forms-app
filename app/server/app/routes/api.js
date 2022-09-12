@@ -124,53 +124,47 @@ router.get("/csb-data", (req, res) => {
 });
 
 // --- get user data from EPA Gateway/Login.gov
-router.get("/epa-data", (req, res) => {
+router.get("/epa-user-data", (req, res) => {
   const { mail, memberof, exp } = req.user;
   return res.json({ mail, memberof, exp });
 });
 
-// --- get data from EPA's Business Automation Platform (BAP)
-router.get("/bap-data", (req, res) => {
+// --- get user's SAM.gov data from EPA's Business Automation Platform (BAP)
+router.get("/bap-sam-data", (req, res) => {
   getSamData(req.user.mail, req)
-    .then((samEntities) => {
+    .then((entities) => {
       // NOTE: allow admin or helpdesk users access to the app, even without SAM.gov data
       const userRoles = req.user.memberof.split(",");
       const helpdeskUser =
         userRoles.includes("csb_admin") || userRoles.includes("csb_helpdesk");
 
-      if (!helpdeskUser && samEntities?.length === 0) {
+      if (!helpdeskUser && entities?.length === 0) {
         const message = `User with email ${req.user.mail} tried to use app without any associated SAM records.`;
         log({ level: "error", message, req });
-        return res.json({
-          samResults: false,
-          samEntities: [],
-          applicationSubmissions: [],
-        });
+        return res.json({ results: false, entities: [] });
       }
-
-      const comboKeys = samEntities.map((e) => e.ENTITY_COMBO_KEY__c);
-
-      getApplicationSubmissionsData(comboKeys, req)
-        .then((submissions) => {
-          return res.json({
-            samResults: true,
-            samEntities,
-            applicationSubmissions: submissions,
-          });
-        })
-        .catch((error) => {
-          throw error;
-        });
+      return res.json({ results: true, entities });
     })
     .catch((error) => {
-      return res.status(401).json({ message: "Error getting data from BAP" });
+      const message = `Error getting SAM.gov data from BAP`;
+      return res.status(401).json({ message });
+    });
+});
+
+// --- get user's Application form submissions from EPA's BAP
+router.get("/bap-application-submissions", storeBapComboKeys, (req, res) => {
+  getApplicationSubmissionsData(req.bapComboKeys, req)
+    .then((submissions) => res.json(submissions))
+    .catch((error) => {
+      const message = `Error getting application form submissions from BAP`;
+      return res.status(401).json({ message });
     });
 });
 
 const applicationFormApiPath = `${formioProjectUrl}/${formioApplicationFormPath}`;
 
-// --- get all Application form submissions user has access to from Forms.gov
-router.get("/application-form-submissions", storeBapComboKeys, (req, res) => {
+// --- get user's Application form submissions from Forms.gov
+router.get("/formio-application-submissions", storeBapComboKeys, (req, res) => {
   // NOTE: Helpdesk users might not have any SAM.gov records associated with
   // their email address so we should not return any submissions to those users.
   // The only reason we explicitly need to do this is because there could be
@@ -199,7 +193,7 @@ router.get("/application-form-submissions", storeBapComboKeys, (req, res) => {
 });
 
 // --- post a new Application form submission to Forms.gov
-router.post("/application-form-submission", storeBapComboKeys, (req, res) => {
+router.post("/formio-application-submission", storeBapComboKeys, (req, res) => {
   const comboKey = req.body.data?.bap_hidden_entity_combo_key;
 
   if (enrollmentClosed) {
@@ -232,7 +226,7 @@ router.post("/application-form-submission", storeBapComboKeys, (req, res) => {
 
 // --- get an existing Application form's schema and submission data from Forms.gov
 router.get(
-  "/application-form-submission/:id",
+  "/formio-application-submission/:id",
   verifyMongoObjectId,
   storeBapComboKeys,
   async (req, res) => {
@@ -274,7 +268,7 @@ router.get(
 
 // --- post an update to an existing draft Application form submission to Forms.gov
 router.post(
-  "/application-form-submission/:id",
+  "/formio-application-submission/:id",
   verifyMongoObjectId,
   storeBapComboKeys,
   (req, res) => {
@@ -361,55 +355,63 @@ router.get("/:id/:comboKey/storage/s3", storeBapComboKeys, (req, res) => {
 
 const paymentFormApiPath = `${formioProjectUrl}/${formioPaymentFormPath}`;
 
-// --- get all Payment Request form submissions from Forms.gov
-router.get("/payment-form-submissions", storeBapComboKeys, (req, res) => {
-  const userSubmissionsUrl =
-    `${paymentFormApiPath}/submission` +
-    `?sort=-modified` +
-    `&limit=1000000` +
-    `&data.bap_hidden_entity_combo_key=${req.bapComboKeys.join(
-      "&data.bap_hidden_entity_combo_key="
-    )}`;
+// --- get user's Payment Request form submissions from Forms.gov
+router.get(
+  "/formio-payment-request-submissions",
+  storeBapComboKeys,
+  (req, res) => {
+    const userSubmissionsUrl =
+      `${paymentFormApiPath}/submission` +
+      `?sort=-modified` +
+      `&limit=1000000` +
+      `&data.bap_hidden_entity_combo_key=${req.bapComboKeys.join(
+        "&data.bap_hidden_entity_combo_key="
+      )}`;
 
-  axiosFormio(req)
-    .get(userSubmissionsUrl)
-    .then((axiosRes) => axiosRes.data)
-    .then((submissions) => res.json(submissions))
-    .catch((error) => {
-      const message = `Error getting Forms.gov Payment Request form submissions`;
-      return res.status(error?.response?.status || 500).json({ message });
-    });
-});
+    axiosFormio(req)
+      .get(userSubmissionsUrl)
+      .then((axiosRes) => axiosRes.data)
+      .then((submissions) => res.json(submissions))
+      .catch((error) => {
+        const message = `Error getting Forms.gov Payment Request form submissions`;
+        return res.status(error?.response?.status || 500).json({ message });
+      });
+  }
+);
 
 // --- post a new Payment Request form submission to Forms.gov
-router.post("/payment-form-submission", storeBapComboKeys, (req, res) => {
-  const comboKey = req.body.data?.bap_hidden_entity_combo_key;
+router.post(
+  "/formio-payment-request-submission",
+  storeBapComboKeys,
+  (req, res) => {
+    const comboKey = req.body.data?.bap_hidden_entity_combo_key;
 
-  // verify post data includes one of user's BAP combo keys
-  if (!req.bapComboKeys.includes(comboKey)) {
-    const message = `User with email ${req.user.mail} attempted to post a new Payment Request form without a matching BAP combo key`;
-    log({ level: "error", message, req });
-    return res.status(401).json({ message: "Unauthorized" });
+    // verify post data includes one of user's BAP combo keys
+    if (!req.bapComboKeys.includes(comboKey)) {
+      const message = `User with email ${req.user.mail} attempted to post a new Payment Request form without a matching BAP combo key`;
+      log({ level: "error", message, req });
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    // add custom metadata to track formio submissions from wrapper
+    req.body.metadata = {
+      ...req.body.metadata,
+      ...formioCsbMetadata,
+    };
+
+    axiosFormio(req)
+      .post(`${paymentFormApiPath}/submission`, req.body)
+      .then((axiosRes) => axiosRes.data)
+      .then((submission) => res.json(submission))
+      .catch((error) => {
+        const message = `Error posting Forms.gov Payment Request form submission`;
+        return res.status(error?.response?.status || 500).json({ message });
+      });
   }
+);
 
-  // add custom metadata to track formio submissions from wrapper
-  req.body.metadata = {
-    ...req.body.metadata,
-    ...formioCsbMetadata,
-  };
-
-  axiosFormio(req)
-    .post(`${paymentFormApiPath}/submission`, req.body)
-    .then((axiosRes) => axiosRes.data)
-    .then((submission) => res.json(submission))
-    .catch((error) => {
-      const message = `Error posting Forms.gov Payment Request form submission`;
-      return res.status(error?.response?.status || 500).json({ message });
-    });
-});
-
-// --- TODO: WIP, as we'll eventually mirror `router.get("/application-form-submission/:id")`
-router.get("/payment-form-schema", storeBapComboKeys, (req, res) => {
+// --- TODO: WIP, as we'll eventually mirror `router.get("/formio-application-submission/:id")`
+router.get("/formio-payment-request-schema", storeBapComboKeys, (req, res) => {
   axiosFormio(req)
     .get(paymentFormApiPath)
     .then((axiosRes) => axiosRes.data)

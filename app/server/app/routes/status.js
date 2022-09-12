@@ -13,7 +13,7 @@ router.get("/app", (req, res) => {
   res.json({ status: true });
 });
 
-router.get("/bap", (req, res) => {
+router.get("/bap-sam-data", (req, res) => {
   getSamData("CleanSchoolBus@erg.com", req)
     .then(() => {
       res.json({ status: true });
@@ -25,7 +25,7 @@ router.get("/bap", (req, res) => {
 
 const applicationFormApiPath = `${formioProjectUrl}/${formioApplicationFormPath}`;
 
-router.get("/application-form", (req, res) => {
+router.get("/formio-application-schema", (req, res) => {
   axiosFormio(req)
     .get(applicationFormApiPath)
     .then((axiosRes) => axiosRes.data)

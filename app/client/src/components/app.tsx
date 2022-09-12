@@ -28,7 +28,7 @@ import { Helpdesk } from "routes/helpdesk";
 import { AllRebates } from "routes/allRebates";
 import { NewApplicationForm } from "routes/newApplicationForm";
 import { ApplicationForm } from "routes/applicationForm";
-import { PaymentForm } from "routes/paymentForm";
+import { PaymentRequestForm } from "routes/paymentRequestForm";
 import { useContentState, useContentDispatch } from "contexts/content";
 import { useUserState, useUserDispatch } from "contexts/user";
 import { useDialogDispatch, useDialogState } from "contexts/dialog";
@@ -158,7 +158,7 @@ function useInactivityDialog(callback: () => void) {
 
       /**
        * If user makes action and the JWT is set to expire within 3 minutes,
-       * call the callback (hit the /epa-data endpoint) to refresh the JWT
+       * call the callback (hit the /epa-user-data endpoint) to refresh the JWT
        */
       if (epaUserData.status !== "success") return;
 
@@ -221,7 +221,7 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
 
   // Check if user is already logged in or needs to be redirected to /welcome route
   const verifyUser = useCallback(() => {
-    getData(`${serverUrl}/api/epa-data`)
+    getData(`${serverUrl}/api/epa-user-data`)
       .then((res) => {
         dispatch({
           type: "FETCH_EPA_USER_DATA_SUCCESS",
@@ -291,7 +291,7 @@ export function App() {
           <Route path="helpdesk" element={<Helpdesk />} />
           <Route path="rebate/new" element={<NewApplicationForm />} />
           <Route path="rebate/:id" element={<ApplicationForm />} />
-          <Route path="payment-request/:id" element={<PaymentForm />} />
+          <Route path="payment-request/:id" element={<PaymentRequestForm />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
