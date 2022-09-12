@@ -23,9 +23,9 @@ router.use(ensureHelpdesk);
 
 const applicationFormApiPath = `${formioProjectUrl}/${formioApplicationFormPath}`;
 
-// --- get an existing application form's submission data from Forms.gov
+// --- get an existing Application form's submission data from Forms.gov
 router.get(
-  "/application-form-submission/:id",
+  "/formio-application-submission/:id",
   verifyMongoObjectId,
   (req, res) => {
     const { id } = req.params;
@@ -54,9 +54,9 @@ router.get(
   }
 );
 
-// --- change a submitted Forms.gov application form's submission state back to draft
+// --- change a submitted Forms.gov Application form's submission state back to draft
 router.post(
-  "/application-form-submission/:id",
+  "/formio-application-submission/:id",
   verifyMongoObjectId,
   (req, res) => {
     const { id } = req.params;

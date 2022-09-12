@@ -193,7 +193,7 @@ router.get("/formio-application-submissions", storeBapComboKeys, (req, res) => {
 });
 
 // --- post a new Application form submission to Forms.gov
-router.post("/application-form-submission", storeBapComboKeys, (req, res) => {
+router.post("/formio-application-submission", storeBapComboKeys, (req, res) => {
   const comboKey = req.body.data?.bap_hidden_entity_combo_key;
 
   if (enrollmentClosed) {
@@ -226,7 +226,7 @@ router.post("/application-form-submission", storeBapComboKeys, (req, res) => {
 
 // --- get an existing Application form's schema and submission data from Forms.gov
 router.get(
-  "/application-form-submission/:id",
+  "/formio-application-submission/:id",
   verifyMongoObjectId,
   storeBapComboKeys,
   async (req, res) => {
@@ -268,7 +268,7 @@ router.get(
 
 // --- post an update to an existing draft Application form submission to Forms.gov
 router.post(
-  "/application-form-submission/:id",
+  "/formio-application-submission/:id",
   verifyMongoObjectId,
   storeBapComboKeys,
   (req, res) => {
@@ -402,7 +402,7 @@ router.post("/payment-form-submission", storeBapComboKeys, (req, res) => {
     });
 });
 
-// --- TODO: WIP, as we'll eventually mirror `router.get("/application-form-submission/:id")`
+// --- TODO: WIP, as we'll eventually mirror `router.get("/formio-application-submission/:id")`
 router.get("/payment-form-schema", storeBapComboKeys, (req, res) => {
   axiosFormio(req)
     .get(paymentFormApiPath)

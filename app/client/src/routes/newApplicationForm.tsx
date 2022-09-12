@@ -16,7 +16,7 @@ import { SamEntity, useBapState } from "contexts/bap";
 function createNewApplication(email: string, entity: SamEntity) {
   const { title, name } = getUserInfo(email, entity);
 
-  return postData(`${serverUrl}/api/application-form-submission/`, {
+  return postData(`${serverUrl}/api/formio-application-submission/`, {
     data: {
       last_updated_by: email,
       hidden_current_user_email: email,

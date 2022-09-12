@@ -276,7 +276,7 @@ function ApplicationFormContent() {
       },
     });
 
-    getData(`${serverUrl}/api/application-form-submission/${id}`)
+    getData(`${serverUrl}/api/formio-application-submission/${id}`)
       .then((res) => {
         // set up s3 re-route to wrapper app
         const s3Provider = Formio.Providers.providers.storage.s3;
@@ -509,7 +509,7 @@ function ApplicationFormContent() {
             setPendingSubmissionData(data);
 
             postData(
-              `${serverUrl}/api/application-form-submission/${submissionData._id}`,
+              `${serverUrl}/api/formio-application-submission/${submissionData._id}`,
               { ...submission, data }
             )
               .then((res) => {
@@ -594,7 +594,7 @@ function ApplicationFormContent() {
             setPendingSubmissionData(data);
 
             postData(
-              `${serverUrl}/api/application-form-submission/${submissionData._id}`,
+              `${serverUrl}/api/formio-application-submission/${submissionData._id}`,
               { ...submission, data, state: "draft" }
             )
               .then((res) => {

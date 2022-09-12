@@ -21,9 +21,9 @@
         "parameters": [{ "$ref": "#/components/parameters/scan" }]
       }
     },
-    "/status/bap": {
+    "/status/bap-sam-data": {
       "get": {
-        "summary": "/status/bap",
+        "summary": "/status/bap-sam-data",
         "responses": {
           "200": {
             "description": "OK"
@@ -33,9 +33,9 @@
         "parameters": [{ "$ref": "#/components/parameters/scan" }]
       }
     },
-    "/status/application-form": {
+    "/status/formio-application-schema": {
       "get": {
-        "summary": "/status/application-form",
+        "summary": "/status/formio-application-schema",
         "responses": {
           "200": {
             "description": "OK"
@@ -142,9 +142,9 @@
         "parameters": [{ "$ref": "#/components/parameters/scan" }]
       }
     },
-    "/help/application-form-submission/{id}": {
+    "/help/formio-application-submission/{id}": {
       "get": {
-        "summary": "/help/application-form-submission/{id}",
+        "summary": "/help/formio-application-submission/{id}",
         "parameters": [
           {
             "name": "id",
@@ -192,7 +192,7 @@
         "tags": []
       },
       "post": {
-        "summary": "/help/application-form-submission/{id}",
+        "summary": "/help/formio-application-submission/{id}",
         "parameters": [
           {
             "name": "id",
@@ -495,9 +495,9 @@
         ]
       }
     },
-    "/api/application-form-submission": {
+    "/api/formio-application-submission": {
       "post": {
-        "summary": "/api/application-form-submission",
+        "summary": "/api/formio-application-submission",
         "responses": {
           "200": {
             "description": "OK",
@@ -539,9 +539,9 @@
         "parameters": [{ "$ref": "#/components/parameters/scan" }]
       }
     },
-    "/api/application-form-submission/{id}": {
+    "/api/formio-application-submission/{id}": {
       "get": {
-        "summary": "/api/application-form-submission/{id}",
+        "summary": "/api/formio-application-submission/{id}",
         "parameters": [
           {
             "name": "id",
@@ -589,7 +589,7 @@
         "tags": []
       },
       "post": {
-        "summary": "/api/application-form-submission/{id}",
+        "summary": "/api/formio-application-submission/{id}",
         "parameters": [
           {
             "name": "id",

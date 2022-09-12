@@ -410,7 +410,7 @@ form for the fields to be displayed. */
                                 // change the submission's state to draft, then
                                 // redirect to the form to allow user to edit
                                 postData(
-                                  `${serverUrl}/api/application-form-submission/${_id}`,
+                                  `${serverUrl}/api/formio-application-submission/${_id}`,
                                   { data, state: "draft" }
                                 )
                                   .then((res) => {

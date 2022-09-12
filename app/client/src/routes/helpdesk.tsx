@@ -120,7 +120,7 @@ export function Helpdesk() {
             });
 
             getData(
-              `${serverUrl}/help/application-form-submission/${searchText}`
+              `${serverUrl}/help/formio-application-submission/${searchText}`
             )
               .then((res) => {
                 setFormId(res.submissionData._id);
@@ -290,7 +290,7 @@ export function Helpdesk() {
                                 });
 
                                 postData(
-                                  `${serverUrl}/help/application-form-submission/${formId}`,
+                                  `${serverUrl}/help/formio-application-submission/${formId}`,
                                   {}
                                 )
                                   .then((res) => {
