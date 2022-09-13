@@ -285,7 +285,7 @@ export function AllRebates() {
                     <br />
                     <TextWithTooltip
                       text="Form Status"
-                      tooltip="Draft, Edits Requested, Submitted, Withdrawn, or Selected"
+                      tooltip="Draft, Edits Requested, Submitted, Withdrawn, Selected, or Not Selected"
                     />
                   </th>
 
