@@ -184,58 +184,6 @@ async function queryForSamEntities(email, req) {
 }
 
 /**
- * Fetches SAM.gov data associated with a provided user.
- * @param {string} email
- * @param {express.Request} req
- */
-function getSamData(email, req) {
-  // Make sure BAP connection has been initialized
-  if (!req.app.locals.bapConnection) {
-    const message = `BAP Connection has not yet been initialized.`;
-    log({ level: "info", message });
-
-    return setupConnection(req.app)
-      .then(() => queryForSamEntities(email, req))
-      .catch((err) => {
-        const message = `BAP Error: ${err}`;
-        log({ level: "error", message, req });
-        throw err;
-      });
-  }
-
-  return queryForSamEntities(email, req).catch((err) => {
-    if (err?.toString() === "invalid_grant: expired access/refresh token") {
-      const message = `BAP access token expired`;
-      log({ level: "info", message, req });
-    } else {
-      const message = `BAP Error: ${err}`;
-      log({ level: "error", message, req });
-    }
-
-    return setupConnection(req.app)
-      .then(() => queryForSamEntities(email, req))
-      .catch((retryErr) => {
-        const message = `BAP Error: ${retryErr}`;
-        log({ level: "error", message, req });
-        throw retryErr;
-      });
-  });
-}
-
-/**
- * Fetches SAM.gov entity combo keys data associated with a provided user.
- * @param {string} email
- * @param {express.Request} req
- */
-function getComboKeys(email, req) {
-  return getSamData(email, req)
-    .then((entities) => entities.map((entity) => entity.ENTITY_COMBO_KEY__c))
-    .catch((err) => {
-      throw err;
-    });
-}
-
-/**
  * Uses cached JSforce connection to query the BAP for application form submissions.
  * @param {string[]} comboKeys
  * @param {express.Request} req
@@ -290,11 +238,63 @@ async function queryForApplicationSubmissions(comboKeys, req) {
 }
 
 /**
+ * Fetches SAM.gov entities associated with a provided user.
+ * @param {string} email
+ * @param {express.Request} req
+ */
+function getSamEntities(email, req) {
+  // Make sure BAP connection has been initialized
+  if (!req.app.locals.bapConnection) {
+    const message = `BAP Connection has not yet been initialized.`;
+    log({ level: "info", message });
+
+    return setupConnection(req.app)
+      .then(() => queryForSamEntities(email, req))
+      .catch((err) => {
+        const message = `BAP Error: ${err}`;
+        log({ level: "error", message, req });
+        throw err;
+      });
+  }
+
+  return queryForSamEntities(email, req).catch((err) => {
+    if (err?.toString() === "invalid_grant: expired access/refresh token") {
+      const message = `BAP access token expired`;
+      log({ level: "info", message, req });
+    } else {
+      const message = `BAP Error: ${err}`;
+      log({ level: "error", message, req });
+    }
+
+    return setupConnection(req.app)
+      .then(() => queryForSamEntities(email, req))
+      .catch((retryErr) => {
+        const message = `BAP Error: ${retryErr}`;
+        log({ level: "error", message, req });
+        throw retryErr;
+      });
+  });
+}
+
+/**
+ * Fetches SAM.gov entity combo keys data associated with a provided user.
+ * @param {string} email
+ * @param {express.Request} req
+ */
+function getBapComboKeys(email, req) {
+  return getSamEntities(email, req)
+    .then((entities) => entities.map((entity) => entity.ENTITY_COMBO_KEY__c))
+    .catch((err) => {
+      throw err;
+    });
+}
+
+/**
  * Fetches application form submissions associated with a provided set of combo keys.
  * @param {string[]} comboKeys
  * @param {express.Request} req
  */
-function getApplicationSubmissionsData(comboKeys, req) {
+function getApplicationSubmissions(comboKeys, req) {
   // Make sure BAP connection has been initialized
   if (!req.app.locals.bapConnection) {
     const message = `BAP Connection has not yet been initialized.`;
@@ -328,4 +328,8 @@ function getApplicationSubmissionsData(comboKeys, req) {
   });
 }
 
-module.exports = { getSamData, getComboKeys, getApplicationSubmissionsData };
+module.exports = {
+  getSamEntities,
+  getBapComboKeys,
+  getApplicationSubmissions,
+};

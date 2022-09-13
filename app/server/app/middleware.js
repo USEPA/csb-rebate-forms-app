@@ -5,7 +5,7 @@ const ObjectId = require("mongodb").ObjectId;
 // ---
 const { createJwt, jwtAlgorithm } = require("./utilities/createJwt");
 const log = require("./utilities/logger");
-const { getComboKeys } = require("./utilities/bap");
+const { getBapComboKeys } = require("./utilities/bap");
 
 const cookieName = "csb-token";
 
@@ -173,7 +173,7 @@ function appScan(req, res, next) {
  * @param {express.NextFunction} next
  */
 function storeBapComboKeys(req, res, next) {
-  getComboKeys(req.user.mail, req)
+  getBapComboKeys(req.user.mail, req)
     .then((bapComboKeys) => {
       req.bapComboKeys = bapComboKeys;
       next();
