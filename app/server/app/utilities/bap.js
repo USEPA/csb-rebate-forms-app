@@ -96,6 +96,52 @@ function setupConnection(app) {
 async function queryForSamEntities(email, req) {
   /** @type {jsforce.Connection} */
   const bapConnection = req.app.locals.bapConnection;
+
+  /* SOQL: */
+  // return bapConnection
+  //   .query(
+  //     `
+  //       SELECT
+  //         ENTITY_COMBO_KEY__c,
+  //         ENTITY_STATUS__c,
+  //         UNIQUE_ENTITY_ID__c,
+  //         ENTITY_EFT_INDICATOR__c,
+  //         CAGE_CODE__c,
+  //         LEGAL_BUSINESS_NAME__c,
+  //         GOVT_BUS_POC_NAME__c,
+  //         GOVT_BUS_POC_EMAIL__c,
+  //         GOVT_BUS_POC_TITLE__c,
+  //         ALT_GOVT_BUS_POC_NAME__c,
+  //         ALT_GOVT_BUS_POC_EMAIL__c,
+  //         ALT_GOVT_BUS_POC_TITLE__c,
+  //         ELEC_BUS_POC_NAME__c,
+  //         ELEC_BUS_POC_EMAIL__c,
+  //         ELEC_BUS_POC_TITLE__c,
+  //         ALT_ELEC_BUS_POC_NAME__c,
+  //         ALT_ELEC_BUS_POC_EMAIL__c,
+  //         ALT_ELEC_BUS_POC_TITLE__c,
+  //         PHYSICAL_ADDRESS_LINE_1__c,
+  //         PHYSICAL_ADDRESS_LINE_2__c,
+  //         PHYSICAL_ADDRESS_CITY__c,
+  //         PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
+  //         PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
+  //         PHYSICAL_ADDRESS_ZIP_CODE_4__c
+  //       FROM
+  //         ${BAP_SAM_TABLE}
+  //       WHERE
+  //         ALT_ELEC_BUS_POC_EMAIL__c = '${email}' OR
+  //         GOVT_BUS_POC_EMAIL__c = '${email}' OR
+  //         ALT_GOVT_BUS_POC_EMAIL__c = '${email}' OR
+  //         ELEC_BUS_POC_EMAIL__c = '${email}'
+  //     `
+  //   )
+  //   .then((res) => {
+  //     return res.records;
+  //   })
+  //   .catch((err) => {
+  //     throw err;
+  //   });
+
   return await bapConnection
     .sobject(BAP_SAM_TABLE)
     .find(
@@ -198,16 +244,44 @@ function getComboKeys(email, req) {
 async function queryForApplicationSubmissions(comboKeys, req) {
   /** @type {jsforce.Connection} */
   const bapConnection = req.app.locals.bapConnection;
+
+  /* SOQL: */
+  // return bapConnection
+  //   .query(
+  //     `
+  //       SELECT
+  //         CSB_Form_ID__c,
+  //         CSB_Modified_Full_String__c,
+  //         CSB_Review_Item_ID__c,
+  //         Parent_Rebate_ID__c,
+  //         Parent_CSB_Rebate__r.CSB_Rebate_Status__c
+  //       FROM
+  //         ${BAP_FORMS_TABLE}
+  //       WHERE
+  //         ${comboKeys
+  //           .map((key) => `UEI_EFTI_Combo_Key__c = '${key}'`)
+  //           .join(" OR ")}
+  //       ORDER BY
+  //         CreatedDate DESC
+  //     `
+  //   )
+  //   .then((res) => {
+  //     return res.records;
+  //   })
+  //   .catch((err) => {
+  //     throw err;
+  //   });
+
   return await bapConnection
     .sobject(BAP_FORMS_TABLE)
     .find(
       { UEI_EFTI_Combo_Key__c: { $in: comboKeys } },
       {
         // "*": 1,
-        CSB_Form_ID__c: 1,
-        CSB_Modified_Full_String__c: 1,
-        UEI_EFTI_Combo_Key__c: 1,
-        Parent_Rebate_ID__c: 1,
+        CSB_Form_ID__c: 1, // MongoDB ObjectId string
+        CSB_Modified_Full_String__c: 1, // ISO 8601 date string
+        CSB_Review_Item_ID__c: 1, // CSB Rebate ID w/ form/version ID (9 digits)
+        Parent_Rebate_ID__c: 1, // CSB Rebate ID (6 digits)
         "Parent_CSB_Rebate__r.CSB_Rebate_Status__c": 1,
       }
     )
