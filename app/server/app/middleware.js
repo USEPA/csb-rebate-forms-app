@@ -173,7 +173,7 @@ function appScan(req, res, next) {
  * @param {express.NextFunction} next
  */
 function storeBapComboKeys(req, res, next) {
-  getBapComboKeys(req.user.mail, req)
+  getBapComboKeys(req, req.user.mail)
     .then((bapComboKeys) => {
       req.bapComboKeys = bapComboKeys;
       next();

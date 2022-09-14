@@ -89,11 +89,11 @@ function setupConnection(app) {
 
 /**
  * Uses cached JSforce connection to query the BAP for SAM.gov entities.
- * @param {string} email
  * @param {express.Request} req
+ * @param {string} email
  * @returns {Promise<BapSamEntity[]>} collection of SAM.gov entity data
  */
-async function queryForSamEntities(email, req) {
+async function queryForSamEntities(req, email) {
   const message = `Querying BAP for SAM.gov entities for user with email: ${email}.`;
   log({ level: "info", message });
 
@@ -177,11 +177,11 @@ async function queryForSamEntities(email, req) {
 
 /**
  * Uses cached JSforce connection to query the BAP for application form submissions.
- * @param {string[]} comboKeys
  * @param {express.Request} req
+ * @param {string[]} comboKeys
  * @returns {Promise<BapApplicationSubmission[]>} collection of fields associated with each application form submission
  */
-async function queryForApplicationSubmissions(comboKeys, req) {
+async function queryForApplicationSubmissions(req, comboKeys) {
   const message = `Querying BAP for Application form submissions associated with combokeys: ${comboKeys}.`;
   log({ level: "info", message });
 
@@ -268,23 +268,23 @@ function verifyBapConnection(req, { name, args }) {
 
 /**
  * Fetches SAM.gov entities associated with a provided user.
- * @param {string} email
  * @param {express.Request} req
+ * @param {string} email
  */
-function getSamEntities(email, req) {
+function getSamEntities(req, email) {
   return verifyBapConnection(req, {
     name: queryForSamEntities,
-    args: [email, req],
+    args: [req, email],
   });
 }
 
 /**
  * Fetches SAM.gov entity combo keys data associated with a provided user.
- * @param {string} email
  * @param {express.Request} req
+ * @param {string} email
  */
-function getBapComboKeys(email, req) {
-  return getSamEntities(email, req)
+function getBapComboKeys(req, email) {
+  return getSamEntities(req, email)
     .then((entities) => entities.map((entity) => entity.ENTITY_COMBO_KEY__c))
     .catch((err) => {
       throw err;
@@ -293,13 +293,13 @@ function getBapComboKeys(email, req) {
 
 /**
  * Fetches application form submissions associated with a provided set of combo keys.
- * @param {string[]} comboKeys
  * @param {express.Request} req
+ * @param {string[]} comboKeys
  */
-function getApplicationSubmissions(comboKeys, req) {
+function getApplicationSubmissions(req, comboKeys) {
   return verifyBapConnection(req, {
     name: queryForApplicationSubmissions,
-    args: [comboKeys, req],
+    args: [req, comboKeys],
   });
 }
 

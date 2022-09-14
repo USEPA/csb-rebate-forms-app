@@ -40,7 +40,7 @@ function checkEnrollmentPeriodAndBapStatus({ id, comboKey, req }) {
     return Promise.resolve();
   }
   // else, enrollment is closed, so only continue if edits are requested
-  return getApplicationSubmissions([comboKey], req).then((submissions) => {
+  return getApplicationSubmissions(req, [comboKey]).then((submissions) => {
     const submission = submissions.find((s) => s.CSB_Form_ID__c === id);
     const status = submission?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c;
     return status === "Edits Requested" ? Promise.resolve() : Promise.reject();
@@ -131,7 +131,7 @@ router.get("/epa-user-data", (req, res) => {
 
 // --- get user's SAM.gov data from EPA's Business Automation Platform (BAP)
 router.get("/bap-sam-data", (req, res) => {
-  getSamEntities(req.user.mail, req)
+  getSamEntities(req, req.user.mail)
     .then((entities) => {
       // NOTE: allow admin or helpdesk users access to the app, even without SAM.gov data
       const userRoles = req.user.memberof.split(",");
@@ -153,7 +153,7 @@ router.get("/bap-sam-data", (req, res) => {
 
 // --- get user's Application form submissions from EPA's BAP
 router.get("/bap-application-submissions", storeBapComboKeys, (req, res) => {
-  getApplicationSubmissions(req.bapComboKeys, req)
+  getApplicationSubmissions(req, req.bapComboKeys)
     .then((submissions) => res.json(submissions))
     .catch((error) => {
       const message = `Error getting application form submissions from BAP`;

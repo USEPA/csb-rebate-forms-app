@@ -14,7 +14,7 @@ router.get("/app", (req, res) => {
 });
 
 router.get("/bap-sam-data", (req, res) => {
-  getSamEntities("CleanSchoolBus@erg.com", req)
+  getSamEntities(req, "CleanSchoolBus@erg.com")
     .then(() => {
       return res.json({ status: true });
     })
