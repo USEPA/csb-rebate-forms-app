@@ -14,8 +14,12 @@ router.get("/app", (req, res) => {
 });
 
 router.get("/bap-sam-data", (req, res) => {
-  getSamEntities(req, "CleanSchoolBus@erg.com")
-    .then(() => {
+  getSamEntities(req, "bap.sam.data.status@erg.com")
+    .then((bapRes) => {
+      if (!Array.isArray(bapRes)) {
+        throw Error();
+      }
+
       return res.json({ status: true });
     })
     .catch(() => {
