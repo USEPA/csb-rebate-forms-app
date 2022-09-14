@@ -176,13 +176,13 @@ async function queryForSamEntities(req, email) {
 }
 
 /**
- * Uses cached JSforce connection to query the BAP for application form submissions.
+ * Uses cached JSforce connection to query the BAP for application form submissions statuses, and related metadata.
  * @param {express.Request} req
  * @param {string[]} comboKeys
  * @returns {Promise<BapApplicationSubmission[]>} collection of fields associated with each application form submission
  */
-async function queryForApplicationSubmissions(req, comboKeys) {
-  const message = `Querying BAP for Application form submissions associated with combokeys: ${comboKeys}.`;
+async function queryForApplicationSubmissionsStatuses(req, comboKeys) {
+  const message = `Querying BAP for Application form submissions statuses associated with combokeys: ${comboKeys}.`;
   log({ level: "info", message });
 
   /** @type {jsforce.Connection} */
@@ -219,6 +219,107 @@ async function queryForApplicationSubmissions(req, comboKeys) {
     )
     .sort({ CreatedDate: -1 })
     .execute(async (err, records) => ((await err) ? err : records));
+}
+
+/**
+ * Uses cached JSforce connection to query the BAP for a single application form submission.
+ * @param {express.Request} req
+ * @param {string} reviewItemId CSB Rebate ID with the form/version ID (9 digits)
+ * @returns {Promise<Object>} application form submission fields
+ */
+async function queryForApplicationSubmission(req, reviewItemId) {
+  const message = `Querying BAP for Application form submission associated with CSB Review Item ID: ${reviewItemId}.`;
+  log({ level: "info", message });
+
+  /** @type {jsforce.Connection} */
+  const bapConnection = req.app.locals.bapConnection;
+
+  /* SOQL: */
+  // `SELECT
+  //   Id
+  // FROM
+  //   recordtype
+  // WHERE
+  //   developername = 'CSB_Funding_Request' AND
+  //   sobjecttype = '${BAP_FORMS_TABLE}'
+  // LIMIT 1`
+
+  const tableIdQuery = await bapConnection
+    .sobject("recordtype")
+    .find(
+      {
+        developername: "CSB_Funding_Request",
+        sobjecttype: BAP_FORMS_TABLE,
+      },
+      {
+        // "*": 1,
+        Id: 1, // Salesforce record ID
+      }
+    )
+    .execute(async (err, records) => ((await err) ? err : records));
+
+  const tableId = await tableIdQuery[0].Id;
+
+  /* SOQL */
+  // `SELECT
+  //   id,
+  //   UEI_EFTI_Combo_Key__c,
+  //   CSB_NCES_ID__c,
+  //   Primary_Applicant__r.Name,
+  //   Primary_Applicant__r.Title,
+  //   Primary_Applicant__r.Phone,
+  //   Primary_Applicant__r.Email,
+  //   Alternate_Applicant__r.Name,
+  //   Alternate_Applicant__r.Title,
+  //   Alternate_Applicant__r.Phone,
+  //   Alternate_Applicant__r.Email,
+  //   Applicant_Organization__r.Name,
+  //   CSB_School_District__r.Name,
+  //   Fleet_Name__c,
+  //   School_District_Prioritized__c,
+  //   Total_Rebate_Funds_Requested__c,
+  //   Total_Infrastructure_Funds__c
+  // FROM
+  //   ${BAP_FORMS_TABLE}
+  // WHERE
+  //   recordtypeid = '${tableId}' AND
+  //   CSB_Review_Item_ID__c = '${reviewItemId}' AND
+  //   Latest_Version__c = TRUE`
+
+  const tableFieldsQuery = await bapConnection
+    .sobject(BAP_FORMS_TABLE)
+    .find(
+      {
+        recordtypeid: tableId,
+        CSB_Review_Item_ID__c: reviewItemId,
+        Latest_Version__c: true,
+      },
+      {
+        // "*": 1,
+        Id: 1, // Salesforce record ID
+        UEI_EFTI_Combo_Key__c: 1,
+        CSB_NCES_ID__c: 1,
+        "Primary_Applicant__r.Name": 1,
+        "Primary_Applicant__r.Title": 1,
+        "Primary_Applicant__r.Phone": 1,
+        "Primary_Applicant__r.Email": 1,
+        "Alternate_Applicant__r.Name": 1,
+        "Alternate_Applicant__r.Title": 1,
+        "Alternate_Applicant__r.Phone": 1,
+        "Alternate_Applicant__r.Email": 1,
+        "Applicant_Organization__r.Name": 1,
+        "CSB_School_District__r.Name": 1,
+        Fleet_Name__c: 1,
+        School_District_Prioritized__c: 1,
+        Total_Rebate_Funds_Requested__c: 1,
+        Total_Infrastructure_Funds__c: 1,
+      }
+    )
+    .execute(async (err, records) => ((await err) ? err : records));
+
+  return tableFieldsQuery;
+
+  // TODO: query for line items too...
 }
 
 /**
@@ -296,15 +397,28 @@ function getBapComboKeys(req, email) {
  * @param {express.Request} req
  * @param {string[]} comboKeys
  */
-function getApplicationSubmissions(req, comboKeys) {
+function getApplicationSubmissionsStatuses(req, comboKeys) {
   return verifyBapConnection(req, {
-    name: queryForApplicationSubmissions,
+    name: queryForApplicationSubmissionsStatuses,
     args: [req, comboKeys],
+  });
+}
+
+/**
+ * Fetches an application form submission associated with a CSB Review Item ID
+ * @param {express.Request} req
+ * @param {string[]} comboKeys
+ */
+function getApplicationSubmission(req, reviewItemId) {
+  return verifyBapConnection(req, {
+    name: queryForApplicationSubmission,
+    args: [req, reviewItemId],
   });
 }
 
 module.exports = {
   getSamEntities,
   getBapComboKeys,
-  getApplicationSubmissions,
+  getApplicationSubmissionsStatuses,
+  getApplicationSubmission,
 };
