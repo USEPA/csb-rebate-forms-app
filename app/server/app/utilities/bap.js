@@ -472,7 +472,7 @@ function getApplicationSubmissionsStatuses(req, comboKeys) {
 /**
  * Fetches an application form submission associated with a CSB Review Item ID
  * @param {express.Request} req
- * @param {string[]} comboKeys
+ * @param {string} reviewItemId
  */
 function getApplicationSubmission(req, reviewItemId) {
   return verifyBapConnection(req, {
