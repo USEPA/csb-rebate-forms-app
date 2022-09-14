@@ -54,6 +54,7 @@ jobs:
       BAP_PASSWORD: ${{ secrets.BAP_PASSWORD }}
       BAP_SAM_TABLE: ${{ secrets.BAP_SAM_TABLE }}
       BAP_FORMS_TABLE: ${{ secrets.BAP_FORMS_TABLE }}
+      BAP_BUS_TABLE: ${{ secrets.BAP_BUS_TABLE }}
       AWS_ACCESS_KEY_ID: ${{ secrets.S3_PUBLIC_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_PUBLIC_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: ${{ secrets.S3_PUBLIC_REGION }}
@@ -131,6 +132,7 @@ jobs:
           cf set-env $APP_NAME "BAP_PASSWORD" "$BAP_PASSWORD" > /dev/null
           cf set-env $APP_NAME "BAP_SAM_TABLE" "$BAP_SAM_TABLE" > /dev/null
           cf set-env $APP_NAME "BAP_FORMS_TABLE" "$BAP_FORMS_TABLE" > /dev/null
+          cf set-env $APP_NAME "BAP_BUS_TABLE" "$BAP_BUS_TABLE" > /dev/null
           cf set-env $APP_NAME "S3_PUBLIC_BUCKET" "$S3_PUBLIC_BUCKET" > /dev/null
           cf set-env $APP_NAME "S3_PUBLIC_REGION" "$AWS_DEFAULT_REGION" > /dev/null
 

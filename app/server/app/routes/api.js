@@ -17,8 +17,9 @@ const {
   verifyMongoObjectId,
 } = require("../middleware");
 const {
-  getSamData,
-  getApplicationSubmissionsData,
+  getSamEntities,
+  getApplicationSubmissionsStatuses,
+  getApplicationSubmission,
 } = require("../utilities/bap");
 const log = require("../utilities/logger");
 
@@ -40,11 +41,15 @@ function checkEnrollmentPeriodAndBapStatus({ id, comboKey, req }) {
     return Promise.resolve();
   }
   // else, enrollment is closed, so only continue if edits are requested
-  return getApplicationSubmissionsData([comboKey], req).then((submissions) => {
-    const submission = submissions.find((s) => s.CSB_Form_ID__c === id);
-    const status = submission?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c;
-    return status === "Edits Requested" ? Promise.resolve() : Promise.reject();
-  });
+  return getApplicationSubmissionsStatuses(req, [comboKey]).then(
+    (submissions) => {
+      const submission = submissions.find((s) => s.CSB_Form_ID__c === id);
+      const status = submission?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c;
+      return status === "Edits Requested"
+        ? Promise.resolve()
+        : Promise.reject();
+    }
+  );
 }
 
 const router = express.Router();
@@ -131,7 +136,7 @@ router.get("/epa-user-data", (req, res) => {
 
 // --- get user's SAM.gov data from EPA's Business Automation Platform (BAP)
 router.get("/bap-sam-data", (req, res) => {
-  getSamData(req.user.mail, req)
+  getSamEntities(req, req.user.mail)
     .then((entities) => {
       // NOTE: allow admin or helpdesk users access to the app, even without SAM.gov data
       const userRoles = req.user.memberof.split(",");
@@ -143,6 +148,7 @@ router.get("/bap-sam-data", (req, res) => {
         log({ level: "error", message, req });
         return res.json({ results: false, entities: [] });
       }
+
       return res.json({ results: true, entities });
     })
     .catch((error) => {
@@ -151,12 +157,12 @@ router.get("/bap-sam-data", (req, res) => {
     });
 });
 
-// --- get user's Application form submissions from EPA's BAP
+// --- get user's Application form submissions statuses from EPA's BAP
 router.get("/bap-application-submissions", storeBapComboKeys, (req, res) => {
-  getApplicationSubmissionsData(req.bapComboKeys, req)
+  return getApplicationSubmissionsStatuses(req, req.bapComboKeys)
     .then((submissions) => res.json(submissions))
     .catch((error) => {
-      const message = `Error getting application form submissions from BAP`;
+      const message = `Error getting Application form submissions statuses from BAP`;
       return res.status(401).json({ message });
     });
 });
@@ -385,6 +391,7 @@ router.post(
   storeBapComboKeys,
   (req, res) => {
     const comboKey = req.body.data?.bap_hidden_entity_combo_key;
+    const reviewItemId = req.body.data?.csb_review_item_id;
 
     // verify post data includes one of user's BAP combo keys
     if (!req.bapComboKeys.includes(comboKey)) {
@@ -399,13 +406,27 @@ router.post(
       ...formioCsbMetadata,
     };
 
-    axiosFormio(req)
-      .post(`${paymentFormApiPath}/submission`, req.body)
-      .then((axiosRes) => axiosRes.data)
-      .then((submission) => res.json(submission))
+    return getApplicationSubmission(req, reviewItemId)
+      .then((applicationSubmission) => {
+        const data = {
+          ...applicationSubmission,
+        };
+
+        // TODO: temporarily return data for now...will eventually post to formio
+        return res.json(data);
+
+        // axiosFormio(req)
+        //   .post(`${paymentFormApiPath}/submission`, data)
+        //   .then((axiosRes) => axiosRes.data)
+        //   .then((submission) => res.json(submission))
+        //   .catch((error) => {
+        //     const message = `Error posting Forms.gov Payment Request form submission`;
+        //     return res.status(error?.response?.status || 500).json({ message });
+        //   });
+      })
       .catch((error) => {
-        const message = `Error posting Forms.gov Payment Request form submission`;
-        return res.status(error?.response?.status || 500).json({ message });
+        const message = `Error getting Application form submission from BAP`;
+        return res.status(401).json({ message });
       });
   }
 );
