@@ -445,7 +445,7 @@ function getSamEntities(req, email) {
 }
 
 /**
- * Fetches SAM.gov entity combo keys data associated with a provided user.
+ * Fetches SAM.gov entity combo keys associated with a provided user.
  * @param {express.Request} req
  * @param {string} email
  */
@@ -458,7 +458,7 @@ function getBapComboKeys(req, email) {
 }
 
 /**
- * Fetches application form submissions associated with a provided set of combo keys.
+ * Fetches application form submissions statuses associated with a provided set of combo keys.
  * @param {express.Request} req
  * @param {string[]} comboKeys
  */
@@ -470,7 +470,7 @@ function getApplicationSubmissionsStatuses(req, comboKeys) {
 }
 
 /**
- * Fetches an application form submission associated with a CSB Review Item ID
+ * Fetches an application form submission associated with a CSB Review Item ID.
  * @param {express.Request} req
  * @param {string} reviewItemId
  */
