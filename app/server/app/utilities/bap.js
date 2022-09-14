@@ -58,6 +58,7 @@ const {
   BAP_PASSWORD,
   BAP_SAM_TABLE,
   BAP_FORMS_TABLE,
+  BAP_BUS_TABLE,
 } = process.env;
 
 /**
@@ -244,7 +245,7 @@ async function queryForApplicationSubmission(req, reviewItemId) {
   //   sobjecttype = '${BAP_FORMS_TABLE}'
   // LIMIT 1`
 
-  const tableIdQuery = await bapConnection
+  const formsTableIdQuery = await bapConnection
     .sobject("recordtype")
     .find(
       {
@@ -258,7 +259,7 @@ async function queryForApplicationSubmission(req, reviewItemId) {
     )
     .execute(async (err, records) => ((await err) ? err : records));
 
-  const tableId = await tableIdQuery[0].Id;
+  const formsTableId = formsTableIdQuery["0"].Id;
 
   /* SOQL */
   // `SELECT
@@ -282,15 +283,15 @@ async function queryForApplicationSubmission(req, reviewItemId) {
   // FROM
   //   ${BAP_FORMS_TABLE}
   // WHERE
-  //   recordtypeid = '${tableId}' AND
+  //   recordtypeid = '${formsTableId}' AND
   //   CSB_Review_Item_ID__c = '${reviewItemId}' AND
   //   Latest_Version__c = TRUE`
 
-  const tableFieldsQuery = await bapConnection
+  const formsTableRecordQuery = await bapConnection
     .sobject(BAP_FORMS_TABLE)
     .find(
       {
-        recordtypeid: tableId,
+        recordtypeid: formsTableId,
         CSB_Review_Item_ID__c: reviewItemId,
         Latest_Version__c: true,
       },
@@ -317,9 +318,73 @@ async function queryForApplicationSubmission(req, reviewItemId) {
     )
     .execute(async (err, records) => ((await err) ? err : records));
 
-  return tableFieldsQuery;
+  const formsTableRecordId = formsTableRecordQuery["0"].Id;
 
-  // TODO: query for line items too...
+  /* SOQL */
+  // `SELECT
+  //   Id
+  // FROM
+  //   recordtype
+  // WHERE
+  //   developername = 'CSB_Rebate_Item' AND
+  //   sobjecttype = ${BAP_BUS_TABLE}
+  // LIMIT 1`
+
+  const busTableIdQuery = await bapConnection
+    .sobject("recordtype")
+    .find(
+      {
+        developername: "CSB_Rebate_Item",
+        sobjecttype: BAP_BUS_TABLE,
+      },
+      {
+        // "*": 1,
+        Id: 1, // Salesforce record ID
+      }
+    )
+    .limit(1)
+    .execute(async (err, records) => ((await err) ? err : records));
+
+  const busTableId = busTableIdQuery["0"].Id;
+
+  /* SOQL: */
+  // `SELECT
+  //   Id,
+  //   Rebate_Item_num__c,
+  //   CSB_VIN__c,
+  //   CSB_Model_Year__c,
+  //   CSB_Fuel_Type__c,
+  //   CSB_Replacement_Fuel_Type__c,
+  //   CSB_Funds_Requested__c
+  // FROM
+  //   ${BAP_BUS_TABLE}
+  // WHERE
+  //   recordtypeid = '${busTableId}' AND
+  //   Related_Order_Request__c = '${formsTableRecordId}' AND
+  //   CSB_Rebate_Item_Type__c != 'Infrastructure'`
+
+  const busTableRecordsQuery = await bapConnection
+    .sobject(BAP_BUS_TABLE)
+    .find(
+      {
+        recordtypeid: busTableId,
+        Related_Order_Request__c: formsTableRecordId,
+        CSB_Rebate_Item_Type__c: { $neq: "Infrastructure" },
+      },
+      {
+        // "*": 1,
+        Id: 1, // Salesforce record ID
+        Rebate_Item_num__c: 1,
+        CSB_VIN__c: 1,
+        CSB_Model_Year__c: 1,
+        CSB_Fuel_Type__c: 1,
+        CSB_Replacement_Fuel_Type__c: 1,
+        CSB_Funds_Requested__c: 1,
+      }
+    )
+    .execute(async (err, records) => ((await err) ? err : records));
+
+  return { formsTableRecordQuery, busTableRecordsQuery };
 }
 
 /**
