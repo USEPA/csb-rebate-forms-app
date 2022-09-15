@@ -235,7 +235,7 @@ router.get(
   "/formio-application-submission/:id",
   verifyMongoObjectId,
   storeBapComboKeys,
-  async (req, res) => {
+  (req, res) => {
     const { id } = req.params;
 
     axiosFormio(req)
@@ -474,16 +474,47 @@ router.post(
   }
 );
 
-// --- TODO: WIP, as we'll eventually mirror `router.get("/formio-application-submission/:id")`
-router.get("/formio-payment-request-schema", storeBapComboKeys, (req, res) => {
-  axiosFormio(req)
-    .get(paymentFormApiPath)
-    .then((axiosRes) => axiosRes.data)
-    .then((schema) => res.json(schema))
-    .catch((error) => {
-      const message = `Error...`;
-      return res.status(error?.response?.status || 500).json({ message });
-    });
-});
+// --- get an existing Payment Request form's schema and submission data from Forms.gov
+router.get(
+  "/formio-payment-request-submission/:id", // NOTE: id is the CSB Rebate ID (6 digits)
+  // verifyMongoObjectId, // TODO: determine if there's any way to verify the mongoDB Object ID, as the id param is not a MongoDB ObjectID string
+  storeBapComboKeys,
+  async (req, res) => {
+    const { id } = req.params;
+
+    axiosFormio(req)
+      .get(`${paymentFormApiPath}/submission?data.hidden_bap_rebate_id=${id}`)
+      .then((axiosRes) => axiosRes.data)
+      .then((submissions) => {
+        const submission = submissions[0];
+        const comboKey = submission.data.bap_hidden_entity_combo_key;
+
+        if (!req.bapComboKeys.includes(comboKey)) {
+          const message = `User with email ${req.user.mail} attempted to access Payment Request form submission ${id} that they do not have access to.`;
+          log({ level: "warn", message, req });
+          return res.json({
+            userAccess: false,
+            formSchema: null,
+            submissionData: null,
+          });
+        }
+
+        axiosFormio(req)
+          .get(paymentFormApiPath)
+          .then((axiosRes) => axiosRes.data)
+          .then((schema) => {
+            return res.json({
+              userAccess: true,
+              formSchema: { url: paymentFormApiPath, json: schema },
+              submissionData: submission,
+            });
+          });
+      })
+      .catch((error) => {
+        const message = `Error getting Forms.gov Payment Request form submission ${id}`;
+        res.status(error?.response?.status || 500).json({ message });
+      });
+  }
+);
 
 module.exports = router;

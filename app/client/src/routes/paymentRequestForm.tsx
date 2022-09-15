@@ -1,48 +1,191 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
-import { Form } from "@formio/react";
+import { Formio, Form } from "@formio/react";
+import { cloneDeep } from "lodash";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, getData } from "../config";
+import { getUserInfo } from "../utilities";
 import { Loading } from "components/loading";
 import { Message } from "components/message";
+import { useUserState } from "contexts/user";
+import { useCsbState } from "contexts/csb";
+import { useBapState } from "contexts/bap";
 
-type FormSchema =
-  | { status: "idle"; data: null }
-  | { status: "pending"; data: null }
-  | { status: "success"; data: object }
-  | { status: "failure"; data: null };
+type FormioSubmissionData = {
+  [field: string]: unknown;
+  hidden_current_user_email?: string;
+  hidden_current_user_title?: string;
+  hidden_current_user_name?: string;
+  bap_hidden_entity_combo_key?: string;
+};
+
+type SubmissionState =
+  | {
+      status: "idle";
+      data: {
+        userAccess: false;
+        formSchema: null;
+        submissionData: null;
+      };
+    }
+  | {
+      status: "pending";
+      data: {
+        userAccess: false;
+        formSchema: null;
+        submissionData: null;
+      };
+    }
+  | {
+      status: "success";
+      data:
+        | {
+            userAccess: true;
+            formSchema: { url: string; json: object };
+            submissionData: {
+              [field: string]: unknown;
+              _id: string; // MongoDB ObjectId string
+              data: object;
+              state: "submitted" | "draft";
+            };
+          }
+        | {
+            userAccess: false;
+            formSchema: null;
+            submissionData: null;
+          };
+    }
+  | {
+      status: "failure";
+      data: {
+        userAccess: false;
+        formSchema: null;
+        submissionData: null;
+      };
+    };
 
 export function PaymentRequestForm() {
-  const { id } = useParams<"id">();
+  const { id } = useParams<"id">(); // CSB Rebate ID (6 digits)
+  const { epaUserData } = useUserState();
+  const { csbData } = useCsbState();
+  const { samEntities } = useBapState();
 
-  const [paymentRequestSchema, setPaymentRequestSchema] = useState<FormSchema>({
+  const [formioSubmission, setFormioSubmission] = useState<SubmissionState>({
     status: "idle",
-    data: null,
+    data: {
+      userAccess: false,
+      formSchema: null,
+      submissionData: null,
+    },
   });
 
+  // set when form submission data is initially fetched, and then re-set each
+  // time a successful update of the submission data is posted to forms.gov
+  const [storedSubmissionData, setStoredSubmissionData] =
+    useState<FormioSubmissionData>({});
+
+  // create ref to storedSubmissionData, so the latest value can be referenced
+  // in the Form component's `onNextPage` event prop
+  const storedSubmissionDataRef = useRef(storedSubmissionData);
+
+  // initially empty, but will be set once the user attemts to submit the form
+  // (both successfully and unsuccessfully). passed to the to the <Form />
+  // component's submission prop, so the fields the user filled out will not be
+  // lost if a submission update fails, so the user can attempt submitting again
+  const [pendingSubmissionData, setPendingSubmissionData] =
+    useState<FormioSubmissionData>({});
+
   useEffect(() => {
-    getData(`${serverUrl}/api/formio-payment-request-schema`)
+    setFormioSubmission({
+      status: "pending",
+      data: {
+        userAccess: false,
+        formSchema: null,
+        submissionData: null,
+      },
+    });
+
+    getData(`${serverUrl}/api/formio-payment-request-submission/${id}`)
       .then((res) => {
-        setPaymentRequestSchema({ status: "success", data: res });
+        // set up s3 re-route to wrapper app
+        const s3Provider = Formio.Providers.providers.storage.s3;
+        Formio.Providers.providers.storage.s3 = function (formio: any) {
+          const s3Formio = cloneDeep(formio);
+          const mongoId = res.submissionData._id;
+          const comboKey = res.submissionData.data.bap_hidden_entity_combo_key;
+          s3Formio.formUrl = `${serverUrl}/api/${mongoId}/${comboKey}`;
+          return s3Provider(s3Formio);
+        };
+
+        const data = { ...res.submissionData.data };
+
+        setStoredSubmissionData((prevData) => {
+          storedSubmissionDataRef.current = data;
+          return data;
+        });
+
+        setFormioSubmission({
+          status: "success",
+          data: res,
+        });
       })
       .catch((err) => {
-        setPaymentRequestSchema({ status: "failure", data: null });
+        setFormioSubmission({
+          status: "failure",
+          data: {
+            userAccess: false,
+            formSchema: null,
+            submissionData: null,
+          },
+        });
       });
-  }, []);
+  }, [id]);
+
+  if (formioSubmission.status === "idle") {
+    return null;
+  }
+
+  if (formioSubmission.status === "pending") {
+    return <Loading />;
+  }
+
+  const { userAccess, formSchema, submissionData } = formioSubmission.data;
 
   if (
-    paymentRequestSchema.status === "idle" ||
-    paymentRequestSchema.status === "pending"
+    formioSubmission.status === "failure" ||
+    !userAccess ||
+    !formSchema ||
+    !submissionData
+  ) {
+    return (
+      <Message
+        type="error"
+        text="The requested submission does not exist, or you do not have access. Please contact support if you believe this is a mistake."
+      />
+    );
+  }
+
+  if (
+    csbData.status !== "success" ||
+    epaUserData.status !== "success" ||
+    samEntities.status !== "success"
   ) {
     return <Loading />;
   }
 
-  if (paymentRequestSchema.status === "failure") {
+  const entityComboKey = storedSubmissionData.bap_hidden_entity_combo_key;
+  const entity = samEntities.data.entities.find((entity) => {
     return (
-      <Message type="error" text="Error loading Payment Request form schema." />
+      entity.ENTITY_STATUS__c === "Active" &&
+      entity.ENTITY_COMBO_KEY__c === entityComboKey
     );
-  }
+  });
+
+  if (!entity) return null;
+
+  const email = epaUserData.data.mail;
+  const { title, name } = getUserInfo(email, entity);
 
   return (
     <div className="margin-top-2">
@@ -59,7 +202,22 @@ export function PaymentRequestForm() {
         </li>
       </ul>
 
-      <Form form={paymentRequestSchema.data} />
+      <div className="csb-form">
+        <Form
+          form={formSchema.json}
+          url={formSchema.url} // NOTE: used for file uploads
+          submission={{
+            data: {
+              ...storedSubmissionData,
+              last_updated_by: email,
+              hidden_current_user_email: email,
+              hidden_current_user_title: title,
+              hidden_current_user_name: name,
+              ...pendingSubmissionData,
+            },
+          }}
+        />
+      </div>
     </div>
   );
 }

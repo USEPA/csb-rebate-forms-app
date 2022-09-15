@@ -233,7 +233,7 @@ function FormMessage() {
 
 function ApplicationFormContent() {
   const navigate = useNavigate();
-  const { id } = useParams<"id">();
+  const { id } = useParams<"id">(); // MongoDB ObjectId string
   const { content } = useContentState();
   const { epaUserData } = useUserState();
   const { csbData } = useCsbState();
@@ -241,19 +241,17 @@ function ApplicationFormContent() {
     useBapState();
   const dispatch = useApplicationFormDispatch();
 
-  const [formioApplicationSubmission, setFormioApplicationSubmission] =
-    useState<SubmissionState>({
-      status: "idle",
-      data: {
-        userAccess: false,
-        formSchema: null,
-        submissionData: null,
-      },
-    });
+  const [formioSubmission, setFormioSubmission] = useState<SubmissionState>({
+    status: "idle",
+    data: {
+      userAccess: false,
+      formSchema: null,
+      submissionData: null,
+    },
+  });
 
-  // set when application form submission data is initially fetched, and then
-  // re-set each time a successful update of the submission data is posted to
-  // forms.gov
+  // set when form submission data is initially fetched, and then re-set each
+  // time a successful update of the submission data is posted to forms.gov
   const [storedSubmissionData, setStoredSubmissionData] =
     useState<FormioSubmissionData>({});
 
@@ -269,7 +267,7 @@ function ApplicationFormContent() {
     useState<FormioSubmissionData>({});
 
   useEffect(() => {
-    setFormioApplicationSubmission({
+    setFormioSubmission({
       status: "pending",
       data: {
         userAccess: false,
@@ -303,13 +301,13 @@ function ApplicationFormContent() {
           return data;
         });
 
-        setFormioApplicationSubmission({
+        setFormioSubmission({
           status: "success",
           data: res,
         });
       })
       .catch((err) => {
-        setFormioApplicationSubmission({
+        setFormioSubmission({
           status: "failure",
           data: {
             userAccess: false,
@@ -320,19 +318,18 @@ function ApplicationFormContent() {
       });
   }, [id]);
 
-  if (formioApplicationSubmission.status === "idle") {
+  if (formioSubmission.status === "idle") {
     return null;
   }
 
-  if (formioApplicationSubmission.status === "pending") {
+  if (formioSubmission.status === "pending") {
     return <Loading />;
   }
 
-  const { userAccess, formSchema, submissionData } =
-    formioApplicationSubmission.data;
+  const { userAccess, formSchema, submissionData } = formioSubmission.data;
 
   if (
-    formioApplicationSubmission.status === "failure" ||
+    formioSubmission.status === "failure" ||
     !userAccess ||
     !formSchema ||
     !submissionData
