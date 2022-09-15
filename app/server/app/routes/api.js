@@ -216,7 +216,6 @@ router.post("/formio-application-submission", storeBapComboKeys, (req, res) => {
 
   // add custom metadata to track formio submissions from wrapper
   req.body.metadata = {
-    ...req.body.metadata,
     ...formioCsbMetadata,
   };
 
@@ -399,12 +398,6 @@ router.post(
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    // add custom metadata to track formio submissions from wrapper
-    req.body.metadata = {
-      ...req.body.metadata,
-      ...formioCsbMetadata,
-    };
-
     return getApplicationSubmission(req, reviewItemId)
       .then(({ formsTableRecordQuery, busTableRecordsQuery }) => {
         const {
@@ -454,6 +447,10 @@ router.post(
             hidden_bap_requested_funds: Total_Rebate_Funds_Requested__c,
             hidden_bap_infra_max_rebate: Total_Infrastructure_Funds__c,
             busInfo,
+          },
+          // add custom metadata to track formio submissions from wrapper
+          metadata: {
+            ...formioCsbMetadata,
           },
           state: "draft",
         };
