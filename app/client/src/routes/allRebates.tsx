@@ -89,13 +89,21 @@ function useFetchedFormioPaymentRequestSubmissions() {
   }, [samEntities, dispatch]);
 }
 
+/** Custom hook to fetch Payment Request form submissions from the BAP */
+function useFetchedBapPaymentRequestSubmissions() {
+  // TODO
+}
+
 export function AllRebates() {
   const navigate = useNavigate();
   const { content } = useContentState();
   const { epaUserData } = useUserState();
   const { csbData } = useCsbState();
-  const { samEntities, applicationSubmissions: bapApplicationSubmissions } =
-    useBapState();
+  const {
+    samEntities,
+    applicationSubmissions: bapApplicationSubmissions,
+    paymentRequestSubmissions: bapPaymentRequestSubmissions,
+  } = useBapState();
   const {
     applicationSubmissions: formioApplicationSubmissions,
     paymentRequestSubmissions: formioPaymentRequestSubmissions,
@@ -115,6 +123,7 @@ export function AllRebates() {
   useFetchedBapApplicationSubmissions();
 
   useFetchedFormioPaymentRequestSubmissions();
+  useFetchedBapPaymentRequestSubmissions();
 
   if (
     csbData.status !== "success" ||
@@ -152,26 +161,60 @@ export function AllRebates() {
   const email = epaUserData.data.mail;
 
   /**
-   * Formio application submissions, merged with submissions returned from the
+   * Formio Application submissions, merged with submissions returned from the
    * BAP, so we can include CSB rebate status, CSB review item ID, and last
    * updated datetime.
    */
-  const submissions = formioApplicationSubmissions.data.map((formioSub) => {
-    const match = bapApplicationSubmissions.data.find((bapSubmission) => {
-      return bapSubmission.CSB_Form_ID__c === formioSub._id;
-    });
+  const applicationSubmissions = formioApplicationSubmissions.data.map(
+    (formioSubmission) => {
+      const match = bapApplicationSubmissions.data.find((bapSubmission) => {
+        return bapSubmission.CSB_Form_ID__c === formioSubmission._id;
+      });
 
-    return {
-      ...formioSub,
-      bap: {
-        comboKey: match?.UEI_EFTI_Combo_Key__c || null,
-        rebateId: match?.Parent_Rebate_ID__c || null,
-        reviewItemId: match?.CSB_Review_Item_ID__c || null,
-        rebateStatus: match?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c || null,
-        lastModified: match?.CSB_Modified_Full_String__c || null,
-      },
-    };
-  });
+      return {
+        type: "Application",
+        formio: {
+          ...formioSubmission,
+        },
+        bap: {
+          comboKey: match?.UEI_EFTI_Combo_Key__c || null,
+          rebateId: match?.Parent_Rebate_ID__c || null,
+          reviewItemId: match?.CSB_Review_Item_ID__c || null,
+          rebateStatus:
+            match?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c || null,
+          lastModified: match?.CSB_Modified_Full_String__c || null,
+        },
+      };
+    }
+  );
+
+  /**
+   * Formio Payment Request submissions, merged with submissions returned from
+   * the BAP, so we can include...(TODO)
+   */
+  const paymentRequestSubmissions = formioPaymentRequestSubmissions.data.map(
+    (formioSubmission) => {
+      const match = bapPaymentRequestSubmissions.data.find((bapSubmission) => {
+        return bapSubmission;
+      });
+
+      return {
+        type: "Payment Request",
+        formio: {
+          ...formioSubmission,
+        },
+        bap: {
+          comboKey: match ? null : null,
+          rebateId: match ? null : null,
+          reviewItemId: match ? null : null,
+          rebateStatus: match ? null : null,
+          lastModified: match ? null : null,
+        },
+      };
+    }
+  );
+
+  const submissions = [...applicationSubmissions, ...paymentRequestSubmissions];
 
   return (
     <>
@@ -261,8 +304,8 @@ export function AllRebates() {
               </thead>
 
               <tbody>
-                {submissions.map((submission, index) => {
-                  const { bap, _id, state, modified, data } = submission;
+                {submissions.map(({ type, formio, bap }, index) => {
+                  const { _id, state, modified, data } = formio;
                   const {
                     bap_hidden_entity_combo_key,
                     applicantUEI,
@@ -303,13 +346,6 @@ export function AllRebates() {
                     : "";
 
                   /**
-                   * Apply USWDS `usa-table--striped` styles to each rebate,
-                   * which can include up to three rows – one for each of the
-                   * forms: Application, Purchase Order, and Close-Out.
-                   */
-                  const rebateStyles = index % 2 ? "bg-white" : "bg-gray-5";
-
-                  /**
                    * matched SAM.gov entity for each submission (used to set the
                    * user's name and title in a new payment request form)
                    */
@@ -333,7 +369,7 @@ starting a new application), indicate to the user they need to first save the
 form for the fields to be displayed. */
                   return (
                     <Fragment key={_id}>
-                      <tr className={rebateStyles}>
+                      <tr className="bg-gray-5">
                         <th scope="row" className={statusStyles}>
                           {submissionNeedsEdits ? (
                             <button
@@ -558,7 +594,7 @@ save the form for the EFT indicator to be displayed. */
                       </tr>
 
                       {submissionHasBeenSelected && (
-                        <tr className={rebateStyles}>
+                        <tr className="bg-gray-5">
                           <th scope="row" colSpan={6}>
                             <button
                               className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
@@ -616,6 +652,17 @@ save the form for the EFT indicator to be displayed. */
                           </th>
                         </tr>
                       )}
+
+                      {
+                        /* empty row after each submission but the last one */
+                        index !== submissions.length - 1 && (
+                          <tr className="bg-white">
+                            <th className="p-0" colSpan={6}>
+                              &nbsp;
+                            </th>
+                          </tr>
+                        )
+                      }
                     </Fragment>
                   );
                 })}

@@ -61,6 +61,10 @@ type BapApplicationSubmission = {
   attributes: { type: string; url: string };
 };
 
+type BapPaymentRequestSubmission = {
+  // TODO
+};
+
 type State = {
   samEntities:
     | { status: "idle"; data: {} }
@@ -73,10 +77,15 @@ type State = {
       }
     | { status: "failure"; data: {} };
   applicationSubmissions:
-    | { status: "idle"; data: {} }
-    | { status: "pending"; data: {} }
+    | { status: "idle"; data: [] }
+    | { status: "pending"; data: [] }
     | { status: "success"; data: BapApplicationSubmission[] }
-    | { status: "failure"; data: {} };
+    | { status: "failure"; data: [] };
+  paymentRequestSubmissions:
+    | { status: "idle"; data: [] }
+    | { status: "pending"; data: [] }
+    | { status: "success"; data: BapPaymentRequestSubmission[] }
+    | { status: "failure"; data: [] };
 };
 
 type Action =
@@ -95,7 +104,13 @@ type Action =
       type: "FETCH_BAP_APPLICATION_SUBMISSIONS_SUCCESS";
       payload: { applicationSubmissions: BapApplicationSubmission[] };
     }
-  | { type: "FETCH_BAP_APPLICATION_SUBMISSIONS_FAILURE" };
+  | { type: "FETCH_BAP_APPLICATION_SUBMISSIONS_FAILURE" }
+  | { type: "FETCH_BAP_PAYMENT_REQUEST_SUBMISSIONS_REQUEST" }
+  | {
+      type: "FETCH_BAP_PAYMENT_REQUEST_SUBMISSIONS_SUCCESS";
+      payload: { paymentRequestSubmissions: BapPaymentRequestSubmission[] };
+    }
+  | { type: "FETCH_BAP_PAYMENT_REQUEST_SUBMISSIONS_FAILURE" };
 
 const StateContext = createContext<State | undefined>(undefined);
 const DispatchContext = createContext<Dispatch<Action> | undefined>(undefined);
@@ -138,7 +153,7 @@ function reducer(state: State, action: Action): State {
         ...state,
         applicationSubmissions: {
           status: "pending",
-          data: {},
+          data: [],
         },
       };
     }
@@ -159,7 +174,38 @@ function reducer(state: State, action: Action): State {
         ...state,
         applicationSubmissions: {
           status: "failure",
-          data: {},
+          data: [],
+        },
+      };
+    }
+
+    case "FETCH_BAP_PAYMENT_REQUEST_SUBMISSIONS_REQUEST": {
+      return {
+        ...state,
+        paymentRequestSubmissions: {
+          status: "pending",
+          data: [],
+        },
+      };
+    }
+
+    case "FETCH_BAP_PAYMENT_REQUEST_SUBMISSIONS_SUCCESS": {
+      const { paymentRequestSubmissions } = action.payload;
+      return {
+        ...state,
+        paymentRequestSubmissions: {
+          status: "success",
+          data: paymentRequestSubmissions,
+        },
+      };
+    }
+
+    case "FETCH_BAP_PAYMENT_REQUEST_SUBMISSIONS_FAILURE": {
+      return {
+        ...state,
+        paymentRequestSubmissions: {
+          status: "failure",
+          data: [],
         },
       };
     }
@@ -179,7 +225,11 @@ export function BapProvider({ children }: Props) {
     },
     applicationSubmissions: {
       status: "idle",
-      data: {},
+      data: [],
+    },
+    paymentRequestSubmissions: {
+      status: "idle",
+      data: [],
     },
   };
 
