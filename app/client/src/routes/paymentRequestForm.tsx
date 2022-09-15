@@ -66,7 +66,7 @@ type SubmissionState =
     };
 
 export function PaymentRequestForm() {
-  const { id } = useParams<"id">(); // CSB Rebate ID (6 digits)
+  const { rebateId } = useParams<"rebateId">(); // CSB Rebate ID (6 digits)
   const { epaUserData } = useUserState();
   const { csbData } = useCsbState();
   const { samEntities } = useBapState();
@@ -106,7 +106,7 @@ export function PaymentRequestForm() {
       },
     });
 
-    getData(`${serverUrl}/api/formio-payment-request-submission/${id}`)
+    getData(`${serverUrl}/api/formio-payment-request-submission/${rebateId}`)
       .then((res) => {
         // set up s3 re-route to wrapper app
         const s3Provider = Formio.Providers.providers.storage.s3;
@@ -140,7 +140,7 @@ export function PaymentRequestForm() {
           },
         });
       });
-  }, [id]);
+  }, [rebateId]);
 
   if (formioSubmission.status === "idle") {
     return null;
@@ -197,7 +197,7 @@ export function PaymentRequestForm() {
             </svg>
           </div>
           <div className="usa-icon-list__content">
-            <strong>Rebate ID:</strong> {id}
+            <strong>Rebate ID:</strong> {rebateId}
           </div>
         </li>
       </ul>
