@@ -11,12 +11,8 @@ import { TextWithTooltip } from "components/infoTooltip";
 import { useContentState } from "contexts/content";
 import { useUserState } from "contexts/user";
 import { useCsbState } from "contexts/csb";
-import { BapSamEntity, useBapState, useBapDispatch } from "contexts/bap";
-import {
-  FormioApplicationSubmission,
-  useFormioState,
-  useFormioDispatch,
-} from "contexts/formio";
+import { useBapState, useBapDispatch } from "contexts/bap";
+import { useFormioState, useFormioDispatch } from "contexts/formio";
 
 /** Custom hook to fetch Application form submissions from Forms.gov */
 function useFetchedFormioApplicationSubmissions() {
@@ -91,71 +87,6 @@ function useFetchedFormioPaymentRequestSubmissions() {
         dispatch({ type: "FETCH_FORMIO_PAYMENT_REQUEST_SUBMISSIONS_FAILURE" });
       });
   }, [samEntities, dispatch]);
-}
-
-function createNewPaymentRequest(
-  email: string,
-  entity: BapSamEntity,
-  rebateId: string,
-  applicationData: FormioApplicationSubmission["data"]
-) {
-  const { title, name } = getUserInfo(email, entity);
-  const {
-    bap_hidden_entity_combo_key,
-    ncesDistrictId,
-    totalRebateFundsRequested,
-    primaryContactName,
-    primaryContactTitle,
-    primaryContactPhoneNumber,
-    primaryContactEmail,
-    alternateContactName,
-    alternateContactTitle,
-    alternateContactPhoneNumber,
-    alternateContactEmail,
-    applicantOrganizationName,
-    privateFleetName,
-    schoolDistrictName,
-    schoolDistricPrioritized,
-  } = applicationData;
-
-  return postData(`${serverUrl}/api/formio-payment-request-submission/`, {
-    data: {
-      last_updated_by: email,
-      hidden_current_user_email: email,
-      hidden_current_user_title: title,
-      hidden_current_user_name: name,
-      bap_hidden_entity_combo_key,
-      hidden_bap_review_item_id: rebateId,
-      hidden_bap_prioritized: schoolDistricPrioritized,
-      hidden_bap_bus_data: null, // TODO: get from BAP (to include bus numbers)
-      hidden_bap_district_id: ncesDistrictId,
-      hidden_bap_requested_funds: totalRebateFundsRequested,
-      hidden_bap_primary_name: primaryContactName,
-      hidden_bap_primary_title: primaryContactTitle,
-      hidden_bap_primary_phone_number: primaryContactPhoneNumber,
-      hidden_bap_primary_email: primaryContactEmail,
-      hidden_bap_alternate_name: alternateContactName,
-      hidden_bap_alternate_title: alternateContactTitle,
-      hidden_bap_alternate_phone_number: alternateContactPhoneNumber,
-      hidden_bap_alternate_email: alternateContactEmail,
-      hidden_bap_org_name: applicantOrganizationName,
-      hidden_bap_fleet_name: privateFleetName,
-      hidden_bap_district_name: schoolDistrictName,
-      hidden_bap_infra_max_rebate: null, // TODO: get from BAP
-      busInfo: [
-        {
-          busNum: 1, // from BAP
-          maxRebate: 250000, // from Formio
-          newBusFuelType: "Electric", // from Formio
-          oldBusFuelType: "Diesel", // from Formio
-          oldBusModelYear: 2007, // from Formio
-          oldBusVin: "ETBBT123710161315", // from Formio
-          oldBusNcesDistrictId: "3407500", // from Formio
-        },
-      ],
-    },
-    state: "draft",
-  });
 }
 
 export function AllRebates() {
@@ -233,9 +164,11 @@ export function AllRebates() {
     return {
       ...formioSub,
       bap: {
-        lastModified: match?.CSB_Modified_Full_String__c || null,
+        comboKey: match?.UEI_EFTI_Combo_Key__c || null,
         rebateId: match?.Parent_Rebate_ID__c || null,
+        reviewItemId: match?.CSB_Review_Item_ID__c || null,
         rebateStatus: match?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c || null,
+        lastModified: match?.CSB_Modified_Full_String__c || null,
       },
     };
   });
@@ -630,8 +563,9 @@ save the form for the EFT indicator to be displayed. */
                             <button
                               className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
                               onClick={(ev) => {
-                                const id = bap.rebateId;
-                                if (!id || !entity) return;
+                                if (!bap.rebateId || !entity) return;
+
+                                const userInfo = getUserInfo(email, entity);
 
                                 // clear out existing message
                                 setMessage({
@@ -640,15 +574,27 @@ save the form for the EFT indicator to be displayed. */
                                   text: "",
                                 });
 
-                                createNewPaymentRequest(email, entity, id, data)
+                                postData(
+                                  `${serverUrl}/api/formio-payment-request-submission/`,
+                                  {
+                                    email,
+                                    title: userInfo.title,
+                                    name: userInfo.name,
+                                    comboKey: bap.comboKey,
+                                    rebateId: bap.rebateId, // CSB Rebate ID (6 digits)
+                                    reviewItemId: bap.reviewItemId, // CSB Rebate ID w/ form/version ID (9 digits)
+                                  }
+                                )
                                   .then((res) => {
-                                    navigate(`/payment/${id}`);
+                                    navigate(
+                                      `/payment-request/${bap.rebateId}`
+                                    );
                                   })
                                   .catch((err) => {
                                     setMessage({
                                       displayed: true,
                                       type: "error",
-                                      text: `Error updating Rebate ${id}. Please try again.`,
+                                      text: `Error updating Rebate ${bap.rebateId}. Please try again.`,
                                     });
                                   });
                               }}

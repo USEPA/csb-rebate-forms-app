@@ -390,8 +390,7 @@ router.post(
   "/formio-payment-request-submission",
   storeBapComboKeys,
   (req, res) => {
-    const comboKey = req.body.data?.bap_hidden_entity_combo_key;
-    const reviewItemId = req.body.data?.csb_review_item_id;
+    const { email, title, name, comboKey, rebateId, reviewItemId } = req.body;
 
     // verify post data includes one of user's BAP combo keys
     if (!req.bapComboKeys.includes(comboKey)) {
@@ -407,22 +406,66 @@ router.post(
     };
 
     return getApplicationSubmission(req, reviewItemId)
-      .then((applicationSubmission) => {
-        const data = {
-          ...applicationSubmission,
+      .then(({ formsTableRecordQuery, busTableRecordsQuery }) => {
+        const {
+          CSB_NCES_ID__c,
+          Primary_Applicant__r,
+          Alternate_Applicant__r,
+          Applicant_Organization__r,
+          CSB_School_District__r,
+          Fleet_Name__c,
+          School_District_Prioritized__c,
+          Total_Rebate_Funds_Requested__c,
+          Total_Infrastructure_Funds__c,
+        } = formsTableRecordQuery[0];
+
+        const busInfo = busTableRecordsQuery.map((record) => ({
+          busNum: record.Rebate_Item_num__c,
+          oldBusNcesDistrictId: CSB_NCES_ID__c,
+          oldBusVin: record.CSB_VIN__c,
+          oldBusModelYear: record.CSB_Model_Year__c,
+          oldBusFuelType: record.CSB_Fuel_Type__c,
+          newBusFuelType: record.CSB_Replacement_Fuel_Type__c,
+          maxRebate: record.CSB_Funds_Requested__c,
+        }));
+
+        const newSubmission = {
+          data: {
+            last_updated_by: email,
+            hidden_current_user_email: email,
+            hidden_current_user_title: title,
+            hidden_current_user_name: name,
+            bap_hidden_entity_combo_key: comboKey,
+            hidden_bap_rebate_id: rebateId,
+            hidden_bap_district_id: CSB_NCES_ID__c,
+            hidden_bap_primary_name: Primary_Applicant__r?.Name || "",
+            hidden_bap_primary_title: Primary_Applicant__r?.Title || "",
+            hidden_bap_primary_phone_number: Primary_Applicant__r?.Phone || "",
+            hidden_bap_primary_email: Primary_Applicant__r?.Email || "",
+            hidden_bap_alternate_name: Alternate_Applicant__r?.Name || "",
+            hidden_bap_alternate_title: Alternate_Applicant__r?.Title || "",
+            hidden_bap_alternate_phone_number:
+              Alternate_Applicant__r?.Phone || "",
+            hidden_bap_alternate_email: Alternate_Applicant__r?.Email || "",
+            hidden_bap_org_name: Applicant_Organization__r?.Name || "",
+            hidden_bap_district_name: CSB_School_District__r?.Name || "",
+            hidden_bap_fleet_name: Fleet_Name__c,
+            hidden_bap_prioritized: School_District_Prioritized__c,
+            hidden_bap_requested_funds: Total_Rebate_Funds_Requested__c,
+            hidden_bap_infra_max_rebate: Total_Infrastructure_Funds__c,
+            busInfo,
+          },
+          state: "draft",
         };
 
-        // TODO: temporarily return data for now...will eventually post to formio
-        return res.json(data);
-
-        // axiosFormio(req)
-        //   .post(`${paymentFormApiPath}/submission`, data)
-        //   .then((axiosRes) => axiosRes.data)
-        //   .then((submission) => res.json(submission))
-        //   .catch((error) => {
-        //     const message = `Error posting Forms.gov Payment Request form submission`;
-        //     return res.status(error?.response?.status || 500).json({ message });
-        //   });
+        axiosFormio(req)
+          .post(`${paymentFormApiPath}/submission`, newSubmission)
+          .then((axiosRes) => axiosRes.data)
+          .then((submission) => res.json(submission))
+          .catch((error) => {
+            const message = `Error posting Forms.gov Payment Request form submission`;
+            return res.status(error?.response?.status || 500).json({ message });
+          });
       })
       .catch((error) => {
         const message = `Error getting Application form submission from BAP`;
