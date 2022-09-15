@@ -25,13 +25,13 @@ const applicationFormApiPath = `${formioProjectUrl}/${formioApplicationFormPath}
 
 // --- get an existing Application form's submission data from Forms.gov
 router.get(
-  "/formio-application-submission/:id",
+  "/formio-application-submission/:mongoId",
   verifyMongoObjectId,
   (req, res) => {
-    const { id } = req.params;
+    const { mongoId } = req.params;
 
     axiosFormio(req)
-      .get(`${applicationFormApiPath}/submission/${id}`)
+      .get(`${applicationFormApiPath}/submission/${mongoId}`)
       .then((axiosRes) => axiosRes.data)
       .then((submission) => {
         axiosFormio(req)
@@ -48,7 +48,7 @@ router.get(
           });
       })
       .catch((error) => {
-        const message = `Error getting Forms.gov application form submission ${id}`;
+        const message = `Error getting Forms.gov Application form submission ${mongoId}`;
         return res.status(error?.response?.status || 500).json({ message });
       });
   }
@@ -56,10 +56,10 @@ router.get(
 
 // --- change a submitted Forms.gov Application form's submission state back to draft
 router.post(
-  "/formio-application-submission/:id",
+  "/formio-application-submission/:mongoId",
   verifyMongoObjectId,
   (req, res) => {
-    const { id } = req.params;
+    const { mongoId } = req.params;
     const { mail } = req.user;
 
     if (enrollmentClosed) {
@@ -68,18 +68,18 @@ router.post(
     }
 
     axiosFormio(req)
-      .get(`${applicationFormApiPath}/submission/${id}`)
+      .get(`${applicationFormApiPath}/submission/${mongoId}`)
       .then((axiosRes) => axiosRes.data)
       .then((existingSubmission) => {
         axiosFormio(req)
-          .put(`${applicationFormApiPath}/submission/${id}`, {
+          .put(`${applicationFormApiPath}/submission/${mongoId}`, {
             state: "draft",
             data: { ...existingSubmission.data, last_updated_by: mail },
             metadata: { ...existingSubmission.metadata, ...formioCsbMetadata },
           })
           .then((axiosRes) => axiosRes.data)
           .then((updatedSubmission) => {
-            const message = `User with email ${mail} updated application form submission ${id} from submitted to draft.`;
+            const message = `User with email ${mail} updated Application form submission ${mongoId} from submitted to draft.`;
             log({ level: "info", message, req });
 
             axiosFormio(req)
@@ -97,7 +97,7 @@ router.post(
           });
       })
       .catch((error) => {
-        const message = `Error updating Forms.gov application form submission ${id}`;
+        const message = `Error updating Forms.gov Application form submission ${mongoId}`;
         return res.status(error?.response?.status || 500).json({ message });
       });
   }

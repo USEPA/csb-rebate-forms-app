@@ -31,11 +31,11 @@ const enrollmentClosed = process.env.CSB_ENROLLMENT_PERIOD !== "open";
  * if the form submission has the status of "Edits Requested" or not (as stored
  * in and returned from the BAP).
  * @param {Object} param
- * @param {string} param.id
+ * @param {string} param.mongoId
  * @param {string} param.comboKey
  * @param {express.Request} param.req
  */
-function checkEnrollmentPeriodAndBapStatus({ id, comboKey, req }) {
+function checkEnrollmentPeriodAndBapStatus({ mongoId, comboKey, req }) {
   // continue if enrollment isn't closed
   if (!enrollmentClosed) {
     return Promise.resolve();
@@ -43,7 +43,7 @@ function checkEnrollmentPeriodAndBapStatus({ id, comboKey, req }) {
   // else, enrollment is closed, so only continue if edits are requested
   return getApplicationSubmissionsStatuses(req, [comboKey]).then(
     (submissions) => {
-      const submission = submissions.find((s) => s.CSB_Form_ID__c === id);
+      const submission = submissions.find((s) => s.CSB_Form_ID__c === mongoId);
       const status = submission?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c;
       return status === "Edits Requested"
         ? Promise.resolve()
@@ -232,20 +232,20 @@ router.post("/formio-application-submission", storeBapComboKeys, (req, res) => {
 
 // --- get an existing Application form's schema and submission data from Forms.gov
 router.get(
-  "/formio-application-submission/:id",
+  "/formio-application-submission/:mongoId",
   verifyMongoObjectId,
   storeBapComboKeys,
   (req, res) => {
-    const { id } = req.params;
+    const { mongoId } = req.params;
 
     axiosFormio(req)
-      .get(`${applicationFormApiPath}/submission/${id}`)
+      .get(`${applicationFormApiPath}/submission/${mongoId}`)
       .then((axiosRes) => axiosRes.data)
       .then((submission) => {
         const comboKey = submission.data.bap_hidden_entity_combo_key;
 
         if (!req.bapComboKeys.includes(comboKey)) {
-          const message = `User with email ${req.user.mail} attempted to access Application form submission ${id} that they do not have access to.`;
+          const message = `User with email ${req.user.mail} attempted to access Application form submission ${mongoId} that they do not have access to.`;
           log({ level: "warn", message, req });
           return res.json({
             userAccess: false,
@@ -266,7 +266,7 @@ router.get(
           });
       })
       .catch((error) => {
-        const message = `Error getting Forms.gov Application form submission ${id}`;
+        const message = `Error getting Forms.gov Application form submission ${mongoId}`;
         res.status(error?.response?.status || 500).json({ message });
       });
   }
@@ -274,14 +274,14 @@ router.get(
 
 // --- post an update to an existing draft Application form submission to Forms.gov
 router.post(
-  "/formio-application-submission/:id",
+  "/formio-application-submission/:mongoId",
   verifyMongoObjectId,
   storeBapComboKeys,
   (req, res) => {
-    const { id } = req.params;
+    const { mongoId } = req.params;
     const comboKey = req.body.data?.bap_hidden_entity_combo_key;
 
-    checkEnrollmentPeriodAndBapStatus({ id, comboKey, req })
+    checkEnrollmentPeriodAndBapStatus({ mongoId, comboKey, req })
       .then(() => {
         // verify post data includes one of user's BAP combo keys
         if (!req.bapComboKeys.includes(comboKey)) {
@@ -297,7 +297,7 @@ router.post(
         };
 
         axiosFormio(req)
-          .put(`${applicationFormApiPath}/submission/${id}`, req.body)
+          .put(`${applicationFormApiPath}/submission/${mongoId}`, req.body)
           .then((axiosRes) => axiosRes.data)
           .then((submission) => res.json(submission))
           .catch((error) => {
@@ -313,10 +313,10 @@ router.post(
 );
 
 // --- upload s3 file metadata to Forms.gov
-router.post("/:id/:comboKey/storage/s3", storeBapComboKeys, (req, res) => {
-  const { id, comboKey } = req.params;
+router.post("/:mongoId/:comboKey/storage/s3", storeBapComboKeys, (req, res) => {
+  const { mongoId, comboKey } = req.params;
 
-  checkEnrollmentPeriodAndBapStatus({ id, comboKey, req })
+  checkEnrollmentPeriodAndBapStatus({ mongoId, comboKey, req })
     .then(() => {
       if (!req.bapComboKeys.includes(comboKey)) {
         const message = `User with email ${req.user.mail} attempted to upload file without a matching BAP combo key`;
@@ -340,7 +340,7 @@ router.post("/:id/:comboKey/storage/s3", storeBapComboKeys, (req, res) => {
 });
 
 // --- download s3 file metadata from Forms.gov
-router.get("/:id/:comboKey/storage/s3", storeBapComboKeys, (req, res) => {
+router.get("/:mongoId/:comboKey/storage/s3", storeBapComboKeys, (req, res) => {
   const { comboKey } = req.params;
 
   if (!req.bapComboKeys.includes(comboKey)) {

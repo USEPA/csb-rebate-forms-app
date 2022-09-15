@@ -233,7 +233,7 @@ function FormMessage() {
 
 function ApplicationFormContent() {
   const navigate = useNavigate();
-  const { id } = useParams<"id">(); // MongoDB ObjectId string
+  const { mongoId } = useParams<"mongoId">(); // MongoDB ObjectId string
   const { content } = useContentState();
   const { epaUserData } = useUserState();
   const { csbData } = useCsbState();
@@ -276,14 +276,14 @@ function ApplicationFormContent() {
       },
     });
 
-    getData(`${serverUrl}/api/formio-application-submission/${id}`)
+    getData(`${serverUrl}/api/formio-application-submission/${mongoId}`)
       .then((res) => {
         // set up s3 re-route to wrapper app
         const s3Provider = Formio.Providers.providers.storage.s3;
         Formio.Providers.providers.storage.s3 = function (formio: any) {
           const s3Formio = cloneDeep(formio);
           const comboKey = res.submissionData.data.bap_hidden_entity_combo_key;
-          s3Formio.formUrl = `${serverUrl}/api/${id}/${comboKey}`;
+          s3Formio.formUrl = `${serverUrl}/api/${mongoId}/${comboKey}`;
           return s3Provider(s3Formio);
         };
 
@@ -316,7 +316,7 @@ function ApplicationFormContent() {
           },
         });
       });
-  }, [id]);
+  }, [mongoId]);
 
   if (formioSubmission.status === "idle") {
     return null;
@@ -354,7 +354,7 @@ function ApplicationFormContent() {
   const { enrollmentClosed } = csbData.data;
 
   const match = bapApplicationSubmissions.data.find((bapSubmission) => {
-    return bapSubmission.CSB_Form_ID__c === id;
+    return bapSubmission.CSB_Form_ID__c === mongoId;
   });
 
   const bap = {
