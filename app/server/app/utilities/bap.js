@@ -191,6 +191,7 @@ async function queryForApplicationSubmissionsStatuses(req, comboKeys) {
 
   /* SOQL: */
   // `SELECT
+  //   UEI_EFTI_Combo_Key__c,
   //   CSB_Form_ID__c,
   //   CSB_Modified_Full_String__c,
   //   CSB_Review_Item_ID__c,
@@ -211,6 +212,7 @@ async function queryForApplicationSubmissionsStatuses(req, comboKeys) {
       { UEI_EFTI_Combo_Key__c: { $in: comboKeys } },
       {
         // "*": 1,
+        UEI_EFTI_Combo_Key__c: 1,
         CSB_Form_ID__c: 1, // MongoDB ObjectId string
         CSB_Modified_Full_String__c: 1, // ISO 8601 date string
         CSB_Review_Item_ID__c: 1, // CSB Rebate ID w/ form/version ID (9 digits)
