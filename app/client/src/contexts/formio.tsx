@@ -43,7 +43,7 @@ export type FormioApplicationSubmission = {
   };
 };
 
-type FormioPaymentRequestSubmission = {
+export type FormioPaymentRequestSubmission = {
   [field: string]: unknown;
   _id: string; // MongoDB ObjectId string
   state: "submitted" | "draft";
