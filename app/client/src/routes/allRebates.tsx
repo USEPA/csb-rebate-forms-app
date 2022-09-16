@@ -264,6 +264,9 @@ function ApplicationSubmission({
 
   const { application } = rebate;
 
+  const applicationHasBeenSelected =
+    application.bap?.rebateStatus === "Selected";
+
   const {
     applicantUEI,
     applicantEfti,
@@ -403,14 +406,18 @@ function ApplicationSubmission({
         <br />
         <span className="display-flex flex-align-center font-sans-2xs">
           <svg
-            className="usa-icon"
+            className={`usa-icon ${
+              applicationHasBeenSelected ? "text-primary" : ""
+            }`}
             aria-hidden="true"
             focusable="false"
             role="img"
           >
             <use
               href={
-                applicationNeedsEdits
+                applicationHasBeenSelected
+                  ? `${icons}#check_circle`
+                  : applicationNeedsEdits
                   ? `${icons}#priority_high`
                   : applicationHasBeenWithdrawn
                   ? `${icons}#close`
@@ -424,7 +431,9 @@ function ApplicationSubmission({
           </svg>
           <span className="margin-left-05">
             {
-              applicationNeedsEdits || applicationHasBeenWithdrawn
+              applicationHasBeenSelected ||
+              applicationNeedsEdits ||
+              applicationHasBeenWithdrawn
                 ? application.bap?.rebateStatus
                 : application.formio.state === "draft"
                 ? "Draft"
@@ -719,9 +728,55 @@ function PaymentRequestSubmission({
         ) : null}
       </th>
 
-      <th scope="row" colSpan={5}>
-        (Remaining Payment Request submission fields)
-      </th>
+      <td className={statusStyles}>&nbsp;</td>
+
+      <td className={statusStyles}>
+        <span>Payment Request</span>
+        <br />
+        <span className="display-flex flex-align-center font-sans-2xs">
+          <svg
+            className="usa-icon"
+            aria-hidden="true"
+            focusable="false"
+            role="img"
+          >
+            <use
+              href={
+                paymentRequestNeedsEdits
+                  ? `${icons}#priority_high`
+                  : paymentRequestHasBeenWithdrawn
+                  ? `${icons}#close`
+                  : paymentRequest.formio.state === "submitted"
+                  ? `${icons}#check`
+                  : paymentRequest.formio.state === "draft"
+                  ? `${icons}#more_horiz`
+                  : `${icons}#remove` // fallback, not used
+              }
+            />
+          </svg>
+          <span className="margin-left-05">
+            {
+              paymentRequestNeedsEdits || paymentRequestHasBeenWithdrawn
+                ? paymentRequest.bap?.rebateStatus
+                : paymentRequest.formio.state === "draft"
+                ? "Draft"
+                : paymentRequest.formio.state === "submitted"
+                ? "Submitted"
+                : paymentRequest.formio.state // fallback, not used
+            }
+          </span>
+        </span>
+      </td>
+
+      <td className={statusStyles}>&nbsp;</td>
+
+      <td className={statusStyles}>&nbsp;</td>
+
+      <td className={statusStyles}>
+        {last_updated_by}
+        <br />
+        <span title={`${date} ${time}`}>{date}</span>
+      </td>
     </tr>
   );
 }
@@ -764,7 +819,9 @@ export function AllRebates() {
     bapApplicationSubmissions.status === "idle" ||
     bapApplicationSubmissions.status === "pending" ||
     formioPaymentRequestSubmissions.status === "idle" ||
-    formioPaymentRequestSubmissions.status === "pending"
+    formioPaymentRequestSubmissions.status === "pending" ||
+    bapPaymentRequestSubmissions.status === "idle" ||
+    bapPaymentRequestSubmissions.status === "pending"
   ) {
     return <Loading />;
   }
@@ -780,7 +837,10 @@ export function AllRebates() {
     return <Message type="error" text={messages.applicationSubmissionsError} />;
   }
 
-  if (formioPaymentRequestSubmissions.status === "failure") {
+  if (
+    formioPaymentRequestSubmissions.status === "failure" ||
+    bapPaymentRequestSubmissions.status === "failure"
+  ) {
     return (
       <Message type="error" text={messages.paymentRequestSubmissionsError} />
     );
