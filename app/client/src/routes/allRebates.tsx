@@ -1,5 +1,5 @@
 import { Fragment, useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages, getData, postData } from "../config";
@@ -782,6 +782,8 @@ function PaymentRequestSubmission({
 }
 
 export function AllRebates() {
+  const [searchParams] = useSearchParams();
+
   const { content } = useContentState();
   const { epaUserData } = useUserState();
   const { csbData } = useCsbState();
@@ -808,6 +810,14 @@ export function AllRebates() {
   useFetchedBapPaymentRequestSubmissions();
 
   const submissions = useCombinedSubmissions();
+
+  // log combined 'submissions' object if 'debug' search parameter exists
+  useEffect(() => {
+    const submissionsAreSet = Boolean(Object.keys(submissions).length);
+    if (searchParams.has("debug") && submissionsAreSet) {
+      console.log(submissions);
+    }
+  }, [searchParams, submissions]);
 
   if (
     csbData.status !== "success" ||
