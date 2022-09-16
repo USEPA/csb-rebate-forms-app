@@ -559,6 +559,15 @@ function PaymentRequestSubmission({
   const applicationHasBeenSelected =
     application.bap?.rebateStatus === "Selected";
 
+  /** matched SAM.gov entity for the application */
+  const entity = samEntities.data.entities.find((entity) => {
+    return (
+      entity.ENTITY_STATUS__c === "Active" &&
+      entity.ENTITY_COMBO_KEY__c ===
+        application.formio.data.bap_hidden_entity_combo_key
+    );
+  });
+
   // Application has been selected, but a Payment Request submission has not yet been created
   if (applicationHasBeenSelected && !paymentRequest.formio) {
     return (
@@ -644,15 +653,6 @@ function PaymentRequestSubmission({
     : paymentRequest.formio.state === "submitted"
     ? "text-italic"
     : "";
-
-  /** matched SAM.gov entity for the application */
-  const entity = samEntities.data.entities.find((entity) => {
-    return (
-      entity.ENTITY_STATUS__c === "Active" &&
-      entity.ENTITY_COMBO_KEY__c ===
-        application.formio.data.bap_hidden_entity_combo_key
-    );
-  });
 
   return (
     <tr className="bg-gray-5">
