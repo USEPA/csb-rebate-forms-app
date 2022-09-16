@@ -520,6 +520,16 @@ function PaymentRequestSubmission({
     );
   });
 
+  if (paymentRequest.formio?._id) {
+    return (
+      <tr className="bg-gray-5">
+        <th scope="row" colSpan={6}>
+          (Payment Request submission fields)
+        </th>
+      </tr>
+    );
+  }
+
   if (applicationHasBeenSelected) {
     return (
       <tr className="bg-gray-5">
@@ -564,16 +574,6 @@ function PaymentRequestSubmission({
               <span className="margin-left-1">New Payment Request</span>
             </span>
           </button>
-        </th>
-      </tr>
-    );
-  }
-
-  if (paymentRequest.formio?._id) {
-    return (
-      <tr className="bg-gray-5">
-        <th scope="row" colSpan={6}>
-          (Payment Request submission fields)
         </th>
       </tr>
     );
