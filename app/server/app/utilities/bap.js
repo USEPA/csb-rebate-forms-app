@@ -265,7 +265,7 @@ async function queryForApplicationSubmission(req, reviewItemId) {
 
   /* SOQL */
   // `SELECT
-  //   id,
+  //   Id,
   //   UEI_EFTI_Combo_Key__c,
   //   CSB_NCES_ID__c,
   //   Primary_Applicant__r.Name,
@@ -363,7 +363,7 @@ async function queryForApplicationSubmission(req, reviewItemId) {
   // WHERE
   //   recordtypeid = '${busTableId}' AND
   //   Related_Order_Request__c = '${formsTableRecordId}' AND
-  //   CSB_Rebate_Item_Type__c != 'Infrastructure'`
+  //   CSB_Rebate_Item_Type__c = 'Old Bus'`
 
   const busTableRecordsQuery = await bapConnection
     .sobject(BAP_BUS_TABLE)
@@ -371,7 +371,7 @@ async function queryForApplicationSubmission(req, reviewItemId) {
       {
         recordtypeid: busTableId,
         Related_Order_Request__c: formsTableRecordId,
-        CSB_Rebate_Item_Type__c: { $neq: "Infrastructure" },
+        CSB_Rebate_Item_Type__c: "Old Bus",
       },
       {
         // "*": 1,
