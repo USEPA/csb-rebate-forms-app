@@ -30,9 +30,11 @@ type Props = {
 };
 
 type State = {
-  displayed: boolean;
-  type: "info" | "success" | "warning" | "error";
-  text: string;
+  message: {
+    displayed: boolean;
+    type: "info" | "success" | "warning" | "error";
+    text: string;
+  };
 };
 
 type Action =
@@ -63,9 +65,11 @@ function reducer(state: State, action: Action): State {
       const { text } = action.payload;
       return {
         ...state,
-        displayed: true,
-        type: "info",
-        text,
+        message: {
+          displayed: true,
+          type: "info",
+          text,
+        },
       };
     }
 
@@ -73,9 +77,11 @@ function reducer(state: State, action: Action): State {
       const { text } = action.payload;
       return {
         ...state,
-        displayed: true,
-        type: "success",
-        text,
+        message: {
+          displayed: true,
+          type: "success",
+          text,
+        },
       };
     }
 
@@ -83,9 +89,11 @@ function reducer(state: State, action: Action): State {
       const { text } = action.payload;
       return {
         ...state,
-        displayed: true,
-        type: "warning",
-        text,
+        message: {
+          displayed: true,
+          type: "warning",
+          text,
+        },
       };
     }
 
@@ -93,18 +101,22 @@ function reducer(state: State, action: Action): State {
       const { text } = action.payload;
       return {
         ...state,
-        displayed: true,
-        type: "error",
-        text,
+        message: {
+          displayed: true,
+          type: "error",
+          text,
+        },
       };
     }
 
     case "RESET_MESSAGE": {
       return {
         ...state,
-        displayed: false,
-        type: "info",
-        text: "",
+        message: {
+          displayed: false,
+          type: "info",
+          text: "",
+        },
       };
     }
 
@@ -117,9 +129,11 @@ function reducer(state: State, action: Action): State {
 
 function ApplicationFormProvider({ children }: Props) {
   const initialState: State = {
-    displayed: false,
-    type: "info",
-    text: "",
+    message: {
+      displayed: false,
+      type: "info",
+      text: "",
+    },
   };
 
   const [state, dispatch] = useReducer(reducer, initialState);
@@ -226,9 +240,9 @@ type SubmissionState =
     };
 
 function FormMessage() {
-  const { displayed, type, text } = useApplicationFormState();
-  if (!displayed) return null;
-  return <Message type={type} text={text} />;
+  const { message } = useApplicationFormState();
+  if (!message.displayed) return null;
+  return <Message type={message.type} text={message.text} />;
 }
 
 function ApplicationFormContent() {
@@ -287,14 +301,11 @@ function ApplicationFormContent() {
           return s3Provider(s3Formio);
         };
 
-        // remove `ncesDataSource` and `ncesDataLookup` fields
         const data = { ...res.submissionData.data };
-        if (data.hasOwnProperty("ncesDataSource")) {
-          delete data.ncesDataSource;
-        }
-        if (data.hasOwnProperty("ncesDataLookup")) {
-          delete data.ncesDataLookup;
-        }
+
+        // remove `ncesDataSource` and `ncesDataLookup` fields
+        if (data.hasOwnProperty("ncesDataSource")) delete data.ncesDataSource;
+        if (data.hasOwnProperty("ncesDataLookup")) delete data.ncesDataLookup;
 
         setStoredSubmissionData((prevData) => {
           storedSubmissionDataRef.current = data;
@@ -461,7 +472,7 @@ function ApplicationFormContent() {
             // button (the component w/ the key "busInformation") is clicked
             // the `storedSubmissionDataRef` value is mutated, which invalidates
             // the isEqual() early return "dirty check" used in the onNextPage
-            // event callback below (as the two object being compared are now
+            // event callback below (as the two objects being compared are now
             // equal). That means if the user changed any of the bus info fields
             // (which are displayed via a Formio "Edit Grid" component, which
             // includes its own "Save" button that must be clicked) and clicked
@@ -482,8 +493,9 @@ function ApplicationFormContent() {
             data: FormioSubmissionData;
             metadata: unknown;
           }) => {
-            // remove `ncesDataSource` and `ncesDataLookup` fields
             const data = { ...submission.data };
+
+            // remove `ncesDataSource` and `ncesDataLookup` fields
             if (data.hasOwnProperty("ncesDataSource")) {
               delete data.ncesDataSource;
             }
@@ -560,8 +572,9 @@ function ApplicationFormContent() {
               metadata: unknown;
             };
           }) => {
-            // remove `ncesDataSource` and `ncesDataLookup` fields
             const data = { ...submission.data };
+
+            // remove `ncesDataSource` and `ncesDataLookup` fields
             if (data.hasOwnProperty("ncesDataSource")) {
               delete data.ncesDataSource;
             }
