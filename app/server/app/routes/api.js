@@ -249,7 +249,7 @@ router.get(
           return res.json({
             userAccess: false,
             formSchema: null,
-            submissionData: null,
+            submission: null,
           });
         }
 
@@ -260,7 +260,7 @@ router.get(
             return res.json({
               userAccess: true,
               formSchema: { url: applicationFormApiPath, json: schema },
-              submissionData: submission,
+              submission,
             });
           });
       })
@@ -494,7 +494,7 @@ router.get(
           return res.json({
             userAccess: false,
             formSchema: null,
-            submissionData: null,
+            submission: null,
           });
         }
 
@@ -505,7 +505,7 @@ router.get(
             return res.json({
               userAccess: true,
               formSchema: { url: paymentFormApiPath, json: schema },
-              submissionData: submission,
+              submission,
             });
           });
       })

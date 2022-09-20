@@ -190,53 +190,39 @@ type FormioSubmissionData = {
   hidden_current_user_title?: string;
   hidden_current_user_name?: string;
   bap_hidden_entity_combo_key?: string;
-  ncesDataSource?: string;
-  ncesDataLookup?: string[];
 };
+
+type FormioSubmission = {
+  [field: string]: unknown;
+  _id: string; // MongoDB ObjectId string
+  data: FormioSubmissionData;
+  state: "submitted" | "draft";
+};
+
+type NoFormioData = { userAccess: false; formSchema: null; submission: null };
 
 type SubmissionState =
   | {
       status: "idle";
-      data: {
-        userAccess: false;
-        formSchema: null;
-        submissionData: null;
-      };
+      data: NoFormioData;
     }
   | {
       status: "pending";
-      data: {
-        userAccess: false;
-        formSchema: null;
-        submissionData: null;
-      };
+      data: NoFormioData;
     }
   | {
       status: "success";
       data:
+        | NoFormioData
         | {
             userAccess: true;
             formSchema: { url: string; json: object };
-            submissionData: {
-              [field: string]: unknown;
-              _id: string; // MongoDB ObjectId string
-              data: object;
-              state: "submitted" | "draft";
-            };
-          }
-        | {
-            userAccess: false;
-            formSchema: null;
-            submissionData: null;
+            submission: FormioSubmission;
           };
     }
   | {
       status: "failure";
-      data: {
-        userAccess: false;
-        formSchema: null;
-        submissionData: null;
-      };
+      data: NoFormioData;
     };
 
 function FormMessage() {
@@ -257,11 +243,7 @@ function ApplicationFormContent() {
 
   const [formioSubmission, setFormioSubmission] = useState<SubmissionState>({
     status: "idle",
-    data: {
-      userAccess: false,
-      formSchema: null,
-      submissionData: null,
-    },
+    data: { userAccess: false, formSchema: null, submission: null },
   });
 
   // set when form submission data is initially fetched, and then re-set each
@@ -283,11 +265,7 @@ function ApplicationFormContent() {
   useEffect(() => {
     setFormioSubmission({
       status: "pending",
-      data: {
-        userAccess: false,
-        formSchema: null,
-        submissionData: null,
-      },
+      data: { userAccess: false, formSchema: null, submission: null },
     });
 
     getData(`${serverUrl}/api/formio-application-submission/${mongoId}`)
@@ -296,12 +274,12 @@ function ApplicationFormContent() {
         const s3Provider = Formio.Providers.providers.storage.s3;
         Formio.Providers.providers.storage.s3 = function (formio: any) {
           const s3Formio = cloneDeep(formio);
-          const comboKey = res.submissionData.data.bap_hidden_entity_combo_key;
+          const comboKey = res.submission.data.bap_hidden_entity_combo_key;
           s3Formio.formUrl = `${serverUrl}/api/${mongoId}/${comboKey}`;
           return s3Provider(s3Formio);
         };
 
-        const data = { ...res.submissionData.data };
+        const data = { ...res.submission.data };
 
         // remove `ncesDataSource` and `ncesDataLookup` fields
         if (data.hasOwnProperty("ncesDataSource")) delete data.ncesDataSource;
@@ -320,11 +298,7 @@ function ApplicationFormContent() {
       .catch((err) => {
         setFormioSubmission({
           status: "failure",
-          data: {
-            userAccess: false,
-            formSchema: null,
-            submissionData: null,
-          },
+          data: { userAccess: false, formSchema: null, submission: null },
         });
       });
   }, [mongoId]);
@@ -337,13 +311,13 @@ function ApplicationFormContent() {
     return <Loading />;
   }
 
-  const { userAccess, formSchema, submissionData } = formioSubmission.data;
+  const { userAccess, formSchema, submission } = formioSubmission.data;
 
   if (
     formioSubmission.status === "failure" ||
     !userAccess ||
     !formSchema ||
-    !submissionData
+    !submission
   ) {
     return (
       <Message
@@ -395,9 +369,9 @@ function ApplicationFormContent() {
         <MarkdownContent
           className="margin-top-4"
           children={
-            submissionData.state === "draft"
+            submission.state === "draft"
               ? content.data?.draftApplicationIntro || ""
-              : submissionData.state === "submitted"
+              : submission.state === "submitted"
               ? content.data?.submittedApplicationIntro || ""
               : ""
           }
@@ -414,7 +388,7 @@ function ApplicationFormContent() {
             </svg>
           </div>
           <div className="usa-icon-list__content">
-            <strong>Application ID:</strong> {submissionData._id}
+            <strong>Application ID:</strong> {submission._id}
           </div>
         </li>
 
@@ -449,24 +423,20 @@ function ApplicationFormContent() {
           options={{
             readOnly:
               (enrollmentClosed && !submissionNeedsEdits) ||
-              submissionData.state === "submitted"
+              submission.state === "submitted"
                 ? true
                 : false,
             noAlerts: true,
           }}
-          onChange={(submission: {
+          onChange={(onChangeSubmission: {
+            [field: string]: unknown;
             changed: {
+              [field: string]: unknown;
               component: {
                 [field: string]: unknown;
                 key: string;
               };
-              flags: unknown;
-              instance: unknown;
-              value: unknown;
             };
-            data: FormioSubmissionData;
-            isValid: boolean;
-            metadata: unknown;
           }) => {
             // NOTE: For some unknown reason, whenever the bus info's "Save"
             // button (the component w/ the key "busInformation") is clicked
@@ -484,16 +454,18 @@ function ApplicationFormContent() {
             // clicked (which must be clicked to close the bus info fields) to
             // guarantee the "dirty check" succeeds the next time the form's
             // "Next" button is clicked.
-            if (submission?.changed?.component?.key === "busInformation") {
+            if (
+              onChangeSubmission?.changed?.component?.key === "busInformation"
+            ) {
               storedSubmissionDataRef.current = {};
             }
           }}
-          onSubmit={(submission: {
+          onSubmit={(onSubmitSubmission: {
             state: "submitted" | "draft";
             data: FormioSubmissionData;
             metadata: unknown;
           }) => {
-            const data = { ...submission.data };
+            const data = { ...onSubmitSubmission.data };
 
             // remove `ncesDataSource` and `ncesDataLookup` fields
             if (data.hasOwnProperty("ncesDataSource")) {
@@ -503,14 +475,14 @@ function ApplicationFormContent() {
               delete data.ncesDataLookup;
             }
 
-            if (submission.state === "submitted") {
+            if (onSubmitSubmission.state === "submitted") {
               dispatch({
                 type: "DISPLAY_INFO_MESSAGE",
                 payload: { text: "Submitting form..." },
               });
             }
 
-            if (submission.state === "draft") {
+            if (onSubmitSubmission.state === "draft") {
               dispatch({
                 type: "DISPLAY_INFO_MESSAGE",
                 payload: { text: "Saving form..." },
@@ -520,8 +492,8 @@ function ApplicationFormContent() {
             setPendingSubmissionData(data);
 
             postData(
-              `${serverUrl}/api/formio-application-submission/${submissionData._id}`,
-              { ...submission, data }
+              `${serverUrl}/api/formio-application-submission/${submission._id}`,
+              { ...onSubmitSubmission, data }
             )
               .then((res) => {
                 setStoredSubmissionData((prevData) => {
@@ -531,7 +503,7 @@ function ApplicationFormContent() {
 
                 setPendingSubmissionData({});
 
-                if (submission.state === "submitted") {
+                if (onSubmitSubmission.state === "submitted") {
                   dispatch({
                     type: "DISPLAY_SUCCESS_MESSAGE",
                     payload: { text: "Form successfully submitted." },
@@ -544,7 +516,7 @@ function ApplicationFormContent() {
                   return;
                 }
 
-                if (submission.state === "draft") {
+                if (onSubmitSubmission.state === "draft") {
                   dispatch({
                     type: "DISPLAY_SUCCESS_MESSAGE",
                     payload: { text: "Draft successfully saved." },
@@ -562,17 +534,14 @@ function ApplicationFormContent() {
                 });
               });
           }}
-          onNextPage={({
-            page,
-            submission,
-          }: {
+          onNextPage={(onNextParam: {
             page: number;
             submission: {
               data: FormioSubmissionData;
               metadata: unknown;
             };
           }) => {
-            const data = { ...submission.data };
+            const data = { ...onNextParam.submission.data };
 
             // remove `ncesDataSource` and `ncesDataLookup` fields
             if (data.hasOwnProperty("ncesDataSource")) {
@@ -584,7 +553,7 @@ function ApplicationFormContent() {
 
             // don't post an update if form is not in draft state
             // (form has been already submitted, and fields are read-only)
-            if (submissionData.state !== "draft") return;
+            if (submission.state !== "draft") return;
 
             // don't post an update if no changes have been made to the form
             // (ignoring current user fields)
@@ -606,8 +575,8 @@ function ApplicationFormContent() {
             setPendingSubmissionData(data);
 
             postData(
-              `${serverUrl}/api/formio-application-submission/${submissionData._id}`,
-              { ...submission, data, state: "draft" }
+              `${serverUrl}/api/formio-application-submission/${submission._id}`,
+              { ...onNextParam.submission, data, state: "draft" }
             )
               .then((res) => {
                 setStoredSubmissionData((prevData) => {

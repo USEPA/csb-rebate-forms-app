@@ -43,7 +43,7 @@ router.get(
                 url: `${formioProjectUrl}/form/${submission.form}`,
                 json: schema,
               },
-              submissionData: submission,
+              submission,
             });
           });
       })
@@ -91,7 +91,7 @@ router.post(
                     url: `${formioProjectUrl}/form/${updatedSubmission.form}`,
                     json: schema,
                   },
-                  submissionData: updatedSubmission,
+                  submission: updatedSubmission,
                 });
               });
           });

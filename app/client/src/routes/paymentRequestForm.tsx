@@ -20,49 +20,37 @@ type FormioSubmissionData = {
   bap_hidden_entity_combo_key?: string;
 };
 
+type FormioSubmission = {
+  [field: string]: unknown;
+  _id: string; // MongoDB ObjectId string
+  data: FormioSubmissionData;
+  state: "submitted" | "draft";
+};
+
+type NoFormioData = { userAccess: false; formSchema: null; submission: null };
+
 type SubmissionState =
   | {
       status: "idle";
-      data: {
-        userAccess: false;
-        formSchema: null;
-        submissionData: null;
-      };
+      data: NoFormioData;
     }
   | {
       status: "pending";
-      data: {
-        userAccess: false;
-        formSchema: null;
-        submissionData: null;
-      };
+      data: NoFormioData;
     }
   | {
       status: "success";
       data:
+        | NoFormioData
         | {
             userAccess: true;
             formSchema: { url: string; json: object };
-            submissionData: {
-              [field: string]: unknown;
-              _id: string; // MongoDB ObjectId string
-              data: object;
-              state: "submitted" | "draft";
-            };
-          }
-        | {
-            userAccess: false;
-            formSchema: null;
-            submissionData: null;
+            submission: FormioSubmission;
           };
     }
   | {
       status: "failure";
-      data: {
-        userAccess: false;
-        formSchema: null;
-        submissionData: null;
-      };
+      data: NoFormioData;
     };
 
 export function PaymentRequestForm() {
@@ -73,11 +61,7 @@ export function PaymentRequestForm() {
 
   const [formioSubmission, setFormioSubmission] = useState<SubmissionState>({
     status: "idle",
-    data: {
-      userAccess: false,
-      formSchema: null,
-      submissionData: null,
-    },
+    data: { userAccess: false, formSchema: null, submission: null },
   });
 
   // set when form submission data is initially fetched, and then re-set each
@@ -99,11 +83,7 @@ export function PaymentRequestForm() {
   useEffect(() => {
     setFormioSubmission({
       status: "pending",
-      data: {
-        userAccess: false,
-        formSchema: null,
-        submissionData: null,
-      },
+      data: { userAccess: false, formSchema: null, submission: null },
     });
 
     getData(`${serverUrl}/api/formio-payment-request-submission/${rebateId}`)
@@ -112,13 +92,13 @@ export function PaymentRequestForm() {
         const s3Provider = Formio.Providers.providers.storage.s3;
         Formio.Providers.providers.storage.s3 = function (formio: any) {
           const s3Formio = cloneDeep(formio);
-          const mongoId = res.submissionData._id;
-          const comboKey = res.submissionData.data.bap_hidden_entity_combo_key;
+          const mongoId = res.submission._id;
+          const comboKey = res.submission.data.bap_hidden_entity_combo_key;
           s3Formio.formUrl = `${serverUrl}/api/${mongoId}/${comboKey}`;
           return s3Provider(s3Formio);
         };
 
-        const data = { ...res.submissionData.data };
+        const data = { ...res.submission.data };
 
         setStoredSubmissionData((prevData) => {
           storedSubmissionDataRef.current = data;
@@ -133,11 +113,7 @@ export function PaymentRequestForm() {
       .catch((err) => {
         setFormioSubmission({
           status: "failure",
-          data: {
-            userAccess: false,
-            formSchema: null,
-            submissionData: null,
-          },
+          data: { userAccess: false, formSchema: null, submission: null },
         });
       });
   }, [rebateId]);
@@ -150,13 +126,13 @@ export function PaymentRequestForm() {
     return <Loading />;
   }
 
-  const { userAccess, formSchema, submissionData } = formioSubmission.data;
+  const { userAccess, formSchema, submission } = formioSubmission.data;
 
   if (
     formioSubmission.status === "failure" ||
     !userAccess ||
     !formSchema ||
-    !submissionData
+    !submission
   ) {
     return (
       <Message
@@ -215,6 +191,24 @@ export function PaymentRequestForm() {
               hidden_current_user_name: name,
               ...pendingSubmissionData,
             },
+          }}
+          onSubmit={(onSubmitSubmission: {
+            state: "submitted" | "draft";
+            data: FormioSubmissionData;
+            metadata: unknown;
+          }) => {
+            const data = { ...onSubmitSubmission.data };
+            console.log(data);
+          }}
+          onNextPage={(onNextParam: {
+            page: number;
+            submission: {
+              data: FormioSubmissionData;
+              metadata: unknown;
+            };
+          }) => {
+            const data = { ...onNextParam.submission.data };
+            console.log(data);
           }}
         />
       </div>

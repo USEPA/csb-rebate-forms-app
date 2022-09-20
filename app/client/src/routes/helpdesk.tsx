@@ -15,26 +15,22 @@ import { useUserState } from "contexts/user";
 import { useCsbState } from "contexts/csb";
 import { useDialogDispatch } from "contexts/dialog";
 
+type NoFormioData = { formSchema: null; submission: null };
+
 type SubmissionState =
   | {
       status: "idle";
-      data: {
-        formSchema: null;
-        submissionData: null;
-      };
+      data: NoFormioData;
     }
   | {
       status: "pending";
-      data: {
-        formSchema: null;
-        submissionData: null;
-      };
+      data: NoFormioData;
     }
   | {
       status: "success";
       data: {
         formSchema: { url: string; json: object };
-        submissionData: {
+        submission: {
           [field: string]: unknown;
           _id: string; // MongoDB ObjectId string
           state: "submitted" | "draft";
@@ -49,10 +45,7 @@ type SubmissionState =
     }
   | {
       status: "failure";
-      data: {
-        formSchema: null;
-        submissionData: null;
-      };
+      data: NoFormioData;
     };
 
 export function Helpdesk() {
@@ -71,10 +64,7 @@ export function Helpdesk() {
   const [formioApplicationSubmission, setFormioApplicationSubmission] =
     useState<SubmissionState>({
       status: "idle",
-      data: {
-        formSchema: null,
-        submissionData: null,
-      },
+      data: { formSchema: null, submission: null },
     });
 
   if (
@@ -92,7 +82,7 @@ export function Helpdesk() {
 
   const { enrollmentClosed } = csbData.data;
 
-  const { formSchema, submissionData } = formioApplicationSubmission.data;
+  const { formSchema, submission } = formioApplicationSubmission.data;
 
   return (
     <>
@@ -115,17 +105,14 @@ export function Helpdesk() {
 
             setFormioApplicationSubmission({
               status: "pending",
-              data: {
-                formSchema: null,
-                submissionData: null,
-              },
+              data: { formSchema: null, submission: null },
             });
 
             getData(
               `${serverUrl}/help/formio-application-submission/${searchText}`
             )
               .then((res) => {
-                setFormId(res.submissionData._id);
+                setFormId(res.submission._id);
                 setFormioApplicationSubmission({
                   status: "success",
                   data: res,
@@ -135,10 +122,7 @@ export function Helpdesk() {
                 setFormId("");
                 setFormioApplicationSubmission({
                   status: "failure",
-                  data: {
-                    formSchema: null,
-                    submissionData: null,
-                  },
+                  data: { formSchema: null, submission: null },
                 });
               });
           }}
@@ -186,7 +170,7 @@ export function Helpdesk() {
 
       {formioApplicationSubmission.status === "success" &&
         formSchema &&
-        submissionData && (
+        submission && (
           <>
             <div className="usa-table-container--scrollable" tabIndex={0}>
               <table
@@ -256,18 +240,18 @@ export function Helpdesk() {
                         </span>
                       </button>
                     </th>
-                    <td>{submissionData._id}</td>
-                    <td>{submissionData.data.applicantOrganizationName}</td>
-                    <td>{submissionData.data.last_updated_by}</td>
+                    <td>{submission._id}</td>
+                    <td>{submission.data.applicantOrganizationName}</td>
+                    <td>{submission.data.last_updated_by}</td>
                     <td>
-                      {new Date(submissionData.modified).toLocaleDateString()}
+                      {new Date(submission.modified).toLocaleDateString()}
                     </td>
-                    <td>{submissionData.state}</td>
+                    <td>{submission.state}</td>
                     <td>
                       <button
                         className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
                         disabled={
-                          enrollmentClosed || submissionData.state === "draft"
+                          enrollmentClosed || submission.state === "draft"
                         }
                         onClick={(ev) => {
                           dispatch({
@@ -285,10 +269,7 @@ export function Helpdesk() {
 
                                 setFormioApplicationSubmission({
                                   status: "pending",
-                                  data: {
-                                    formSchema: null,
-                                    submissionData: null,
-                                  },
+                                  data: { formSchema: null, submission: null },
                                 });
 
                                 postData(
@@ -306,7 +287,7 @@ export function Helpdesk() {
                                       status: "failure",
                                       data: {
                                         formSchema: null,
-                                        submissionData: null,
+                                        submission: null,
                                       },
                                     });
                                   });
@@ -340,12 +321,12 @@ export function Helpdesk() {
 
             {formDisplayed && (
               <>
-                <h3>Application ID: {submissionData._id}</h3>
+                <h3>Application ID: {submission._id}</h3>
 
                 <Form
                   form={formSchema.json}
                   url={formSchema.url} // NOTE: used for file uploads
-                  submission={{ data: submissionData.data }}
+                  submission={{ data: submission.data }}
                   options={{ readOnly: true }}
                 />
               </>
