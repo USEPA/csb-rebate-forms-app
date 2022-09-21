@@ -101,7 +101,6 @@ async function queryForSamEntities(req, email) {
   /** @type {jsforce.Connection} */
   const bapConnection = req.app.locals.bapConnection;
 
-  /* SOQL: */
   // `SELECT
   //   ENTITY_COMBO_KEY__c,
   //   ENTITY_STATUS__c,
@@ -189,7 +188,6 @@ async function queryForApplicationSubmissionsStatuses(req, comboKeys) {
   /** @type {jsforce.Connection} */
   const bapConnection = req.app.locals.bapConnection;
 
-  /* SOQL: */
   // `SELECT
   //   UEI_EFTI_Combo_Key__c,
   //   CSB_Form_ID__c,
@@ -237,7 +235,6 @@ async function queryForApplicationSubmission(req, reviewItemId) {
   /** @type {jsforce.Connection} */
   const bapConnection = req.app.locals.bapConnection;
 
-  /* SOQL: */
   // `SELECT
   //   Id
   // FROM
@@ -259,11 +256,11 @@ async function queryForApplicationSubmission(req, reviewItemId) {
         Id: 1, // Salesforce record ID
       }
     )
+    .limit(1)
     .execute(async (err, records) => ((await err) ? err : records));
 
   const formsTableId = formsTableIdQuery["0"].Id;
 
-  /* SOQL */
   // `SELECT
   //   Id,
   //   UEI_EFTI_Combo_Key__c,
@@ -322,14 +319,13 @@ async function queryForApplicationSubmission(req, reviewItemId) {
 
   const formsTableRecordId = formsTableRecordQuery["0"].Id;
 
-  /* SOQL */
   // `SELECT
   //   Id
   // FROM
   //   recordtype
   // WHERE
   //   developername = 'CSB_Rebate_Item' AND
-  //   sobjecttype = ${BAP_BUS_TABLE}
+  //   sobjecttype = '${BAP_BUS_TABLE}'
   // LIMIT 1`
 
   const busTableIdQuery = await bapConnection
@@ -349,9 +345,7 @@ async function queryForApplicationSubmission(req, reviewItemId) {
 
   const busTableId = busTableIdQuery["0"].Id;
 
-  /* SOQL: */
   // `SELECT
-  //   Id,
   //   Rebate_Item_num__c,
   //   CSB_VIN__c,
   //   CSB_Model_Year__c,
@@ -375,7 +369,6 @@ async function queryForApplicationSubmission(req, reviewItemId) {
       },
       {
         // "*": 1,
-        Id: 1, // Salesforce record ID
         Rebate_Item_num__c: 1,
         CSB_VIN__c: 1,
         CSB_Model_Year__c: 1,
