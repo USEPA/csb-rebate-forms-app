@@ -534,14 +534,14 @@ function ApplicationFormContent() {
                 });
               });
           }}
-          onNextPage={(onNextParam: {
+          onNextPage={(onNextPageParam: {
             page: number;
             submission: {
               data: FormioSubmissionData;
               metadata: unknown;
             };
           }) => {
-            const data = { ...onNextParam.submission.data };
+            const data = { ...onNextPageParam.submission.data };
 
             // remove `ncesDataSource` and `ncesDataLookup` fields
             if (data.hasOwnProperty("ncesDataSource")) {
@@ -576,7 +576,7 @@ function ApplicationFormContent() {
 
             postData(
               `${serverUrl}/api/formio-application-submission/${submission._id}`,
-              { ...onNextParam.submission, data, state: "draft" }
+              { ...onNextPageParam.submission, data, state: "draft" }
             )
               .then((res) => {
                 setStoredSubmissionData((prevData) => {
