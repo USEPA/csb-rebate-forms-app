@@ -16,9 +16,9 @@ import { useBapState } from "contexts/bap";
 import {
   FormioSubmissionData,
   FormioFetchedResponse,
-  useFormState,
-  useFormDispatch,
-} from "contexts/form";
+  usePageState,
+  usePageDispatch,
+} from "contexts/page";
 
 export function ApplicationForm() {
   const navigate = useNavigate();
@@ -28,10 +28,10 @@ export function ApplicationForm() {
   const { csbData } = useCsbState();
   const { samEntities, applicationSubmissions: bapApplicationSubmissions } =
     useBapState();
-  const { message, formio } = useFormState();
-  const dispatch = useFormDispatch();
+  const { message, formio } = usePageState();
+  const dispatch = usePageDispatch();
 
-  // reset form context state
+  // reset page context state
   useEffect(() => {
     dispatch({ type: "RESET_STATE" });
   }, [dispatch]);

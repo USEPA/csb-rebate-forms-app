@@ -156,7 +156,7 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-export function FormProvider({ children }: Props) {
+export function PageProvider({ children }: Props) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   return (
@@ -169,12 +169,12 @@ export function FormProvider({ children }: Props) {
 }
 
 /**
- * Returns state stored in `FormProvider` context component.
+ * Returns state stored in `PageProvider` context component.
  */
-export function useFormState() {
+export function usePageState() {
   const context = useContext(StateContext);
   if (context === undefined) {
-    const message = `useFormState must be called within a FormProvider`;
+    const message = `usePageState must be called within a PageProvider`;
     throw new Error(message);
   }
   return context;
@@ -182,12 +182,12 @@ export function useFormState() {
 
 /**
  * Returns `dispatch` method for dispatching actions to update state stored in
- * `FormProvider` context component.
+ * `PageProvider` context component.
  */
-export function useFormDispatch() {
+export function usePageDispatch() {
   const context = useContext(DispatchContext);
   if (context === undefined) {
-    const message = `useFormDispatch must be used within a FormProvider`;
+    const message = `usePageDispatch must be used within a PageProvider`;
     throw new Error(message);
   }
   return context;

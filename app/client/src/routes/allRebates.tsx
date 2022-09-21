@@ -1,4 +1,4 @@
-import { Fragment, useState, useEffect } from "react";
+import { Fragment, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import icons from "uswds/img/sprite.svg";
 // ---
@@ -18,6 +18,7 @@ import {
   useFormioDispatch,
 } from "contexts/formio";
 import { useBapState, useBapDispatch } from "contexts/bap";
+import { usePageState, usePageDispatch } from "contexts/page";
 
 type Rebate = {
   application: {
@@ -44,12 +45,6 @@ type Rebate = {
     formio: null;
     bap: null;
   };
-};
-
-type MessageState = {
-  displayed: boolean;
-  type: "info" | "success" | "warning" | "error";
-  text: string;
 };
 
 /** Custom hook to fetch Application form submissions from Forms.gov */
@@ -249,15 +244,11 @@ function useCombinedSubmissions() {
   return submissions;
 }
 
-function ApplicationSubmission({
-  rebate,
-  setMessage,
-}: {
-  rebate: Rebate;
-  setMessage: React.Dispatch<React.SetStateAction<MessageState>>;
-}) {
+function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
   const navigate = useNavigate();
+
   const { csbData } = useCsbState();
+  const dispatch = usePageDispatch();
 
   if (csbData.status !== "success") return null;
   const { enrollmentClosed } = csbData.data;
@@ -323,8 +314,7 @@ function ApplicationSubmission({
           <button
             className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
             onClick={(ev) => {
-              // clear out existing message
-              setMessage({ displayed: false, type: "info", text: "" });
+              dispatch({ type: "RESET_MESSAGE" });
 
               // change the submission's state to draft, then redirect to the
               // form to allow user to edit
@@ -335,7 +325,10 @@ function ApplicationSubmission({
                 .then((res) => navigate(`/rebate/${res._id}`))
                 .catch((err) => {
                   const text = `Error updating Application ${application.bap?.rebateId}. Please try again.`;
-                  setMessage({ displayed: true, type: "error", text });
+                  dispatch({
+                    type: "DISPLAY_MESSAGE",
+                    payload: { type: "error", text },
+                  });
                 });
             }}
           >
@@ -539,16 +532,12 @@ save the form for the EFT indicator to be displayed. */
   );
 }
 
-function PaymentRequestSubmission({
-  rebate,
-  setMessage,
-}: {
-  rebate: Rebate;
-  setMessage: React.Dispatch<React.SetStateAction<MessageState>>;
-}) {
+function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
   const navigate = useNavigate();
+
   const { epaUserData } = useUserState();
   const { samEntities } = useBapState();
+  const dispatch = usePageDispatch();
 
   if (epaUserData.status !== "success") return null;
   if (samEntities.status !== "success") return null;
@@ -584,8 +573,7 @@ function PaymentRequestSubmission({
 
               const { title, name } = getUserInfo(email, entity);
 
-              // clear out existing message
-              setMessage({ displayed: false, type: "info", text: "" });
+              dispatch({ type: "RESET_MESSAGE" });
 
               // create a new draft payment request submission
               postData(`${serverUrl}/api/formio-payment-request-submission/`, {
@@ -601,7 +589,10 @@ function PaymentRequestSubmission({
                 })
                 .catch((err) => {
                   const text = `Error creating Payment Request ${application.bap?.rebateId}. Please try again.`;
-                  setMessage({ displayed: true, type: "error", text });
+                  dispatch({
+                    type: "DISPLAY_MESSAGE",
+                    payload: { type: "error", text },
+                  });
                 });
             }}
           >
@@ -663,8 +654,7 @@ function PaymentRequestSubmission({
             onClick={(ev) => {
               if (!paymentRequest.formio) return;
 
-              // clear out existing message
-              setMessage({ displayed: false, type: "info", text: "" });
+              dispatch({ type: "RESET_MESSAGE" });
 
               // change the submission's state to draft, then redirect to the
               // form to allow user to edit
@@ -675,7 +665,10 @@ function PaymentRequestSubmission({
                 .then((res) => navigate(`/rebate/${res._id}`))
                 .catch((err) => {
                   const text = `Error updating Payment Request ${paymentRequest.bap?.rebateId}. Please try again.`;
-                  setMessage({ displayed: true, type: "error", text });
+                  dispatch({
+                    type: "DISPLAY_MESSAGE",
+                    payload: { type: "error", text },
+                  });
                 });
             }}
           >
@@ -796,12 +789,13 @@ export function AllRebates() {
     applicationSubmissions: formioApplicationSubmissions,
     paymentRequestSubmissions: formioPaymentRequestSubmissions,
   } = useFormioState();
+  const { message } = usePageState();
+  const dispatch = usePageDispatch();
 
-  const [message, setMessage] = useState<MessageState>({
-    displayed: false,
-    type: "info",
-    text: "",
-  });
+  // reset page context state
+  useEffect(() => {
+    dispatch({ type: "RESET_STATE" });
+  }, [dispatch]);
 
   useFetchedFormioApplicationSubmissions();
   useFetchedBapApplicationSubmissions();
@@ -947,15 +941,9 @@ export function AllRebates() {
                 {Object.entries(submissions).map(
                   ([rebateId, rebate], index) => (
                     <Fragment key={rebateId}>
-                      <ApplicationSubmission
-                        rebate={rebate}
-                        setMessage={setMessage}
-                      />
+                      <ApplicationSubmission rebate={rebate} />
 
-                      <PaymentRequestSubmission
-                        rebate={rebate}
-                        setMessage={setMessage}
-                      />
+                      <PaymentRequestSubmission rebate={rebate} />
 
                       {/* blank row after all rebates but the last one */}
                       {index !== Object.keys(submissions).length - 1 && (
