@@ -3,11 +3,12 @@ import { render } from "react-dom";
 import reportWebVitals from "./reportWebVitals";
 // ---
 import { ContentProvider } from "contexts/content";
+import { DialogProvider } from "contexts/dialog";
 import { UserProvider } from "contexts/user";
 import { CsbProvider } from "contexts/csb";
 import { BapProvider } from "contexts/bap";
 import { FormioProvider } from "contexts/formio";
-import { DialogProvider } from "contexts/dialog";
+import { FormProvider } from "contexts/form";
 import { ErrorBoundary } from "components/errorBoundary";
 import { App } from "components/app";
 import "./styles.css";
@@ -18,17 +19,19 @@ render(
   <StrictMode>
     <ErrorBoundary>
       <ContentProvider>
-        <UserProvider>
-          <CsbProvider>
-            <BapProvider>
-              <FormioProvider>
-                <DialogProvider>
-                  <App />
-                </DialogProvider>
-              </FormioProvider>
-            </BapProvider>
-          </CsbProvider>
-        </UserProvider>
+        <DialogProvider>
+          <UserProvider>
+            <CsbProvider>
+              <BapProvider>
+                <FormioProvider>
+                  <FormProvider>
+                    <App />
+                  </FormProvider>
+                </FormioProvider>
+              </BapProvider>
+            </CsbProvider>
+          </UserProvider>
+        </DialogProvider>
       </ContentProvider>
     </ErrorBoundary>
   </StrictMode>,
