@@ -142,12 +142,12 @@
         "parameters": [{ "$ref": "#/components/parameters/scan" }]
       }
     },
-    "/help/formio-application-submission/{id}": {
+    "/help/formio-application-submission/{mongoId}": {
       "get": {
-        "summary": "/help/formio-application-submission/{id}",
+        "summary": "/help/formio-application-submission/{mongoId}",
         "parameters": [
           {
-            "name": "id",
+            "name": "mongoId",
             "in": "path",
             "required": true,
             "schema": {
@@ -180,7 +180,7 @@
                         }
                       }
                     },
-                    "submissionData": {
+                    "submission": {
                       "type": "object"
                     }
                   }
@@ -192,10 +192,10 @@
         "tags": []
       },
       "post": {
-        "summary": "/help/formio-application-submission/{id}",
+        "summary": "/help/formio-application-submission/{mongoId}",
         "parameters": [
           {
-            "name": "id",
+            "name": "mongoId",
             "in": "path",
             "required": true,
             "schema": {
@@ -228,7 +228,7 @@
                         }
                       }
                     },
-                    "submissionData": {
+                    "submission": {
                       "type": "object"
                     }
                   }
@@ -437,9 +437,9 @@
         "parameters": [{ "$ref": "#/components/parameters/scan" }]
       }
     },
-    "/api/{id}/{comboKey}/storage/s3": {
+    "/api/{mongoId}/{comboKey}/storage/s3": {
       "get": {
-        "summary": "/api/{id}/{comboKey}/storage/s3",
+        "summary": "/api/{mongoId}/{comboKey}/storage/s3",
         "responses": {
           "200": {
             "description": "OK"
@@ -448,7 +448,7 @@
         "tags": [],
         "parameters": [
           {
-            "name": "id",
+            "name": "mongoId",
             "in": "path",
             "required": true,
             "schema": {
@@ -467,7 +467,7 @@
         ]
       },
       "post": {
-        "summary": "/api/{id}/{comboKey}/storage/s3",
+        "summary": "/api/{mongoId}/{comboKey}/storage/s3",
         "responses": {
           "200": {
             "description": "OK"
@@ -476,7 +476,7 @@
         "tags": [],
         "parameters": [
           {
-            "name": "id",
+            "name": "mongoId",
             "in": "path",
             "required": true,
             "schema": {
@@ -539,12 +539,12 @@
         "parameters": [{ "$ref": "#/components/parameters/scan" }]
       }
     },
-    "/api/formio-application-submission/{id}": {
+    "/api/formio-application-submission/{mongoId}": {
       "get": {
-        "summary": "/api/formio-application-submission/{id}",
+        "summary": "/api/formio-application-submission/{mongoId}",
         "parameters": [
           {
-            "name": "id",
+            "name": "mongoId",
             "in": "path",
             "required": true,
             "schema": {
@@ -577,7 +577,7 @@
                         }
                       }
                     },
-                    "submissionData": {
+                    "submission": {
                       "type": "object"
                     }
                   }
@@ -589,10 +589,10 @@
         "tags": []
       },
       "post": {
-        "summary": "/api/formio-application-submission/{id}",
+        "summary": "/api/formio-application-submission/{mongoId}",
         "parameters": [
           {
-            "name": "id",
+            "name": "mongoId",
             "in": "path",
             "required": true,
             "schema": {
