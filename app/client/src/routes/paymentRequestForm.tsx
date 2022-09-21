@@ -11,14 +11,12 @@ import { Message } from "components/message";
 import { useUserState } from "contexts/user";
 import { useCsbState } from "contexts/csb";
 import { useBapState } from "contexts/bap";
-
-type FormioSubmissionData = {
-  [field: string]: unknown;
-  hidden_current_user_email?: string;
-  hidden_current_user_title?: string;
-  hidden_current_user_name?: string;
-  bap_hidden_entity_combo_key?: string;
-};
+import {
+  FormioSubmissionData,
+  FormioFetchedResponse,
+  usePageState,
+  usePageDispatch,
+} from "contexts/page";
 
 type FormioSubmission = {
   [field: string]: unknown;
@@ -58,11 +56,13 @@ export function PaymentRequestForm() {
   const { epaUserData } = useUserState();
   const { csbData } = useCsbState();
   const { samEntities } = useBapState();
+  const { message, formio } = usePageState();
+  const dispatch = usePageDispatch();
 
-  const [formioSubmission, setFormioSubmission] = useState<SubmissionState>({
-    status: "idle",
-    data: { userAccess: false, formSchema: null, submission: null },
-  });
+  // reset page context state
+  useEffect(() => {
+    dispatch({ type: "RESET_STATE" });
+  }, [dispatch]);
 
   // set when form submission data is initially fetched, and then re-set each
   // time a successful update of the submission data is posted to forms.gov
@@ -81,13 +81,12 @@ export function PaymentRequestForm() {
     useState<FormioSubmissionData>({});
 
   useEffect(() => {
-    setFormioSubmission({
-      status: "pending",
-      data: { userAccess: false, formSchema: null, submission: null },
-    });
+    dispatch({ type: "FETCH_FORMIO_DATA_REQUEST" });
 
     getData(`${serverUrl}/api/formio-payment-request-submission/${rebateId}`)
-      .then((res) => {
+      .then((res: FormioFetchedResponse) => {
+        if (!res.submission) return;
+
         // set up s3 re-route to wrapper app
         const s3Provider = Formio.Providers.providers.storage.s3;
         Formio.Providers.providers.storage.s3 = function (formio: any) {
@@ -105,31 +104,28 @@ export function PaymentRequestForm() {
           return data;
         });
 
-        setFormioSubmission({
-          status: "success",
-          data: res,
+        dispatch({
+          type: "FETCH_FORMIO_DATA_SUCCESS",
+          payload: { data: res },
         });
       })
       .catch((err) => {
-        setFormioSubmission({
-          status: "failure",
-          data: { userAccess: false, formSchema: null, submission: null },
-        });
+        dispatch({ type: "FETCH_FORMIO_DATA_FAILURE" });
       });
-  }, [rebateId]);
+  }, [rebateId, dispatch]);
 
-  if (formioSubmission.status === "idle") {
+  if (formio.status === "idle") {
     return null;
   }
 
-  if (formioSubmission.status === "pending") {
+  if (formio.status === "pending") {
     return <Loading />;
   }
 
-  const { userAccess, formSchema, submission } = formioSubmission.data;
+  const { userAccess, formSchema, submission } = formio.data;
 
   if (
-    formioSubmission.status === "failure" ||
+    formio.status === "failure" ||
     !userAccess ||
     !formSchema ||
     !submission
@@ -165,6 +161,8 @@ export function PaymentRequestForm() {
 
   return (
     <div className="margin-top-2">
+      {message.displayed && <Message type={message.type} text={message.text} />}
+
       <ul className="usa-icon-list">
         <li className="usa-icon-list__item">
           <div className="usa-icon-list__icon text-primary">
@@ -200,18 +198,20 @@ export function PaymentRequestForm() {
             const data = { ...onSubmitSubmission.data };
             console.log(data);
           }}
-          onNextPage={(onNextParam: {
+          onNextPage={(onNextPageParam: {
             page: number;
             submission: {
               data: FormioSubmissionData;
               metadata: unknown;
             };
           }) => {
-            const data = { ...onNextParam.submission.data };
+            const data = { ...onNextPageParam.submission.data };
             console.log(data);
           }}
         />
       </div>
+
+      {message.displayed && <Message type={message.type} text={message.text} />}
     </div>
   );
 }
