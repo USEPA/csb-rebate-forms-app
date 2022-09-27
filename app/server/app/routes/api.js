@@ -2,6 +2,7 @@ const { resolve } = require("node:path");
 const { readFile } = require("node:fs/promises");
 const express = require("express");
 const axios = require("axios").default;
+const ObjectId = require("mongodb").ObjectId;
 // ---
 const {
   axiosFormio,
@@ -284,7 +285,7 @@ router.post(
       .then(() => {
         // verify post data includes one of user's BAP combo keys
         if (!req.bapComboKeys.includes(comboKey)) {
-          const message = `User with email ${req.user.mail} attempted to update existing form without a matching BAP combo key`;
+          const message = `User with email ${req.user.mail} attempted to update existing Application form without a matching BAP combo key`;
           log({ level: "error", message, req });
           return res.status(401).json({ message: "Unauthorized" });
         }
@@ -419,9 +420,11 @@ router.post(
           oldBusModelYear: record.CSB_Model_Year__c,
           oldBusFuelType: record.CSB_Fuel_Type__c,
           newBusFuelType: record.CSB_Replacement_Fuel_Type__c,
-          maxRebate: record.CSB_Funds_Requested__c,
+          hidden_bap_max_rebate: record.CSB_Funds_Requested__c,
         }));
 
+        // NOTE: `purchaseOrders` is initialized as an empty array to fix some
+        // issue with the field being changed to an object when the form loads
         const newSubmission = {
           data: {
             last_updated_by: email,
@@ -447,6 +450,7 @@ router.post(
             hidden_bap_requested_funds: Total_Rebate_Funds_Requested__c,
             hidden_bap_infra_max_rebate: Total_Infrastructure_Funds__c,
             busInfo,
+            purchaseOrders: [],
           },
           // add custom metadata to track formio submissions from wrapper
           metadata: {
@@ -474,18 +478,21 @@ router.post(
 // --- get an existing Payment Request form's schema and submission data from Forms.gov
 router.get(
   "/formio-payment-request-submission/:rebateId",
-  // verifyMongoObjectId, // TODO: determine if there's any way to verify the mongoDB Object ID, as the id param is not a MongoDB ObjectID string
   storeBapComboKeys,
   async (req, res) => {
     const { rebateId } = req.params; // CSB Rebate ID (6 digits)
 
-    const paymentFormSubmissions = `${paymentFormApiPath}/submission?data.hidden_bap_rebate_id=${rebateId}`;
+    const matchedPaymentFormSubmissions =
+      `${paymentFormApiPath}/submission` +
+      `?data.hidden_bap_rebate_id=${rebateId}` +
+      `&select=_id,data.bap_hidden_entity_combo_key`;
 
     axiosFormio(req)
-      .get(paymentFormSubmissions)
+      .get(matchedPaymentFormSubmissions)
       .then((axiosRes) => axiosRes.data)
       .then((submissions) => {
         const submission = submissions[0];
+        const mongoId = submission._id;
         const comboKey = submission.data.bap_hidden_entity_combo_key;
 
         if (!req.bapComboKeys.includes(comboKey)) {
@@ -498,6 +505,23 @@ router.get(
           });
         }
 
+        // NOTE: verifyMongoObjectId middleware content:
+        if (mongoId && !ObjectId.isValid(mongoId)) {
+          const message = `MongoDB ObjectId validation error for: ${mongoId}`;
+          return res.status(400).json({ message });
+        }
+
+        // NOTE: we can't just use the returned submission data here because the
+        // `signatureAuthorizedRepresentative` field is the literal string 'YES'
+        // and not the base64 encoded image string when you query with any
+        // properties of a submission (e.g. `?data.bap_hidden_entity_combo_key`),
+        // so we need to use the returned submission's ObjectId to query for the
+        // submission directly, and then the `signatureAuthorizedRepresentative`
+        // field will be the base64 encoded image string
+        axiosFormio(req)
+          .get(`${paymentFormApiPath}/submission/${mongoId}`)
+          .then((axiosRes) => axiosRes.data)
+          .then((submission) => {
         axiosFormio(req)
           .get(paymentFormApiPath)
           .then((axiosRes) => axiosRes.data)
@@ -507,6 +531,7 @@ router.get(
               formSchema: { url: paymentFormApiPath, json: schema },
               submission,
             });
+          });
           });
       })
       .catch((error) => {
