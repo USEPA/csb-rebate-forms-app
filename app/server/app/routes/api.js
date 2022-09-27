@@ -69,6 +69,8 @@ router.get("/content", (req, res) => {
     "new-application-dialog.md",
     "draft-application-intro.md",
     "submitted-application-intro.md",
+    "draft-payment-request-intro.md",
+    "submitted-payment-request-intro.md",
   ];
 
   const s3BucketUrl = `https://${s3Bucket}.s3-${s3Region}.amazonaws.com`;
@@ -98,6 +100,8 @@ router.get("/content", (req, res) => {
         newApplicationDialog: data[4],
         draftApplicationIntro: data[5],
         submittedApplicationIntro: data[6],
+        draftPaymentRequestIntro: data[7],
+        submittedPaymentRequestIntro: data[8],
       });
     })
     .catch((error) => {
