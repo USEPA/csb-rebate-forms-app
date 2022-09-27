@@ -18,6 +18,8 @@ type Content = {
   newApplicationDialog: string;
   draftApplicationIntro: string;
   submittedApplicationIntro: string;
+  draftPaymentRequestIntro: string;
+  submittedPaymentRequestIntro: string;
 };
 
 type State = {
@@ -60,6 +62,8 @@ function reducer(state: State, action: Action): State {
         newApplicationDialog,
         draftApplicationIntro,
         submittedApplicationIntro,
+        draftPaymentRequestIntro,
+        submittedPaymentRequestIntro,
       } = action.payload;
 
       return {
@@ -74,6 +78,8 @@ function reducer(state: State, action: Action): State {
             newApplicationDialog,
             draftApplicationIntro,
             submittedApplicationIntro,
+            draftPaymentRequestIntro,
+            submittedPaymentRequestIntro,
           },
         },
       };

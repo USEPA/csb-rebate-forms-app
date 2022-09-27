@@ -115,6 +115,14 @@ export function Dashboard() {
   useFetchedCsbData();
   useFetchedSamData();
 
+  const onAllRebatesPage = pathname === "/";
+  const onHelpdeskPage = pathname === "/helpdesk";
+  const onApplicationFormPage = pathname.startsWith("/rebate");
+  const onPaymentRequestFormPage = pathname.startsWith("/payment-request");
+
+  const enrollmentClosed =
+    csbData.status === "success" && csbData.data.enrollmentClosed;
+
   /**
    * When provided a destination location to navigate to, creates an action
    * object that can be dispatched to the `DialogProvider` context component,
@@ -182,7 +190,7 @@ export function Dashboard() {
         </nav>
 
         <nav>
-          {pathname === "/" ? (
+          {onAllRebatesPage ? (
             <button
               className="margin-bottom-1 usa-button font-sans-2xs"
               disabled
@@ -198,7 +206,7 @@ export function Dashboard() {
               to="/"
               className="margin-bottom-1 usa-button font-sans-2xs"
               onClick={(ev) => {
-                if (pathname.startsWith("/rebate")) {
+                if (onApplicationFormPage || onPaymentRequestFormPage) {
                   ev.preventDefault();
                   const action = createDialogNavAction("/");
                   dispatch(action);
@@ -213,8 +221,9 @@ export function Dashboard() {
             </Link>
           )}
 
-          {pathname.startsWith("/rebate") ||
-          (csbData.status === "success" && csbData.data.enrollmentClosed) ? (
+          {onApplicationFormPage ||
+          onPaymentRequestFormPage ||
+          enrollmentClosed ? (
             <button
               className="margin-bottom-1 usa-button font-sans-2xs"
               disabled
@@ -240,7 +249,7 @@ export function Dashboard() {
 
           {helpdeskAccess === "success" && (
             <>
-              {pathname === "/helpdesk" ? (
+              {onHelpdeskPage ? (
                 <button
                   className="margin-bottom-1 usa-button font-sans-2xs"
                   disabled
@@ -252,7 +261,7 @@ export function Dashboard() {
                   to="/helpdesk"
                   className="margin-bottom-1 usa-button font-sans-2xs"
                   onClick={(ev) => {
-                    if (pathname.startsWith("/rebate")) {
+                    if (onApplicationFormPage || onPaymentRequestFormPage) {
                       ev.preventDefault();
                       const action = createDialogNavAction("/helpdesk");
                       dispatch(action);

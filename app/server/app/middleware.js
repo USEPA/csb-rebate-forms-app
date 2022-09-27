@@ -192,9 +192,8 @@ function verifyMongoObjectId(req, res, next) {
   const id = req.params.id;
 
   if (id && !ObjectId.isValid(id)) {
-    return res.status(400).json({
-      message: `MongoDB ObjectId validation error for: ${id}`,
-    });
+    const message = `MongoDB ObjectId validation error for: ${id}`;
+    return res.status(400).json({ message });
   }
 
   next();

@@ -1,13 +1,4 @@
-import {
-  Dispatch,
-  ReactNode,
-  createContext,
-  useContext,
-  useReducer,
-  useEffect,
-  useState,
-  useRef,
-} from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Formio, Form } from "@formio/react";
 import { cloneDeep, isEqual } from "lodash";
@@ -22,238 +13,32 @@ import { useContentState } from "contexts/content";
 import { useUserState } from "contexts/user";
 import { useCsbState } from "contexts/csb";
 import { useBapState } from "contexts/bap";
-
-// -----------------------------------------------------------------------------
-
-type Props = {
-  children: ReactNode;
-};
-
-type State = {
-  displayed: boolean;
-  type: "info" | "success" | "warning" | "error";
-  text: string;
-};
-
-type Action =
-  | {
-      type: "DISPLAY_INFO_MESSAGE";
-      payload: { text: string };
-    }
-  | {
-      type: "DISPLAY_SUCCESS_MESSAGE";
-      payload: { text: string };
-    }
-  | {
-      type: "DISPLAY_WARNING_MESSAGE";
-      payload: { text: string };
-    }
-  | {
-      type: "DISPLAY_ERROR_MESSAGE";
-      payload: { text: string };
-    }
-  | { type: "RESET_MESSAGE" };
-
-const StateContext = createContext<State | undefined>(undefined);
-const DispatchContext = createContext<Dispatch<Action> | undefined>(undefined);
-
-function reducer(state: State, action: Action): State {
-  switch (action.type) {
-    case "DISPLAY_INFO_MESSAGE": {
-      const { text } = action.payload;
-      return {
-        ...state,
-        displayed: true,
-        type: "info",
-        text,
-      };
-    }
-
-    case "DISPLAY_SUCCESS_MESSAGE": {
-      const { text } = action.payload;
-      return {
-        ...state,
-        displayed: true,
-        type: "success",
-        text,
-      };
-    }
-
-    case "DISPLAY_WARNING_MESSAGE": {
-      const { text } = action.payload;
-      return {
-        ...state,
-        displayed: true,
-        type: "warning",
-        text,
-      };
-    }
-
-    case "DISPLAY_ERROR_MESSAGE": {
-      const { text } = action.payload;
-      return {
-        ...state,
-        displayed: true,
-        type: "error",
-        text,
-      };
-    }
-
-    case "RESET_MESSAGE": {
-      return {
-        ...state,
-        displayed: false,
-        type: "info",
-        text: "",
-      };
-    }
-
-    default: {
-      const message = `Unhandled action type: ${action}`;
-      throw new Error(message);
-    }
-  }
-}
-
-function ApplicationFormProvider({ children }: Props) {
-  const initialState: State = {
-    displayed: false,
-    type: "info",
-    text: "",
-  };
-
-  const [state, dispatch] = useReducer(reducer, initialState);
-
-  return (
-    <StateContext.Provider value={state}>
-      <DispatchContext.Provider value={dispatch}>
-        {children}
-      </DispatchContext.Provider>
-    </StateContext.Provider>
-  );
-}
-
-/**
- * Returns state stored in `ApplicationFormProvider` context component.
- */
-function useApplicationFormState() {
-  const context = useContext(StateContext);
-  if (context === undefined) {
-    const message = `useApplicationFormState must be called within a ApplicationFormProvider`;
-    throw new Error(message);
-  }
-  return context;
-}
-
-/**
- * Returns `dispatch` method for dispatching actions to update state stored in
- * `ApplicationFormProvider` context component.
- */
-function useApplicationFormDispatch() {
-  const context = useContext(DispatchContext);
-  if (context === undefined) {
-    const message = `useApplicationFormDispatch must be used within a ApplicationFormProvider`;
-    throw new Error(message);
-  }
-  return context;
-}
-
-// -----------------------------------------------------------------------------
+import {
+  FormioSubmissionData,
+  FormioFetchedResponse,
+  usePageState,
+  usePageDispatch,
+} from "contexts/page";
 
 export function ApplicationForm() {
-  return (
-    <ApplicationFormProvider>
-      <ApplicationFormContent />
-    </ApplicationFormProvider>
-  );
-}
-
-// -----------------------------------------------------------------------------
-
-type FormioSubmissionData = {
-  [field: string]: unknown;
-  hidden_current_user_email?: string;
-  hidden_current_user_title?: string;
-  hidden_current_user_name?: string;
-  bap_hidden_entity_combo_key?: string;
-  ncesDataSource?: string;
-  ncesDataLookup?: string[];
-};
-
-type SubmissionState =
-  | {
-      status: "idle";
-      data: {
-        userAccess: false;
-        formSchema: null;
-        submissionData: null;
-      };
-    }
-  | {
-      status: "pending";
-      data: {
-        userAccess: false;
-        formSchema: null;
-        submissionData: null;
-      };
-    }
-  | {
-      status: "success";
-      data:
-        | {
-            userAccess: true;
-            formSchema: { url: string; json: object };
-            submissionData: {
-              [field: string]: unknown;
-              _id: string; // MongoDB ObjectId string
-              data: object;
-              state: "submitted" | "draft";
-            };
-          }
-        | {
-            userAccess: false;
-            formSchema: null;
-            submissionData: null;
-          };
-    }
-  | {
-      status: "failure";
-      data: {
-        userAccess: false;
-        formSchema: null;
-        submissionData: null;
-      };
-    };
-
-function FormMessage() {
-  const { displayed, type, text } = useApplicationFormState();
-  if (!displayed) return null;
-  return <Message type={type} text={text} />;
-}
-
-function ApplicationFormContent() {
   const navigate = useNavigate();
-  const { id } = useParams<"id">();
+  const { mongoId } = useParams<"mongoId">(); // MongoDB ObjectId string
+
   const { content } = useContentState();
   const { epaUserData } = useUserState();
   const { csbData } = useCsbState();
   const { samEntities, applicationSubmissions: bapApplicationSubmissions } =
     useBapState();
-  const dispatch = useApplicationFormDispatch();
+  const { message, formio } = usePageState();
+  const dispatch = usePageDispatch();
 
-  const [formioApplicationSubmission, setFormioApplicationSubmission] =
-    useState<SubmissionState>({
-      status: "idle",
-      data: {
-        userAccess: false,
-        formSchema: null,
-        submissionData: null,
-      },
-    });
+  // reset page context state
+  useEffect(() => {
+    dispatch({ type: "RESET_STATE" });
+  }, [dispatch]);
 
-  // set when application form submission data is initially fetched, and then
-  // re-set each time a successful update of the submission data is posted to
-  // forms.gov
+  // set when form submission data is initially fetched, and then re-set each
+  // time a successful update of the submission data is posted to forms.gov
   const [storedSubmissionData, setStoredSubmissionData] =
     useState<FormioSubmissionData>({});
 
@@ -269,73 +54,57 @@ function ApplicationFormContent() {
     useState<FormioSubmissionData>({});
 
   useEffect(() => {
-    setFormioApplicationSubmission({
-      status: "pending",
-      data: {
-        userAccess: false,
-        formSchema: null,
-        submissionData: null,
-      },
-    });
+    dispatch({ type: "FETCH_FORMIO_DATA_REQUEST" });
 
-    getData(`${serverUrl}/api/formio-application-submission/${id}`)
-      .then((res) => {
+    getData(`${serverUrl}/api/formio-application-submission/${mongoId}`)
+      .then((res: FormioFetchedResponse) => {
+        if (!res.submission) return;
+
         // set up s3 re-route to wrapper app
         const s3Provider = Formio.Providers.providers.storage.s3;
         Formio.Providers.providers.storage.s3 = function (formio: any) {
           const s3Formio = cloneDeep(formio);
-          const comboKey = res.submissionData.data.bap_hidden_entity_combo_key;
-          s3Formio.formUrl = `${serverUrl}/api/${id}/${comboKey}`;
+          const comboKey = res.submission.data.bap_hidden_entity_combo_key;
+          s3Formio.formUrl = `${serverUrl}/api/${mongoId}/${comboKey}`;
           return s3Provider(s3Formio);
         };
 
+        const data = { ...res.submission.data };
+
         // remove `ncesDataSource` and `ncesDataLookup` fields
-        const data = { ...res.submissionData.data };
-        if (data.hasOwnProperty("ncesDataSource")) {
-          delete data.ncesDataSource;
-        }
-        if (data.hasOwnProperty("ncesDataLookup")) {
-          delete data.ncesDataLookup;
-        }
+        if (data.hasOwnProperty("ncesDataSource")) delete data.ncesDataSource;
+        if (data.hasOwnProperty("ncesDataLookup")) delete data.ncesDataLookup;
 
         setStoredSubmissionData((prevData) => {
           storedSubmissionDataRef.current = data;
           return data;
         });
 
-        setFormioApplicationSubmission({
-          status: "success",
-          data: res,
+        dispatch({
+          type: "FETCH_FORMIO_DATA_SUCCESS",
+          payload: { data: res },
         });
       })
       .catch((err) => {
-        setFormioApplicationSubmission({
-          status: "failure",
-          data: {
-            userAccess: false,
-            formSchema: null,
-            submissionData: null,
-          },
-        });
+        dispatch({ type: "FETCH_FORMIO_DATA_FAILURE" });
       });
-  }, [id]);
+  }, [mongoId, dispatch]);
 
-  if (formioApplicationSubmission.status === "idle") {
+  if (formio.status === "idle") {
     return null;
   }
 
-  if (formioApplicationSubmission.status === "pending") {
+  if (formio.status === "pending") {
     return <Loading />;
   }
 
-  const { userAccess, formSchema, submissionData } =
-    formioApplicationSubmission.data;
+  const { userAccess, formSchema, submission } = formio.data;
 
   if (
-    formioApplicationSubmission.status === "failure" ||
+    formio.status === "failure" ||
     !userAccess ||
     !formSchema ||
-    !submissionData
+    !submission
   ) {
     return (
       <Message
@@ -357,7 +126,7 @@ function ApplicationFormContent() {
   const { enrollmentClosed } = csbData.data;
 
   const match = bapApplicationSubmissions.data.find((bapSubmission) => {
-    return bapSubmission.CSB_Form_ID__c === id;
+    return bapSubmission.CSB_Form_ID__c === mongoId;
   });
 
   const bap = {
@@ -387,16 +156,16 @@ function ApplicationFormContent() {
         <MarkdownContent
           className="margin-top-4"
           children={
-            submissionData.state === "draft"
+            submission.state === "draft"
               ? content.data?.draftApplicationIntro || ""
-              : submissionData.state === "submitted"
+              : submission.state === "submitted"
               ? content.data?.submittedApplicationIntro || ""
               : ""
           }
         />
       )}
 
-      <FormMessage />
+      {message.displayed && <Message type={message.type} text={message.text} />}
 
       <ul className="usa-icon-list">
         <li className="usa-icon-list__item">
@@ -406,7 +175,7 @@ function ApplicationFormContent() {
             </svg>
           </div>
           <div className="usa-icon-list__content">
-            <strong>Application ID:</strong> {submissionData._id}
+            <strong>Application ID:</strong> {submission._id}
           </div>
         </li>
 
@@ -441,30 +210,24 @@ function ApplicationFormContent() {
           options={{
             readOnly:
               (enrollmentClosed && !submissionNeedsEdits) ||
-              submissionData.state === "submitted"
-                ? true
-                : false,
+              submission.state === "submitted",
             noAlerts: true,
           }}
-          onChange={(submission: {
+          onChange={(onChangeSubmission: {
+            [field: string]: unknown;
             changed: {
+              [field: string]: unknown;
               component: {
                 [field: string]: unknown;
                 key: string;
               };
-              flags: unknown;
-              instance: unknown;
-              value: unknown;
             };
-            data: FormioSubmissionData;
-            isValid: boolean;
-            metadata: unknown;
           }) => {
             // NOTE: For some unknown reason, whenever the bus info's "Save"
             // button (the component w/ the key "busInformation") is clicked
             // the `storedSubmissionDataRef` value is mutated, which invalidates
             // the isEqual() early return "dirty check" used in the onNextPage
-            // event callback below (as the two object being compared are now
+            // event callback below (as the two objects being compared are now
             // equal). That means if the user changed any of the bus info fields
             // (which are displayed via a Formio "Edit Grid" component, which
             // includes its own "Save" button that must be clicked) and clicked
@@ -476,17 +239,20 @@ function ApplicationFormContent() {
             // clicked (which must be clicked to close the bus info fields) to
             // guarantee the "dirty check" succeeds the next time the form's
             // "Next" button is clicked.
-            if (submission?.changed?.component?.key === "busInformation") {
+            if (
+              onChangeSubmission?.changed?.component?.key === "busInformation"
+            ) {
               storedSubmissionDataRef.current = {};
             }
           }}
-          onSubmit={(submission: {
+          onSubmit={(onSubmitSubmission: {
             state: "submitted" | "draft";
             data: FormioSubmissionData;
             metadata: unknown;
           }) => {
+            const data = { ...onSubmitSubmission.data };
+
             // remove `ncesDataSource` and `ncesDataLookup` fields
-            const data = { ...submission.data };
             if (data.hasOwnProperty("ncesDataSource")) {
               delete data.ncesDataSource;
             }
@@ -494,25 +260,25 @@ function ApplicationFormContent() {
               delete data.ncesDataLookup;
             }
 
-            if (submission.state === "submitted") {
+            if (onSubmitSubmission.state === "submitted") {
               dispatch({
-                type: "DISPLAY_INFO_MESSAGE",
-                payload: { text: "Submitting form..." },
+                type: "DISPLAY_MESSAGE",
+                payload: { type: "info", text: "Submitting form..." },
               });
             }
 
-            if (submission.state === "draft") {
+            if (onSubmitSubmission.state === "draft") {
               dispatch({
-                type: "DISPLAY_INFO_MESSAGE",
-                payload: { text: "Saving form..." },
+                type: "DISPLAY_MESSAGE",
+                payload: { type: "info", text: "Saving form..." },
               });
             }
 
             setPendingSubmissionData(data);
 
             postData(
-              `${serverUrl}/api/formio-application-submission/${submissionData._id}`,
-              { ...submission, data }
+              `${serverUrl}/api/formio-application-submission/${submission._id}`,
+              { ...onSubmitSubmission, data }
             )
               .then((res) => {
                 setStoredSubmissionData((prevData) => {
@@ -522,10 +288,13 @@ function ApplicationFormContent() {
 
                 setPendingSubmissionData({});
 
-                if (submission.state === "submitted") {
+                if (onSubmitSubmission.state === "submitted") {
                   dispatch({
-                    type: "DISPLAY_SUCCESS_MESSAGE",
-                    payload: { text: "Form successfully submitted." },
+                    type: "DISPLAY_MESSAGE",
+                    payload: {
+                      type: "success",
+                      text: "Form successfully submitted.",
+                    },
                   });
 
                   setTimeout(() => {
@@ -535,10 +304,13 @@ function ApplicationFormContent() {
                   return;
                 }
 
-                if (submission.state === "draft") {
+                if (onSubmitSubmission.state === "draft") {
                   dispatch({
-                    type: "DISPLAY_SUCCESS_MESSAGE",
-                    payload: { text: "Draft successfully saved." },
+                    type: "DISPLAY_MESSAGE",
+                    payload: {
+                      type: "success",
+                      text: "Draft successfully saved.",
+                    },
                   });
 
                   setTimeout(() => {
@@ -548,23 +320,24 @@ function ApplicationFormContent() {
               })
               .catch((err) => {
                 dispatch({
-                  type: "DISPLAY_ERROR_MESSAGE",
-                  payload: { text: "Error submitting application form." },
+                  type: "DISPLAY_MESSAGE",
+                  payload: {
+                    type: "error",
+                    text: "Error submitting Application form.",
+                  },
                 });
               });
           }}
-          onNextPage={({
-            page,
-            submission,
-          }: {
+          onNextPage={(onNextPageParam: {
             page: number;
             submission: {
               data: FormioSubmissionData;
               metadata: unknown;
             };
           }) => {
+            const data = { ...onNextPageParam.submission.data };
+
             // remove `ncesDataSource` and `ncesDataLookup` fields
-            const data = { ...submission.data };
             if (data.hasOwnProperty("ncesDataSource")) {
               delete data.ncesDataSource;
             }
@@ -574,7 +347,7 @@ function ApplicationFormContent() {
 
             // don't post an update if form is not in draft state
             // (form has been already submitted, and fields are read-only)
-            if (submissionData.state !== "draft") return;
+            if (submission.state !== "draft") return;
 
             // don't post an update if no changes have been made to the form
             // (ignoring current user fields)
@@ -589,15 +362,15 @@ function ApplicationFormContent() {
             if (isEqual(dataToCheck, storedDataToCheck)) return;
 
             dispatch({
-              type: "DISPLAY_INFO_MESSAGE",
-              payload: { text: "Saving form..." },
+              type: "DISPLAY_MESSAGE",
+              payload: { type: "info", text: "Saving form..." },
             });
 
             setPendingSubmissionData(data);
 
             postData(
-              `${serverUrl}/api/formio-application-submission/${submissionData._id}`,
-              { ...submission, data, state: "draft" }
+              `${serverUrl}/api/formio-application-submission/${submission._id}`,
+              { ...onNextPageParam.submission, data, state: "draft" }
             )
               .then((res) => {
                 setStoredSubmissionData((prevData) => {
@@ -608,8 +381,11 @@ function ApplicationFormContent() {
                 setPendingSubmissionData({});
 
                 dispatch({
-                  type: "DISPLAY_SUCCESS_MESSAGE",
-                  payload: { text: "Draft successfully saved." },
+                  type: "DISPLAY_MESSAGE",
+                  payload: {
+                    type: "success",
+                    text: "Draft successfully saved.",
+                  },
                 });
 
                 setTimeout(() => {
@@ -618,15 +394,18 @@ function ApplicationFormContent() {
               })
               .catch((err) => {
                 dispatch({
-                  type: "DISPLAY_ERROR_MESSAGE",
-                  payload: { text: "Error saving draft application form." },
+                  type: "DISPLAY_MESSAGE",
+                  payload: {
+                    type: "error",
+                    text: "Error saving draft Application form.",
+                  },
                 });
               });
           }}
         />
       </div>
 
-      <FormMessage />
+      {message.displayed && <Message type={message.type} text={message.text} />}
     </div>
   );
 }

@@ -101,7 +101,6 @@ async function queryForSamEntities(req, email) {
   /** @type {jsforce.Connection} */
   const bapConnection = req.app.locals.bapConnection;
 
-  /* SOQL: */
   // `SELECT
   //   ENTITY_COMBO_KEY__c,
   //   ENTITY_STATUS__c,
@@ -189,8 +188,8 @@ async function queryForApplicationSubmissionsStatuses(req, comboKeys) {
   /** @type {jsforce.Connection} */
   const bapConnection = req.app.locals.bapConnection;
 
-  /* SOQL: */
   // `SELECT
+  //   UEI_EFTI_Combo_Key__c,
   //   CSB_Form_ID__c,
   //   CSB_Modified_Full_String__c,
   //   CSB_Review_Item_ID__c,
@@ -211,6 +210,7 @@ async function queryForApplicationSubmissionsStatuses(req, comboKeys) {
       { UEI_EFTI_Combo_Key__c: { $in: comboKeys } },
       {
         // "*": 1,
+        UEI_EFTI_Combo_Key__c: 1,
         CSB_Form_ID__c: 1, // MongoDB ObjectId string
         CSB_Modified_Full_String__c: 1, // ISO 8601 date string
         CSB_Review_Item_ID__c: 1, // CSB Rebate ID w/ form/version ID (9 digits)
@@ -235,7 +235,6 @@ async function queryForApplicationSubmission(req, reviewItemId) {
   /** @type {jsforce.Connection} */
   const bapConnection = req.app.locals.bapConnection;
 
-  /* SOQL: */
   // `SELECT
   //   Id
   // FROM
@@ -257,13 +256,13 @@ async function queryForApplicationSubmission(req, reviewItemId) {
         Id: 1, // Salesforce record ID
       }
     )
+    .limit(1)
     .execute(async (err, records) => ((await err) ? err : records));
 
   const formsTableId = formsTableIdQuery["0"].Id;
 
-  /* SOQL */
   // `SELECT
-  //   id,
+  //   Id,
   //   UEI_EFTI_Combo_Key__c,
   //   CSB_NCES_ID__c,
   //   Primary_Applicant__r.Name,
@@ -320,14 +319,13 @@ async function queryForApplicationSubmission(req, reviewItemId) {
 
   const formsTableRecordId = formsTableRecordQuery["0"].Id;
 
-  /* SOQL */
   // `SELECT
   //   Id
   // FROM
   //   recordtype
   // WHERE
   //   developername = 'CSB_Rebate_Item' AND
-  //   sobjecttype = ${BAP_BUS_TABLE}
+  //   sobjecttype = '${BAP_BUS_TABLE}'
   // LIMIT 1`
 
   const busTableIdQuery = await bapConnection
@@ -347,9 +345,7 @@ async function queryForApplicationSubmission(req, reviewItemId) {
 
   const busTableId = busTableIdQuery["0"].Id;
 
-  /* SOQL: */
   // `SELECT
-  //   Id,
   //   Rebate_Item_num__c,
   //   CSB_VIN__c,
   //   CSB_Model_Year__c,
@@ -361,7 +357,7 @@ async function queryForApplicationSubmission(req, reviewItemId) {
   // WHERE
   //   recordtypeid = '${busTableId}' AND
   //   Related_Order_Request__c = '${formsTableRecordId}' AND
-  //   CSB_Rebate_Item_Type__c != 'Infrastructure'`
+  //   CSB_Rebate_Item_Type__c = 'Old Bus'`
 
   const busTableRecordsQuery = await bapConnection
     .sobject(BAP_BUS_TABLE)
@@ -369,11 +365,10 @@ async function queryForApplicationSubmission(req, reviewItemId) {
       {
         recordtypeid: busTableId,
         Related_Order_Request__c: formsTableRecordId,
-        CSB_Rebate_Item_Type__c: { $neq: "Infrastructure" },
+        CSB_Rebate_Item_Type__c: "Old Bus",
       },
       {
         // "*": 1,
-        Id: 1, // Salesforce record ID
         Rebate_Item_num__c: 1,
         CSB_VIN__c: 1,
         CSB_Model_Year__c: 1,

@@ -2,6 +2,7 @@ const { resolve } = require("node:path");
 const { readFile } = require("node:fs/promises");
 const express = require("express");
 const axios = require("axios").default;
+const ObjectId = require("mongodb").ObjectId;
 // ---
 const {
   axiosFormio,
@@ -31,11 +32,11 @@ const enrollmentClosed = process.env.CSB_ENROLLMENT_PERIOD !== "open";
  * if the form submission has the status of "Edits Requested" or not (as stored
  * in and returned from the BAP).
  * @param {Object} param
- * @param {string} param.id
+ * @param {string} param.mongoId
  * @param {string} param.comboKey
  * @param {express.Request} param.req
  */
-function checkEnrollmentPeriodAndBapStatus({ id, comboKey, req }) {
+function checkEnrollmentPeriodAndBapStatus({ mongoId, comboKey, req }) {
   // continue if enrollment isn't closed
   if (!enrollmentClosed) {
     return Promise.resolve();
@@ -43,7 +44,7 @@ function checkEnrollmentPeriodAndBapStatus({ id, comboKey, req }) {
   // else, enrollment is closed, so only continue if edits are requested
   return getApplicationSubmissionsStatuses(req, [comboKey]).then(
     (submissions) => {
-      const submission = submissions.find((s) => s.CSB_Form_ID__c === id);
+      const submission = submissions.find((s) => s.CSB_Form_ID__c === mongoId);
       const status = submission?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c;
       return status === "Edits Requested"
         ? Promise.resolve()
@@ -68,6 +69,8 @@ router.get("/content", (req, res) => {
     "new-application-dialog.md",
     "draft-application-intro.md",
     "submitted-application-intro.md",
+    "draft-payment-request-intro.md",
+    "submitted-payment-request-intro.md",
   ];
 
   const s3BucketUrl = `https://${s3Bucket}.s3-${s3Region}.amazonaws.com`;
@@ -97,6 +100,8 @@ router.get("/content", (req, res) => {
         newApplicationDialog: data[4],
         draftApplicationIntro: data[5],
         submittedApplicationIntro: data[6],
+        draftPaymentRequestIntro: data[7],
+        submittedPaymentRequestIntro: data[8],
       });
     })
     .catch((error) => {
@@ -216,7 +221,6 @@ router.post("/formio-application-submission", storeBapComboKeys, (req, res) => {
 
   // add custom metadata to track formio submissions from wrapper
   req.body.metadata = {
-    ...req.body.metadata,
     ...formioCsbMetadata,
   };
 
@@ -232,25 +236,25 @@ router.post("/formio-application-submission", storeBapComboKeys, (req, res) => {
 
 // --- get an existing Application form's schema and submission data from Forms.gov
 router.get(
-  "/formio-application-submission/:id",
+  "/formio-application-submission/:mongoId",
   verifyMongoObjectId,
   storeBapComboKeys,
-  async (req, res) => {
-    const { id } = req.params;
+  (req, res) => {
+    const { mongoId } = req.params;
 
     axiosFormio(req)
-      .get(`${applicationFormApiPath}/submission/${id}`)
+      .get(`${applicationFormApiPath}/submission/${mongoId}`)
       .then((axiosRes) => axiosRes.data)
       .then((submission) => {
         const comboKey = submission.data.bap_hidden_entity_combo_key;
 
         if (!req.bapComboKeys.includes(comboKey)) {
-          const message = `User with email ${req.user.mail} attempted to access Application form submission ${id} that they do not have access to.`;
+          const message = `User with email ${req.user.mail} attempted to access Application form submission ${mongoId} that they do not have access to.`;
           log({ level: "warn", message, req });
           return res.json({
             userAccess: false,
             formSchema: null,
-            submissionData: null,
+            submission: null,
           });
         }
 
@@ -261,12 +265,12 @@ router.get(
             return res.json({
               userAccess: true,
               formSchema: { url: applicationFormApiPath, json: schema },
-              submissionData: submission,
+              submission,
             });
           });
       })
       .catch((error) => {
-        const message = `Error getting Forms.gov Application form submission ${id}`;
+        const message = `Error getting Forms.gov Application form submission ${mongoId}`;
         res.status(error?.response?.status || 500).json({ message });
       });
   }
@@ -274,18 +278,18 @@ router.get(
 
 // --- post an update to an existing draft Application form submission to Forms.gov
 router.post(
-  "/formio-application-submission/:id",
+  "/formio-application-submission/:mongoId",
   verifyMongoObjectId,
   storeBapComboKeys,
   (req, res) => {
-    const { id } = req.params;
+    const { mongoId } = req.params;
     const comboKey = req.body.data?.bap_hidden_entity_combo_key;
 
-    checkEnrollmentPeriodAndBapStatus({ id, comboKey, req })
+    checkEnrollmentPeriodAndBapStatus({ mongoId, comboKey, req })
       .then(() => {
         // verify post data includes one of user's BAP combo keys
         if (!req.bapComboKeys.includes(comboKey)) {
-          const message = `User with email ${req.user.mail} attempted to update existing form without a matching BAP combo key`;
+          const message = `User with email ${req.user.mail} attempted to update existing Application form without a matching BAP combo key`;
           log({ level: "error", message, req });
           return res.status(401).json({ message: "Unauthorized" });
         }
@@ -297,7 +301,7 @@ router.post(
         };
 
         axiosFormio(req)
-          .put(`${applicationFormApiPath}/submission/${id}`, req.body)
+          .put(`${applicationFormApiPath}/submission/${mongoId}`, req.body)
           .then((axiosRes) => axiosRes.data)
           .then((submission) => res.json(submission))
           .catch((error) => {
@@ -313,10 +317,10 @@ router.post(
 );
 
 // --- upload s3 file metadata to Forms.gov
-router.post("/:id/:comboKey/storage/s3", storeBapComboKeys, (req, res) => {
-  const { id, comboKey } = req.params;
+router.post("/:mongoId/:comboKey/storage/s3", storeBapComboKeys, (req, res) => {
+  const { mongoId, comboKey } = req.params;
 
-  checkEnrollmentPeriodAndBapStatus({ id, comboKey, req })
+  checkEnrollmentPeriodAndBapStatus({ mongoId, comboKey, req })
     .then(() => {
       if (!req.bapComboKeys.includes(comboKey)) {
         const message = `User with email ${req.user.mail} attempted to upload file without a matching BAP combo key`;
@@ -340,7 +344,7 @@ router.post("/:id/:comboKey/storage/s3", storeBapComboKeys, (req, res) => {
 });
 
 // --- download s3 file metadata from Forms.gov
-router.get("/:id/:comboKey/storage/s3", storeBapComboKeys, (req, res) => {
+router.get("/:mongoId/:comboKey/storage/s3", storeBapComboKeys, (req, res) => {
   const { comboKey } = req.params;
 
   if (!req.bapComboKeys.includes(comboKey)) {
@@ -390,8 +394,7 @@ router.post(
   "/formio-payment-request-submission",
   storeBapComboKeys,
   (req, res) => {
-    const comboKey = req.body.data?.bap_hidden_entity_combo_key;
-    const reviewItemId = req.body.data?.csb_review_item_id;
+    const { email, title, name, comboKey, rebateId, reviewItemId } = req.body;
 
     // verify post data includes one of user's BAP combo keys
     if (!req.bapComboKeys.includes(comboKey)) {
@@ -400,29 +403,74 @@ router.post(
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    // add custom metadata to track formio submissions from wrapper
-    req.body.metadata = {
-      ...req.body.metadata,
-      ...formioCsbMetadata,
-    };
-
     return getApplicationSubmission(req, reviewItemId)
-      .then((applicationSubmission) => {
-        const data = {
-          ...applicationSubmission,
+      .then(({ formsTableRecordQuery, busTableRecordsQuery }) => {
+        const {
+          CSB_NCES_ID__c,
+          Primary_Applicant__r,
+          Alternate_Applicant__r,
+          Applicant_Organization__r,
+          CSB_School_District__r,
+          Fleet_Name__c,
+          School_District_Prioritized__c,
+          Total_Rebate_Funds_Requested__c,
+          Total_Infrastructure_Funds__c,
+        } = formsTableRecordQuery[0];
+
+        const busInfo = busTableRecordsQuery.map((record) => ({
+          busNum: record.Rebate_Item_num__c,
+          oldBusNcesDistrictId: CSB_NCES_ID__c,
+          oldBusVin: record.CSB_VIN__c,
+          oldBusModelYear: record.CSB_Model_Year__c,
+          oldBusFuelType: record.CSB_Fuel_Type__c,
+          newBusFuelType: record.CSB_Replacement_Fuel_Type__c,
+          hidden_bap_max_rebate: record.CSB_Funds_Requested__c,
+        }));
+
+        // NOTE: `purchaseOrders` is initialized as an empty array to fix some
+        // issue with the field being changed to an object when the form loads
+        const newSubmission = {
+          data: {
+            last_updated_by: email,
+            hidden_current_user_email: email,
+            hidden_current_user_title: title,
+            hidden_current_user_name: name,
+            bap_hidden_entity_combo_key: comboKey,
+            hidden_bap_rebate_id: rebateId,
+            hidden_bap_district_id: CSB_NCES_ID__c,
+            hidden_bap_primary_name: Primary_Applicant__r?.Name,
+            hidden_bap_primary_title: Primary_Applicant__r?.Title,
+            hidden_bap_primary_phone_number: Primary_Applicant__r?.Phone,
+            hidden_bap_primary_email: Primary_Applicant__r?.Email,
+            hidden_bap_alternate_name: Alternate_Applicant__r?.Name || "",
+            hidden_bap_alternate_title: Alternate_Applicant__r?.Title || "",
+            hidden_bap_alternate_phone_number:
+              Alternate_Applicant__r?.Phone || "",
+            hidden_bap_alternate_email: Alternate_Applicant__r?.Email || "",
+            hidden_bap_org_name: Applicant_Organization__r?.Name,
+            hidden_bap_district_name: CSB_School_District__r?.Name,
+            hidden_bap_fleet_name: Fleet_Name__c,
+            hidden_bap_prioritized: School_District_Prioritized__c,
+            hidden_bap_requested_funds: Total_Rebate_Funds_Requested__c,
+            hidden_bap_infra_max_rebate: Total_Infrastructure_Funds__c,
+            busInfo,
+            purchaseOrders: [],
+          },
+          // add custom metadata to track formio submissions from wrapper
+          metadata: {
+            ...formioCsbMetadata,
+          },
+          state: "draft",
         };
 
-        // TODO: temporarily return data for now...will eventually post to formio
-        return res.json(data);
-
-        // axiosFormio(req)
-        //   .post(`${paymentFormApiPath}/submission`, data)
-        //   .then((axiosRes) => axiosRes.data)
-        //   .then((submission) => res.json(submission))
-        //   .catch((error) => {
-        //     const message = `Error posting Forms.gov Payment Request form submission`;
-        //     return res.status(error?.response?.status || 500).json({ message });
-        //   });
+        axiosFormio(req)
+          .post(`${paymentFormApiPath}/submission`, newSubmission)
+          .then((axiosRes) => axiosRes.data)
+          .then((submission) => res.json(submission))
+          .catch((error) => {
+            const message = `Error posting Forms.gov Payment Request form submission`;
+            return res.status(error?.response?.status || 500).json({ message });
+          });
       })
       .catch((error) => {
         const message = `Error getting Application form submission from BAP`;
@@ -431,16 +479,108 @@ router.post(
   }
 );
 
-// --- TODO: WIP, as we'll eventually mirror `router.get("/formio-application-submission/:id")`
-router.get("/formio-payment-request-schema", storeBapComboKeys, (req, res) => {
-  axiosFormio(req)
-    .get(paymentFormApiPath)
-    .then((axiosRes) => axiosRes.data)
-    .then((schema) => res.json(schema))
-    .catch((error) => {
-      const message = `Error...`;
-      return res.status(error?.response?.status || 500).json({ message });
-    });
-});
+// --- get an existing Payment Request form's schema and submission data from Forms.gov
+router.get(
+  "/formio-payment-request-submission/:rebateId",
+  storeBapComboKeys,
+  async (req, res) => {
+    const { rebateId } = req.params; // CSB Rebate ID (6 digits)
+
+    const matchedPaymentFormSubmissions =
+      `${paymentFormApiPath}/submission` +
+      `?data.hidden_bap_rebate_id=${rebateId}` +
+      `&select=_id,data.bap_hidden_entity_combo_key`;
+
+    axiosFormio(req)
+      .get(matchedPaymentFormSubmissions)
+      .then((axiosRes) => axiosRes.data)
+      .then((submissions) => {
+        const submission = submissions[0];
+        const mongoId = submission._id;
+        const comboKey = submission.data.bap_hidden_entity_combo_key;
+
+        if (!req.bapComboKeys.includes(comboKey)) {
+          const message = `User with email ${req.user.mail} attempted to access Payment Request form submission ${rebateId} that they do not have access to.`;
+          log({ level: "warn", message, req });
+          return res.json({
+            userAccess: false,
+            formSchema: null,
+            submission: null,
+          });
+        }
+
+        // NOTE: verifyMongoObjectId middleware content:
+        if (mongoId && !ObjectId.isValid(mongoId)) {
+          const message = `MongoDB ObjectId validation error for: ${mongoId}`;
+          return res.status(400).json({ message });
+        }
+
+        // NOTE: we can't just use the returned submission data here because the
+        // `signatureAuthorizedRepresentative` field is the literal string 'YES'
+        // and not the base64 encoded image string when you query with any
+        // properties of a submission (e.g. `?data.bap_hidden_entity_combo_key`),
+        // so we need to use the returned submission's ObjectId to query for the
+        // submission directly, and then the `signatureAuthorizedRepresentative`
+        // field will be the base64 encoded image string
+        axiosFormio(req)
+          .get(`${paymentFormApiPath}/submission/${mongoId}`)
+          .then((axiosRes) => axiosRes.data)
+          .then((submission) => {
+            axiosFormio(req)
+              .get(paymentFormApiPath)
+              .then((axiosRes) => axiosRes.data)
+              .then((schema) => {
+                return res.json({
+                  userAccess: true,
+                  formSchema: { url: paymentFormApiPath, json: schema },
+                  submission,
+                });
+              });
+          });
+      })
+      .catch((error) => {
+        const message = `Error getting Forms.gov Payment Request form submission ${rebateId}`;
+        res.status(error?.response?.status || 500).json({ message });
+      });
+  }
+);
+
+// --- post an update to an existing draft Payment Request form submission to Forms.gov
+router.post(
+  "/formio-payment-request-submission/:rebateId",
+  storeBapComboKeys,
+  (req, res) => {
+    const { mongoId, submission } = req.body;
+    const comboKey = submission.data?.bap_hidden_entity_combo_key;
+
+    // verify post data includes one of user's BAP combo keys
+    if (!req.bapComboKeys.includes(comboKey)) {
+      const message = `User with email ${req.user.mail} attempted to update existing Payment Request form without a matching BAP combo key`;
+      log({ level: "error", message, req });
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    // NOTE: verifyMongoObjectId middleware content:
+    if (mongoId && !ObjectId.isValid(mongoId)) {
+      const message = `MongoDB ObjectId validation error for: ${mongoId}`;
+      return res.status(400).json({ message });
+    }
+
+    // add custom metadata to track formio submissions from wrapper
+    submission.metadata = {
+      ...submission.metadata,
+      ...formioCsbMetadata,
+    };
+
+    axiosFormio(req)
+      .put(`${paymentFormApiPath}/submission/${mongoId}`, submission)
+      .then((axiosRes) => axiosRes.data)
+      .then((submission) => res.json(submission))
+      .catch((error) => {
+        const message = `Error updating Forms.gov Payment Request form submission`;
+        return res.status(error?.response?.status || 500).json({ message });
+      });
+  }
+);
 
 module.exports = router;

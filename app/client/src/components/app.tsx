@@ -290,8 +290,11 @@ export function App() {
           */}
           <Route path="helpdesk" element={<Helpdesk />} />
           <Route path="rebate/new" element={<NewApplicationForm />} />
-          <Route path="rebate/:id" element={<ApplicationForm />} />
-          <Route path="payment-request/:id" element={<PaymentRequestForm />} />
+          <Route path="rebate/:mongoId" element={<ApplicationForm />} />
+          <Route
+            path="payment-request/:rebateId"
+            element={<PaymentRequestForm />}
+          />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
