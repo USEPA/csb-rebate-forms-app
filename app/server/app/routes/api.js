@@ -526,21 +526,59 @@ router.get(
           .get(`${paymentFormApiPath}/submission/${mongoId}`)
           .then((axiosRes) => axiosRes.data)
           .then((submission) => {
-        axiosFormio(req)
-          .get(paymentFormApiPath)
-          .then((axiosRes) => axiosRes.data)
-          .then((schema) => {
-            return res.json({
-              userAccess: true,
-              formSchema: { url: paymentFormApiPath, json: schema },
-              submission,
-            });
-          });
+            axiosFormio(req)
+              .get(paymentFormApiPath)
+              .then((axiosRes) => axiosRes.data)
+              .then((schema) => {
+                return res.json({
+                  userAccess: true,
+                  formSchema: { url: paymentFormApiPath, json: schema },
+                  submission,
+                });
+              });
           });
       })
       .catch((error) => {
         const message = `Error getting Forms.gov Payment Request form submission ${rebateId}`;
         res.status(error?.response?.status || 500).json({ message });
+      });
+  }
+);
+
+// --- post an update to an existing draft Payment Request form submission to Forms.gov
+router.post(
+  "/formio-payment-request-submission/:rebateId",
+  storeBapComboKeys,
+  (req, res) => {
+    const { mongoId, submission } = req.body;
+    const comboKey = submission.data?.bap_hidden_entity_combo_key;
+
+    // verify post data includes one of user's BAP combo keys
+    if (!req.bapComboKeys.includes(comboKey)) {
+      const message = `User with email ${req.user.mail} attempted to update existing Payment Request form without a matching BAP combo key`;
+      log({ level: "error", message, req });
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    // NOTE: verifyMongoObjectId middleware content:
+    if (mongoId && !ObjectId.isValid(mongoId)) {
+      const message = `MongoDB ObjectId validation error for: ${mongoId}`;
+      return res.status(400).json({ message });
+    }
+
+    // add custom metadata to track formio submissions from wrapper
+    submission.metadata = {
+      ...submission.metadata,
+      ...formioCsbMetadata,
+    };
+
+    axiosFormio(req)
+      .put(`${paymentFormApiPath}/submission/${mongoId}`, submission)
+      .then((axiosRes) => axiosRes.data)
+      .then((submission) => res.json(submission))
+      .catch((error) => {
+        const message = `Error updating Forms.gov Payment Request form submission`;
+        return res.status(error?.response?.status || 500).json({ message });
       });
   }
 );

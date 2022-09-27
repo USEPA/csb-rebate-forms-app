@@ -1,13 +1,15 @@
 import { useEffect, useState, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Formio, Form } from "@formio/react";
-import { cloneDeep } from "lodash";
+import { cloneDeep, isEqual } from "lodash";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl, getData } from "../config";
+import { serverUrl, getData, postData } from "../config";
 import { getUserInfo } from "../utilities";
 import { Loading } from "components/loading";
 import { Message } from "components/message";
+import { MarkdownContent } from "components/markdownContent";
+import { useContentState } from "contexts/content";
 import { useUserState } from "contexts/user";
 import { useCsbState } from "contexts/csb";
 import { useBapState } from "contexts/bap";
@@ -18,41 +20,11 @@ import {
   usePageDispatch,
 } from "contexts/page";
 
-type FormioSubmission = {
-  [field: string]: unknown;
-  _id: string; // MongoDB ObjectId string
-  data: FormioSubmissionData;
-  state: "submitted" | "draft";
-};
-
-type NoFormioData = { userAccess: false; formSchema: null; submission: null };
-
-type SubmissionState =
-  | {
-      status: "idle";
-      data: NoFormioData;
-    }
-  | {
-      status: "pending";
-      data: NoFormioData;
-    }
-  | {
-      status: "success";
-      data:
-        | NoFormioData
-        | {
-            userAccess: true;
-            formSchema: { url: string; json: object };
-            submission: FormioSubmission;
-          };
-    }
-  | {
-      status: "failure";
-      data: NoFormioData;
-    };
-
 export function PaymentRequestForm() {
+  const navigate = useNavigate();
   const { rebateId } = useParams<"rebateId">(); // CSB Rebate ID (6 digits)
+
+  const { content } = useContentState();
   const { epaUserData } = useUserState();
   const { csbData } = useCsbState();
   const { samEntities } = useBapState();
@@ -161,6 +133,19 @@ export function PaymentRequestForm() {
 
   return (
     <div className="margin-top-2">
+      {content.status === "success" && (
+        <MarkdownContent
+          className="margin-top-4"
+          children={
+            submission.state === "draft"
+              ? content.data?.draftPaymentRequestIntro || ""
+              : submission.state === "submitted"
+              ? content.data?.submittedPaymentRequestIntro || ""
+              : ""
+          }
+        />
+      )}
+
       {message.displayed && <Message type={message.type} text={message.text} />}
 
       <ul className="usa-icon-list">
@@ -190,13 +175,87 @@ export function PaymentRequestForm() {
               ...pendingSubmissionData,
             },
           }}
+          options={{
+            readOnly: submission.state === "submitted",
+            noAlerts: true,
+          }}
           onSubmit={(onSubmitSubmission: {
             state: "submitted" | "draft";
             data: FormioSubmissionData;
             metadata: unknown;
           }) => {
             const data = { ...onSubmitSubmission.data };
-            console.log(data);
+
+            if (onSubmitSubmission.state === "submitted") {
+              dispatch({
+                type: "DISPLAY_MESSAGE",
+                payload: { type: "info", text: "Submitting form..." },
+              });
+            }
+
+            if (onSubmitSubmission.state === "draft") {
+              dispatch({
+                type: "DISPLAY_MESSAGE",
+                payload: { type: "info", text: "Saving form..." },
+              });
+            }
+
+            setPendingSubmissionData(data);
+
+            postData(
+              `${serverUrl}/api/formio-payment-request-submission/${rebateId}`,
+              {
+                mongoId: formio.data.submission?._id,
+                submission: { ...onSubmitSubmission, data },
+              }
+            )
+              .then((res) => {
+                setStoredSubmissionData((prevData) => {
+                  storedSubmissionDataRef.current = res.data;
+                  return res.data;
+                });
+
+                setPendingSubmissionData({});
+
+                if (onSubmitSubmission.state === "submitted") {
+                  dispatch({
+                    type: "DISPLAY_MESSAGE",
+                    payload: {
+                      type: "success",
+                      text: "Form successfully submitted.",
+                    },
+                  });
+
+                  setTimeout(() => {
+                    dispatch({ type: "RESET_MESSAGE" });
+                    navigate("/");
+                  }, 5000);
+                  return;
+                }
+
+                if (onSubmitSubmission.state === "draft") {
+                  dispatch({
+                    type: "DISPLAY_MESSAGE",
+                    payload: {
+                      type: "success",
+                      text: "Draft successfully saved.",
+                    },
+                  });
+
+                  setTimeout(() => {
+                    dispatch({ type: "RESET_MESSAGE" });
+                  }, 5000);
+                }
+              })
+              .catch((err) => {
+                dispatch({
+                  type: "DISPLAY_MESSAGE",
+                  payload: {
+                    type: "error",
+                    text: "Error submitting Payment Request form.",
+                  },
+                });
+              });
           }}
           onNextPage={(onNextPageParam: {
             page: number;
@@ -206,7 +265,70 @@ export function PaymentRequestForm() {
             };
           }) => {
             const data = { ...onNextPageParam.submission.data };
-            console.log(data);
+
+            // don't post an update if form is not in draft state
+            // (form has been already submitted, and fields are read-only)
+            if (submission.state !== "draft") return;
+
+            // don't post an update if no changes have been made to the form
+            // (ignoring current user fields)
+            const dataToCheck = { ...data };
+            delete dataToCheck.hidden_current_user_email;
+            delete dataToCheck.hidden_current_user_title;
+            delete dataToCheck.hidden_current_user_name;
+            const storedDataToCheck = { ...storedSubmissionDataRef.current };
+            delete storedDataToCheck.hidden_current_user_email;
+            delete storedDataToCheck.hidden_current_user_title;
+            delete storedDataToCheck.hidden_current_user_name;
+            if (isEqual(dataToCheck, storedDataToCheck)) return;
+
+            dispatch({
+              type: "DISPLAY_MESSAGE",
+              payload: { type: "info", text: "Saving form..." },
+            });
+
+            setPendingSubmissionData(data);
+
+            postData(
+              `${serverUrl}/api/formio-payment-request-submission/${rebateId}`,
+              {
+                mongoId: formio.data.submission?._id,
+                submission: {
+                  ...onNextPageParam.submission,
+                  data,
+                  state: "draft",
+                },
+              }
+            )
+              .then((res) => {
+                setStoredSubmissionData((prevData) => {
+                  storedSubmissionDataRef.current = res.data;
+                  return res.data;
+                });
+
+                setPendingSubmissionData({});
+
+                dispatch({
+                  type: "DISPLAY_MESSAGE",
+                  payload: {
+                    type: "success",
+                    text: "Draft successfully saved.",
+                  },
+                });
+
+                setTimeout(() => {
+                  dispatch({ type: "RESET_MESSAGE" });
+                }, 5000);
+              })
+              .catch((err) => {
+                dispatch({
+                  type: "DISPLAY_MESSAGE",
+                  payload: {
+                    type: "error",
+                    text: "Error saving draft Payment Request form.",
+                  },
+                });
+              });
           }}
         />
       </div>

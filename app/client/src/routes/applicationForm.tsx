@@ -23,6 +23,7 @@ import {
 export function ApplicationForm() {
   const navigate = useNavigate();
   const { mongoId } = useParams<"mongoId">(); // MongoDB ObjectId string
+
   const { content } = useContentState();
   const { epaUserData } = useUserState();
   const { csbData } = useCsbState();
@@ -209,9 +210,7 @@ export function ApplicationForm() {
           options={{
             readOnly:
               (enrollmentClosed && !submissionNeedsEdits) ||
-              submission.state === "submitted"
-                ? true
-                : false,
+              submission.state === "submitted",
             noAlerts: true,
           }}
           onChange={(onChangeSubmission: {
@@ -324,7 +323,7 @@ export function ApplicationForm() {
                   type: "DISPLAY_MESSAGE",
                   payload: {
                     type: "error",
-                    text: "Error submitting application form.",
+                    text: "Error submitting Application form.",
                   },
                 });
               });
@@ -398,7 +397,7 @@ export function ApplicationForm() {
                   type: "DISPLAY_MESSAGE",
                   payload: {
                     type: "error",
-                    text: "Error saving draft application form.",
+                    text: "Error saving draft Application form.",
                   },
                 });
               });
