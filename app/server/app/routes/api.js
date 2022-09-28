@@ -431,7 +431,6 @@ router.post(
         // issue with the field being changed to an object when the form loads
         const newSubmission = {
           data: {
-            last_updated_by: email,
             hidden_current_user_email: email,
             hidden_current_user_title: title,
             hidden_current_user_name: name,

@@ -618,7 +618,8 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
   // return if a Payment Request submission has not been created for this rebate
   if (!paymentRequest.formio) return null;
 
-  const { last_updated_by, hidden_bap_rebate_id } = paymentRequest.formio.data;
+  const { hidden_current_user_email, hidden_bap_rebate_id } =
+    paymentRequest.formio.data;
 
   const date = new Date(paymentRequest.formio.modified).toLocaleDateString();
   const time = new Date(paymentRequest.formio.modified).toLocaleTimeString();
@@ -768,7 +769,7 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
       <td className={statusStyles}>&nbsp;</td>
 
       <td className={statusStyles}>
-        {last_updated_by}
+        {hidden_current_user_email}
         <br />
         <span title={`${date} ${time}`}>{date}</span>
       </td>
