@@ -6,6 +6,7 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, getData, postData } from "../config";
 import { getUserInfo } from "../utilities";
+import { useFetchedBapApplicationSubmissions } from "routes/allRebates";
 import { Loading } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
@@ -36,6 +37,8 @@ export function ApplicationForm() {
   useEffect(() => {
     dispatch({ type: "RESET_STATE" });
   }, [dispatch]);
+
+  useFetchedBapApplicationSubmissions();
 
   // set when form submission data is initially fetched, and then re-set each
   // time a successful update of the submission data is posted to forms.gov

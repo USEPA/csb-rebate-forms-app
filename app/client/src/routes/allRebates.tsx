@@ -53,6 +53,8 @@ function useFetchedFormioApplicationSubmissions() {
   const dispatch = useFormioDispatch();
 
   useEffect(() => {
+    // while not used in this code, SAM.gov entities are used in the server
+    // app's `/api/formio-application-submissions` route controller
     if (samEntities.status !== "success" || !samEntities.data.results) {
       return;
     }
@@ -73,11 +75,13 @@ function useFetchedFormioApplicationSubmissions() {
 }
 
 /** Custom hook to fetch Application form submissions from the BAP */
-function useFetchedBapApplicationSubmissions() {
+export function useFetchedBapApplicationSubmissions() {
   const { samEntities } = useBapState();
   const dispatch = useBapDispatch();
 
   useEffect(() => {
+    // while not used in this code, SAM.gov entities are used in the server
+    // app's `/api/bap-application-submissions` route controller
     if (samEntities.status !== "success" || !samEntities.data.results) {
       return;
     }
