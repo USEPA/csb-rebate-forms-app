@@ -3,9 +3,9 @@ const express = require("express");
 const {
   axiosFormio,
   formioProjectUrl,
-  formioFormId,
+  formioFormName,
 } = require("../config/formio");
-const { getSamData } = require("../utilities/getSamData");
+const { getSamData } = require("../utilities/bap");
 
 const router = express.Router();
 
@@ -25,7 +25,7 @@ router.get("/bap", (req, res) => {
 
 router.get("/form", (req, res) => {
   axiosFormio(req)
-    .get(`${formioProjectUrl}/${formioFormId}`)
+    .get(`${formioProjectUrl}/${formioFormName}`)
     .then((axiosRes) => axiosRes.data)
     .then((schema) =>
       // Verify that schema has type of form and a title exists (confirming formio returned a valid schema)

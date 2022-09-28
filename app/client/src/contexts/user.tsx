@@ -10,13 +10,17 @@ type Props = {
   children: ReactNode;
 };
 
-export type EPAUserData = {
+type CsbData = {
+  enrollmentClosed: boolean;
+};
+
+type EpaUserData = {
   mail: string;
   memberof: string;
   exp: number;
 };
 
-export type SAMUserData = {
+export type SamEntityData = {
   ENTITY_COMBO_KEY__c: string;
   UNIQUE_ENTITY_ID__c: string;
   ENTITY_EFT_INDICATOR__c: string;
@@ -49,22 +53,51 @@ export type SAMUserData = {
   attributes: { type: string; url: string };
 };
 
+type BapSubmissionData = {
+  CSB_Form_ID__c: string; // MongoDB ObjectId string
+  CSB_Modified_Full_String__c: string; // ISO 8601 date string
+  UEI_EFTI_Combo_Key__c: string;
+  Parent_Rebate_ID__c: string; // CSB Rebate ID
+  Parent_CSB_Rebate__r: {
+    CSB_Rebate_Status__c:
+      | "Draft"
+      | "Submitted"
+      | "Edits Requested"
+      | "Withdrawn";
+    attributes: { type: string; url: string };
+  };
+  attributes: { type: string; url: string };
+};
+
 type State = {
   isAuthenticating: boolean;
   isAuthenticated: boolean;
+  csbData:
+    | { status: "idle"; data: {} }
+    | { status: "pending"; data: {} }
+    | { status: "success"; data: CsbData }
+    | { status: "failure"; data: {} };
   epaUserData:
     | { status: "idle"; data: {} }
     | { status: "pending"; data: {} }
-    | { status: "success"; data: EPAUserData }
+    | { status: "success"; data: EpaUserData }
     | { status: "failure"; data: {} };
-  samUserData:
+  bapUserData:
     | { status: "idle"; data: {} }
     | { status: "pending"; data: {} }
     | {
         status: "success";
         data:
-          | { results: true; records: SAMUserData[] }
-          | { results: false; records: [] };
+          | {
+              samResults: false;
+              samEntities: [];
+              rebateSubmissions: [];
+            }
+          | {
+              samResults: true;
+              samEntities: SamEntityData[];
+              rebateSubmissions: BapSubmissionData[];
+            };
       }
     | { status: "failure"; data: {} };
 };
@@ -72,24 +105,36 @@ type State = {
 type Action =
   | { type: "USER_SIGN_IN" }
   | { type: "USER_SIGN_OUT" }
+  | { type: "FETCH_CSB_DATA_REQUEST" }
+  | {
+      type: "FETCH_CSB_DATA_SUCCESS";
+      payload: { csbData: CsbData };
+    }
+  | { type: "FETCH_CSB_DATA_FAILURE" }
   | { type: "FETCH_EPA_USER_DATA_REQUEST" }
   | {
       type: "FETCH_EPA_USER_DATA_SUCCESS";
-      payload: {
-        epaUserData: EPAUserData;
-      };
+      payload: { epaUserData: EpaUserData };
     }
   | { type: "FETCH_EPA_USER_DATA_FAILURE" }
-  | { type: "FETCH_SAM_USER_DATA_REQUEST" }
+  | { type: "FETCH_BAP_USER_DATA_REQUEST" }
   | {
-      type: "FETCH_SAM_USER_DATA_SUCCESS";
+      type: "FETCH_BAP_USER_DATA_SUCCESS";
       payload: {
-        samUserData:
-          | { results: true; records: SAMUserData[] }
-          | { results: false; records: [] };
+        bapUserData:
+          | {
+              samResults: false;
+              samEntities: [];
+              rebateSubmissions: [];
+            }
+          | {
+              samResults: true;
+              samEntities: SamEntityData[];
+              rebateSubmissions: BapSubmissionData[];
+            };
       };
     }
-  | { type: "FETCH_SAM_USER_DATA_FAILURE" };
+  | { type: "FETCH_BAP_USER_DATA_FAILURE" };
 
 const StateContext = createContext<State | undefined>(undefined);
 const DispatchContext = createContext<Dispatch<Action> | undefined>(undefined);
@@ -109,12 +154,47 @@ function reducer(state: State, action: Action): State {
         ...state,
         isAuthenticating: false,
         isAuthenticated: false,
+        csbData: {
+          status: "idle",
+          data: {},
+        },
         epaUserData: {
           status: "idle",
           data: {},
         },
-        samUserData: {
+        bapUserData: {
           status: "idle",
+          data: {},
+        },
+      };
+    }
+
+    case "FETCH_CSB_DATA_REQUEST": {
+      return {
+        ...state,
+        csbData: {
+          status: "pending",
+          data: {},
+        },
+      };
+    }
+
+    case "FETCH_CSB_DATA_SUCCESS": {
+      const { csbData } = action.payload;
+      return {
+        ...state,
+        csbData: {
+          status: "success",
+          data: csbData,
+        },
+      };
+    }
+
+    case "FETCH_CSB_DATA_FAILURE": {
+      return {
+        ...state,
+        csbData: {
+          status: "failure",
           data: {},
         },
       };
@@ -151,31 +231,31 @@ function reducer(state: State, action: Action): State {
       };
     }
 
-    case "FETCH_SAM_USER_DATA_REQUEST": {
+    case "FETCH_BAP_USER_DATA_REQUEST": {
       return {
         ...state,
-        samUserData: {
+        bapUserData: {
           status: "pending",
           data: {},
         },
       };
     }
 
-    case "FETCH_SAM_USER_DATA_SUCCESS": {
-      const { samUserData } = action.payload;
+    case "FETCH_BAP_USER_DATA_SUCCESS": {
+      const { bapUserData } = action.payload;
       return {
         ...state,
-        samUserData: {
+        bapUserData: {
           status: "success",
-          data: samUserData,
+          data: bapUserData,
         },
       };
     }
 
-    case "FETCH_SAM_USER_DATA_FAILURE": {
+    case "FETCH_BAP_USER_DATA_FAILURE": {
       return {
         ...state,
-        samUserData: {
+        bapUserData: {
           status: "failure",
           data: {},
         },
@@ -192,11 +272,15 @@ export function UserProvider({ children }: Props) {
   const initialState: State = {
     isAuthenticating: true,
     isAuthenticated: false,
+    csbData: {
+      status: "idle",
+      data: {},
+    },
     epaUserData: {
       status: "idle",
       data: {},
     },
-    samUserData: {
+    bapUserData: {
       status: "idle",
       data: {},
     },

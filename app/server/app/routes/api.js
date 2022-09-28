@@ -6,17 +6,42 @@ const axios = require("axios").default;
 const {
   axiosFormio,
   formioProjectUrl,
-  formioFormId,
+  formioFormName,
   formioCsbMetadata,
 } = require("../config/formio");
 const {
   ensureAuthenticated,
   ensureHelpdesk,
-  checkBapComboKeys,
+  storeBapComboKeys,
   verifyMongoObjectId,
 } = require("../middleware");
-const { getSamData } = require("../utilities/getSamData");
+const { getSamData, getRebateSubmissionsData } = require("../utilities/bap");
 const log = require("../utilities/logger");
+
+const enrollmentClosed = process.env.CSB_ENROLLMENT_PERIOD !== "open";
+
+/**
+ * Returns a resolved or rejected promise, depending on if the enrollment period
+ * is closed (as set via the `CSB_ENROLLMENT_PERIOD` environment variable), and
+ * if the form submission has the status of "Edits Requested" or not (as stored
+ * in and returned from the BAP).
+ * @param {Object} param
+ * @param {string} param.id
+ * @param {string} param.comboKey
+ * @param {express.Request} param.req
+ */
+function checkEnrollmentPeriodAndBapStatus({ id, comboKey, req }) {
+  // continue if enrollment isn't closed
+  if (!enrollmentClosed) {
+    return Promise.resolve();
+  }
+  // else, enrollment is closed, so only continue if edits are requested
+  return getRebateSubmissionsData([comboKey], req).then((submissions) => {
+    const submission = submissions.find((s) => s.CSB_Form_ID__c === id);
+    const status = submission?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c;
+    return status === "Edits Requested" ? Promise.resolve() : Promise.reject();
+  });
+}
 
 const router = express.Router();
 
@@ -69,15 +94,12 @@ router.get("/content", (req, res) => {
       if (typeof error.toJSON === "function") {
         log({ level: "debug", message: error.toJSON(), req });
       }
-      log({
-        level: "error",
-        message: `S3 Error: ${
-          error.response?.status
-        } ${error.response?.config?.method?.toUpperCase()} ${
-          error.response?.config?.url
-        }`,
-        req,
-      });
+
+      const errorStatus = error.response?.status;
+      const errorMethod = error.response?.config?.method?.toUpperCase();
+      const errorUrl = error.response?.config?.url;
+      const message = `S3 Error: ${errorStatus} ${errorMethod} ${errorUrl}`;
+      log({ level: "error", message, req });
 
       res
         .status(error?.response?.status || 500)
@@ -92,46 +114,52 @@ router.get("/helpdesk-access", ensureHelpdesk, (req, res) => {
   res.sendStatus(200);
 });
 
-// --- get EPA data from EPA Gateway/Login.gov
-router.get("/epa-data", (req, res) => {
-  // Explicitly return only required attributes from user info
-  res.json({
-    mail: req.user.mail,
-    memberof: req.user.memberof,
-    exp: req.user.exp,
-  });
+// --- get CSB app specific data (open enrollment status, etc.)
+router.get("/csb-data", (req, res) => {
+  res.json({ enrollmentClosed });
 });
 
-// --- get SAM.gov data from BAP
-router.get("/sam-data", (req, res) => {
+// --- get user data from EPA Gateway/Login.gov
+router.get("/epa-data", (req, res) => {
+  const { mail, memberof, exp } = req.user;
+  res.json({ mail, memberof, exp });
+});
+
+// --- get data from EPA's Business Automation Platform (BAP)
+router.get("/bap-data", (req, res) => {
   getSamData(req.user.mail, req)
-    .then((samUserData) => {
+    .then((samEntities) => {
+      // NOTE: allow admin or helpdesk users access to the app, even without SAM.gov data
       const userRoles = req.user.memberof.split(",");
       const helpdeskUser =
         userRoles.includes("csb_admin") || userRoles.includes("csb_helpdesk");
 
-      // First check if user has at least one associated UEI before completing login process
-      // If user has admin or helpdesk role, return empty array but still allow app use
-      if (!helpdeskUser && samUserData?.length === 0) {
-        log({
-          level: "error",
-          message: `User with email ${req.user.mail} tried to use app without any associated SAM records.`,
-          req,
-        });
-
+      if (!helpdeskUser && samEntities?.length === 0) {
+        const message = `User with email ${req.user.mail} tried to use app without any associated SAM records.`;
+        log({ level: "error", message, req });
         return res.json({
-          results: false,
-          records: [],
+          samResults: false,
+          samEntities: [],
+          rebateSubmissions: [],
         });
       }
 
-      res.json({
-        results: true,
-        records: samUserData,
-      });
+      const comboKeys = samEntities.map((e) => e.ENTITY_COMBO_KEY__c);
+
+      getRebateSubmissionsData(comboKeys, req)
+        .then((submissions) => {
+          res.json({
+            samResults: true,
+            samEntities,
+            rebateSubmissions: submissions,
+          });
+        })
+        .catch((error) => {
+          throw error;
+        });
     })
-    .catch(() => {
-      res.status(401).json({ message: "Error getting SAM.gov data" });
+    .catch((error) => {
+      return res.status(401).json({ message: "Error getting data from BAP" });
     });
 });
 
@@ -139,27 +167,27 @@ router.get("/sam-data", (req, res) => {
 router.get(
   "/rebate-form-submission/:id",
   verifyMongoObjectId,
-  checkBapComboKeys,
+  storeBapComboKeys,
   async (req, res) => {
-    const id = req.params.id;
+    const { id } = req.params;
+
+    const existingSubmissionUrl = `${formioProjectUrl}/${formioFormName}/submission/${id}`;
 
     axiosFormio(req)
-      .get(`${formioProjectUrl}/${formioFormId}/submission/${id}`)
+      .get(existingSubmissionUrl)
       .then((axiosRes) => axiosRes.data)
       .then((submission) => {
+        const formUrl = `${formioProjectUrl}/form/${submission.form}`;
+
         axiosFormio(req)
-          .get(`${formioProjectUrl}/form/${submission.form}`)
+          .get(formUrl)
           .then((axiosRes) => axiosRes.data)
           .then((schema) => {
-            const { bap_hidden_entity_combo_key } = submission.data;
+            const comboKey = submission.data.bap_hidden_entity_combo_key;
 
-            if (!req.bapComboKeys.includes(bap_hidden_entity_combo_key)) {
-              log({
-                level: "warn",
-                message: `User with email ${req.user.mail} attempted to access submission ${id} that they do not have access to.`,
-                req,
-              });
-
+            if (!req.bapComboKeys.includes(comboKey)) {
+              const message = `User with email ${req.user.mail} attempted to access submission ${id} that they do not have access to.`;
+              log({ level: "warn", message, req });
               res.json({
                 userAccess: false,
                 formSchema: null,
@@ -178,9 +206,8 @@ router.get(
           });
       })
       .catch((error) => {
-        res.status(error?.response?.status || 500).json({
-          message: `Error getting Forms.gov rebate form submission ${id}`,
-        });
+        const message = `Error getting Forms.gov rebate form submission ${id}`;
+        res.status(error?.response?.status || 500).json({ message });
       });
   }
 );
@@ -189,117 +216,131 @@ router.get(
 router.post(
   "/rebate-form-submission/:id",
   verifyMongoObjectId,
-  checkBapComboKeys,
+  storeBapComboKeys,
   (req, res) => {
-    const id = req.params.id;
+    const { id } = req.params;
+    const comboKey = req.body.data?.bap_hidden_entity_combo_key;
 
-    // Verify post data includes one of user's BAP combo keys
-    if (
-      !req.bapComboKeys.includes(req.body.data?.bap_hidden_entity_combo_key)
-    ) {
-      log({
-        level: "error",
-        message: `User with email ${req.user.mail} attempted to update existing form without a matching BAP combo key`,
-        req,
-      });
-      return res.status(401).json({ message: "Unauthorized" });
-    }
+    checkEnrollmentPeriodAndBapStatus({ id, comboKey, req })
+      .then(() => {
+        // verify post data includes one of user's BAP combo keys
+        if (!req.bapComboKeys.includes(comboKey)) {
+          const message = `User with email ${req.user.mail} attempted to update existing form without a matching BAP combo key`;
+          log({ level: "error", message, req });
+          return res.status(401).json({ message: "Unauthorized" });
+        }
 
-    // Add custom metadata to track formio submissions from wrapper
-    req.body.metadata = {
-      ...req.body.metadata,
-      ...formioCsbMetadata,
-    };
+        // add custom metadata to track formio submissions from wrapper
+        req.body.metadata = {
+          ...req.body.metadata,
+          ...formioCsbMetadata,
+        };
 
-    axiosFormio(req)
-      .put(`${formioProjectUrl}/${formioFormId}/submission/${id}`, req.body)
-      .then((axiosRes) => axiosRes.data)
-      .then((submission) => res.json(submission))
+        const existingSubmissionUrl = `${formioProjectUrl}/${formioFormName}/submission/${id}`;
+
+        axiosFormio(req)
+          .put(existingSubmissionUrl, req.body)
+          .then((axiosRes) => axiosRes.data)
+          .then((submission) => res.json(submission))
+          .catch((error) => {
+            const message = "Error updating Forms.gov rebate form submission";
+            res.status(error?.response?.status || 500).json({ message });
+          });
+      })
       .catch((error) => {
-        res
-          .status(error?.response?.status || 500)
-          .json({ message: "Error updating Forms.gov rebate form submission" });
+        const message = "CSB enrollment period is closed";
+        return res.status(400).json({ message });
       });
   }
 );
 
 // --- post a new rebate form submission to Forms.gov
-router.post("/rebate-form-submission", checkBapComboKeys, (req, res) => {
-  // Verify post data includes one of user's BAP combo keys
-  if (!req.bapComboKeys.includes(req.body.data?.bap_hidden_entity_combo_key)) {
-    log({
-      level: "error",
-      message: `User with email ${req.user.mail} attempted to post new form without a matching BAP combo key`,
-      req,
-    });
+router.post("/rebate-form-submission", storeBapComboKeys, (req, res) => {
+  const comboKey = req.body.data?.bap_hidden_entity_combo_key;
+
+  if (enrollmentClosed) {
+    const message = "CSB enrollment period is closed";
+    return res.status(400).json({ message });
+  }
+
+  // verify post data includes one of user's BAP combo keys
+  if (!req.bapComboKeys.includes(comboKey)) {
+    const message = `User with email ${req.user.mail} attempted to post new form without a matching BAP combo key`;
+    log({ level: "error", message, req });
     return res.status(401).json({ message: "Unauthorized" });
   }
 
-  // Add custom metadata to track formio submissions from wrapper
+  // add custom metadata to track formio submissions from wrapper
   req.body.metadata = {
     ...req.body.metadata,
     ...formioCsbMetadata,
   };
 
+  const newSubmissionUrl = `${formioProjectUrl}/${formioFormName}/submission`;
+
   axiosFormio(req)
-    .post(`${formioProjectUrl}/${formioFormId}/submission`, req.body)
+    .post(newSubmissionUrl, req.body)
     .then((axiosRes) => axiosRes.data)
     .then((submission) => res.json(submission))
     .catch((error) => {
-      res
-        .status(error?.response?.status || 500)
-        .json({ message: "Error posting Forms.gov rebate form submission" });
+      const message = "Error posting Forms.gov rebate form submission";
+      return res.status(error?.response?.status || 500).json({ message });
     });
 });
 
 // --- upload s3 file metadata to Forms.gov
-router.post("/:bapComboKey/storage/s3", checkBapComboKeys, (req, res) => {
-  if (!req.bapComboKeys.includes(req.params.bapComboKey)) {
-    log({
-      level: "error",
-      message: `User with email ${req.user.mail} attempted to upload file without a matching BAP combo key`,
-      req,
-    });
-    return res.status(401).json({ message: "Unauthorized" });
-  }
+router.post("/:id/:comboKey/storage/s3", storeBapComboKeys, (req, res) => {
+  const { id, comboKey } = req.params;
 
-  axiosFormio(req)
-    .post(`${formioProjectUrl}/${formioFormId}/storage/s3`, req.body)
-    .then((axiosRes) => axiosRes.data)
-    .then((fileMetadata) => res.json(fileMetadata))
+  checkEnrollmentPeriodAndBapStatus({ id, comboKey, req })
+    .then(() => {
+      if (!req.bapComboKeys.includes(comboKey)) {
+        const message = `User with email ${req.user.mail} attempted to upload file without a matching BAP combo key`;
+        log({ level: "error", message, req });
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const storageUrl = `${formioProjectUrl}/${formioFormName}/storage/s3`;
+
+      axiosFormio(req)
+        .post(storageUrl, req.body)
+        .then((axiosRes) => axiosRes.data)
+        .then((fileMetadata) => res.json(fileMetadata))
+        .catch((error) => {
+          const message = "Error uploading Forms.gov file";
+          return res.status(error?.response?.status || 500).json({ message });
+        });
+    })
     .catch((error) => {
-      res
-        .status(error?.response?.status || 500)
-        .json({ message: "Error uploading Forms.gov file" });
+      const message = "CSB enrollment period is closed";
+      return res.status(400).json({ message });
     });
 });
 
 // --- download s3 file metadata from Forms.gov
-router.get("/:bapComboKey/storage/s3", checkBapComboKeys, (req, res) => {
-  if (!req.bapComboKeys.includes(req.params.bapComboKey)) {
-    log({
-      level: "error",
-      message: `User with email ${req.user.mail} attempted to download file without a matching BAP combo key`,
-      req,
-    });
+router.get("/:id/:comboKey/storage/s3", storeBapComboKeys, (req, res) => {
+  const { comboKey } = req.params;
+
+  if (!req.bapComboKeys.includes(comboKey)) {
+    const message = `User with email ${req.user.mail} attempted to download file without a matching BAP combo key`;
+    log({ level: "error", message, req });
     return res.status(401).json({ message: "Unauthorized" });
   }
 
+  const storageUrl = `${formioProjectUrl}/${formioFormName}/storage/s3`;
+
   axiosFormio(req)
-    .get(`${formioProjectUrl}/${formioFormId}/storage/s3`, {
-      params: req.query,
-    })
+    .get(storageUrl, { params: req.query })
     .then((axiosRes) => axiosRes.data)
     .then((fileMetadata) => res.json(fileMetadata))
     .catch((error) => {
-      res
-        .status(error?.response?.status || 500)
-        .json({ message: "Error downloading Forms.gov file" });
+      const message = "Error downloading Forms.gov file";
+      return res.status(error?.response?.status || 500).json({ message });
     });
 });
 
 // --- get all rebate form submissions from Forms.gov
-router.get("/rebate-form-submissions", checkBapComboKeys, (req, res) => {
+router.get("/rebate-form-submissions", storeBapComboKeys, (req, res) => {
   // NOTE: Helpdesk users might not have any SAM.gov records associated with
   // their email address so we should not return any submissions to those users.
   // The only reason we explicitly need to do this is because there could be
@@ -309,8 +350,8 @@ router.get("/rebate-form-submissions", checkBapComboKeys, (req, res) => {
   // is testing posting data (e.g. from a REST client, or the Formio Viewer)
   if (req.bapComboKeys.length === 0) return res.json([]);
 
-  const formioUserSubmissionsUrl =
-    `${formioProjectUrl}/${formioFormId}/submission` +
+  const userSubmissionsUrl =
+    `${formioProjectUrl}/${formioFormName}/submission` +
     `?sort=-modified` +
     `&limit=1000000` +
     `&data.bap_hidden_entity_combo_key=${req.bapComboKeys.join(
@@ -318,13 +359,12 @@ router.get("/rebate-form-submissions", checkBapComboKeys, (req, res) => {
     )}`;
 
   axiosFormio(req)
-    .get(formioUserSubmissionsUrl)
+    .get(userSubmissionsUrl)
     .then((axiosRes) => axiosRes.data)
     .then((submissions) => res.json(submissions))
     .catch((error) => {
-      res
-        .status(error?.response?.status || 500)
-        .json({ message: "Error getting Forms.gov rebate form submissions" });
+      const message = "Error getting Forms.gov rebate form submissions";
+      return res.status(error?.response?.status || 500).json({ message });
     });
 });
 

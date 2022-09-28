@@ -10,26 +10,20 @@ type Props = {
   children: ReactNode;
 };
 
-/**
- * Minimum fields required to display the user's forms on their dashboard, and
- * have the metadata needed to make an API call to the forms.gov web service to
- * retreive the form's JSON schema in order to display and edit the form.
- */
 type RebateFormSubmission = {
-  // NOTE: more fields are in a form.io submission,
-  // but we're only concerned with the fields below
-  _id: string;
+  [field: string]: unknown;
+  _id: string; // MongoDB ObjectId string
   state: "submitted" | "draft";
-  modified: string;
+  modified: string; // ISO 8601 date string
   data: {
+    [field: string]: unknown;
     applicantUEI: string;
     applicantEfti: string;
+    applicantEfti_display: string;
     applicantOrganizationName: string;
     schoolDistrictName: string;
     last_updated_by: string;
-    // (other fields...)
   };
-  // (other fields...)
 };
 
 type State = {

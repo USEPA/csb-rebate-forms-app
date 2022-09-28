@@ -21,6 +21,7 @@ jobs:
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
+    environment: staging
 
     # Set environment variables
     env:
@@ -32,29 +33,31 @@ jobs:
       CF_PASSWORD_STAGING: ${{ secrets.CF_PASSWORD_STAGING }}
       SERVER_URL: https://app-stage.app.cloud.gov/csb
       SERVER_BASE_PATH: /csb
-      SAML_LOGIN_URL: ${{ secrets.SAML_LOGIN_URL_STAGING }}
-      SAML_LOGOUT_URL: ${{ secrets.SAML_LOGOUT_URL_STAGING }}
-      SAML_ENTITY_ID: ${{ secrets.SAML_ENTITY_ID_STAGING }}
-      SAML_IDP_CERT: ${{ secrets.SAML_IDP_CERT_STAGING }}
+      SAML_LOGIN_URL: ${{ secrets.SAML_LOGIN_URL }}
+      SAML_LOGOUT_URL: ${{ secrets.SAML_LOGOUT_URL }}
+      SAML_ENTITY_ID: ${{ secrets.SAML_ENTITY_ID }}
+      SAML_IDP_CERT: ${{ secrets.SAML_IDP_CERT }}
       SAML_PUBLIC_KEY: ${{ secrets.SAML_PUBLIC_KEY }}
       SAML_PRIVATE_KEY: ${{ secrets.SAML_PRIVATE_KEY }}
       JWT_PUBLIC_KEY: ${{ secrets.JWT_PUBLIC_KEY }}
       JWT_PRIVATE_KEY: ${{ secrets.JWT_PRIVATE_KEY }}
+      CSB_ENROLLMENT_PERIOD: closed
       FORMIO_PKG_AUTH_TOKEN: ${{ secrets.FORMIO_PKG_AUTH_TOKEN }}
       FORMIO_BASE_URL: ${{ secrets.FORMIO_BASE_URL }}
-      FORMIO_PROJECT_URL: ${{ secrets.FORMIO_PROJECT_URL }}
-      FORMIO_FORM_ID: ${{ secrets.FORMIO_FORM_ID }}
+      FORMIO_PROJECT_NAME: ${{ secrets.FORMIO_PROJECT_NAME }}
+      FORMIO_FORM_NAME: ${{ secrets.FORMIO_FORM_NAME }}
       FORMIO_API_KEY: ${{ secrets.FORMIO_API_KEY }}
       BAP_CLIENT_ID: ${{ secrets.BAP_CLIENT_ID }}
       BAP_CLIENT_SECRET: ${{ secrets.BAP_CLIENT_SECRET }}
       BAP_URL: ${{ secrets.BAP_URL }}
       BAP_USER: ${{ secrets.BAP_USER }}
       BAP_PASSWORD: ${{ secrets.BAP_PASSWORD }}
-      BAP_TABLE: ${{ secrets.BAP_TABLE }}
-      AWS_ACCESS_KEY_ID: ${{ secrets.S3_PUBLIC_ACCESS_KEY_ID_STAGING }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_PUBLIC_SECRET_ACCESS_KEY_STAGING }}
-      AWS_DEFAULT_REGION: ${{ secrets.S3_PUBLIC_REGION_STAGING }}
-      S3_PUBLIC_BUCKET: ${{ secrets.S3_PUBLIC_BUCKET_STAGING }}
+      BAP_SAM_TABLE: ${{ secrets.BAP_SAM_TABLE }}
+      BAP_FORMS_TABLE: ${{ secrets.BAP_FORMS_TABLE }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.S3_PUBLIC_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_PUBLIC_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ${{ secrets.S3_PUBLIC_REGION }}
+      S3_PUBLIC_BUCKET: ${{ secrets.S3_PUBLIC_BUCKET }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -86,7 +89,7 @@ jobs:
             REACT_APP_SERVER_BASE_PATH="$SERVER_BASE_PATH" \
             REACT_APP_CLOUD_SPACE="$CLOUD_SPACE" \
             REACT_APP_FORMIO_BASE_URL="$FORMIO_BASE_URL" \
-            REACT_APP_FORMIO_PROJECT_URL="$FORMIO_PROJECT_URL" \
+            REACT_APP_FORMIO_PROJECT_NAME="$FORMIO_PROJECT_NAME" \
             npm run build
           rm ../server/app/public/index.html
           cd build
@@ -116,15 +119,18 @@ jobs:
           cf set-env $APP_NAME "SAML_PRIVATE_KEY" "$SAML_PRIVATE_KEY" > /dev/null
           cf set-env $APP_NAME "JWT_PUBLIC_KEY" "$JWT_PUBLIC_KEY" > /dev/null
           cf set-env $APP_NAME "JWT_PRIVATE_KEY" "$JWT_PRIVATE_KEY" > /dev/null
-          cf set-env $APP_NAME "FORMIO_PROJECT_URL" "$FORMIO_PROJECT_URL" > /dev/null
-          cf set-env $APP_NAME "FORMIO_FORM_ID" "$FORMIO_FORM_ID" > /dev/null
+          cf set-env $APP_NAME "CSB_ENROLLMENT_PERIOD" "$CSB_ENROLLMENT_PERIOD" > /dev/null
+          cf set-env $APP_NAME "FORMIO_BASE_URL" "$FORMIO_BASE_URL" > /dev/null
+          cf set-env $APP_NAME "FORMIO_PROJECT_NAME" "$FORMIO_PROJECT_NAME" > /dev/null
+          cf set-env $APP_NAME "FORMIO_FORM_NAME" "$FORMIO_FORM_NAME" > /dev/null
           cf set-env $APP_NAME "FORMIO_API_KEY" "$FORMIO_API_KEY" > /dev/null
           cf set-env $APP_NAME "BAP_CLIENT_ID" "$BAP_CLIENT_ID" > /dev/null
           cf set-env $APP_NAME "BAP_CLIENT_SECRET" "$BAP_CLIENT_SECRET" > /dev/null
           cf set-env $APP_NAME "BAP_URL" "$BAP_URL" > /dev/null
           cf set-env $APP_NAME "BAP_USER" "$BAP_USER" > /dev/null
           cf set-env $APP_NAME "BAP_PASSWORD" "$BAP_PASSWORD" > /dev/null
-          cf set-env $APP_NAME "BAP_TABLE" "$BAP_TABLE" > /dev/null
+          cf set-env $APP_NAME "BAP_SAM_TABLE" "$BAP_SAM_TABLE" > /dev/null
+          cf set-env $APP_NAME "BAP_FORMS_TABLE" "$BAP_FORMS_TABLE" > /dev/null
           cf set-env $APP_NAME "S3_PUBLIC_BUCKET" "$S3_PUBLIC_BUCKET" > /dev/null
           cf set-env $APP_NAME "S3_PUBLIC_REGION" "$AWS_DEFAULT_REGION" > /dev/null
 

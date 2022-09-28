@@ -7,6 +7,7 @@
   display: block;
 }
 
+.usa-checkbox__label,
 .usa-radio__label {
   text-indent: 0;
 }
@@ -53,4 +54,9 @@
 
 [data-reach-tooltip] {
   z-index: 100000;
+}
+
+/* --- CSB --- */
+.csb-needs-edits {
+  background-color: #d9e8f6 !important; /* USWDS primary-lighter */
 }

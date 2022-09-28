@@ -275,16 +275,22 @@
         "parameters": [{ "$ref": "#/components/parameters/scan" }]
       }
     },
-    "/api/epa-data": {
+    "/api/csb-data": {
       "get": {
-        "summary": "/api/epa-data",
+        "summary": "/api/csb-data",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "type": "object",
+                  "properties": {
+                    "enrollmentClosed": {
+                      "type": "boolean",
+                      "example": true
+                    }
+                  }
                 }
               }
             }
@@ -310,18 +316,82 @@
         "parameters": [{ "$ref": "#/components/parameters/scan" }]
       }
     },
-    "/api/sam-data": {
+    "/api/epa-data": {
       "get": {
-        "summary": "/api/sam-data",
+        "summary": "/api/epa-data",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object"
+                  "type": "object",
+                  "properties": {
+                    "mail": {
+                      "type": "string",
+                      "example": "last.first@epa.gov"
+                    },
+                    "memberof": {
+                      "type": "string",
+                      "example": "csb_admin,csb_helpdesk"
+                    },
+                    "exp": {
+                      "type": "number",
+                      "example": 1661376902
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [],
+        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+      }
+    },
+    "/api/bap-data": {
+      "get": {
+        "summary": "/api/bap-data",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "samResults": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "samEntities": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "rebateSubmissions": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
                   }
                 }
               }
@@ -351,9 +421,9 @@
         "parameters": [{ "$ref": "#/components/parameters/scan" }]
       }
     },
-    "/api/{bapComboKey}/storage/s3": {
+    "/api/{id}/{comboKey}/storage/s3": {
       "get": {
-        "summary": "/api/{bapComboKey}/storage/s3",
+        "summary": "/api/{id}/{comboKey}/storage/s3",
         "responses": {
           "200": {
             "description": "OK"
@@ -362,7 +432,15 @@
         "tags": [],
         "parameters": [
           {
-            "name": "bapComboKey",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "comboKey",
             "in": "path",
             "required": true,
             "schema": {
@@ -373,7 +451,7 @@
         ]
       },
       "post": {
-        "summary": "/api/{bapComboKey}/storage/s3",
+        "summary": "/api/{id}/{comboKey}/storage/s3",
         "responses": {
           "200": {
             "description": "OK"
@@ -382,7 +460,15 @@
         "tags": [],
         "parameters": [
           {
-            "name": "bapComboKey",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "comboKey",
             "in": "path",
             "required": true,
             "schema": {
@@ -505,28 +591,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "userAccess": {
-                      "type": "boolean",
-                      "example": true
-                    },
-                    "formSchema": {
-                      "type": "object",
-                      "properties": {
-                        "url": {
-                          "type": "string",
-                          "example": "https://formmio/project/form/id"
-                        },
-                        "json": {
-                          "type": "object"
-                        }
-                      }
-                    },
-                    "submissionData": {
-                      "type": "object"
-                    }
-                  }
+                  "type": "object"
                 }
               }
             }

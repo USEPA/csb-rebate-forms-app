@@ -1,5 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from "react";
 // ---
+import { messages } from "../config";
 import Message from "components/message";
 
 type Props = {
@@ -28,7 +29,7 @@ export default class ErrorBoundary extends Component<Props, State> {
     const { hasError } = this.state;
 
     if (hasError) {
-      return <Message type="error" text="Something went wrong." />;
+      return <Message type="error" text={messages.genericError} />;
     }
 
     return children;

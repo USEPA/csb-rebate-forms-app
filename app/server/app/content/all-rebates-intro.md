@@ -1,3 +1,3 @@
 ## Your Rebate Forms
 
-Select the pencil icon to open an existing rebate form.
+Select a button below to _Edit_ or _View_ an existing rebate form.

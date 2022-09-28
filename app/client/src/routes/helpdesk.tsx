@@ -4,7 +4,7 @@ import { Form } from "@formio/react";
 import icon from "uswds/img/usa-icons-bg/search--white.svg";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl, fetchData } from "../config";
+import { serverUrl, messages, fetchData } from "../config";
 import { useHelpdeskAccess } from "components/app";
 import Loading from "components/loading";
 import Message from "components/message";
@@ -34,17 +34,15 @@ type SubmissionState =
       data: {
         formSchema: { url: string; json: object };
         submissionData: {
-          // NOTE: more fields are in a form.io submission,
-          // but we're only concerned with the fields below
-          _id: string;
+          [field: string]: unknown;
+          _id: string; // MongoDB ObjectId string
           state: "submitted" | "draft";
-          modified: string;
+          modified: string; // ISO 8601 date string
           data: {
+            [field: string]: unknown;
             applicantOrganizationName: string;
             last_updated_by: string;
-            // (other fields...)
           };
-          // (other fields...)
         };
       };
     }
@@ -64,7 +62,7 @@ export default function Helpdesk() {
   const [formDisplayed, setFormDisplayed] = useState(false);
 
   const { content } = useContentState();
-  const { epaUserData } = useUserState();
+  const { csbData, epaUserData } = useUserState();
   const dispatch = useDialogDispatch();
   const helpdeskAccess = useHelpdeskAccess();
 
@@ -78,6 +76,7 @@ export default function Helpdesk() {
     });
 
   if (
+    csbData.status !== "success" ||
     epaUserData.status !== "success" ||
     helpdeskAccess === "idle" ||
     helpdeskAccess === "pending"
@@ -88,6 +87,8 @@ export default function Helpdesk() {
   if (helpdeskAccess === "failure") {
     navigate("/", { replace: true });
   }
+
+  const { enrollmentClosed } = csbData.data;
 
   const { formSchema, submissionData } = rebateFormSubmission.data;
 
@@ -159,10 +160,7 @@ export default function Helpdesk() {
       {rebateFormSubmission.status === "pending" && <Loading />}
 
       {rebateFormSubmission.status === "failure" && (
-        <Message
-          type="error"
-          text="Error loading rebate form submission. Please confirm the form ID is correct and search again."
-        />
+        <Message type="error" text={messages.helpdeskRebateFormError} />
       )}
 
       {/*
@@ -172,10 +170,7 @@ export default function Helpdesk() {
       */}
       {rebateFormSubmission.status === "success" &&
         !rebateFormSubmission.data && (
-          <Message
-            type="error"
-            text="Error loading rebate form submission. Please confirm the form ID is correct and search again."
-          />
+          <Message type="error" text={messages.helpdeskRebateFormError} />
         )}
 
       {rebateFormSubmission.status === "success" &&
@@ -183,7 +178,7 @@ export default function Helpdesk() {
         submissionData && (
           <>
             <div className="usa-table-container--scrollable" tabIndex={0}>
-              <table 
+              <table
                 aria-label="Rebate Form Search Results"
                 className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full"
               >
@@ -260,7 +255,9 @@ export default function Helpdesk() {
                     <td>
                       <button
                         className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-                        disabled={submissionData.state === "draft"}
+                        disabled={
+                          enrollmentClosed || submissionData.state === "draft"
+                        }
                         onClick={(ev) => {
                           dispatch({
                             type: "DISPLAY_DIALOG",

@@ -10,7 +10,7 @@ import ErrorBoundary from "components/errorBoundary";
 import App from "components/app";
 import "./styles.css";
 
-const rootElement = document.getElementById("root");
+const container = document.getElementById("root") as HTMLElement;
 
 render(
   <StrictMode>
@@ -26,7 +26,7 @@ render(
       </ContentProvider>
     </ErrorBoundary>
   </StrictMode>,
-  rootElement
+  container
 );
 
 // If you want to start measuring performance in your app, pass a function
