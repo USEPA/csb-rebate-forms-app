@@ -1,10 +1,10 @@
-import { Fragment, useEffect } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages, getData, postData } from "../config";
 import { getUserInfo } from "../utilities";
-import { Loading } from "components/loading";
+import { Loading, LoadingButtonIcon } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/infoTooltip";
@@ -539,6 +539,8 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
   const { samEntities } = useBapState();
   const dispatch = usePageDispatch();
 
+  const [postDataResponsePending, setPostDataResponsePending] = useState(false);
+
   if (epaUserData.status !== "success") return null;
   if (samEntities.status !== "success") return null;
 
@@ -565,15 +567,12 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
           <button
             className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
             onClick={(ev) => {
-              // TODO: show a loading spinner (inside the button?) when the
-              // initial payment request submission is happening as the BAP
-              // queries take some time to get the data to POST to forms.gov
-
               if (!application.bap?.rebateId || !entity) return;
 
-              const { title, name } = getUserInfo(email, entity);
-
+              setPostDataResponsePending(true);
               dispatch({ type: "RESET_MESSAGE" });
+
+              const { title, name } = getUserInfo(email, entity);
 
               // create a new draft payment request submission
               postData(`${serverUrl}/api/formio-payment-request-submission/`, {
@@ -585,9 +584,11 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
                 reviewItemId: application.bap.reviewItemId, // CSB Rebate ID w/ form/version ID (9 digits)
               })
                 .then((res) => {
+                  setPostDataResponsePending(false);
                   navigate(`/payment-request/${application.bap?.rebateId}`);
                 })
                 .catch((err) => {
+                  setPostDataResponsePending(false);
                   const text = `Error creating Payment Request ${application.bap?.rebateId}. Please try again.`;
                   dispatch({
                     type: "DISPLAY_MESSAGE",
@@ -606,6 +607,7 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
                 <use href={`${icons}#add_circle`} />
               </svg>
               <span className="margin-left-1">New Payment Request</span>
+              {postDataResponsePending && <LoadingButtonIcon />}
             </span>
           </button>
         </th>
