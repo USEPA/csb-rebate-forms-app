@@ -48,6 +48,9 @@ type Rebate = {
   };
 };
 
+const defaultTableRowClassNames = "bg-gray-5";
+const highlightedTableRowClassNames = "bg-primary-lighter";
+
 /** Custom hook to fetch Application form submissions from Forms.gov */
 function useFetchedFormioApplicationSubmissions() {
   const { samEntities } = useBapState();
@@ -276,7 +279,16 @@ function useSortedSubmissions(submissions: { [rebateId: string]: Rebate }) {
         return current > previous ? current : previous;
       });
 
-      return mostRecientRebateBModified - mostRecientRebateAModified;
+      // Application has been selected, but a Payment Request submission has not yet been created
+      const rebateASelectedButNoPaymentRequest =
+        rebateA.application.bap?.rebateStatus === "Selected" &&
+        !rebateA.paymentRequest.formio;
+
+      // first sort by selected Applications that still need Payment Requests,
+      // then sort by most recient formio modified date
+      return rebateASelectedButNoPaymentRequest
+        ? -1
+        : mostRecientRebateBModified - mostRecientRebateAModified;
     });
 }
 
@@ -289,7 +301,7 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
   if (csbData.status !== "success") return null;
   const { enrollmentClosed } = csbData.data;
 
-  const { application } = rebate;
+  const { application, paymentRequest } = rebate;
 
   const applicationHasBeenSelected =
     application.bap?.rebateStatus === "Selected";
@@ -344,7 +356,14 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
    * to first save the form for the fields to be displayed.
    */
   return (
-    <tr className="bg-gray-5">
+    <tr
+      className={
+        // Application has been selected, but a Payment Request submission has not yet been created
+        applicationHasBeenSelected && !paymentRequest.formio
+          ? highlightedTableRowClassNames
+          : defaultTableRowClassNames
+      }
+    >
       <th scope="row" className={statusStyles}>
         {applicationNeedsEdits ? (
           <button
@@ -598,7 +617,7 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
   // Application has been selected, but a Payment Request submission has not yet been created
   if (applicationHasBeenSelected && !paymentRequest.formio) {
     return (
-      <tr className="bg-gray-5">
+      <tr className={highlightedTableRowClassNames}>
         <th scope="row" colSpan={6}>
           <button
             className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
@@ -685,7 +704,7 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
     : "";
 
   return (
-    <tr className="bg-gray-5">
+    <tr className={defaultTableRowClassNames}>
       <th scope="row" className={statusStyles}>
         {paymentRequestNeedsEdits ? (
           <button
