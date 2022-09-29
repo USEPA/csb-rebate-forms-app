@@ -14,6 +14,7 @@ import { useCsbState } from "contexts/csb";
 import {
   FormioApplicationSubmission,
   FormioPaymentRequestSubmission,
+  FormioCloseOutSubmission,
   useFormioState,
   useFormioDispatch,
 } from "contexts/formio";
@@ -42,7 +43,7 @@ type Rebate = {
     } | null;
   };
   closeOut: {
-    formio: null;
+    formio: FormioCloseOutSubmission | null;
     bap: null;
   };
 };
@@ -188,8 +189,8 @@ function useCombinedSubmissions() {
   /**
    * Iterate over Formio Application form submissions, matching them with
    * submissions returned from the BAP, so we can build up each rebate object
-   * with the Application form submission data, initial Payment Request form
-   * and Close-out Form submission data structure (both to be updated/replaced)
+   * with the Application form submission data and initialize Payment Request
+   * form and Close-out Form submission data structure (both to be updated).
    */
   for (const formioSubmission of formioApplicationSubmissions.data) {
     const bapMatch = bapApplicationSubmissions.data.find((bapSubmission) => {
@@ -222,7 +223,8 @@ function useCombinedSubmissions() {
   /**
    * Iterate over Formio Payment Request form submissions, matching them with
    * submissions returned from the BAP, so we can set the Payment Request form
-   * submission data.
+   * submission data (NOTE: `hidden_bap_rebate_id` is injected upon creation of
+   * a brand new Payment Request form submission, so it will always be there).
    */
   for (const formioSubmission of formioPaymentRequestSubmissions.data) {
     const bapMatch = bapPaymentRequestSubmissions.data.find((bapSubmission) => {
@@ -232,6 +234,8 @@ function useCombinedSubmissions() {
       );
     });
 
+    // TODO: update this once the BAP team sets up the ETL process for ingesting
+    // Payment Request form submissions from forms.gov
     const comboKey = bapMatch?.UEI_EFTI_Combo_Key__c || null;
     const rebateId = bapMatch?.Parent_Rebate_ID__c || null;
     const reviewItemId = bapMatch?.CSB_Review_Item_ID__c || null;
@@ -246,6 +250,34 @@ function useCombinedSubmissions() {
   }
 
   return submissions;
+}
+
+/**
+ * Custom hook that sorts submissions by most recient formio modified date,
+ * regardless of form (Application, Payment Request, or Close-Out).
+ **/
+function useSortedSubmissions(submissions: { [rebateId: string]: Rebate }) {
+  return Object.entries(submissions)
+    .map(([rebateId, rebate]) => ({ rebateId, ...rebate }))
+    .sort((rebateA, rebateB) => {
+      const mostRecientRebateAModified = [
+        Date.parse(rebateA.application.formio.modified),
+        Date.parse(rebateA.paymentRequest.formio?.modified || ""),
+        Date.parse(rebateA.closeOut.formio?.modified || ""),
+      ].reduce((previous, current) => {
+        return current > previous ? current : previous;
+      });
+
+      const mostRecientRebateBModified = [
+        Date.parse(rebateB.application.formio.modified),
+        Date.parse(rebateB.paymentRequest.formio?.modified || ""),
+        Date.parse(rebateB.closeOut.formio?.modified || ""),
+      ].reduce((previous, current) => {
+        return current > previous ? current : previous;
+      });
+
+      return mostRecientRebateBModified - mostRecientRebateAModified;
+    });
 }
 
 function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
@@ -811,14 +843,15 @@ export function AllRebates() {
   useFetchedBapPaymentRequestSubmissions();
 
   const submissions = useCombinedSubmissions();
+  const sortedSubmissions = useSortedSubmissions(submissions);
 
-  // log combined 'submissions' object if 'debug' search parameter exists
+  // log combined 'sortedSubmissions' array if 'debug' search parameter exists
   useEffect(() => {
-    const submissionsAreSet = Boolean(Object.keys(submissions).length);
+    const submissionsAreSet = sortedSubmissions.length > 0;
     if (searchParams.has("debug") && submissionsAreSet) {
-      console.log(submissions);
+      console.log(sortedSubmissions);
     }
-  }, [searchParams, submissions]);
+  }, [searchParams, sortedSubmissions]);
 
   if (
     csbData.status !== "success" ||
@@ -859,7 +892,7 @@ export function AllRebates() {
 
   return (
     <>
-      {Object.keys(submissions).length === 0 ? (
+      {sortedSubmissions.length === 0 ? (
         <div className="margin-top-4">
           <Message type="info" text={messages.newApplication} />
         </div>
@@ -945,24 +978,22 @@ export function AllRebates() {
               </thead>
 
               <tbody>
-                {Object.entries(submissions).map(
-                  ([rebateId, rebate], index) => (
-                    <Fragment key={rebateId}>
-                      <ApplicationSubmission rebate={rebate} />
+                {sortedSubmissions.map((rebate, index) => (
+                  <Fragment key={rebate.rebateId}>
+                    <ApplicationSubmission rebate={rebate} />
 
-                      <PaymentRequestSubmission rebate={rebate} />
+                    <PaymentRequestSubmission rebate={rebate} />
 
-                      {/* blank row after all rebates but the last one */}
-                      {index !== Object.keys(submissions).length - 1 && (
-                        <tr className="bg-white">
-                          <th className="p-0" scope="row" colSpan={6}>
-                            &nbsp;
-                          </th>
-                        </tr>
-                      )}
-                    </Fragment>
-                  )
-                )}
+                    {/* blank row after all rebates but the last one */}
+                    {index !== sortedSubmissions.length - 1 && (
+                      <tr className="bg-white">
+                        <th className="p-0" scope="row" colSpan={6}>
+                          &nbsp;
+                        </th>
+                      </tr>
+                    )}
+                  </Fragment>
+                ))}
               </tbody>
             </table>
           </div>
