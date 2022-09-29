@@ -262,33 +262,47 @@ function useCombinedSubmissions() {
 function useSortedSubmissions(submissions: { [rebateId: string]: Rebate }) {
   return Object.entries(submissions)
     .map(([rebateId, rebate]) => ({ rebateId, ...rebate }))
-    .sort((rebateA, rebateB) => {
-      const mostRecientRebateAModified = [
-        Date.parse(rebateA.application.formio.modified),
-        Date.parse(rebateA.paymentRequest.formio?.modified || ""),
-        Date.parse(rebateA.closeOut.formio?.modified || ""),
+    .sort((r1, r2) => {
+      const mostRecientR1Modified = [
+        Date.parse(r1.application.formio.modified),
+        Date.parse(r1.paymentRequest.formio?.modified || ""),
+        Date.parse(r1.closeOut.formio?.modified || ""),
       ].reduce((previous, current) => {
         return current > previous ? current : previous;
       });
 
-      const mostRecientRebateBModified = [
-        Date.parse(rebateB.application.formio.modified),
-        Date.parse(rebateB.paymentRequest.formio?.modified || ""),
-        Date.parse(rebateB.closeOut.formio?.modified || ""),
+      const mostRecientR2Modified = [
+        Date.parse(r2.application.formio.modified),
+        Date.parse(r2.paymentRequest.formio?.modified || ""),
+        Date.parse(r2.closeOut.formio?.modified || ""),
       ].reduce((previous, current) => {
         return current > previous ? current : previous;
       });
 
-      // Application has been selected, but a Payment Request submission has not yet been created
-      const rebateASelectedButNoPaymentRequest =
-        rebateA.application.bap?.rebateStatus === "Selected" &&
-        !rebateA.paymentRequest.formio;
+      // Application has been updated since the last time the BAP's submissions
+      // ETL process has last succesfully run
+      const r1AapplicationHasBeenUpdated = r1.application.bap?.lastModified
+        ? new Date(r1.application.formio.modified) >
+          new Date(r1.application.bap.lastModified)
+        : false;
 
-      // first sort by selected Applications that still need Payment Requests,
-      // then sort by most recient formio modified date
-      return rebateASelectedButNoPaymentRequest
+      const r1ApplicationNeedsEdits =
+        r1.application.bap?.rebateStatus === "Edits Requested" &&
+        (r1.application.formio.state === "draft" ||
+          (r1.application.formio.state === "submitted" &&
+            !r1AapplicationHasBeenUpdated));
+
+      // Application has been selected, but a Payment Request submission has not
+      // yet been created
+      const r1ApplicationSelectedButNoPaymentRequest =
+        r1.application.bap?.rebateStatus === "Selected" &&
+        !r1.paymentRequest.formio;
+
+      // first sort by Applications needing edits or selected Applications that
+      // still need Payment Requests, then sort by most recient formio modified date
+      return r1ApplicationNeedsEdits || r1ApplicationSelectedButNoPaymentRequest
         ? -1
-        : mostRecientRebateBModified - mostRecientRebateAModified;
+        : mostRecientR2Modified - mostRecientR1Modified;
     });
 }
 
@@ -335,11 +349,10 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
   const applicationHasBeenWithdrawn =
     application.bap?.rebateStatus === "Withdrawn";
 
-  const statusStyles = applicationNeedsEdits
-    ? "csb-needs-edits"
-    : enrollmentClosed || application.formio.state === "submitted"
-    ? "text-italic"
-    : "";
+  const statusClassNames =
+    application.formio.state === "submitted" || enrollmentClosed
+      ? "text-italic"
+      : "";
 
   /**
    * NOTE on the usage of `TextWithTooltip` below:
@@ -358,13 +371,15 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
   return (
     <tr
       className={
-        // Application has been selected, but a Payment Request submission has not yet been created
-        applicationHasBeenSelected && !paymentRequest.formio
+        // Application needs edits, or it has been selected and
+        // a Payment Request submission has not yet been created
+        applicationNeedsEdits ||
+        (applicationHasBeenSelected && !paymentRequest.formio)
           ? highlightedTableRowClassNames
           : defaultTableRowClassNames
       }
     >
-      <th scope="row" className={statusStyles}>
+      <th scope="row" className={statusClassNames}>
         {applicationNeedsEdits ? (
           <button
             className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
@@ -436,7 +451,7 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
         ) : null}
       </th>
 
-      <td className={statusStyles}>
+      <td className={statusClassNames}>
         {application.bap?.rebateId ? (
           <span title={`Application ID: ${application.formio._id}`}>
             {application.bap.rebateId}
@@ -449,7 +464,7 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
         )}
       </td>
 
-      <td className={statusStyles}>
+      <td className={statusClassNames}>
         <span>Application</span>
         <br />
         <span className="display-flex flex-align-center font-sans-2xs">
@@ -493,7 +508,7 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
         </span>
       </td>
 
-      <td className={statusStyles}>
+      <td className={statusClassNames}>
         <>
           {Boolean(applicantUEI) ? (
             applicantUEI
@@ -556,7 +571,7 @@ save the form for the EFT indicator to be displayed. */
         </>
       </td>
 
-      <td className={statusStyles}>
+      <td className={statusClassNames}>
         <>
           {Boolean(applicantOrganizationName) ? (
             applicantOrganizationName
@@ -578,7 +593,7 @@ save the form for the EFT indicator to be displayed. */
         </>
       </td>
 
-      <td className={statusStyles}>
+      <td className={statusClassNames}>
         {last_updated_by}
         <br />
         <span title={`${date} ${time}`}>{date}</span>
@@ -697,15 +712,18 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
   const paymentRequestHasBeenWithdrawn =
     paymentRequest.bap?.rebateStatus === "Withdrawn";
 
-  const statusStyles = paymentRequestNeedsEdits
-    ? "csb-needs-edits"
-    : paymentRequest.formio.state === "submitted"
-    ? "text-italic"
-    : "";
+  const statusClassNames =
+    paymentRequest.formio.state === "submitted" ? "text-italic" : "";
 
   return (
-    <tr className={defaultTableRowClassNames}>
-      <th scope="row" className={statusStyles}>
+    <tr
+      className={
+        paymentRequestNeedsEdits
+          ? highlightedTableRowClassNames
+          : defaultTableRowClassNames
+      }
+    >
+      <th scope="row" className={statusClassNames}>
         {paymentRequestNeedsEdits ? (
           <button
             className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
@@ -779,9 +797,9 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
         ) : null}
       </th>
 
-      <td className={statusStyles}>&nbsp;</td>
+      <td className={statusClassNames}>&nbsp;</td>
 
-      <td className={statusStyles}>
+      <td className={statusClassNames}>
         <span>Payment Request</span>
         <br />
         <span className="display-flex flex-align-center font-sans-2xs">
@@ -819,11 +837,11 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
         </span>
       </td>
 
-      <td className={statusStyles}>&nbsp;</td>
+      <td className={statusClassNames}>&nbsp;</td>
 
-      <td className={statusStyles}>&nbsp;</td>
+      <td className={statusClassNames}>&nbsp;</td>
 
-      <td className={statusStyles}>
+      <td className={statusClassNames}>
         {hidden_current_user_email}
         <br />
         <span title={`${date} ${time}`}>{date}</span>
