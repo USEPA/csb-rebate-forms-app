@@ -60,6 +60,16 @@ export type FormioPaymentRequestSubmission = {
   };
 };
 
+export type FormioCloseOutSubmission = {
+  [field: string]: unknown;
+  _id: string; // MongoDB ObjectId string
+  state: "submitted" | "draft";
+  modified: string; // ISO 8601 date string
+  data: {
+    [field: string]: unknown;
+  };
+};
+
 type State = {
   applicationSubmissions:
     | { status: "idle"; data: [] }

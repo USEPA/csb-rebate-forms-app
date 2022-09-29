@@ -1,10 +1,10 @@
-import { Fragment, useEffect } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages, getData, postData } from "../config";
 import { getUserInfo } from "../utilities";
-import { Loading } from "components/loading";
+import { Loading, LoadingButtonIcon } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/infoTooltip";
@@ -14,6 +14,7 @@ import { useCsbState } from "contexts/csb";
 import {
   FormioApplicationSubmission,
   FormioPaymentRequestSubmission,
+  FormioCloseOutSubmission,
   useFormioState,
   useFormioDispatch,
 } from "contexts/formio";
@@ -42,10 +43,13 @@ type Rebate = {
     } | null;
   };
   closeOut: {
-    formio: null;
+    formio: FormioCloseOutSubmission | null;
     bap: null;
   };
 };
+
+const defaultTableRowClassNames = "bg-gray-5";
+const highlightedTableRowClassNames = "bg-primary-lighter";
 
 /** Custom hook to fetch Application form submissions from Forms.gov */
 function useFetchedFormioApplicationSubmissions() {
@@ -53,6 +57,8 @@ function useFetchedFormioApplicationSubmissions() {
   const dispatch = useFormioDispatch();
 
   useEffect(() => {
+    // while not used in this code, SAM.gov entities are used in the server
+    // app's `/api/formio-application-submissions` route controller
     if (samEntities.status !== "success" || !samEntities.data.results) {
       return;
     }
@@ -73,11 +79,13 @@ function useFetchedFormioApplicationSubmissions() {
 }
 
 /** Custom hook to fetch Application form submissions from the BAP */
-function useFetchedBapApplicationSubmissions() {
+export function useFetchedBapApplicationSubmissions() {
   const { samEntities } = useBapState();
   const dispatch = useBapDispatch();
 
   useEffect(() => {
+    // while not used in this code, SAM.gov entities are used in the server
+    // app's `/api/bap-application-submissions` route controller
     if (samEntities.status !== "success" || !samEntities.data.results) {
       return;
     }
@@ -184,8 +192,8 @@ function useCombinedSubmissions() {
   /**
    * Iterate over Formio Application form submissions, matching them with
    * submissions returned from the BAP, so we can build up each rebate object
-   * with the Application form submission data, initial Payment Request form
-   * and Close-out Form submission data structure (both to be updated/replaced)
+   * with the Application form submission data and initialize Payment Request
+   * form and Close-out Form submission data structure (both to be updated).
    */
   for (const formioSubmission of formioApplicationSubmissions.data) {
     const bapMatch = bapApplicationSubmissions.data.find((bapSubmission) => {
@@ -218,7 +226,8 @@ function useCombinedSubmissions() {
   /**
    * Iterate over Formio Payment Request form submissions, matching them with
    * submissions returned from the BAP, so we can set the Payment Request form
-   * submission data.
+   * submission data (NOTE: `hidden_bap_rebate_id` is injected upon creation of
+   * a brand new Payment Request form submission, so it will always be there).
    */
   for (const formioSubmission of formioPaymentRequestSubmissions.data) {
     const bapMatch = bapPaymentRequestSubmissions.data.find((bapSubmission) => {
@@ -228,6 +237,8 @@ function useCombinedSubmissions() {
       );
     });
 
+    // TODO: update this once the BAP team sets up the ETL process for ingesting
+    // Payment Request form submissions from forms.gov
     const comboKey = bapMatch?.UEI_EFTI_Combo_Key__c || null;
     const rebateId = bapMatch?.Parent_Rebate_ID__c || null;
     const reviewItemId = bapMatch?.CSB_Review_Item_ID__c || null;
@@ -244,6 +255,43 @@ function useCombinedSubmissions() {
   return submissions;
 }
 
+/**
+ * Custom hook that sorts submissions by most recient formio modified date,
+ * regardless of form (Application, Payment Request, or Close-Out).
+ **/
+function useSortedSubmissions(submissions: { [rebateId: string]: Rebate }) {
+  return Object.entries(submissions)
+    .map(([rebateId, rebate]) => ({ rebateId, ...rebate }))
+    .sort((rebateA, rebateB) => {
+      const mostRecientRebateAModified = [
+        Date.parse(rebateA.application.formio.modified),
+        Date.parse(rebateA.paymentRequest.formio?.modified || ""),
+        Date.parse(rebateA.closeOut.formio?.modified || ""),
+      ].reduce((previous, current) => {
+        return current > previous ? current : previous;
+      });
+
+      const mostRecientRebateBModified = [
+        Date.parse(rebateB.application.formio.modified),
+        Date.parse(rebateB.paymentRequest.formio?.modified || ""),
+        Date.parse(rebateB.closeOut.formio?.modified || ""),
+      ].reduce((previous, current) => {
+        return current > previous ? current : previous;
+      });
+
+      // Application has been selected, but a Payment Request submission has not yet been created
+      const rebateASelectedButNoPaymentRequest =
+        rebateA.application.bap?.rebateStatus === "Selected" &&
+        !rebateA.paymentRequest.formio;
+
+      // first sort by selected Applications that still need Payment Requests,
+      // then sort by most recient formio modified date
+      return rebateASelectedButNoPaymentRequest
+        ? -1
+        : mostRecientRebateBModified - mostRecientRebateAModified;
+    });
+}
+
 function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
   const navigate = useNavigate();
 
@@ -253,7 +301,7 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
   if (csbData.status !== "success") return null;
   const { enrollmentClosed } = csbData.data;
 
-  const { application } = rebate;
+  const { application, paymentRequest } = rebate;
 
   const applicationHasBeenSelected =
     application.bap?.rebateStatus === "Selected";
@@ -308,7 +356,14 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
    * to first save the form for the fields to be displayed.
    */
   return (
-    <tr className="bg-gray-5">
+    <tr
+      className={
+        // Application has been selected, but a Payment Request submission has not yet been created
+        applicationHasBeenSelected && !paymentRequest.formio
+          ? highlightedTableRowClassNames
+          : defaultTableRowClassNames
+      }
+    >
       <th scope="row" className={statusStyles}>
         {applicationNeedsEdits ? (
           <button
@@ -539,6 +594,8 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
   const { samEntities } = useBapState();
   const dispatch = usePageDispatch();
 
+  const [postDataResponsePending, setPostDataResponsePending] = useState(false);
+
   if (epaUserData.status !== "success") return null;
   if (samEntities.status !== "success") return null;
 
@@ -560,20 +617,17 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
   // Application has been selected, but a Payment Request submission has not yet been created
   if (applicationHasBeenSelected && !paymentRequest.formio) {
     return (
-      <tr className="bg-gray-5">
+      <tr className={highlightedTableRowClassNames}>
         <th scope="row" colSpan={6}>
           <button
             className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
             onClick={(ev) => {
-              // TODO: show a loading spinner (inside the button?) when the
-              // initial payment request submission is happening as the BAP
-              // queries take some time to get the data to POST to forms.gov
-
               if (!application.bap?.rebateId || !entity) return;
 
-              const { title, name } = getUserInfo(email, entity);
-
+              setPostDataResponsePending(true);
               dispatch({ type: "RESET_MESSAGE" });
+
+              const { title, name } = getUserInfo(email, entity);
 
               // create a new draft payment request submission
               postData(`${serverUrl}/api/formio-payment-request-submission/`, {
@@ -585,9 +639,11 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
                 reviewItemId: application.bap.reviewItemId, // CSB Rebate ID w/ form/version ID (9 digits)
               })
                 .then((res) => {
+                  setPostDataResponsePending(false);
                   navigate(`/payment-request/${application.bap?.rebateId}`);
                 })
                 .catch((err) => {
+                  setPostDataResponsePending(false);
                   const text = `Error creating Payment Request ${application.bap?.rebateId}. Please try again.`;
                   dispatch({
                     type: "DISPLAY_MESSAGE",
@@ -606,6 +662,7 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
                 <use href={`${icons}#add_circle`} />
               </svg>
               <span className="margin-left-1">New Payment Request</span>
+              {postDataResponsePending && <LoadingButtonIcon />}
             </span>
           </button>
         </th>
@@ -616,7 +673,8 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
   // return if a Payment Request submission has not been created for this rebate
   if (!paymentRequest.formio) return null;
 
-  const { last_updated_by, hidden_bap_rebate_id } = paymentRequest.formio.data;
+  const { hidden_current_user_email, hidden_bap_rebate_id } =
+    paymentRequest.formio.data;
 
   const date = new Date(paymentRequest.formio.modified).toLocaleDateString();
   const time = new Date(paymentRequest.formio.modified).toLocaleTimeString();
@@ -646,7 +704,7 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
     : "";
 
   return (
-    <tr className="bg-gray-5">
+    <tr className={defaultTableRowClassNames}>
       <th scope="row" className={statusStyles}>
         {paymentRequestNeedsEdits ? (
           <button
@@ -766,7 +824,7 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
       <td className={statusStyles}>&nbsp;</td>
 
       <td className={statusStyles}>
-        {last_updated_by}
+        {hidden_current_user_email}
         <br />
         <span title={`${date} ${time}`}>{date}</span>
       </td>
@@ -804,14 +862,15 @@ export function AllRebates() {
   useFetchedBapPaymentRequestSubmissions();
 
   const submissions = useCombinedSubmissions();
+  const sortedSubmissions = useSortedSubmissions(submissions);
 
-  // log combined 'submissions' object if 'debug' search parameter exists
+  // log combined 'sortedSubmissions' array if 'debug' search parameter exists
   useEffect(() => {
-    const submissionsAreSet = Boolean(Object.keys(submissions).length);
+    const submissionsAreSet = sortedSubmissions.length > 0;
     if (searchParams.has("debug") && submissionsAreSet) {
-      console.log(submissions);
+      console.log(sortedSubmissions);
     }
-  }, [searchParams, submissions]);
+  }, [searchParams, sortedSubmissions]);
 
   if (
     csbData.status !== "success" ||
@@ -852,7 +911,7 @@ export function AllRebates() {
 
   return (
     <>
-      {Object.keys(submissions).length === 0 ? (
+      {sortedSubmissions.length === 0 ? (
         <div className="margin-top-4">
           <Message type="info" text={messages.newApplication} />
         </div>
@@ -938,24 +997,22 @@ export function AllRebates() {
               </thead>
 
               <tbody>
-                {Object.entries(submissions).map(
-                  ([rebateId, rebate], index) => (
-                    <Fragment key={rebateId}>
-                      <ApplicationSubmission rebate={rebate} />
+                {sortedSubmissions.map((rebate, index) => (
+                  <Fragment key={rebate.rebateId}>
+                    <ApplicationSubmission rebate={rebate} />
 
-                      <PaymentRequestSubmission rebate={rebate} />
+                    <PaymentRequestSubmission rebate={rebate} />
 
-                      {/* blank row after all rebates but the last one */}
-                      {index !== Object.keys(submissions).length - 1 && (
-                        <tr className="bg-white">
-                          <th className="p-0" scope="row" colSpan={6}>
-                            &nbsp;
-                          </th>
-                        </tr>
-                      )}
-                    </Fragment>
-                  )
-                )}
+                    {/* blank row after all rebates but the last one */}
+                    {index !== sortedSubmissions.length - 1 && (
+                      <tr className="bg-white">
+                        <th className="p-0" scope="row" colSpan={6}>
+                          &nbsp;
+                        </th>
+                      </tr>
+                    )}
+                  </Fragment>
+                ))}
               </tbody>
             </table>
           </div>
