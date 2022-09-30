@@ -47,7 +47,7 @@ export function ApplicationForm() {
 
   // create ref to storedSubmissionData, so the latest value can be referenced
   // in the Form component's `onNextPage` event prop
-  const storedSubmissionDataRef = useRef(storedSubmissionData);
+  const storedSubmissionDataRef = useRef<FormioSubmissionData>({});
 
   // initially empty, but will be set once the user attemts to submit the form
   // (both successfully and unsuccessfully). passed to the to the <Form />
@@ -78,8 +78,8 @@ export function ApplicationForm() {
         if (data.hasOwnProperty("ncesDataSource")) delete data.ncesDataSource;
         if (data.hasOwnProperty("ncesDataLookup")) delete data.ncesDataLookup;
 
-        setStoredSubmissionData((prevData) => {
-          storedSubmissionDataRef.current = data;
+        setStoredSubmissionData((_prevData) => {
+          storedSubmissionDataRef.current = cloneDeep(data);
           return data;
         });
 
@@ -216,38 +216,6 @@ export function ApplicationForm() {
               submission.state === "submitted",
             noAlerts: true,
           }}
-          onChange={(onChangeSubmission: {
-            [field: string]: unknown;
-            changed: {
-              [field: string]: unknown;
-              component: {
-                [field: string]: unknown;
-                key: string;
-              };
-            };
-          }) => {
-            // NOTE: For some unknown reason, whenever the bus info's "Save"
-            // button (the component w/ the key "busInformation") is clicked
-            // the `storedSubmissionDataRef` value is mutated, which invalidates
-            // the isEqual() early return "dirty check" used in the onNextPage
-            // event callback below (as the two objects being compared are now
-            // equal). That means if the user changed any of the bus info fields
-            // (which are displayed via a Formio "Edit Grid" component, which
-            // includes its own "Save" button that must be clicked) and clicked
-            // the form's "Next" button without making any other form field
-            // changes, the "dirty check" incorrectly fails, and the updated
-            // form data was not posted. The fix below should resolve that issue
-            // as now we're intentionally mutating the `storedSubmissionDataRef`
-            // to an empty object whenever the Edit Grid's "Save" button is
-            // clicked (which must be clicked to close the bus info fields) to
-            // guarantee the "dirty check" succeeds the next time the form's
-            // "Next" button is clicked.
-            if (
-              onChangeSubmission?.changed?.component?.key === "busInformation"
-            ) {
-              storedSubmissionDataRef.current = {};
-            }
-          }}
           onSubmit={(onSubmitSubmission: {
             state: "submitted" | "draft";
             data: FormioSubmissionData;
@@ -284,8 +252,8 @@ export function ApplicationForm() {
               { ...onSubmitSubmission, data }
             )
               .then((res) => {
-                setStoredSubmissionData((prevData) => {
-                  storedSubmissionDataRef.current = res.data;
+                setStoredSubmissionData((_prevData) => {
+                  storedSubmissionDataRef.current = cloneDeep(res.data);
                   return res.data;
                 });
 
@@ -376,8 +344,8 @@ export function ApplicationForm() {
               { ...onNextPageParam.submission, data, state: "draft" }
             )
               .then((res) => {
-                setStoredSubmissionData((prevData) => {
-                  storedSubmissionDataRef.current = res.data;
+                setStoredSubmissionData((_prevData) => {
+                  storedSubmissionDataRef.current = cloneDeep(res.data);
                   return res.data;
                 });
 

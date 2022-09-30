@@ -55,8 +55,3 @@
 [data-reach-tooltip] {
   z-index: 100000;
 }
-
-/* --- CSB --- */
-.csb-needs-edits {
-  background-color: #d9e8f6 !important; /* USWDS primary-lighter */
-}

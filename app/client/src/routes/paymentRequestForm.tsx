@@ -43,7 +43,7 @@ export function PaymentRequestForm() {
 
   // create ref to storedSubmissionData, so the latest value can be referenced
   // in the Form component's `onNextPage` event prop
-  const storedSubmissionDataRef = useRef(storedSubmissionData);
+  const storedSubmissionDataRef = useRef<FormioSubmissionData>({});
 
   // initially empty, but will be set once the user attemts to submit the form
   // (both successfully and unsuccessfully). passed to the to the <Form />
@@ -71,8 +71,8 @@ export function PaymentRequestForm() {
 
         const data = { ...res.submission.data };
 
-        setStoredSubmissionData((prevData) => {
-          storedSubmissionDataRef.current = data;
+        setStoredSubmissionData((_prevData) => {
+          storedSubmissionDataRef.current = cloneDeep(data);
           return data;
         });
 
@@ -210,8 +210,8 @@ export function PaymentRequestForm() {
               }
             )
               .then((res) => {
-                setStoredSubmissionData((prevData) => {
-                  storedSubmissionDataRef.current = res.data;
+                setStoredSubmissionData((_prevData) => {
+                  storedSubmissionDataRef.current = cloneDeep(res.data);
                   return res.data;
                 });
 
@@ -301,8 +301,8 @@ export function PaymentRequestForm() {
               }
             )
               .then((res) => {
-                setStoredSubmissionData((prevData) => {
-                  storedSubmissionDataRef.current = res.data;
+                setStoredSubmissionData((_prevData) => {
+                  storedSubmissionDataRef.current = cloneDeep(res.data);
                   return res.data;
                 });
 
