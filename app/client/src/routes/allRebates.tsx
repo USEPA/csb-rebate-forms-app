@@ -292,15 +292,14 @@ function useSortedSubmissions(submissions: { [rebateId: string]: Rebate }) {
           (r1.application.formio.state === "submitted" &&
             !r1AapplicationHasBeenUpdated));
 
-      // Application has been selected, but a Payment Request submission has not
-      // yet been created
-      const r1ApplicationSelectedButNoPaymentRequest =
+      const r1ApplicationHasBeenSelectedButNoPaymentRequest =
         r1.application.bap?.rebateStatus === "Selected" &&
-        !r1.paymentRequest.formio;
+        !Boolean(r1.paymentRequest.formio);
 
       // first sort by Applications needing edits or selected Applications that
       // still need Payment Requests, then sort by most recient formio modified date
-      return r1ApplicationNeedsEdits || r1ApplicationSelectedButNoPaymentRequest
+      return r1ApplicationNeedsEdits ||
+        r1ApplicationHasBeenSelectedButNoPaymentRequest
         ? -1
         : mostRecientR2Modified - mostRecientR1Modified;
     });
@@ -319,6 +318,9 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
 
   const applicationHasBeenSelected =
     application.bap?.rebateStatus === "Selected";
+
+  const applicationHasBeenSelectedButNoPaymentRequest =
+    applicationHasBeenSelected && !Boolean(paymentRequest.formio);
 
   const {
     applicantUEI,
@@ -371,10 +373,7 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
   return (
     <tr
       className={
-        // Application needs edits, or it has been selected and
-        // a Payment Request submission has not yet been created
-        applicationNeedsEdits ||
-        (applicationHasBeenSelected && !paymentRequest.formio)
+        applicationNeedsEdits || applicationHasBeenSelectedButNoPaymentRequest
           ? highlightedTableRowClassNames
           : defaultTableRowClassNames
       }
@@ -620,6 +619,9 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
   const applicationHasBeenSelected =
     application.bap?.rebateStatus === "Selected";
 
+  const applicationHasBeenSelectedButNoPaymentRequest =
+    applicationHasBeenSelected && !Boolean(paymentRequest.formio);
+
   /** matched SAM.gov entity for the application */
   const entity = samEntities.data.entities.find((entity) => {
     return (
@@ -629,8 +631,7 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
     );
   });
 
-  // Application has been selected, but a Payment Request submission has not yet been created
-  if (applicationHasBeenSelected && !paymentRequest.formio) {
+  if (applicationHasBeenSelectedButNoPaymentRequest) {
     return (
       <tr className={highlightedTableRowClassNames}>
         <th scope="row" colSpan={6}>
