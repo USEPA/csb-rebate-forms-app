@@ -117,10 +117,7 @@ export function Helpdesk() {
       {formio.status === "pending" && <Loading />}
 
       {formio.status === "failure" && (
-        <Message
-          type="error"
-          text={messages.helpdeskApplicationSubmissionError}
-        />
+        <Message type="error" text={messages.helpdeskSubmissionSearchError} />
       )}
 
       {/*
@@ -130,10 +127,7 @@ export function Helpdesk() {
         using it
       */}
       {formio.status === "success" && !formio.data && (
-        <Message
-          type="error"
-          text={messages.helpdeskApplicationSubmissionError}
-        />
+        <Message type="error" text={messages.helpdeskSubmissionSearchError} />
       )}
 
       {formio.status === "success" && formSchema && submission && (
@@ -150,8 +144,8 @@ export function Helpdesk() {
                   </th>
                   <th scope="col">
                     <TextWithTooltip
-                      text="Form ID"
-                      tooltip="Form ID returned from Forms.gov"
+                      text="Application ID"
+                      tooltip="Application ID returned from Forms.gov"
                     />
                   </th>
                   <th scope="col">
@@ -278,7 +272,18 @@ export function Helpdesk() {
 
           {formDisplayed && (
             <>
-              <h3>Application ID: {submission._id}</h3>
+              <ul className="usa-icon-list">
+                <li className="usa-icon-list__item">
+                  <div className="usa-icon-list__icon text-primary">
+                    <svg className="usa-icon" aria-hidden="true" role="img">
+                      <use href={`${icons}#local_offer`} />
+                    </svg>
+                  </div>
+                  <div className="usa-icon-list__content">
+                    <strong>Application ID:</strong> {submission._id}
+                  </div>
+                </li>
+              </ul>
 
               <Form
                 form={formSchema.json}
