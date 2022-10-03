@@ -279,6 +279,9 @@ function useSortedSubmissions(submissions: { [rebateId: string]: Rebate }) {
         return current > previous ? current : previous;
       });
 
+      return mostRecientR2Modified - mostRecientR1Modified;
+    })
+    .sort((r1, _r2) => {
       // Application has been updated since the last time the BAP's submissions
       // ETL process has last succesfully run
       const r1AapplicationHasBeenUpdated = r1.application.bap?.lastModified
@@ -296,12 +299,10 @@ function useSortedSubmissions(submissions: { [rebateId: string]: Rebate }) {
         r1.application.bap?.rebateStatus === "Selected" &&
         !Boolean(r1.paymentRequest.formio);
 
-      // first sort by Applications needing edits or selected Applications that
-      // still need Payment Requests, then sort by most recient formio modified date
       return r1ApplicationNeedsEdits ||
         r1ApplicationHasBeenSelectedButNoPaymentRequest
         ? -1
-        : mostRecientR2Modified - mostRecientR1Modified;
+        : 0;
     });
 }
 
