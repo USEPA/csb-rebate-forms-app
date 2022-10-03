@@ -30,8 +30,8 @@ import { NewApplicationForm } from "routes/newApplicationForm";
 import { ApplicationForm } from "routes/applicationForm";
 import { PaymentRequestForm } from "routes/paymentRequestForm";
 import { useContentState, useContentDispatch } from "contexts/content";
-import { useUserState, useUserDispatch } from "contexts/user";
 import { useDialogDispatch, useDialogState } from "contexts/dialog";
+import { useUserState, useUserDispatch } from "contexts/user";
 
 /** Custom hook to fetch static content */
 function useFetchedContent() {

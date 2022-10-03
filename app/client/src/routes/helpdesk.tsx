@@ -11,9 +11,9 @@ import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/infoTooltip";
 import { useContentState } from "contexts/content";
+import { useDialogDispatch } from "contexts/dialog";
 import { useUserState } from "contexts/user";
 import { useCsbState } from "contexts/csb";
-import { useDialogDispatch } from "contexts/dialog";
 
 type NoFormioData = { formSchema: null; submission: null };
 

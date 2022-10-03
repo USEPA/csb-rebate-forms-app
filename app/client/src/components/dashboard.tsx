@@ -14,10 +14,10 @@ import {
 } from "../config";
 import { useHelpdeskAccess } from "components/app";
 import { Loading } from "components/loading";
+import { Action, useDialogDispatch } from "contexts/dialog";
 import { useUserState } from "contexts/user";
 import { useCsbState, useCsbDispatch } from "contexts/csb";
 import { useBapState, useBapDispatch } from "contexts/bap";
-import { Action, useDialogDispatch } from "contexts/dialog";
 
 Formio.setBaseUrl(formioBaseUrl);
 Formio.setProjectUrl(formioProjectUrl);

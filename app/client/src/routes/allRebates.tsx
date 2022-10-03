@@ -11,6 +11,7 @@ import { TextWithTooltip } from "components/infoTooltip";
 import { useContentState } from "contexts/content";
 import { useUserState } from "contexts/user";
 import { useCsbState } from "contexts/csb";
+import { useBapState, useBapDispatch } from "contexts/bap";
 import {
   FormioApplicationSubmission,
   FormioPaymentRequestSubmission,
@@ -18,7 +19,6 @@ import {
   useFormioState,
   useFormioDispatch,
 } from "contexts/formio";
-import { useBapState, useBapDispatch } from "contexts/bap";
 import { usePageState, usePageDispatch } from "contexts/page";
 
 type Rebate = {
