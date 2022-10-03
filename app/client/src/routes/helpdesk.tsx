@@ -58,7 +58,7 @@ export function Helpdesk() {
   const { content } = useContentState();
   const { epaUserData } = useUserState();
   const { csbData } = useCsbState();
-  const dispatch = useDialogDispatch();
+  const dialogDispatch = useDialogDispatch();
   const helpdeskAccess = useHelpdeskAccess();
 
   const [formioApplicationSubmission, setFormioApplicationSubmission] =
@@ -254,7 +254,7 @@ export function Helpdesk() {
                           enrollmentClosed || submission.state === "draft"
                         }
                         onClick={(ev) => {
-                          dispatch({
+                          dialogDispatch({
                             type: "DISPLAY_DIALOG",
                             payload: {
                               dismissable: true,

@@ -35,21 +35,21 @@ import { useUserState, useUserDispatch } from "contexts/user";
 
 /** Custom hook to fetch static content */
 function useFetchedContent() {
-  const dispatch = useContentDispatch();
+  const contentDispatch = useContentDispatch();
 
   useEffect(() => {
-    dispatch({ type: "FETCH_CONTENT_REQUEST" });
+    contentDispatch({ type: "FETCH_CONTENT_REQUEST" });
     getData(`${serverUrl}/api/content`)
       .then((res) => {
-        dispatch({
+        contentDispatch({
           type: "FETCH_CONTENT_SUCCESS",
           payload: res,
         });
       })
       .catch((err) => {
-        dispatch({ type: "FETCH_CONTENT_FAILURE" });
+        contentDispatch({ type: "FETCH_CONTENT_FAILURE" });
       });
-  }, [dispatch]);
+  }, [contentDispatch]);
 }
 
 /** Custom hook to display a site-wide alert banner */
@@ -117,7 +117,7 @@ function useDisclaimerBanner() {
 function useInactivityDialog(callback: () => void) {
   const { epaUserData } = useUserState();
   const { dialogShown, heading } = useDialogState();
-  const dispatch = useDialogDispatch();
+  const dialogDispatch = useDialogDispatch();
 
   /**
    * Initial time (in seconds) used in the warning countdown timer.
@@ -135,7 +135,7 @@ function useInactivityDialog(callback: () => void) {
     timeout,
     onIdle: () => {
       // Display 60-second countdown dialog after 14 minutes of idle time
-      dispatch({
+      dialogDispatch({
         type: "DISPLAY_DIALOG",
         payload: {
           dismissable: false,
@@ -179,7 +179,7 @@ function useInactivityDialog(callback: () => void) {
     if (dialogShown && heading === "Inactivity Warning") {
       setTimeout(() => {
         setLogoutTimer((count: number) => (count > 0 ? count - 1 : count));
-        dispatch({
+        dialogDispatch({
           type: "UPDATE_DIALOG_DESCRIPTION",
           payload: {
             description: `You will be automatically logged out in ${
@@ -194,7 +194,7 @@ function useInactivityDialog(callback: () => void) {
     if (logoutTimer === 0) {
       window.location.href = `${serverUrl}/logout?RelayState=/welcome?info=timeout`;
     }
-  }, [dialogShown, heading, logoutTimer, dispatch]);
+  }, [dialogShown, heading, logoutTimer, dialogDispatch]);
 }
 
 /** Custom hook to check if user should have access to helpdesk pages */
@@ -217,28 +217,28 @@ export function useHelpdeskAccess() {
 function ProtectedRoute({ children }: { children: JSX.Element }) {
   const { pathname } = useLocation();
   const { isAuthenticating, isAuthenticated } = useUserState();
-  const dispatch = useUserDispatch();
+  const userDispatch = useUserDispatch();
 
   // Check if user is already logged in or needs to be redirected to /welcome route
   const verifyUser = useCallback(() => {
     getData(`${serverUrl}/api/epa-user-data`)
       .then((res) => {
-        dispatch({
+        userDispatch({
           type: "FETCH_EPA_USER_DATA_SUCCESS",
           payload: { epaUserData: res },
         });
-        dispatch({ type: "USER_SIGN_IN" });
+        userDispatch({ type: "USER_SIGN_IN" });
       })
       .catch((err) => {
-        dispatch({ type: "FETCH_EPA_USER_DATA_FAILURE" });
-        dispatch({ type: "USER_SIGN_OUT" });
+        userDispatch({ type: "FETCH_EPA_USER_DATA_FAILURE" });
+        userDispatch({ type: "USER_SIGN_OUT" });
       });
-  }, [dispatch]);
+  }, [userDispatch]);
 
   useEffect(() => {
-    dispatch({ type: "FETCH_EPA_USER_DATA_REQUEST" });
+    userDispatch({ type: "FETCH_EPA_USER_DATA_REQUEST" });
     verifyUser();
-  }, [verifyUser, dispatch, pathname]);
+  }, [verifyUser, userDispatch, pathname]);
 
   useInactivityDialog(verifyUser);
 

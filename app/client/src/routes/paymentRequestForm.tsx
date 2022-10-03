@@ -29,12 +29,12 @@ export function PaymentRequestForm() {
   const { csbData } = useCsbState();
   const { samEntities } = useBapState();
   const { message, formio } = usePageState();
-  const dispatch = usePageDispatch();
+  const pageDispatch = usePageDispatch();
 
   // reset page context state
   useEffect(() => {
-    dispatch({ type: "RESET_STATE" });
-  }, [dispatch]);
+    pageDispatch({ type: "RESET_STATE" });
+  }, [pageDispatch]);
 
   // set when form submission data is initially fetched, and then re-set each
   // time a successful update of the submission data is posted to forms.gov
@@ -53,7 +53,7 @@ export function PaymentRequestForm() {
     useState<FormioSubmissionData>({});
 
   useEffect(() => {
-    dispatch({ type: "FETCH_FORMIO_DATA_REQUEST" });
+    pageDispatch({ type: "FETCH_FORMIO_DATA_REQUEST" });
 
     getData(`${serverUrl}/api/formio-payment-request-submission/${rebateId}`)
       .then((res: FormioFetchedResponse) => {
@@ -76,15 +76,15 @@ export function PaymentRequestForm() {
           return data;
         });
 
-        dispatch({
+        pageDispatch({
           type: "FETCH_FORMIO_DATA_SUCCESS",
           payload: { data: res },
         });
       })
       .catch((err) => {
-        dispatch({ type: "FETCH_FORMIO_DATA_FAILURE" });
+        pageDispatch({ type: "FETCH_FORMIO_DATA_FAILURE" });
       });
-  }, [rebateId, dispatch]);
+  }, [rebateId, pageDispatch]);
 
   if (formio.status === "idle") {
     return null;
@@ -187,14 +187,14 @@ export function PaymentRequestForm() {
             const data = { ...onSubmitSubmission.data };
 
             if (onSubmitSubmission.state === "submitted") {
-              dispatch({
+              pageDispatch({
                 type: "DISPLAY_MESSAGE",
                 payload: { type: "info", text: "Submitting form..." },
               });
             }
 
             if (onSubmitSubmission.state === "draft") {
-              dispatch({
+              pageDispatch({
                 type: "DISPLAY_MESSAGE",
                 payload: { type: "info", text: "Saving form..." },
               });
@@ -218,7 +218,7 @@ export function PaymentRequestForm() {
                 setPendingSubmissionData({});
 
                 if (onSubmitSubmission.state === "submitted") {
-                  dispatch({
+                  pageDispatch({
                     type: "DISPLAY_MESSAGE",
                     payload: {
                       type: "success",
@@ -227,14 +227,14 @@ export function PaymentRequestForm() {
                   });
 
                   setTimeout(() => {
-                    dispatch({ type: "RESET_MESSAGE" });
+                    pageDispatch({ type: "RESET_MESSAGE" });
                     navigate("/");
                   }, 5000);
                   return;
                 }
 
                 if (onSubmitSubmission.state === "draft") {
-                  dispatch({
+                  pageDispatch({
                     type: "DISPLAY_MESSAGE",
                     payload: {
                       type: "success",
@@ -243,12 +243,12 @@ export function PaymentRequestForm() {
                   });
 
                   setTimeout(() => {
-                    dispatch({ type: "RESET_MESSAGE" });
+                    pageDispatch({ type: "RESET_MESSAGE" });
                   }, 5000);
                 }
               })
               .catch((err) => {
-                dispatch({
+                pageDispatch({
                   type: "DISPLAY_MESSAGE",
                   payload: {
                     type: "error",
@@ -282,7 +282,7 @@ export function PaymentRequestForm() {
             delete storedDataToCheck.hidden_current_user_name;
             if (isEqual(dataToCheck, storedDataToCheck)) return;
 
-            dispatch({
+            pageDispatch({
               type: "DISPLAY_MESSAGE",
               payload: { type: "info", text: "Saving form..." },
             });
@@ -308,7 +308,7 @@ export function PaymentRequestForm() {
 
                 setPendingSubmissionData({});
 
-                dispatch({
+                pageDispatch({
                   type: "DISPLAY_MESSAGE",
                   payload: {
                     type: "success",
@@ -317,11 +317,11 @@ export function PaymentRequestForm() {
                 });
 
                 setTimeout(() => {
-                  dispatch({ type: "RESET_MESSAGE" });
+                  pageDispatch({ type: "RESET_MESSAGE" });
                 }, 5000);
               })
               .catch((err) => {
-                dispatch({
+                pageDispatch({
                   type: "DISPLAY_MESSAGE",
                   payload: {
                     type: "error",

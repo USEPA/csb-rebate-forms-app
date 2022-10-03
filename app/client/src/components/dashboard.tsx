@@ -26,33 +26,33 @@ Formio.use(uswds);
 
 /** Custom hook to fetch CSP app specific data */
 function useFetchedCsbData() {
-  const dispatch = useCsbDispatch();
+  const csbDispatch = useCsbDispatch();
 
   useEffect(() => {
-    dispatch({ type: "FETCH_CSB_DATA_REQUEST" });
+    csbDispatch({ type: "FETCH_CSB_DATA_REQUEST" });
     getData(`${serverUrl}/api/csb-data`)
       .then((res) => {
-        dispatch({
+        csbDispatch({
           type: "FETCH_CSB_DATA_SUCCESS",
           payload: { csbData: res },
         });
       })
       .catch((err) => {
-        dispatch({ type: "FETCH_CSB_DATA_FAILURE" });
+        csbDispatch({ type: "FETCH_CSB_DATA_FAILURE" });
       });
-  }, [dispatch]);
+  }, [csbDispatch]);
 }
 
 /** Custom hook to fetch SAM.gov data */
 function useFetchedSamData() {
-  const dispatch = useBapDispatch();
+  const bapDispatch = useBapDispatch();
 
   useEffect(() => {
-    dispatch({ type: "FETCH_BAP_SAM_DATA_REQUEST" });
+    bapDispatch({ type: "FETCH_BAP_SAM_DATA_REQUEST" });
     getData(`${serverUrl}/api/bap-sam-data`)
       .then((res) => {
         if (res.results) {
-          dispatch({
+          bapDispatch({
             type: "FETCH_BAP_SAM_DATA_SUCCESS",
             payload: { samEntities: res },
           });
@@ -61,10 +61,10 @@ function useFetchedSamData() {
         }
       })
       .catch((err) => {
-        dispatch({ type: "FETCH_BAP_SAM_DATA_FAILURE" });
+        bapDispatch({ type: "FETCH_BAP_SAM_DATA_FAILURE" });
         window.location.href = `${serverUrlForHrefs}/logout?RelayState=/welcome?error=bap-sam-fetch`;
       });
-  }, [dispatch]);
+  }, [bapDispatch]);
 }
 
 type IconTextProps = {
@@ -109,7 +109,7 @@ export function Dashboard() {
   const { epaUserData } = useUserState();
   const { csbData } = useCsbState();
   const { samEntities } = useBapState();
-  const dispatch = useDialogDispatch();
+  const dialogDispatch = useDialogDispatch();
   const helpdeskAccess = useHelpdeskAccess();
 
   useFetchedCsbData();
@@ -209,7 +209,7 @@ export function Dashboard() {
                 if (onApplicationFormPage || onPaymentRequestFormPage) {
                   ev.preventDefault();
                   const action = createDialogNavAction("/");
-                  dispatch(action);
+                  dialogDispatch(action);
                 }
               }}
             >
@@ -264,7 +264,7 @@ export function Dashboard() {
                     if (onApplicationFormPage || onPaymentRequestFormPage) {
                       ev.preventDefault();
                       const action = createDialogNavAction("/helpdesk");
-                      dispatch(action);
+                      dialogDispatch(action);
                     }
                   }}
                 >

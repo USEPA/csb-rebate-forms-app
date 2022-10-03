@@ -54,91 +54,91 @@ const highlightedTableRowClassNames = "bg-primary-lighter";
 /** Custom hook to fetch Application form submissions from Forms.gov */
 function useFetchedFormioApplicationSubmissions() {
   const { samEntities } = useBapState();
-  const dispatch = useFormioDispatch();
+  const formioDispatch = useFormioDispatch();
 
   useEffect(() => {
     // while not used in this code, SAM.gov entities are used in the server
     // app's `/api/formio-application-submissions` route controller
-    if (samEntities.status !== "success" || !samEntities.data.results) {
-      return;
-    }
+    if (samEntities.status !== "success" || !samEntities.data.results) return;
 
-    dispatch({ type: "FETCH_FORMIO_APPLICATION_SUBMISSIONS_REQUEST" });
+    formioDispatch({ type: "FETCH_FORMIO_APPLICATION_SUBMISSIONS_REQUEST" });
 
     getData(`${serverUrl}/api/formio-application-submissions`)
       .then((res) => {
-        dispatch({
+        formioDispatch({
           type: "FETCH_FORMIO_APPLICATION_SUBMISSIONS_SUCCESS",
           payload: { applicationSubmissions: res },
         });
       })
       .catch((err) => {
-        dispatch({ type: "FETCH_FORMIO_APPLICATION_SUBMISSIONS_FAILURE" });
+        formioDispatch({
+          type: "FETCH_FORMIO_APPLICATION_SUBMISSIONS_FAILURE",
+        });
       });
-  }, [samEntities, dispatch]);
+  }, [samEntities, formioDispatch]);
 }
 
 /** Custom hook to fetch Application form submissions from the BAP */
 export function useFetchedBapApplicationSubmissions() {
   const { samEntities } = useBapState();
-  const dispatch = useBapDispatch();
+  const bapDispatch = useBapDispatch();
 
   useEffect(() => {
     // while not used in this code, SAM.gov entities are used in the server
     // app's `/api/bap-application-submissions` route controller
-    if (samEntities.status !== "success" || !samEntities.data.results) {
-      return;
-    }
+    if (samEntities.status !== "success" || !samEntities.data.results) return;
 
-    dispatch({ type: "FETCH_BAP_APPLICATION_SUBMISSIONS_REQUEST" });
+    bapDispatch({ type: "FETCH_BAP_APPLICATION_SUBMISSIONS_REQUEST" });
 
     getData(`${serverUrl}/api/bap-application-submissions`)
       .then((res) => {
-        dispatch({
+        bapDispatch({
           type: "FETCH_BAP_APPLICATION_SUBMISSIONS_SUCCESS",
           payload: { applicationSubmissions: res },
         });
       })
       .catch((err) => {
-        dispatch({ type: "FETCH_BAP_APPLICATION_SUBMISSIONS_FAILURE" });
+        bapDispatch({ type: "FETCH_BAP_APPLICATION_SUBMISSIONS_FAILURE" });
       });
-  }, [samEntities, dispatch]);
+  }, [samEntities, bapDispatch]);
 }
 
 /** Custom hook to fetch Payment Request form submissions from Forms.gov */
 function useFetchedFormioPaymentRequestSubmissions() {
   const { samEntities } = useBapState();
-  const dispatch = useFormioDispatch();
+  const formioDispatch = useFormioDispatch();
 
   useEffect(() => {
-    if (samEntities.status !== "success" || !samEntities.data.results) {
-      return;
-    }
+    if (samEntities.status !== "success" || !samEntities.data.results) return;
 
-    dispatch({ type: "FETCH_FORMIO_PAYMENT_REQUEST_SUBMISSIONS_REQUEST" });
+    formioDispatch({
+      type: "FETCH_FORMIO_PAYMENT_REQUEST_SUBMISSIONS_REQUEST",
+    });
 
     getData(`${serverUrl}/api/formio-payment-request-submissions`)
       .then((res) => {
-        dispatch({
+        formioDispatch({
           type: "FETCH_FORMIO_PAYMENT_REQUEST_SUBMISSIONS_SUCCESS",
           payload: { paymentRequestSubmissions: res },
         });
       })
       .catch((err) => {
-        dispatch({ type: "FETCH_FORMIO_PAYMENT_REQUEST_SUBMISSIONS_FAILURE" });
+        formioDispatch({
+          type: "FETCH_FORMIO_PAYMENT_REQUEST_SUBMISSIONS_FAILURE",
+        });
       });
-  }, [samEntities, dispatch]);
+  }, [samEntities, formioDispatch]);
 }
 
 /** Custom hook to fetch Payment Request form submissions from the BAP */
 function useFetchedBapPaymentRequestSubmissions() {
-  const dispatch = useBapDispatch();
+  const bapDispatch = useBapDispatch();
 
   useEffect(() => {
-    dispatch({ type: "FETCH_BAP_PAYMENT_REQUEST_SUBMISSIONS_REQUEST" });
+    bapDispatch({ type: "FETCH_BAP_PAYMENT_REQUEST_SUBMISSIONS_REQUEST" });
 
     // TODO: update query to fetch BAP data once the BAP team has things set up
-    dispatch({
+    bapDispatch({
       type: "FETCH_BAP_PAYMENT_REQUEST_SUBMISSIONS_SUCCESS",
       payload: {
         paymentRequestSubmissions: [
@@ -157,7 +157,7 @@ function useFetchedBapPaymentRequestSubmissions() {
         ],
       },
     });
-  }, [dispatch]);
+  }, [bapDispatch]);
 }
 
 /**
@@ -309,7 +309,7 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
   const navigate = useNavigate();
 
   const { csbData } = useCsbState();
-  const dispatch = usePageDispatch();
+  const pageDispatch = usePageDispatch();
 
   if (csbData.status !== "success") return null;
   const { enrollmentClosed } = csbData.data;
@@ -383,7 +383,7 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
           <button
             className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
             onClick={(ev) => {
-              dispatch({ type: "RESET_MESSAGE" });
+              pageDispatch({ type: "RESET_MESSAGE" });
 
               // change the submission's state to draft, then redirect to the
               // form to allow user to edit
@@ -394,7 +394,7 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
                 .then((res) => navigate(`/rebate/${res._id}`))
                 .catch((err) => {
                   const text = `Error updating Application ${application.bap?.rebateId}. Please try again.`;
-                  dispatch({
+                  pageDispatch({
                     type: "DISPLAY_MESSAGE",
                     payload: { type: "error", text },
                   });
@@ -606,7 +606,7 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
 
   const { epaUserData } = useUserState();
   const { samEntities } = useBapState();
-  const dispatch = usePageDispatch();
+  const pageDispatch = usePageDispatch();
 
   const [postDataResponsePending, setPostDataResponsePending] = useState(false);
 
@@ -641,7 +641,7 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
               if (!application.bap?.rebateId || !entity) return;
 
               setPostDataResponsePending(true);
-              dispatch({ type: "RESET_MESSAGE" });
+              pageDispatch({ type: "RESET_MESSAGE" });
 
               const { title, name } = getUserInfo(email, entity);
 
@@ -661,7 +661,7 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
                 .catch((err) => {
                   setPostDataResponsePending(false);
                   const text = `Error creating Payment Request ${application.bap?.rebateId}. Please try again.`;
-                  dispatch({
+                  pageDispatch({
                     type: "DISPLAY_MESSAGE",
                     payload: { type: "error", text },
                   });
@@ -731,7 +731,7 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
             onClick={(ev) => {
               if (!paymentRequest.formio) return;
 
-              dispatch({ type: "RESET_MESSAGE" });
+              pageDispatch({ type: "RESET_MESSAGE" });
 
               // change the submission's state to draft, then redirect to the
               // form to allow user to edit
@@ -742,7 +742,7 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
                 .then((res) => navigate(`/rebate/${res._id}`))
                 .catch((err) => {
                   const text = `Error updating Payment Request ${paymentRequest.bap?.rebateId}. Please try again.`;
-                  dispatch({
+                  pageDispatch({
                     type: "DISPLAY_MESSAGE",
                     payload: { type: "error", text },
                   });
@@ -867,12 +867,12 @@ export function AllRebates() {
     paymentRequestSubmissions: formioPaymentRequestSubmissions,
   } = useFormioState();
   const { message } = usePageState();
-  const dispatch = usePageDispatch();
+  const pageDispatch = usePageDispatch();
 
   // reset page context state
   useEffect(() => {
-    dispatch({ type: "RESET_STATE" });
-  }, [dispatch]);
+    pageDispatch({ type: "RESET_STATE" });
+  }, [pageDispatch]);
 
   useFetchedFormioApplicationSubmissions();
   useFetchedBapApplicationSubmissions();
