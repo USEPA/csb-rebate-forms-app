@@ -22,19 +22,6 @@ const router = express.Router();
 router.use(ensureAuthenticated);
 router.use(ensureHelpdesk);
 
-/**
- * Same functionality as the `verifyMongoObjectId` middleware, but stored in a
- * regular function (vs Express middleware) as it'll be called conditionally.
- * @param {string} mongoId
- * @param {express.Response} res
- */
-function handleInvalidMongoObjectId(mongoId, res) {
-  if (mongoId && !ObjectId.isValid(mongoId)) {
-    const message = `MongoDB ObjectId validation error for: ${mongoId}`;
-    return res.status(400).json({ message });
-  }
-}
-
 // --- get an existing form's submission data from Forms.gov
 router.get("/formio-submission/:formType/:id", (req, res) => {
   const { formType, id } = req.params;
@@ -42,7 +29,11 @@ router.get("/formio-submission/:formType/:id", (req, res) => {
   if (formType === "application") {
     const mongoId = id;
 
-    handleInvalidMongoObjectId(mongoId, res);
+    // NOTE: verifyMongoObjectId middleware content:
+    if (mongoId && !ObjectId.isValid(mongoId)) {
+      const message = `MongoDB ObjectId validation error for: ${mongoId}`;
+      return res.status(400).json({ message });
+    }
 
     Promise.all([
       axiosFormio(req).get(`${applicationFormApiPath}/submission/${mongoId}`),
@@ -71,13 +62,17 @@ router.get("/formio-submission/:formType/:id", (req, res) => {
 
     Promise.all([
       axiosFormio(req).get(matchedPaymentRequestFormSubmissions),
-      axiosFormio(req).get(applicationFormApiPath),
+      axiosFormio(req).get(paymentRequestFormApiPath),
     ])
       .then((axiosResponses) => axiosResponses.map((axiosRes) => axiosRes.data))
       .then(([submissions, schema]) => {
         const mongoId = submissions[0]._id;
 
-        handleInvalidMongoObjectId(mongoId, res);
+        // NOTE: verifyMongoObjectId middleware content:
+        if (mongoId && !ObjectId.isValid(mongoId)) {
+          const message = `MongoDB ObjectId validation error for: ${mongoId}`;
+          return res.status(400).json({ message });
+        }
 
         // NOTE: We can't just use the returned submission data here because
         // Formio returns the string literal 'YES' instead of a base64 encoded
@@ -115,7 +110,11 @@ router.post("/formio-submission/:formType/:id", (req, res) => {
       return res.status(400).json({ message });
     }
 
-    handleInvalidMongoObjectId(mongoId, res);
+    // NOTE: verifyMongoObjectId middleware content:
+    if (mongoId && !ObjectId.isValid(mongoId)) {
+      const message = `MongoDB ObjectId validation error for: ${mongoId}`;
+      return res.status(400).json({ message });
+    }
 
     Promise.all([
       axiosFormio(req).get(`${applicationFormApiPath}/submission/${mongoId}`),
@@ -147,7 +146,49 @@ router.post("/formio-submission/:formType/:id", (req, res) => {
   }
 
   if (formType === "paymentRequest") {
-    // TODO
+    const rebateId = id;
+
+    const matchedPaymentRequestFormSubmissions =
+      `${paymentRequestFormApiPath}/submission` +
+      `?data.hidden_bap_rebate_id=${rebateId}` +
+      `&select=_id`;
+
+    Promise.all([
+      axiosFormio(req).get(matchedPaymentRequestFormSubmissions),
+      axiosFormio(req).get(paymentRequestFormApiPath),
+    ])
+      .then((axiosResponses) => axiosResponses.map((axiosRes) => axiosRes.data))
+      .then(([submissions, schema]) => {
+        const submission = submissions[0];
+        const mongoId = submission._id;
+
+        // NOTE: verifyMongoObjectId middleware content:
+        if (mongoId && !ObjectId.isValid(mongoId)) {
+          const message = `MongoDB ObjectId validation error for: ${mongoId}`;
+          return res.status(400).json({ message });
+        }
+
+        axiosFormio(req)
+          .put(`${paymentRequestFormApiPath}/submission/${mongoId}`, {
+            state: "draft",
+            data: { ...submission.data, hidden_current_user_email: mail },
+            metadata: { ...submission.metadata, ...formioCsbMetadata },
+          })
+          .then((axiosRes) => axiosRes.data)
+          .then((updatedSubmission) => {
+            const message = `User with email ${mail} updated Payment Request form submission ${rebateId} from submitted to draft.`;
+            log({ level: "info", message, req });
+
+            return res.json({
+              formSchema: { url: paymentRequestFormApiPath, json: schema },
+              submission: updatedSubmission,
+            });
+          });
+      })
+      .catch((error) => {
+        const message = `Error getting Forms.gov Payment Request form submission ${rebateId}`;
+        res.status(error?.response?.status || 500).json({ message });
+      });
   }
 });
 
