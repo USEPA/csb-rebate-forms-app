@@ -1,5 +1,3 @@
 ## Change a Submitted Form’s State
 
-Please search for a form by Application ID below. If the submission exists, it will be displayed in a table below the search box.
-
-Select the pencil icon to open an existing rebate form. Select the update icon at the end of the row to change a submission’s state from _submitted_ back to _draft_.
+Please search for a form by ID below. If the submission exists, it will be displayed in a table below the search box. In the table, select the pencil icon to view an existing submission or select the update icon to change a submission’s state from _submitted_ back to _draft_.
