@@ -8,7 +8,7 @@ const {
   axiosFormio,
   formioProjectUrl,
   formioApplicationFormPath,
-  formioPaymentFormPath,
+  formioPaymentRequestFormPath,
   formioCsbMetadata,
 } = require("../config/formio");
 const {
@@ -25,6 +25,9 @@ const {
 const log = require("../utilities/logger");
 
 const enrollmentClosed = process.env.CSB_ENROLLMENT_PERIOD !== "open";
+
+const applicationFormApiPath = `${formioProjectUrl}/${formioApplicationFormPath}`;
+const paymentRequestFormApiPath = `${formioProjectUrl}/${formioPaymentRequestFormPath}`;
 
 /**
  * Returns a resolved or rejected promise, depending on if the enrollment period
@@ -171,8 +174,6 @@ router.get("/bap-application-submissions", storeBapComboKeys, (req, res) => {
       return res.status(401).json({ message });
     });
 });
-
-const applicationFormApiPath = `${formioProjectUrl}/${formioApplicationFormPath}`;
 
 // --- get user's Application form submissions from Forms.gov
 router.get("/formio-application-submissions", storeBapComboKeys, (req, res) => {
@@ -363,15 +364,13 @@ router.get("/:mongoId/:comboKey/storage/s3", storeBapComboKeys, (req, res) => {
     });
 });
 
-const paymentFormApiPath = `${formioProjectUrl}/${formioPaymentFormPath}`;
-
 // --- get user's Payment Request form submissions from Forms.gov
 router.get(
   "/formio-payment-request-submissions",
   storeBapComboKeys,
   (req, res) => {
     const userSubmissionsUrl =
-      `${paymentFormApiPath}/submission` +
+      `${paymentRequestFormApiPath}/submission` +
       `?sort=-modified` +
       `&limit=1000000` +
       `&data.bap_hidden_entity_combo_key=${req.bapComboKeys.join(
@@ -463,7 +462,7 @@ router.post(
         };
 
         axiosFormio(req)
-          .post(`${paymentFormApiPath}/submission`, newSubmission)
+          .post(`${paymentRequestFormApiPath}/submission`, newSubmission)
           .then((axiosRes) => axiosRes.data)
           .then((submission) => res.json(submission))
           .catch((error) => {
@@ -486,7 +485,7 @@ router.get(
     const { rebateId } = req.params; // CSB Rebate ID (6 digits)
 
     const matchedPaymentFormSubmissions =
-      `${paymentFormApiPath}/submission` +
+      `${paymentRequestFormApiPath}/submission` +
       `?data.hidden_bap_rebate_id=${rebateId}` +
       `&select=_id,data.bap_hidden_entity_combo_key`;
 
@@ -522,16 +521,16 @@ router.get(
         // submission directly, and then the `signatureAuthorizedRepresentative`
         // field will be the base64 encoded image string
         axiosFormio(req)
-          .get(`${paymentFormApiPath}/submission/${mongoId}`)
+          .get(`${paymentRequestFormApiPath}/submission/${mongoId}`)
           .then((axiosRes) => axiosRes.data)
           .then((submission) => {
             axiosFormio(req)
-              .get(paymentFormApiPath)
+              .get(paymentRequestFormApiPath)
               .then((axiosRes) => axiosRes.data)
               .then((schema) => {
                 return res.json({
                   userAccess: true,
-                  formSchema: { url: paymentFormApiPath, json: schema },
+                  formSchema: { url: paymentRequestFormApiPath, json: schema },
                   submission,
                 });
               });
@@ -572,7 +571,7 @@ router.post(
     };
 
     axiosFormio(req)
-      .put(`${paymentFormApiPath}/submission/${mongoId}`, submission)
+      .put(`${paymentRequestFormApiPath}/submission/${mongoId}`, submission)
       .then((axiosRes) => axiosRes.data)
       .then((submission) => res.json(submission))
       .catch((error) => {
