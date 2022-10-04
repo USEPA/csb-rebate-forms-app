@@ -79,7 +79,10 @@ export function Helpdesk() {
               name="form-type"
               value="application"
               checked={formType === "application"}
-              onChange={(ev) => setFormType(ev.target.value as FormType)}
+              onChange={(ev) => {
+                setFormType(ev.target.value as FormType);
+                pageDispatch({ type: "RESET_STATE" });
+              }}
             />
             <label
               className="usa-radio__label margin-top-0"
@@ -97,7 +100,10 @@ export function Helpdesk() {
               name="form-type"
               value="paymentRequest"
               checked={formType === "paymentRequest"}
-              onChange={(ev) => setFormType(ev.target.value as FormType)}
+              onChange={(ev) => {
+                setFormType(ev.target.value as FormType);
+                pageDispatch({ type: "RESET_STATE" });
+              }}
             />
             <label
               className="usa-radio__label mobile-lg:margin-top-0"
@@ -115,7 +121,10 @@ export function Helpdesk() {
               name="form-type"
               value="closeOut"
               checked={formType === "closeOut"}
-              onChange={(ev) => setFormType(ev.target.value as FormType)}
+              onChange={(ev) => {
+                setFormType(ev.target.value as FormType);
+                pageDispatch({ type: "RESET_STATE" });
+              }}
               disabled={true} // NOTE: disabled until the close-out form is created
             />
             <label
