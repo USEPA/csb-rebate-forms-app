@@ -290,7 +290,7 @@ export function Helpdesk() {
                               });
 
                               postData(
-                                `${serverUrl}/help/formio-application-submission/${formId}`,
+                                `${serverUrl}/help/formio-submission/${formType}/${searchId}`,
                                 {}
                               )
                                 .then((res: FormioFetchedResponse) => {

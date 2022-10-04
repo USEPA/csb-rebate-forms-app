@@ -85,10 +85,10 @@ router.get("/formio-submission/:formType/:id", (req, res) => {
         // submissions matching on a field's value (`/submission?data.hidden_bap_rebate_id=${rebateId}`).
         // We need to query for a specific submission (e.g. `/submission/${mongoId}`),
         // to have Formio return the correct signature field data.
-    axiosFormio(req)
+        axiosFormio(req)
           .get(`${paymentRequestFormApiPath}/submission/${mongoId}`)
-      .then((axiosRes) => axiosRes.data)
-      .then((submission) => {
+          .then((axiosRes) => axiosRes.data)
+          .then((submission) => {
             return res.json({
               formSchema: { url: paymentRequestFormApiPath, json: schema },
               submission,
@@ -103,52 +103,52 @@ router.get("/formio-submission/:formType/:id", (req, res) => {
 });
 
 // --- change a submitted Forms.gov Application form's submission state back to draft
-router.post(
-  "/formio-application-submission/:mongoId",
-  verifyMongoObjectId,
-  (req, res) => {
-    const { mongoId } = req.params;
-    const { mail } = req.user;
+router.post("/formio-submission/:formType/:id", (req, res) => {
+  const { formType, id } = req.params;
+  const { mail } = req.user;
+
+  if (formType === "application") {
+    const mongoId = id;
 
     if (enrollmentClosed) {
       const message = `CSB enrollment period is closed`;
       return res.status(400).json({ message });
     }
 
-    axiosFormio(req)
-      .get(`${applicationFormApiPath}/submission/${mongoId}`)
-      .then((axiosRes) => axiosRes.data)
-      .then((existingSubmission) => {
+    handleInvalidMongoObjectId(mongoId, res);
+
+    Promise.all([
+      axiosFormio(req).get(`${applicationFormApiPath}/submission/${mongoId}`),
+      axiosFormio(req).get(applicationFormApiPath),
+    ])
+      .then((axiosResponses) => axiosResponses.map((axiosRes) => axiosRes.data))
+      .then(([submission, schema]) => {
         axiosFormio(req)
           .put(`${applicationFormApiPath}/submission/${mongoId}`, {
             state: "draft",
-            data: { ...existingSubmission.data, last_updated_by: mail },
-            metadata: { ...existingSubmission.metadata, ...formioCsbMetadata },
+            data: { ...submission.data, last_updated_by: mail },
+            metadata: { ...submission.metadata, ...formioCsbMetadata },
           })
           .then((axiosRes) => axiosRes.data)
           .then((updatedSubmission) => {
             const message = `User with email ${mail} updated Application form submission ${mongoId} from submitted to draft.`;
             log({ level: "info", message, req });
 
-            axiosFormio(req)
-              .get(`${formioProjectUrl}/form/${updatedSubmission.form}`)
-              .then((axiosRes) => axiosRes.data)
-              .then((schema) => {
-                return res.json({
-                  formSchema: {
-                    url: `${formioProjectUrl}/form/${updatedSubmission.form}`,
-                    json: schema,
-                  },
-                  submission: updatedSubmission,
-                });
-              });
+            return res.json({
+              formSchema: { url: applicationFormApiPath, json: schema },
+              submission: updatedSubmission,
+            });
           });
       })
       .catch((error) => {
         const message = `Error updating Forms.gov Application form submission ${mongoId}`;
-        return res.status(error?.response?.status || 500).json({ message });
+        res.status(error?.response?.status || 500).json({ message });
       });
   }
-);
+
+  if (formType === "paymentRequest") {
+    // TODO
+  }
+});
 
 module.exports = router;
