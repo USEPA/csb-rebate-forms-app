@@ -484,13 +484,13 @@ router.get(
   async (req, res) => {
     const { rebateId } = req.params; // CSB Rebate ID (6 digits)
 
-    const matchedPaymentFormSubmissions =
+    const matchedPaymentRequestFormSubmissions =
       `${paymentRequestFormApiPath}/submission` +
       `?data.hidden_bap_rebate_id=${rebateId}` +
       `&select=_id,data.bap_hidden_entity_combo_key`;
 
     axiosFormio(req)
-      .get(matchedPaymentFormSubmissions)
+      .get(matchedPaymentRequestFormSubmissions)
       .then((axiosRes) => axiosRes.data)
       .then((submissions) => {
         const submission = submissions[0];
@@ -513,13 +513,12 @@ router.get(
           return res.status(400).json({ message });
         }
 
-        // NOTE: we can't just use the returned submission data here because the
-        // `signatureAuthorizedRepresentative` field is the literal string 'YES'
-        // and not the base64 encoded image string when you query with any
-        // properties of a submission (e.g. `?data.bap_hidden_entity_combo_key`),
-        // so we need to use the returned submission's ObjectId to query for the
-        // submission directly, and then the `signatureAuthorizedRepresentative`
-        // field will be the base64 encoded image string
+        // NOTE: We can't just use the returned submission data here because
+        // Formio returns the string literal 'YES' instead of a base64 encoded
+        // image string for signature fields when you query for all submissions
+        // matching on a field's value (`/submission?data.hidden_bap_rebate_id=${rebateId}`).
+        // We need to query for a specific submission (e.g. `/submission/${mongoId}`),
+        // to have Formio return the correct signature field data.
         axiosFormio(req)
           .get(`${paymentRequestFormApiPath}/submission/${mongoId}`)
           .then((axiosRes) => axiosRes.data)

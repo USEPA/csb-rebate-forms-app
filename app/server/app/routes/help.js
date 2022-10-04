@@ -76,8 +76,8 @@ router.get("/formio-submission/:formType/:id", (req, res) => {
 
         // NOTE: We can't just use the returned submission data here because
         // Formio returns the string literal 'YES' instead of a base64 encoded
-        // image string for any signature fields when you query for all
-        // submissions matching on a field's value (`/submission?data.hidden_bap_rebate_id=${rebateId}`).
+        // image string for signature fields when you query for all submissions
+        // matching on a field's value (`/submission?data.hidden_bap_rebate_id=${rebateId}`).
         // We need to query for a specific submission (e.g. `/submission/${mongoId}`),
         // to have Formio return the correct signature field data.
         axiosFormio(req)
@@ -97,7 +97,7 @@ router.get("/formio-submission/:formType/:id", (req, res) => {
   }
 });
 
-// --- change a submitted Forms.gov Application form's submission state back to draft
+// --- change a submitted Forms.gov form's submission state back to draft
 router.post("/formio-submission/:formType/:id", (req, res) => {
   const { formType, id } = req.params;
   const { mail } = req.user;
@@ -150,8 +150,7 @@ router.post("/formio-submission/:formType/:id", (req, res) => {
 
     const matchedPaymentRequestFormSubmissions =
       `${paymentRequestFormApiPath}/submission` +
-      `?data.hidden_bap_rebate_id=${rebateId}` +
-      `&select=_id`;
+      `?data.hidden_bap_rebate_id=${rebateId}`;
 
     Promise.all([
       axiosFormio(req).get(matchedPaymentRequestFormSubmissions),

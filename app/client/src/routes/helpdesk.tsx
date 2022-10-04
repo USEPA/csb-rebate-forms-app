@@ -202,41 +202,59 @@ export function Helpdesk() {
                   <th scope="col">
                     <span className="usa-sr-only">Open</span>
                   </th>
-                  <th scope="col">
-                    <TextWithTooltip
-                      text="Application ID"
-                      tooltip="Application ID returned from Forms.gov"
-                    />
-                  </th>
+
+                  {formType === "application" ? (
+                    <th scope="col">
+                      <TextWithTooltip
+                        text="Application ID"
+                        tooltip="Application ID"
+                      />
+                    </th>
+                  ) : formType === "paymentRequest" ? (
+                    <th scope="col">
+                      <TextWithTooltip
+                        text="Rebate ID"
+                        tooltip="Unique Clean School Bus Rebate ID"
+                      />
+                    </th>
+                  ) : (
+                    <th scope="col">&nbsp;</th>
+                  )}
+
                   <th scope="col">
                     <TextWithTooltip
                       text="Applicant"
                       tooltip="Legal Business Name from SAM.gov for this UEI"
                     />
                   </th>
+
                   <th scope="col">
                     <TextWithTooltip
                       text="Updated By"
                       tooltip="Last person that updated this form"
                     />
                   </th>
+
                   <th scope="col">
                     <TextWithTooltip
                       text="Date Updated"
                       tooltip="Last date this form was updated"
                     />
                   </th>
+
                   <th scope="col">
                     <TextWithTooltip
                       text="Status"
                       tooltip="submitted or draft"
                     />
                   </th>
+
                   <th scope="col">
                     <span className="usa-sr-only">Update</span>
                   </th>
                 </tr>
               </thead>
+
               <tbody>
                 <tr>
                   <th scope="row">
@@ -260,11 +278,37 @@ export function Helpdesk() {
                       </span>
                     </button>
                   </th>
-                  <td>{submission._id}</td>
-                  <td>{submission.data.applicantOrganizationName as string}</td>
-                  <td>{submission.data.last_updated_by as string}</td>
+
+                  {formType === "application" ? (
+                    <td>{submission._id}</td>
+                  ) : formType === "paymentRequest" ? (
+                    <td>{submission.data.hidden_bap_rebate_id as string}</td>
+                  ) : (
+                    <td>&nbsp;</td>
+                  )}
+
+                  {formType === "application" ? (
+                    <td>
+                      {submission.data.applicantOrganizationName as string}
+                    </td>
+                  ) : formType === "paymentRequest" ? (
+                    <td>{submission.data.hidden_bap_org_name as string}</td>
+                  ) : (
+                    <td>&nbsp;</td>
+                  )}
+
+                  {formType === "application" ? (
+                    <td>{submission.data.last_updated_by as string}</td>
+                  ) : formType === "paymentRequest" ? (
+                    <td>{submission.data.hidden_current_user_email}</td>
+                  ) : (
+                    <td>&nbsp;</td>
+                  )}
+
                   <td>{new Date(submission.modified).toLocaleDateString()}</td>
+
                   <td>{submission.state}</td>
+
                   <td>
                     <button
                       className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
@@ -340,7 +384,18 @@ export function Helpdesk() {
                     </svg>
                   </div>
                   <div className="usa-icon-list__content">
-                    <strong>Application ID:</strong> {submission._id}
+                    {formType === "application" ? (
+                      <>
+                        <strong>Application ID:</strong> {submission._id}
+                      </>
+                    ) : formType === "paymentRequest" ? (
+                      <>
+                        <strong>Rebate ID:</strong>{" "}
+                        {submission.data.hidden_bap_rebate_id}
+                      </>
+                    ) : (
+                      <>&nbsp;</>
+                    )}
                   </div>
                 </li>
               </ul>
