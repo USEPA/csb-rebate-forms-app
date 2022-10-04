@@ -39,7 +39,7 @@ export function Helpdesk() {
   }, [pageDispatch]);
 
   const [formType, setFormType] = useState<FormType>("application");
-  const [searchText, setSearchText] = useState("");
+  const [searchId, setSearchId] = useState("");
   const [formId, setFormId] = useState("");
   const [formDisplayed, setFormDisplayed] = useState(false);
 
@@ -139,7 +139,7 @@ export function Helpdesk() {
             pageDispatch({ type: "FETCH_FORMIO_DATA_REQUEST" });
 
             getData(
-              `${serverUrl}/help/formio-application-submission/${searchText}`
+              `${serverUrl}/help/formio-submission/${formType}/${searchId}`
             )
               .then((res: FormioFetchedResponse) => {
                 if (!res.submission) return;
@@ -164,8 +164,8 @@ export function Helpdesk() {
             className="usa-input"
             type="search"
             name="search-submissions"
-            value={searchText}
-            onChange={(ev) => setSearchText(ev.target.value)}
+            value={searchId}
+            onChange={(ev) => setSearchId(ev.target.value)}
           />
           <button className="usa-button" type="submit">
             <span className="usa-search__submit-text">Search</span>

@@ -1,19 +1,20 @@
 const express = require("express");
+const ObjectId = require("mongodb").ObjectId;
 // ---
 const {
   axiosFormio,
   formioProjectUrl,
   formioApplicationFormPath,
+  formioPaymentRequestFormPath,
   formioCsbMetadata,
 } = require("../config/formio");
-const {
-  ensureAuthenticated,
-  ensureHelpdesk,
-  verifyMongoObjectId,
-} = require("../middleware");
+const { ensureAuthenticated, ensureHelpdesk } = require("../middleware");
 const log = require("../utilities/logger");
 
 const enrollmentClosed = process.env.CSB_ENROLLMENT_PERIOD !== "open";
+
+const applicationFormApiPath = `${formioProjectUrl}/${formioApplicationFormPath}`;
+const paymentRequestFormApiPath = `${formioProjectUrl}/${formioPaymentRequestFormPath}`;
 
 const router = express.Router();
 
@@ -21,38 +22,85 @@ const router = express.Router();
 router.use(ensureAuthenticated);
 router.use(ensureHelpdesk);
 
-const applicationFormApiPath = `${formioProjectUrl}/${formioApplicationFormPath}`;
+/**
+ * Same functionality as the `verifyMongoObjectId` middleware, but stored in a
+ * regular function (vs Express middleware) as it'll be called conditionally.
+ * @param {string} mongoId
+ * @param {express.Response} res
+ */
+function handleInvalidMongoObjectId(mongoId, res) {
+  if (mongoId && !ObjectId.isValid(mongoId)) {
+    const message = `MongoDB ObjectId validation error for: ${mongoId}`;
+    return res.status(400).json({ message });
+  }
+}
 
-// --- get an existing Application form's submission data from Forms.gov
-router.get(
-  "/formio-application-submission/:mongoId",
-  verifyMongoObjectId,
-  (req, res) => {
-    const { mongoId } = req.params;
+// --- get an existing form's submission data from Forms.gov
+router.get("/formio-submission/:formType/:id", (req, res) => {
+  const { formType, id } = req.params;
 
-    axiosFormio(req)
-      .get(`${applicationFormApiPath}/submission/${mongoId}`)
-      .then((axiosRes) => axiosRes.data)
-      .then((submission) => {
-        axiosFormio(req)
-          .get(`${formioProjectUrl}/form/${submission.form}`)
-          .then((axiosRes) => axiosRes.data)
-          .then((schema) => {
-            return res.json({
-              formSchema: {
-                url: `${formioProjectUrl}/form/${submission.form}`,
-                json: schema,
-              },
-              submission,
-            });
-          });
+  if (formType === "application") {
+    const mongoId = id;
+
+    handleInvalidMongoObjectId(mongoId, res);
+
+    Promise.all([
+      axiosFormio(req).get(`${applicationFormApiPath}/submission/${mongoId}`),
+      axiosFormio(req).get(applicationFormApiPath),
+    ])
+      .then((axiosResponses) => axiosResponses.map((axiosRes) => axiosRes.data))
+      .then(([submission, schema]) => {
+        return res.json({
+          formSchema: { url: applicationFormApiPath, json: schema },
+          submission,
+        });
       })
       .catch((error) => {
         const message = `Error getting Forms.gov Application form submission ${mongoId}`;
         return res.status(error?.response?.status || 500).json({ message });
       });
   }
-);
+
+  if (formType === "paymentRequest") {
+    const rebateId = id;
+
+    const matchedPaymentRequestFormSubmissions =
+      `${paymentRequestFormApiPath}/submission` +
+      `?data.hidden_bap_rebate_id=${rebateId}` +
+      `&select=_id`;
+
+    Promise.all([
+      axiosFormio(req).get(matchedPaymentRequestFormSubmissions),
+      axiosFormio(req).get(applicationFormApiPath),
+    ])
+      .then((axiosResponses) => axiosResponses.map((axiosRes) => axiosRes.data))
+      .then(([submissions, schema]) => {
+        const mongoId = submissions[0]._id;
+
+        handleInvalidMongoObjectId(mongoId, res);
+
+        // NOTE: We can't just use the returned submission data here because
+        // Formio returns the string literal 'YES' instead of a base64 encoded
+        // image string for any signature fields when you query for all
+        // submissions matching on a field's value (`/submission?data.hidden_bap_rebate_id=${rebateId}`).
+        // We need to query for a specific submission (e.g. `/submission/${mongoId}`),
+        // to have Formio return the correct signature field data.
+    axiosFormio(req)
+          .get(`${paymentRequestFormApiPath}/submission/${mongoId}`)
+      .then((axiosRes) => axiosRes.data)
+      .then((submission) => {
+            return res.json({
+              formSchema: { url: paymentRequestFormApiPath, json: schema },
+              submission,
+            });
+          });
+      })
+      .catch((error) => {
+        const message = `Error getting Forms.gov Payment Request form submission ${rebateId}`;
+        res.status(error?.response?.status || 500).json({ message });
+      });
+  }
+});
 
 // --- change a submitted Forms.gov Application form's submission state back to draft
 router.post(
