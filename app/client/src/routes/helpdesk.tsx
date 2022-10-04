@@ -20,6 +20,8 @@ import {
   usePageDispatch,
 } from "contexts/page";
 
+type FormType = "application" | "paymentRequest" | "closeOut";
+
 export function Helpdesk() {
   const navigate = useNavigate();
 
@@ -36,6 +38,7 @@ export function Helpdesk() {
     pageDispatch({ type: "RESET_STATE" });
   }, [pageDispatch]);
 
+  const [formType, setFormType] = useState<FormType>("application");
   const [searchText, setSearchText] = useState("");
   const [formId, setFormId] = useState("");
   const [formDisplayed, setFormDisplayed] = useState(false);
@@ -67,8 +70,65 @@ export function Helpdesk() {
       )}
 
       <div className="padding-2 border-1px border-base-lighter bg-base-lightest">
+        <fieldset className="usa-fieldset mobile-lg:display-flex">
+          <div className="usa-radio">
+            <input
+              id="form-type-application"
+              className="usa-radio__input"
+              type="radio"
+              name="form-type"
+              value="application"
+              checked={formType === "application"}
+              onChange={(ev) => setFormType(ev.target.value as FormType)}
+            />
+            <label
+              className="usa-radio__label margin-top-0"
+              htmlFor="form-type-application"
+            >
+              Application
+            </label>
+          </div>
+
+          <div className="usa-radio mobile-lg:margin-left-3">
+            <input
+              id="form-type-payment-request"
+              className="usa-radio__input"
+              type="radio"
+              name="form-type"
+              value="paymentRequest"
+              checked={formType === "paymentRequest"}
+              onChange={(ev) => setFormType(ev.target.value as FormType)}
+            />
+            <label
+              className="usa-radio__label mobile-lg:margin-top-0"
+              htmlFor="form-type-payment-request"
+            >
+              Payment Request
+            </label>
+          </div>
+
+          <div className="usa-radio mobile-lg:margin-left-3">
+            <input
+              id="form-type-close-out"
+              className="usa-radio__input"
+              type="radio"
+              name="form-type"
+              value="closeOut"
+              checked={formType === "closeOut"}
+              onChange={(ev) => setFormType(ev.target.value as FormType)}
+              disabled={true} // NOTE: disabled until the close-out form is created
+            />
+            <label
+              className="usa-radio__label mobile-lg:margin-top-0"
+              htmlFor="form-type-close-out"
+            >
+              Close-Out
+            </label>
+          </div>
+        </fieldset>
+
         <form
-          className="usa-search"
+          className="usa-search margin-top-2"
           role="search"
           onSubmit={(ev) => {
             ev.preventDefault();
@@ -96,16 +156,16 @@ export function Helpdesk() {
               });
           }}
         >
-          <label className="usa-sr-only" htmlFor="search-field-application-id">
-            Search by Application ID
+          <label className="usa-sr-only" htmlFor="search-submissions-by-id">
+            Search submissions by ID
           </label>
           <input
-            id="search-field-application-id"
+            id="search-submissions-by-id"
             className="usa-input"
             type="search"
-            name="search"
-            onChange={(ev) => setSearchText(ev.target.value)}
+            name="search-submissions"
             value={searchText}
+            onChange={(ev) => setSearchText(ev.target.value)}
           />
           <button className="usa-button" type="submit">
             <span className="usa-search__submit-text">Search</span>
