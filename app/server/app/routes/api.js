@@ -243,10 +243,12 @@ router.get(
   (req, res) => {
     const { mongoId } = req.params;
 
-    axiosFormio(req)
-      .get(`${applicationFormApiPath}/submission/${mongoId}`)
-      .then((axiosRes) => axiosRes.data)
-      .then((submission) => {
+    Promise.all([
+      axiosFormio(req).get(`${applicationFormApiPath}/submission/${mongoId}`),
+      axiosFormio(req).get(applicationFormApiPath),
+    ])
+      .then((axiosResponses) => axiosResponses.map((axiosRes) => axiosRes.data))
+      .then(([submission, schema]) => {
         const comboKey = submission.data.bap_hidden_entity_combo_key;
 
         if (!req.bapComboKeys.includes(comboKey)) {
@@ -259,16 +261,11 @@ router.get(
           });
         }
 
-        axiosFormio(req)
-          .get(applicationFormApiPath)
-          .then((axiosRes) => axiosRes.data)
-          .then((schema) => {
-            return res.json({
-              userAccess: true,
-              formSchema: { url: applicationFormApiPath, json: schema },
-              submission,
-            });
-          });
+        return res.json({
+          userAccess: true,
+          formSchema: { url: applicationFormApiPath, json: schema },
+          submission,
+        });
       })
       .catch((error) => {
         const message = `Error getting Forms.gov Application form submission ${mongoId}`;
@@ -489,10 +486,12 @@ router.get(
       `?data.hidden_bap_rebate_id=${rebateId}` +
       `&select=_id,data.bap_hidden_entity_combo_key`;
 
-    axiosFormio(req)
-      .get(matchedPaymentRequestFormSubmissions)
-      .then((axiosRes) => axiosRes.data)
-      .then((submissions) => {
+    Promise.all([
+      axiosFormio(req).get(matchedPaymentRequestFormSubmissions),
+      axiosFormio(req).get(paymentRequestFormApiPath),
+    ])
+      .then((axiosResponses) => axiosResponses.map((axiosRes) => axiosRes.data))
+      .then(([submissions, schema]) => {
         const submission = submissions[0];
         const mongoId = submission._id;
         const comboKey = submission.data.bap_hidden_entity_combo_key;
@@ -523,16 +522,11 @@ router.get(
           .get(`${paymentRequestFormApiPath}/submission/${mongoId}`)
           .then((axiosRes) => axiosRes.data)
           .then((submission) => {
-            axiosFormio(req)
-              .get(paymentRequestFormApiPath)
-              .then((axiosRes) => axiosRes.data)
-              .then((schema) => {
-                return res.json({
-                  userAccess: true,
-                  formSchema: { url: paymentRequestFormApiPath, json: schema },
-                  submission,
-                });
-              });
+            return res.json({
+              userAccess: true,
+              formSchema: { url: paymentRequestFormApiPath, json: schema },
+              submission,
+            });
           });
       })
       .catch((error) => {
