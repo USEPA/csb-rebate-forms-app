@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Form } from "@formio/react";
 import icon from "uswds/img/usa-icons-bg/search--white.svg";
@@ -11,61 +11,36 @@ import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/infoTooltip";
 import { useContentState } from "contexts/content";
+import { useDialogDispatch } from "contexts/dialog";
 import { useUserState } from "contexts/user";
 import { useCsbState } from "contexts/csb";
-import { useDialogDispatch } from "contexts/dialog";
+import {
+  FormioFetchedResponse,
+  usePageState,
+  usePageDispatch,
+} from "contexts/page";
 
-type NoFormioData = { formSchema: null; submission: null };
-
-type SubmissionState =
-  | {
-      status: "idle";
-      data: NoFormioData;
-    }
-  | {
-      status: "pending";
-      data: NoFormioData;
-    }
-  | {
-      status: "success";
-      data: {
-        formSchema: { url: string; json: object };
-        submission: {
-          [field: string]: unknown;
-          _id: string; // MongoDB ObjectId string
-          state: "submitted" | "draft";
-          modified: string; // ISO 8601 date string
-          data: {
-            [field: string]: unknown;
-            applicantOrganizationName: string;
-            last_updated_by: string;
-          };
-        };
-      };
-    }
-  | {
-      status: "failure";
-      data: NoFormioData;
-    };
+type FormType = "application" | "paymentRequest" | "closeOut";
 
 export function Helpdesk() {
   const navigate = useNavigate();
 
-  const [searchText, setSearchText] = useState("");
-  const [formId, setFormId] = useState("");
-  const [formDisplayed, setFormDisplayed] = useState(false);
-
   const { content } = useContentState();
+  const dialogDispatch = useDialogDispatch();
   const { epaUserData } = useUserState();
   const { csbData } = useCsbState();
-  const dispatch = useDialogDispatch();
+  const { formio } = usePageState();
+  const pageDispatch = usePageDispatch();
   const helpdeskAccess = useHelpdeskAccess();
 
-  const [formioApplicationSubmission, setFormioApplicationSubmission] =
-    useState<SubmissionState>({
-      status: "idle",
-      data: { formSchema: null, submission: null },
-    });
+  // reset page context state
+  useEffect(() => {
+    pageDispatch({ type: "RESET_STATE" });
+  }, [pageDispatch]);
+
+  const [formType, setFormType] = useState<FormType>("application");
+  const [searchId, setSearchId] = useState("");
+  const [formDisplayed, setFormDisplayed] = useState(false);
 
   if (
     csbData.status !== "success" ||
@@ -82,7 +57,7 @@ export function Helpdesk() {
 
   const { enrollmentClosed } = csbData.data;
 
-  const { formSchema, submission } = formioApplicationSubmission.data;
+  const { formSchema, submission } = formio.data;
 
   return (
     <>
@@ -94,49 +69,104 @@ export function Helpdesk() {
       )}
 
       <div className="padding-2 border-1px border-base-lighter bg-base-lightest">
+        <fieldset className="usa-fieldset mobile-lg:display-flex">
+          <div className="usa-radio">
+            <input
+              id="form-type-application"
+              className="usa-radio__input"
+              type="radio"
+              name="form-type"
+              value="application"
+              checked={formType === "application"}
+              onChange={(ev) => {
+                setFormType(ev.target.value as FormType);
+                pageDispatch({ type: "RESET_STATE" });
+              }}
+            />
+            <label
+              className="usa-radio__label margin-top-0"
+              htmlFor="form-type-application"
+            >
+              Application
+            </label>
+          </div>
+
+          <div className="usa-radio mobile-lg:margin-left-3">
+            <input
+              id="form-type-payment-request"
+              className="usa-radio__input"
+              type="radio"
+              name="form-type"
+              value="paymentRequest"
+              checked={formType === "paymentRequest"}
+              onChange={(ev) => {
+                setFormType(ev.target.value as FormType);
+                pageDispatch({ type: "RESET_STATE" });
+              }}
+            />
+            <label
+              className="usa-radio__label mobile-lg:margin-top-0"
+              htmlFor="form-type-payment-request"
+            >
+              Payment Request
+            </label>
+          </div>
+
+          <div className="usa-radio mobile-lg:margin-left-3">
+            <input
+              id="form-type-close-out"
+              className="usa-radio__input"
+              type="radio"
+              name="form-type"
+              value="closeOut"
+              checked={formType === "closeOut"}
+              onChange={(ev) => {
+                setFormType(ev.target.value as FormType);
+                pageDispatch({ type: "RESET_STATE" });
+              }}
+              disabled={true} // NOTE: disabled until the close-out form is created
+            />
+            <label
+              className="usa-radio__label mobile-lg:margin-top-0"
+              htmlFor="form-type-close-out"
+            >
+              Close-Out
+            </label>
+          </div>
+        </fieldset>
+
         <form
-          className="usa-search"
+          className="usa-search margin-top-2"
           role="search"
           onSubmit={(ev) => {
             ev.preventDefault();
-
-            setFormId("");
             setFormDisplayed(false);
-
-            setFormioApplicationSubmission({
-              status: "pending",
-              data: { formSchema: null, submission: null },
-            });
-
+            pageDispatch({ type: "FETCH_FORMIO_DATA_REQUEST" });
             getData(
-              `${serverUrl}/help/formio-application-submission/${searchText}`
+              `${serverUrl}/help/formio-submission/${formType}/${searchId}`
             )
-              .then((res) => {
-                setFormId(res.submission._id);
-                setFormioApplicationSubmission({
-                  status: "success",
-                  data: res,
+              .then((res: FormioFetchedResponse) => {
+                if (!res.submission) return;
+                pageDispatch({
+                  type: "FETCH_FORMIO_DATA_SUCCESS",
+                  payload: { data: res },
                 });
               })
               .catch((err) => {
-                setFormId("");
-                setFormioApplicationSubmission({
-                  status: "failure",
-                  data: { formSchema: null, submission: null },
-                });
+                pageDispatch({ type: "FETCH_FORMIO_DATA_FAILURE" });
               });
           }}
         >
-          <label className="usa-sr-only" htmlFor="search-field-application-id">
-            Search by Application ID
+          <label className="usa-sr-only" htmlFor="search-submissions-by-id">
+            Search submissions by ID
           </label>
           <input
-            id="search-field-application-id"
+            id="search-submissions-by-id"
             className="usa-input"
             type="search"
-            name="search"
-            onChange={(ev) => setSearchText(ev.target.value)}
-            value={searchText}
+            name="search-submissions"
+            value={searchId}
+            onChange={(ev) => setSearchId(ev.target.value)}
           />
           <button className="usa-button" type="submit">
             <span className="usa-search__submit-text">Search</span>
@@ -145,13 +175,10 @@ export function Helpdesk() {
         </form>
       </div>
 
-      {formioApplicationSubmission.status === "pending" && <Loading />}
+      {formio.status === "pending" && <Loading />}
 
-      {formioApplicationSubmission.status === "failure" && (
-        <Message
-          type="error"
-          text={messages.helpdeskApplicationSubmissionError}
-        />
+      {formio.status === "failure" && (
+        <Message type="error" text={messages.helpdeskSubmissionSearchError} />
       )}
 
       {/*
@@ -160,179 +187,230 @@ export function Helpdesk() {
         from an external server, we should check that it exists first before
         using it
       */}
-      {formioApplicationSubmission.status === "success" &&
-        !formioApplicationSubmission.data && (
-          <Message
-            type="error"
-            text={messages.helpdeskApplicationSubmissionError}
-          />
-        )}
+      {formio.status === "success" && !formio.data && (
+        <Message type="error" text={messages.helpdeskSubmissionSearchError} />
+      )}
 
-      {formioApplicationSubmission.status === "success" &&
-        formSchema &&
-        submission && (
-          <>
-            <div className="usa-table-container--scrollable" tabIndex={0}>
-              <table
-                aria-label="Application Form Search Results"
-                className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full"
-              >
-                <thead>
-                  <tr className="font-sans-2xs text-no-wrap">
-                    <th scope="col">
-                      <span className="usa-sr-only">Open</span>
-                    </th>
-                    <th scope="col">
-                      <TextWithTooltip
-                        text="Form ID"
-                        tooltip="Form ID returned from Forms.gov"
-                      />
-                    </th>
+      {formio.status === "success" && formSchema && submission && (
+        <>
+          <div className="usa-table-container--scrollable" tabIndex={0}>
+            <table
+              aria-label="Application Form Search Results"
+              className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full"
+            >
+              <thead>
+                <tr className="font-sans-2xs text-no-wrap">
+                  <th scope="col">
+                    <span className="usa-sr-only">Open</span>
+                  </th>
+
+                  {formType === "application" ? (
                     <th scope="col">
                       <TextWithTooltip
-                        text="Applicant"
-                        tooltip="Legal Business Name from SAM.gov for this UEI"
+                        text="Application ID"
+                        tooltip="Formio submission's MongoDB Object ID"
                       />
                     </th>
+                  ) : formType === "paymentRequest" ? (
                     <th scope="col">
                       <TextWithTooltip
-                        text="Updated By"
-                        tooltip="Last person that updated this form"
+                        text="Rebate ID"
+                        tooltip="Unique Clean School Bus Rebate ID"
                       />
                     </th>
-                    <th scope="col">
-                      <TextWithTooltip
-                        text="Date Updated"
-                        tooltip="Last date this form was updated"
-                      />
-                    </th>
-                    <th scope="col">
-                      <TextWithTooltip
-                        text="Status"
-                        tooltip="submitted or draft"
-                      />
-                    </th>
-                    <th scope="col">
-                      <span className="usa-sr-only">Update</span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <th scope="row">
-                      <button
-                        className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-                        onClick={(ev) => setFormDisplayed(true)}
-                      >
-                        <span className="usa-sr-only">Open Form {formId}</span>
-                        <span className="display-flex flex-align-center">
-                          <svg
-                            className="usa-icon"
-                            aria-hidden="true"
-                            focusable="false"
-                            role="img"
-                          >
-                            <use href={`${icons}#edit`} />
-                          </svg>
-                          <span className="mobile-lg:display-none margin-left-1">
-                            Open Form
-                          </span>
-                        </span>
-                      </button>
-                    </th>
+                  ) : (
+                    <th scope="col">&nbsp;</th>
+                  )}
+
+                  <th scope="col">
+                    <TextWithTooltip
+                      text="Applicant Name"
+                      tooltip="Name of Applicant"
+                    />
+                  </th>
+
+                  <th scope="col">
+                    <TextWithTooltip
+                      text="Updated By"
+                      tooltip="Last person that updated this form"
+                    />
+                  </th>
+
+                  <th scope="col">
+                    <TextWithTooltip
+                      text="Date Updated"
+                      tooltip="Last date this form was updated"
+                    />
+                  </th>
+
+                  <th scope="col">
+                    <TextWithTooltip
+                      text="Status (Formio)"
+                      tooltip="Submitted or Draft"
+                    />
+                  </th>
+
+                  <th scope="col">
+                    <span className="usa-sr-only">Update</span>
+                  </th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr>
+                  <th scope="row">
+                    <button
+                      className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
+                      onClick={(_ev) => setFormDisplayed(true)}
+                    >
+                      <span className="display-flex flex-align-center">
+                        <svg
+                          className="usa-icon"
+                          aria-hidden="true"
+                          focusable="false"
+                          role="img"
+                        >
+                          <use href={`${icons}#visibility`} />
+                        </svg>
+                        <span className="margin-left-1">View</span>
+                      </span>
+                    </button>
+                  </th>
+
+                  {formType === "application" ? (
                     <td>{submission._id}</td>
-                    <td>{submission.data.applicantOrganizationName}</td>
-                    <td>{submission.data.last_updated_by}</td>
+                  ) : formType === "paymentRequest" ? (
+                    <td>{submission.data.hidden_bap_rebate_id as string}</td>
+                  ) : (
+                    <td>&nbsp;</td>
+                  )}
+
+                  {formType === "application" ? (
                     <td>
-                      {new Date(submission.modified).toLocaleDateString()}
+                      {submission.data.sam_hidden_applicant_name as string}
                     </td>
-                    <td>{submission.state}</td>
-                    <td>
-                      <button
-                        className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-                        disabled={
-                          enrollmentClosed || submission.state === "draft"
-                        }
-                        onClick={(ev) => {
-                          dispatch({
-                            type: "DISPLAY_DIALOG",
-                            payload: {
-                              dismissable: true,
-                              heading:
-                                "Are you sure you want to change this submission's state back to draft?",
-                              description:
-                                "Once the submission is back in a draft state, all users with access to this submission will be able to further edit it.",
-                              confirmText: "Yes",
-                              cancelText: "Cancel",
-                              confirmedAction: () => {
-                                setFormDisplayed(false);
+                  ) : formType === "paymentRequest" ? (
+                    <td>{submission.data.applicantName as string}</td>
+                  ) : (
+                    <td>&nbsp;</td>
+                  )}
 
-                                setFormioApplicationSubmission({
-                                  status: "pending",
-                                  data: { formSchema: null, submission: null },
-                                });
+                  {formType === "application" ? (
+                    <td>{submission.data.last_updated_by as string}</td>
+                  ) : formType === "paymentRequest" ? (
+                    <td>{submission.data.hidden_current_user_email}</td>
+                  ) : (
+                    <td>&nbsp;</td>
+                  )}
 
-                                postData(
-                                  `${serverUrl}/help/formio-application-submission/${formId}`,
-                                  {}
-                                )
-                                  .then((res) => {
-                                    setFormioApplicationSubmission({
-                                      status: "success",
-                                      data: res,
-                                    });
-                                  })
-                                  .catch((err) => {
-                                    setFormioApplicationSubmission({
-                                      status: "failure",
-                                      data: {
-                                        formSchema: null,
-                                        submission: null,
-                                      },
-                                    });
+                  <td>{new Date(submission.modified).toLocaleDateString()}</td>
+
+                  <td>
+                    {
+                      submission.state === "draft"
+                        ? "Draft"
+                        : submission.state === "submitted"
+                        ? "Submitted"
+                        : submission.state // fallback, not used
+                    }
+                  </td>
+
+                  <td>
+                    <button
+                      className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
+                      disabled={
+                        enrollmentClosed || submission.state === "draft"
+                      }
+                      onClick={(_ev) => {
+                        dialogDispatch({
+                          type: "DISPLAY_DIALOG",
+                          payload: {
+                            dismissable: true,
+                            heading:
+                              "Are you sure you want to change this submission's state back to draft?",
+                            description:
+                              "Once the submission is back in a draft state, all users with access to this submission will be able to further edit it.",
+                            confirmText: "Yes",
+                            cancelText: "Cancel",
+                            confirmedAction: () => {
+                              setFormDisplayed(false);
+                              pageDispatch({
+                                type: "FETCH_FORMIO_DATA_REQUEST",
+                              });
+                              postData(
+                                `${serverUrl}/help/formio-submission/${formType}/${searchId}`,
+                                {}
+                              )
+                                .then((res: FormioFetchedResponse) => {
+                                  pageDispatch({
+                                    type: "FETCH_FORMIO_DATA_SUCCESS",
+                                    payload: { data: res },
                                   });
-                              },
+                                })
+                                .catch((err) => {
+                                  pageDispatch({
+                                    type: "FETCH_FORMIO_DATA_FAILURE",
+                                  });
+                                });
                             },
-                          });
-                        }}
-                      >
-                        <span className="usa-sr-only">
-                          Set {formId} to draft
-                        </span>
-                        <span className="display-flex flex-align-center">
-                          <svg
-                            className="usa-icon"
-                            aria-hidden="true"
-                            focusable="false"
-                            role="img"
-                          >
-                            <use href={`${icons}#update`} />
-                          </svg>
-                          <span className="mobile-lg:display-none margin-left-1">
-                            Update Form
-                          </span>
-                        </span>
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+                          },
+                        });
+                      }}
+                    >
+                      <span className="display-flex flex-align-center">
+                        <svg
+                          className="usa-icon"
+                          aria-hidden="true"
+                          focusable="false"
+                          role="img"
+                        >
+                          <use href={`${icons}#update`} />
+                        </svg>
+                        <span className="margin-left-1">Update</span>
+                      </span>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-            {formDisplayed && (
-              <>
-                <h3>Application ID: {submission._id}</h3>
+          {formDisplayed && (
+            <>
+              <ul className="usa-icon-list">
+                <li className="usa-icon-list__item">
+                  <div className="usa-icon-list__icon text-primary">
+                    <svg className="usa-icon" aria-hidden="true" role="img">
+                      <use href={`${icons}#local_offer`} />
+                    </svg>
+                  </div>
+                  <div className="usa-icon-list__content">
+                    {formType === "application" ? (
+                      <>
+                        <strong>Application ID:</strong> {submission._id}
+                      </>
+                    ) : formType === "paymentRequest" ? (
+                      <>
+                        <strong>Rebate ID:</strong>{" "}
+                        {submission.data.hidden_bap_rebate_id}
+                      </>
+                    ) : (
+                      <>&nbsp;</>
+                    )}
+                  </div>
+                </li>
+              </ul>
 
-                <Form
-                  form={formSchema.json}
-                  url={formSchema.url} // NOTE: used for file uploads
-                  submission={{ data: submission.data }}
-                  options={{ readOnly: true }}
-                />
-              </>
-            )}
-          </>
-        )}
+              <Form
+                form={formSchema.json}
+                url={formSchema.url} // NOTE: used for file uploads
+                submission={{ data: submission.data }}
+                options={{ readOnly: true }}
+              />
+            </>
+          )}
+        </>
+      )}
     </>
   );
 }

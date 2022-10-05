@@ -8,7 +8,7 @@ const {
   axiosFormio,
   formioProjectUrl,
   formioApplicationFormPath,
-  formioPaymentFormPath,
+  formioPaymentRequestFormPath,
   formioCsbMetadata,
 } = require("../config/formio");
 const {
@@ -25,6 +25,9 @@ const {
 const log = require("../utilities/logger");
 
 const enrollmentClosed = process.env.CSB_ENROLLMENT_PERIOD !== "open";
+
+const applicationFormApiPath = `${formioProjectUrl}/${formioApplicationFormPath}`;
+const paymentRequestFormApiPath = `${formioProjectUrl}/${formioPaymentRequestFormPath}`;
 
 /**
  * Returns a resolved or rejected promise, depending on if the enrollment period
@@ -172,8 +175,6 @@ router.get("/bap-application-submissions", storeBapComboKeys, (req, res) => {
     });
 });
 
-const applicationFormApiPath = `${formioProjectUrl}/${formioApplicationFormPath}`;
-
 // --- get user's Application form submissions from Forms.gov
 router.get("/formio-application-submissions", storeBapComboKeys, (req, res) => {
   // NOTE: Helpdesk users might not have any SAM.gov records associated with
@@ -189,9 +190,15 @@ router.get("/formio-application-submissions", storeBapComboKeys, (req, res) => {
     `${applicationFormApiPath}/submission` +
     `?sort=-modified` +
     `&limit=1000000` +
-    `&data.bap_hidden_entity_combo_key=${req.bapComboKeys.join(
-      "&data.bap_hidden_entity_combo_key="
-    )}`;
+    `&data.bap_hidden_entity_combo_key=` +
+    `${req.bapComboKeys.join("&data.bap_hidden_entity_combo_key=")}` +
+    `&select=_id,state,modified,` +
+    `data.last_updated_by,` +
+    `data.applicantUEI,` +
+    `data.applicantEfti,` +
+    `data.applicantEfti_display,` +
+    `data.applicantOrganizationName,` +
+    `data.schoolDistrictName`;
 
   axiosFormio(req)
     .get(userSubmissionsUrl)
@@ -242,10 +249,12 @@ router.get(
   (req, res) => {
     const { mongoId } = req.params;
 
-    axiosFormio(req)
-      .get(`${applicationFormApiPath}/submission/${mongoId}`)
-      .then((axiosRes) => axiosRes.data)
-      .then((submission) => {
+    Promise.all([
+      axiosFormio(req).get(`${applicationFormApiPath}/submission/${mongoId}`),
+      axiosFormio(req).get(applicationFormApiPath),
+    ])
+      .then((axiosResponses) => axiosResponses.map((axiosRes) => axiosRes.data))
+      .then(([submission, schema]) => {
         const comboKey = submission.data.bap_hidden_entity_combo_key;
 
         if (!req.bapComboKeys.includes(comboKey)) {
@@ -258,16 +267,11 @@ router.get(
           });
         }
 
-        axiosFormio(req)
-          .get(applicationFormApiPath)
-          .then((axiosRes) => axiosRes.data)
-          .then((schema) => {
-            return res.json({
-              userAccess: true,
-              formSchema: { url: applicationFormApiPath, json: schema },
-              submission,
-            });
-          });
+        return res.json({
+          userAccess: true,
+          formSchema: { url: applicationFormApiPath, json: schema },
+          submission,
+        });
       })
       .catch((error) => {
         const message = `Error getting Forms.gov Application form submission ${mongoId}`;
@@ -363,15 +367,13 @@ router.get("/:mongoId/:comboKey/storage/s3", storeBapComboKeys, (req, res) => {
     });
 });
 
-const paymentFormApiPath = `${formioProjectUrl}/${formioPaymentFormPath}`;
-
 // --- get user's Payment Request form submissions from Forms.gov
 router.get(
   "/formio-payment-request-submissions",
   storeBapComboKeys,
   (req, res) => {
     const userSubmissionsUrl =
-      `${paymentFormApiPath}/submission` +
+      `${paymentRequestFormApiPath}/submission` +
       `?sort=-modified` +
       `&limit=1000000` +
       `&data.bap_hidden_entity_combo_key=${req.bapComboKeys.join(
@@ -463,7 +465,7 @@ router.post(
         };
 
         axiosFormio(req)
-          .post(`${paymentFormApiPath}/submission`, newSubmission)
+          .post(`${paymentRequestFormApiPath}/submission`, newSubmission)
           .then((axiosRes) => axiosRes.data)
           .then((submission) => res.json(submission))
           .catch((error) => {
@@ -485,15 +487,17 @@ router.get(
   async (req, res) => {
     const { rebateId } = req.params; // CSB Rebate ID (6 digits)
 
-    const matchedPaymentFormSubmissions =
-      `${paymentFormApiPath}/submission` +
+    const matchedPaymentRequestFormSubmissions =
+      `${paymentRequestFormApiPath}/submission` +
       `?data.hidden_bap_rebate_id=${rebateId}` +
       `&select=_id,data.bap_hidden_entity_combo_key`;
 
-    axiosFormio(req)
-      .get(matchedPaymentFormSubmissions)
-      .then((axiosRes) => axiosRes.data)
-      .then((submissions) => {
+    Promise.all([
+      axiosFormio(req).get(matchedPaymentRequestFormSubmissions),
+      axiosFormio(req).get(paymentRequestFormApiPath),
+    ])
+      .then((axiosResponses) => axiosResponses.map((axiosRes) => axiosRes.data))
+      .then(([submissions, schema]) => {
         const submission = submissions[0];
         const mongoId = submission._id;
         const comboKey = submission.data.bap_hidden_entity_combo_key;
@@ -514,27 +518,21 @@ router.get(
           return res.status(400).json({ message });
         }
 
-        // NOTE: we can't just use the returned submission data here because the
-        // `signatureAuthorizedRepresentative` field is the literal string 'YES'
-        // and not the base64 encoded image string when you query with any
-        // properties of a submission (e.g. `?data.bap_hidden_entity_combo_key`),
-        // so we need to use the returned submission's ObjectId to query for the
-        // submission directly, and then the `signatureAuthorizedRepresentative`
-        // field will be the base64 encoded image string
+        // NOTE: We can't just use the returned submission data here because
+        // Formio returns the string literal 'YES' instead of a base64 encoded
+        // image string for signature fields when you query for all submissions
+        // matching on a field's value (`/submission?data.hidden_bap_rebate_id=${rebateId}`).
+        // We need to query for a specific submission (e.g. `/submission/${mongoId}`),
+        // to have Formio return the correct signature field data.
         axiosFormio(req)
-          .get(`${paymentFormApiPath}/submission/${mongoId}`)
+          .get(`${paymentRequestFormApiPath}/submission/${mongoId}`)
           .then((axiosRes) => axiosRes.data)
           .then((submission) => {
-            axiosFormio(req)
-              .get(paymentFormApiPath)
-              .then((axiosRes) => axiosRes.data)
-              .then((schema) => {
-                return res.json({
-                  userAccess: true,
-                  formSchema: { url: paymentFormApiPath, json: schema },
-                  submission,
-                });
-              });
+            return res.json({
+              userAccess: true,
+              formSchema: { url: paymentRequestFormApiPath, json: schema },
+              submission,
+            });
           });
       })
       .catch((error) => {
@@ -572,7 +570,7 @@ router.post(
     };
 
     axiosFormio(req)
-      .put(`${paymentFormApiPath}/submission/${mongoId}`, submission)
+      .put(`${paymentRequestFormApiPath}/submission/${mongoId}`, submission)
       .then((axiosRes) => axiosRes.data)
       .then((submission) => res.json(submission))
       .catch((error) => {

@@ -21,8 +21,9 @@ export type FormioSubmissionData = {
 type FormioSubmission = {
   [field: string]: unknown;
   _id: string; // MongoDB ObjectId string
-  data: FormioSubmissionData;
   state: "submitted" | "draft";
+  modified: string; // ISO 8601 date string
+  data: FormioSubmissionData;
 };
 
 type NoFormioData = { userAccess: false; formSchema: null; submission: null };

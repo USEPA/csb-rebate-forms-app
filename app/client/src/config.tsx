@@ -60,8 +60,8 @@ export const messages = {
     "Error loading Payment Request form submissions.",
   newApplication:
     "Please select the “New Application” button above to create your first rebate application.",
-  helpdeskApplicationSubmissionError:
-    "Error loading Application form submission. Please confirm the Application ID is correct and search again.",
+  helpdeskSubmissionSearchError:
+    "Error loading form submission. Please confirm the form type and ID is correct and search again.",
   timeout:
     "For security reasons, you have been logged out due to 15 minutes of inactivity.",
   logout: "You have successfully logged out.",

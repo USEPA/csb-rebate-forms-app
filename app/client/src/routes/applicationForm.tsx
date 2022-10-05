@@ -31,12 +31,12 @@ export function ApplicationForm() {
   const { samEntities, applicationSubmissions: bapApplicationSubmissions } =
     useBapState();
   const { message, formio } = usePageState();
-  const dispatch = usePageDispatch();
+  const pageDispatch = usePageDispatch();
 
   // reset page context state
   useEffect(() => {
-    dispatch({ type: "RESET_STATE" });
-  }, [dispatch]);
+    pageDispatch({ type: "RESET_STATE" });
+  }, [pageDispatch]);
 
   useFetchedBapApplicationSubmissions();
 
@@ -57,7 +57,7 @@ export function ApplicationForm() {
     useState<FormioSubmissionData>({});
 
   useEffect(() => {
-    dispatch({ type: "FETCH_FORMIO_DATA_REQUEST" });
+    pageDispatch({ type: "FETCH_FORMIO_DATA_REQUEST" });
 
     getData(`${serverUrl}/api/formio-application-submission/${mongoId}`)
       .then((res: FormioFetchedResponse) => {
@@ -83,15 +83,15 @@ export function ApplicationForm() {
           return data;
         });
 
-        dispatch({
+        pageDispatch({
           type: "FETCH_FORMIO_DATA_SUCCESS",
           payload: { data: res },
         });
       })
       .catch((err) => {
-        dispatch({ type: "FETCH_FORMIO_DATA_FAILURE" });
+        pageDispatch({ type: "FETCH_FORMIO_DATA_FAILURE" });
       });
-  }, [mongoId, dispatch]);
+  }, [mongoId, pageDispatch]);
 
   if (formio.status === "idle") {
     return null;
@@ -232,14 +232,14 @@ export function ApplicationForm() {
             }
 
             if (onSubmitSubmission.state === "submitted") {
-              dispatch({
+              pageDispatch({
                 type: "DISPLAY_MESSAGE",
                 payload: { type: "info", text: "Submitting form..." },
               });
             }
 
             if (onSubmitSubmission.state === "draft") {
-              dispatch({
+              pageDispatch({
                 type: "DISPLAY_MESSAGE",
                 payload: { type: "info", text: "Saving form..." },
               });
@@ -260,7 +260,7 @@ export function ApplicationForm() {
                 setPendingSubmissionData({});
 
                 if (onSubmitSubmission.state === "submitted") {
-                  dispatch({
+                  pageDispatch({
                     type: "DISPLAY_MESSAGE",
                     payload: {
                       type: "success",
@@ -269,14 +269,14 @@ export function ApplicationForm() {
                   });
 
                   setTimeout(() => {
-                    dispatch({ type: "RESET_MESSAGE" });
+                    pageDispatch({ type: "RESET_MESSAGE" });
                     navigate("/");
                   }, 5000);
                   return;
                 }
 
                 if (onSubmitSubmission.state === "draft") {
-                  dispatch({
+                  pageDispatch({
                     type: "DISPLAY_MESSAGE",
                     payload: {
                       type: "success",
@@ -285,12 +285,12 @@ export function ApplicationForm() {
                   });
 
                   setTimeout(() => {
-                    dispatch({ type: "RESET_MESSAGE" });
+                    pageDispatch({ type: "RESET_MESSAGE" });
                   }, 5000);
                 }
               })
               .catch((err) => {
-                dispatch({
+                pageDispatch({
                   type: "DISPLAY_MESSAGE",
                   payload: {
                     type: "error",
@@ -332,7 +332,7 @@ export function ApplicationForm() {
             delete storedDataToCheck.hidden_current_user_name;
             if (isEqual(dataToCheck, storedDataToCheck)) return;
 
-            dispatch({
+            pageDispatch({
               type: "DISPLAY_MESSAGE",
               payload: { type: "info", text: "Saving form..." },
             });
@@ -351,7 +351,7 @@ export function ApplicationForm() {
 
                 setPendingSubmissionData({});
 
-                dispatch({
+                pageDispatch({
                   type: "DISPLAY_MESSAGE",
                   payload: {
                     type: "success",
@@ -360,11 +360,11 @@ export function ApplicationForm() {
                 });
 
                 setTimeout(() => {
-                  dispatch({ type: "RESET_MESSAGE" });
+                  pageDispatch({ type: "RESET_MESSAGE" });
                 }, 5000);
               })
               .catch((err) => {
-                dispatch({
+                pageDispatch({
                   type: "DISPLAY_MESSAGE",
                   payload: {
                     type: "error",
