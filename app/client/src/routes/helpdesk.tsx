@@ -232,8 +232,8 @@ export function Helpdesk() {
 
                   <th scope="col">
                     <TextWithTooltip
-                      text="Applicant"
-                      tooltip="Legal Business Name from SAM.gov for this UEI"
+                      text="Applicant Name"
+                      tooltip="Name of Applicant"
                     />
                   </th>
 
@@ -298,10 +298,10 @@ export function Helpdesk() {
 
                   {formType === "application" ? (
                     <td>
-                      {submission.data.applicantOrganizationName as string}
+                      {submission.data.sam_hidden_applicant_name as string}
                     </td>
                   ) : formType === "paymentRequest" ? (
-                    <td>{submission.data.hidden_bap_org_name as string}</td>
+                    <td>{submission.data.applicantName as string}</td>
                   ) : (
                     <td>&nbsp;</td>
                   )}
