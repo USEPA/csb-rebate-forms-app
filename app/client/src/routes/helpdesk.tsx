@@ -216,7 +216,7 @@ export function Helpdesk() {
                     <th scope="col">
                       <TextWithTooltip
                         text="Application ID"
-                        tooltip="Application ID"
+                        tooltip="Formio submission's MongoDB Object ID"
                       />
                     </th>
                   ) : formType === "paymentRequest" ? (
@@ -253,8 +253,8 @@ export function Helpdesk() {
 
                   <th scope="col">
                     <TextWithTooltip
-                      text="Status"
-                      tooltip="submitted or draft"
+                      text="Status (Formio)"
+                      tooltip="Submitted or Draft"
                     />
                   </th>
 
@@ -271,7 +271,6 @@ export function Helpdesk() {
                       className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
                       onClick={(ev) => setFormDisplayed(true)}
                     >
-                      <span className="usa-sr-only">Open Form {formId}</span>
                       <span className="display-flex flex-align-center">
                         <svg
                           className="usa-icon"
@@ -279,11 +278,9 @@ export function Helpdesk() {
                           focusable="false"
                           role="img"
                         >
-                          <use href={`${icons}#edit`} />
+                          <use href={`${icons}#visibility`} />
                         </svg>
-                        <span className="mobile-lg:display-none margin-left-1">
-                          Open Form
-                        </span>
+                        <span className="margin-left-1">View</span>
                       </span>
                     </button>
                   </th>
@@ -316,7 +313,15 @@ export function Helpdesk() {
 
                   <td>{new Date(submission.modified).toLocaleDateString()}</td>
 
-                  <td>{submission.state}</td>
+                  <td>
+                    {
+                      submission.state === "draft"
+                        ? "Draft"
+                        : submission.state === "submitted"
+                        ? "Submitted"
+                        : submission.state // fallback, not used
+                    }
+                  </td>
 
                   <td>
                     <button
@@ -362,7 +367,6 @@ export function Helpdesk() {
                         });
                       }}
                     >
-                      <span className="usa-sr-only">Set {formId} to draft</span>
                       <span className="display-flex flex-align-center">
                         <svg
                           className="usa-icon"
@@ -372,9 +376,7 @@ export function Helpdesk() {
                         >
                           <use href={`${icons}#update`} />
                         </svg>
-                        <span className="mobile-lg:display-none margin-left-1">
-                          Update Form
-                        </span>
+                        <span className="margin-left-1">Update</span>
                       </span>
                     </button>
                   </td>
