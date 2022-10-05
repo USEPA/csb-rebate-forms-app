@@ -40,7 +40,6 @@ export function Helpdesk() {
 
   const [formType, setFormType] = useState<FormType>("application");
   const [searchId, setSearchId] = useState("");
-  const [formId, setFormId] = useState("");
   const [formDisplayed, setFormDisplayed] = useState(false);
 
   if (
@@ -141,26 +140,19 @@ export function Helpdesk() {
           role="search"
           onSubmit={(ev) => {
             ev.preventDefault();
-
-            setFormId("");
             setFormDisplayed(false);
-
             pageDispatch({ type: "FETCH_FORMIO_DATA_REQUEST" });
-
             getData(
               `${serverUrl}/help/formio-submission/${formType}/${searchId}`
             )
               .then((res: FormioFetchedResponse) => {
                 if (!res.submission) return;
-
-                setFormId(res.submission._id);
                 pageDispatch({
                   type: "FETCH_FORMIO_DATA_SUCCESS",
                   payload: { data: res },
                 });
               })
               .catch((err) => {
-                setFormId("");
                 pageDispatch({ type: "FETCH_FORMIO_DATA_FAILURE" });
               });
           }}
@@ -269,7 +261,7 @@ export function Helpdesk() {
                   <th scope="row">
                     <button
                       className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-                      onClick={(ev) => setFormDisplayed(true)}
+                      onClick={(_ev) => setFormDisplayed(true)}
                     >
                       <span className="display-flex flex-align-center">
                         <svg
@@ -329,7 +321,7 @@ export function Helpdesk() {
                       disabled={
                         enrollmentClosed || submission.state === "draft"
                       }
-                      onClick={(ev) => {
+                      onClick={(_ev) => {
                         dialogDispatch({
                           type: "DISPLAY_DIALOG",
                           payload: {
@@ -342,11 +334,9 @@ export function Helpdesk() {
                             cancelText: "Cancel",
                             confirmedAction: () => {
                               setFormDisplayed(false);
-
                               pageDispatch({
                                 type: "FETCH_FORMIO_DATA_REQUEST",
                               });
-
                               postData(
                                 `${serverUrl}/help/formio-submission/${formType}/${searchId}`,
                                 {}
