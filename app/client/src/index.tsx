@@ -8,6 +8,7 @@ import { UserProvider } from "contexts/user";
 import { CsbProvider } from "contexts/csb";
 import { BapProvider } from "contexts/bap";
 import { FormioProvider } from "contexts/formio";
+import { PageMessageProvider } from "contexts/pageMessage";
 import { PageProvider } from "contexts/page";
 import { ErrorBoundary } from "components/errorBoundary";
 import { App } from "components/app";
@@ -24,9 +25,11 @@ render(
             <CsbProvider>
               <BapProvider>
                 <FormioProvider>
-                  <PageProvider>
-                    <App />
-                  </PageProvider>
+                  <PageMessageProvider>
+                    <PageProvider>
+                      <App />
+                    </PageProvider>
+                  </PageMessageProvider>
                 </FormioProvider>
               </BapProvider>
             </CsbProvider>
