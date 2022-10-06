@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useMemo, useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Formio, Form } from "@formio/react";
 import { cloneDeep, isEqual } from "lodash";
@@ -22,11 +22,27 @@ import {
 } from "contexts/page";
 
 export function ApplicationForm() {
+  const { epaUserData } = useUserState();
+  const email = epaUserData.status !== "success" ? "" : epaUserData.data.mail;
+
+  /**
+   * NOTE: The child component only uses the email from the `user` context, but
+   * the `epaUserData.data` object includes an `exp` field that changes whenever
+   * the JWT is refreshed. Since the user verification process `verifyUser()`
+   * gets called from the parent `ProtectedRoute` component, we need to memoize
+   * the email address (which won't change) to prevent the child component from
+   * needlessly re-rendering.
+   */
+  return useMemo(() => {
+    return <ApplicationFormContent email={email} />;
+  }, [email]);
+}
+
+function ApplicationFormContent({ email }: { email: string }) {
   const navigate = useNavigate();
   const { mongoId } = useParams<"mongoId">(); // MongoDB ObjectId string
 
   const { content } = useContentState();
-  const { epaUserData } = useUserState();
   const { csbData } = useCsbState();
   const { samEntities, applicationSubmissions: bapApplicationSubmissions } =
     useBapState();
@@ -118,8 +134,8 @@ export function ApplicationForm() {
   }
 
   if (
+    email === "" ||
     csbData.status !== "success" ||
-    epaUserData.status !== "success" ||
     samEntities.status !== "success" ||
     bapApplicationSubmissions.status !== "success"
   ) {
@@ -148,9 +164,9 @@ export function ApplicationForm() {
     );
   });
 
+  // TODO: do we need to account for when ENTITY_STATUS__c does not equal "Active" (e.g. its expired)?
   if (!entity) return null;
 
-  const email = epaUserData.data.mail;
   const { title, name } = getUserInfo(email, entity);
 
   return (
