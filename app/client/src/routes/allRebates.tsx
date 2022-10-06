@@ -200,12 +200,6 @@ function useCombinedSubmissions() {
       return bapSubmission.CSB_Form_ID__c === formioSubmission._id;
     });
 
-    /* NOTE: If new Application form submissions have been reciently created in
-    Formio and the BAP's ETL process has not yet run to pickup those new Formio
-    submissions, all of the fields below will be null, so instead of assigning
-    the submission's key as `rebateId` (which will be null), we'll assign it to
-    be an underscore concatenated with the Formio submission's mongoDB ObjectID.
-    */
     const comboKey = bapMatch?.UEI_EFTI_Combo_Key__c || null;
     const rebateId = bapMatch?.Parent_Rebate_ID__c || null;
     const reviewItemId = bapMatch?.CSB_Review_Item_ID__c || null;
@@ -213,6 +207,14 @@ function useCombinedSubmissions() {
       bapMatch?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c || null;
     const lastModified = bapMatch?.CSB_Modified_Full_String__c || null;
 
+    /**
+     * NOTE: If new Application form submissions have been reciently created in
+     * Formio and the BAP's ETL process has not yet run to pickup those new
+     * Formio submissions, all of the fields above will be null, so instead of
+     * assigning the submission's key as `rebateId` (which will be null), we'll
+     * assign it to be an underscore concatenated with the Formio submission's
+     * mongoDB ObjectID – just so each submission object still has a unique ID.
+     */
     submissions[rebateId || `_${formioSubmission._id}`] = {
       application: {
         formio: { ...formioSubmission },
@@ -226,15 +228,23 @@ function useCombinedSubmissions() {
   /**
    * Iterate over Formio Payment Request form submissions, matching them with
    * submissions returned from the BAP, so we can set the Payment Request form
-   * submission data (NOTE: `hidden_bap_rebate_id` is injected upon creation of
-   * a brand new Payment Request form submission, so it will always be there).
+   * submission data.
+   *
+   * NOTE: For there to be any Formio Payment Request form submissions at all,
+   * the BAP's ETL process must be running, as the `hidden_bap_rebate_id` field
+   * of a Payment Request form submission is injected in the creation of a brand
+   * new submission in the `/api/formio-payment-request-submission` POST request
+   * where he BAP Rebate ID (along with other fields) are fetched from the BAP
+   * and then posted to Formio in a new Payment Request form submission.
+   *
+   * That said, if the BAP ETL isn't returning data, we should make sure we
+   * handle that situation gracefully (see NOTE below).
    */
   for (const formioSubmission of formioPaymentRequestSubmissions.data) {
+    const formioBapRebateId = formioSubmission.data.hidden_bap_rebate_id;
+
     const bapMatch = bapPaymentRequestSubmissions.data.find((bapSubmission) => {
-      return (
-        bapSubmission.Parent_Rebate_ID__c ===
-        formioSubmission.data.hidden_bap_rebate_id
-      );
+      return bapSubmission.Parent_Rebate_ID__c === formioBapRebateId;
     });
 
     // TODO: update this once the BAP team sets up the ETL process for ingesting
@@ -246,10 +256,20 @@ function useCombinedSubmissions() {
       bapMatch?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c || null;
     const lastModified = bapMatch?.CSB_Modified_Full_String__c || null;
 
-    submissions[formioSubmission.data.hidden_bap_rebate_id].paymentRequest = {
-      formio: { ...formioSubmission },
-      bap: { comboKey, rebateId, reviewItemId, rebateStatus, lastModified },
-    };
+    /**
+     * NOTE: If the BAP ETL is running, there should be a submission with a
+     * `formioBapRebateId` key for each Formio Payment Request form submission
+     * (as it would have been set in the `formioApplicationSubmissions.data`
+     * loop above). That said, we should first check that it exists before
+     * assigning the Payment Request data to it, so if the BAP ETL process isn't
+     * returning data, it won't break our app.
+     */
+    if (submissions[formioBapRebateId]) {
+      submissions[formioBapRebateId].paymentRequest = {
+        formio: { ...formioSubmission },
+        bap: { comboKey, rebateId, reviewItemId, rebateStatus, lastModified },
+      };
+    }
   }
 
   return submissions;
