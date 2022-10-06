@@ -37,11 +37,6 @@ export type FormioFetchedResponse =
     };
 
 type State = {
-  message: {
-    displayed: boolean;
-    type: "info" | "success" | "warning" | "error";
-    text: string;
-  };
   formio:
     | { status: "idle"; data: NoFormioData }
     | { status: "pending"; data: NoFormioData }
@@ -51,11 +46,6 @@ type State = {
 
 type Action =
   | { type: "RESET_STATE" }
-  | {
-      type: "DISPLAY_MESSAGE";
-      payload: { type: "info" | "success" | "warning" | "error"; text: string };
-    }
-  | { type: "RESET_MESSAGE" }
   | { type: "FETCH_FORMIO_DATA_REQUEST" }
   | {
       type: "FETCH_FORMIO_DATA_SUCCESS";
@@ -67,11 +57,6 @@ const StateContext = createContext<State | undefined>(undefined);
 const DispatchContext = createContext<Dispatch<Action> | undefined>(undefined);
 
 const initialState: State = {
-  message: {
-    displayed: false,
-    type: "info",
-    text: "",
-  },
   formio: {
     status: "idle",
     data: {
@@ -86,29 +71,6 @@ function reducer(state: State, action: Action): State {
   switch (action.type) {
     case "RESET_STATE": {
       return initialState;
-    }
-
-    case "DISPLAY_MESSAGE": {
-      const { type, text } = action.payload;
-      return {
-        ...state,
-        message: {
-          displayed: true,
-          type,
-          text,
-        },
-      };
-    }
-
-    case "RESET_MESSAGE": {
-      return {
-        ...state,
-        message: {
-          displayed: false,
-          type: "info",
-          text: "",
-        },
-      };
     }
 
     case "FETCH_FORMIO_DATA_REQUEST": {
