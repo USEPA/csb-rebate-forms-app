@@ -14,11 +14,21 @@ import { useUserState } from "contexts/user";
 import { useCsbState } from "contexts/csb";
 import { useBapState } from "contexts/bap";
 import {
+  usePageMessageState,
+  usePageMessageDispatch,
+} from "contexts/pageMessage";
+import {
   FormioSubmissionData,
   FormioFetchedResponse,
-  usePageState,
-  usePageDispatch,
-} from "contexts/page";
+  usePageFormioState,
+  usePageFormioDispatch,
+} from "contexts/pageFormio";
+
+function PageMessage() {
+  const { displayed, type, text } = usePageMessageState();
+  if (!displayed) return null;
+  return <Message type={type} text={text} />;
+}
 
 export function PaymentRequestForm() {
   const { epaUserData } = useUserState();
@@ -44,13 +54,19 @@ function PaymentRequestFormContent({ email }: { email: string }) {
   const { content } = useContentState();
   const { csbData } = useCsbState();
   const { samEntities } = useBapState();
-  const { message, formio } = usePageState();
-  const pageDispatch = usePageDispatch();
+  const { formio } = usePageFormioState();
+  const pageMessageDispatch = usePageMessageDispatch();
+  const pageFormioDispatch = usePageFormioDispatch();
 
-  // reset page context state
+  // reset page message state since it's used across pages
   useEffect(() => {
-    pageDispatch({ type: "RESET_STATE" });
-  }, [pageDispatch]);
+    pageMessageDispatch({ type: "RESET_MESSAGE" });
+  }, [pageMessageDispatch]);
+
+  // reset page formio state since it's used across pages
+  useEffect(() => {
+    pageFormioDispatch({ type: "RESET_FORMIO_DATA" });
+  }, [pageFormioDispatch]);
 
   // set when form submission data is initially fetched, and then re-set each
   // time a successful update of the submission data is posted to forms.gov
@@ -69,7 +85,7 @@ function PaymentRequestFormContent({ email }: { email: string }) {
     useState<FormioSubmissionData>({});
 
   useEffect(() => {
-    pageDispatch({ type: "FETCH_FORMIO_DATA_REQUEST" });
+    pageFormioDispatch({ type: "FETCH_FORMIO_DATA_REQUEST" });
 
     getData(`${serverUrl}/api/formio-payment-request-submission/${rebateId}`)
       .then((res: FormioFetchedResponse) => {
@@ -92,15 +108,15 @@ function PaymentRequestFormContent({ email }: { email: string }) {
           return data;
         });
 
-        pageDispatch({
+        pageFormioDispatch({
           type: "FETCH_FORMIO_DATA_SUCCESS",
           payload: { data: res },
         });
       })
       .catch((err) => {
-        pageDispatch({ type: "FETCH_FORMIO_DATA_FAILURE" });
+        pageFormioDispatch({ type: "FETCH_FORMIO_DATA_FAILURE" });
       });
-  }, [rebateId, pageDispatch]);
+  }, [rebateId, pageFormioDispatch]);
 
   if (formio.status === "idle") {
     return null;
@@ -162,7 +178,7 @@ function PaymentRequestFormContent({ email }: { email: string }) {
         />
       )}
 
-      {message.displayed && <Message type={message.type} text={message.text} />}
+      <PageMessage />
 
       <ul className="usa-icon-list">
         <li className="usa-icon-list__item">
@@ -203,14 +219,14 @@ function PaymentRequestFormContent({ email }: { email: string }) {
             const data = { ...onSubmitSubmission.data };
 
             if (onSubmitSubmission.state === "submitted") {
-              pageDispatch({
+              pageMessageDispatch({
                 type: "DISPLAY_MESSAGE",
                 payload: { type: "info", text: "Submitting form..." },
               });
             }
 
             if (onSubmitSubmission.state === "draft") {
-              pageDispatch({
+              pageMessageDispatch({
                 type: "DISPLAY_MESSAGE",
                 payload: { type: "info", text: "Saving form..." },
               });
@@ -234,7 +250,7 @@ function PaymentRequestFormContent({ email }: { email: string }) {
                 setPendingSubmissionData({});
 
                 if (onSubmitSubmission.state === "submitted") {
-                  pageDispatch({
+                  pageMessageDispatch({
                     type: "DISPLAY_MESSAGE",
                     payload: {
                       type: "success",
@@ -243,14 +259,14 @@ function PaymentRequestFormContent({ email }: { email: string }) {
                   });
 
                   setTimeout(() => {
-                    pageDispatch({ type: "RESET_MESSAGE" });
+                    pageMessageDispatch({ type: "RESET_MESSAGE" });
                     navigate("/");
                   }, 5000);
                   return;
                 }
 
                 if (onSubmitSubmission.state === "draft") {
-                  pageDispatch({
+                  pageMessageDispatch({
                     type: "DISPLAY_MESSAGE",
                     payload: {
                       type: "success",
@@ -259,12 +275,12 @@ function PaymentRequestFormContent({ email }: { email: string }) {
                   });
 
                   setTimeout(() => {
-                    pageDispatch({ type: "RESET_MESSAGE" });
+                    pageMessageDispatch({ type: "RESET_MESSAGE" });
                   }, 5000);
                 }
               })
               .catch((err) => {
-                pageDispatch({
+                pageMessageDispatch({
                   type: "DISPLAY_MESSAGE",
                   payload: {
                     type: "error",
@@ -298,7 +314,7 @@ function PaymentRequestFormContent({ email }: { email: string }) {
             delete storedDataToCheck.hidden_current_user_name;
             if (isEqual(dataToCheck, storedDataToCheck)) return;
 
-            pageDispatch({
+            pageMessageDispatch({
               type: "DISPLAY_MESSAGE",
               payload: { type: "info", text: "Saving form..." },
             });
@@ -324,7 +340,7 @@ function PaymentRequestFormContent({ email }: { email: string }) {
 
                 setPendingSubmissionData({});
 
-                pageDispatch({
+                pageMessageDispatch({
                   type: "DISPLAY_MESSAGE",
                   payload: {
                     type: "success",
@@ -333,11 +349,11 @@ function PaymentRequestFormContent({ email }: { email: string }) {
                 });
 
                 setTimeout(() => {
-                  pageDispatch({ type: "RESET_MESSAGE" });
+                  pageMessageDispatch({ type: "RESET_MESSAGE" });
                 }, 5000);
               })
               .catch((err) => {
-                pageDispatch({
+                pageMessageDispatch({
                   type: "DISPLAY_MESSAGE",
                   payload: {
                     type: "error",
@@ -349,7 +365,7 @@ function PaymentRequestFormContent({ email }: { email: string }) {
         />
       </div>
 
-      {message.displayed && <Message type={message.type} text={message.text} />}
+      <PageMessage />
     </div>
   );
 }

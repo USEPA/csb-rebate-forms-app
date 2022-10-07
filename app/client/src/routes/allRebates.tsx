@@ -19,7 +19,10 @@ import {
   useFormioState,
   useFormioDispatch,
 } from "contexts/formio";
-import { usePageState, usePageDispatch } from "contexts/page";
+import {
+  usePageMessageState,
+  usePageMessageDispatch,
+} from "contexts/pageMessage";
 
 type Rebate = {
   application: {
@@ -326,11 +329,17 @@ function useSortedSubmissions(submissions: { [rebateId: string]: Rebate }) {
     });
 }
 
+function PageMessage() {
+  const { displayed, type, text } = usePageMessageState();
+  if (!displayed) return null;
+  return <Message type={type} text={text} />;
+}
+
 function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
   const navigate = useNavigate();
 
   const { csbData } = useCsbState();
-  const pageDispatch = usePageDispatch();
+  const pageMessageDispatch = usePageMessageDispatch();
 
   if (csbData.status !== "success") return null;
   const { enrollmentClosed } = csbData.data;
@@ -404,7 +413,7 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
           <button
             className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
             onClick={(ev) => {
-              pageDispatch({ type: "RESET_MESSAGE" });
+              pageMessageDispatch({ type: "RESET_MESSAGE" });
 
               // change the submission's state to draft, then redirect to the
               // form to allow user to edit
@@ -415,7 +424,7 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
                 .then((res) => navigate(`/rebate/${res._id}`))
                 .catch((err) => {
                   const text = `Error updating Application ${application.bap?.rebateId}. Please try again.`;
-                  pageDispatch({
+                  pageMessageDispatch({
                     type: "DISPLAY_MESSAGE",
                     payload: { type: "error", text },
                   });
@@ -627,7 +636,7 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
 
   const { epaUserData } = useUserState();
   const { samEntities } = useBapState();
-  const pageDispatch = usePageDispatch();
+  const pageMessageDispatch = usePageMessageDispatch();
 
   const [postDataResponsePending, setPostDataResponsePending] = useState(false);
 
@@ -662,7 +671,7 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
               if (!application.bap?.rebateId || !entity) return;
 
               setPostDataResponsePending(true);
-              pageDispatch({ type: "RESET_MESSAGE" });
+              pageMessageDispatch({ type: "RESET_MESSAGE" });
 
               const { title, name } = getUserInfo(email, entity);
 
@@ -682,7 +691,7 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
                 .catch((err) => {
                   setPostDataResponsePending(false);
                   const text = `Error creating Payment Request ${application.bap?.rebateId}. Please try again.`;
-                  pageDispatch({
+                  pageMessageDispatch({
                     type: "DISPLAY_MESSAGE",
                     payload: { type: "error", text },
                   });
@@ -752,7 +761,7 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
             onClick={(ev) => {
               if (!paymentRequest.formio) return;
 
-              pageDispatch({ type: "RESET_MESSAGE" });
+              pageMessageDispatch({ type: "RESET_MESSAGE" });
 
               // change the submission's state to draft, then redirect to the
               // form to allow user to edit
@@ -763,7 +772,7 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
                 .then((res) => navigate(`/rebate/${res._id}`))
                 .catch((err) => {
                   const text = `Error updating Payment Request ${paymentRequest.bap?.rebateId}. Please try again.`;
-                  pageDispatch({
+                  pageMessageDispatch({
                     type: "DISPLAY_MESSAGE",
                     payload: { type: "error", text },
                   });
@@ -887,13 +896,12 @@ export function AllRebates() {
     applicationSubmissions: formioApplicationSubmissions,
     paymentRequestSubmissions: formioPaymentRequestSubmissions,
   } = useFormioState();
-  const { message } = usePageState();
-  const pageDispatch = usePageDispatch();
+  const pageMessageDispatch = usePageMessageDispatch();
 
-  // reset page context state
+  // reset page message state since it's used across pages
   useEffect(() => {
-    pageDispatch({ type: "RESET_STATE" });
-  }, [pageDispatch]);
+    pageMessageDispatch({ type: "RESET_MESSAGE" });
+  }, [pageMessageDispatch]);
 
   useFetchedFormioApplicationSubmissions();
   useFetchedBapApplicationSubmissions();
@@ -964,9 +972,7 @@ export function AllRebates() {
             />
           )}
 
-          {message.displayed && (
-            <Message type={message.type} text={message.text} />
-          )}
+          <PageMessage />
 
           <div className="usa-table-container--scrollable" tabIndex={0}>
             <table
@@ -1057,9 +1063,7 @@ export function AllRebates() {
             </table>
           </div>
 
-          {message.displayed && (
-            <Message type={message.type} text={message.text} />
-          )}
+          <PageMessage />
         </>
       )}
 

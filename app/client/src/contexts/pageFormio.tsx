@@ -37,11 +37,6 @@ export type FormioFetchedResponse =
     };
 
 type State = {
-  message: {
-    displayed: boolean;
-    type: "info" | "success" | "warning" | "error";
-    text: string;
-  };
   formio:
     | { status: "idle"; data: NoFormioData }
     | { status: "pending"; data: NoFormioData }
@@ -50,12 +45,7 @@ type State = {
 };
 
 type Action =
-  | { type: "RESET_STATE" }
-  | {
-      type: "DISPLAY_MESSAGE";
-      payload: { type: "info" | "success" | "warning" | "error"; text: string };
-    }
-  | { type: "RESET_MESSAGE" }
+  | { type: "RESET_FORMIO_DATA" }
   | { type: "FETCH_FORMIO_DATA_REQUEST" }
   | {
       type: "FETCH_FORMIO_DATA_SUCCESS";
@@ -67,11 +57,6 @@ const StateContext = createContext<State | undefined>(undefined);
 const DispatchContext = createContext<Dispatch<Action> | undefined>(undefined);
 
 const initialState: State = {
-  message: {
-    displayed: false,
-    type: "info",
-    text: "",
-  },
   formio: {
     status: "idle",
     data: {
@@ -84,31 +69,8 @@ const initialState: State = {
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
-    case "RESET_STATE": {
+    case "RESET_FORMIO_DATA": {
       return initialState;
-    }
-
-    case "DISPLAY_MESSAGE": {
-      const { type, text } = action.payload;
-      return {
-        ...state,
-        message: {
-          displayed: true,
-          type,
-          text,
-        },
-      };
-    }
-
-    case "RESET_MESSAGE": {
-      return {
-        ...state,
-        message: {
-          displayed: false,
-          type: "info",
-          text: "",
-        },
-      };
     }
 
     case "FETCH_FORMIO_DATA_REQUEST": {
@@ -157,7 +119,7 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-export function PageProvider({ children }: Props) {
+export function PageFormioProvider({ children }: Props) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   return (
@@ -170,12 +132,12 @@ export function PageProvider({ children }: Props) {
 }
 
 /**
- * Returns state stored in `PageProvider` context component.
+ * Returns state stored in `PageFormioProvider` context component.
  */
-export function usePageState() {
+export function usePageFormioState() {
   const context = useContext(StateContext);
   if (context === undefined) {
-    const message = `usePageState must be called within a PageProvider`;
+    const message = `usePageFormioState must be called within a PageFormioProvider`;
     throw new Error(message);
   }
   return context;
@@ -183,12 +145,12 @@ export function usePageState() {
 
 /**
  * Returns `dispatch` method for dispatching actions to update state stored in
- * `PageProvider` context component.
+ * `PageFormioProvider` context component.
  */
-export function usePageDispatch() {
+export function usePageFormioDispatch() {
   const context = useContext(DispatchContext);
   if (context === undefined) {
-    const message = `usePageDispatch must be used within a PageProvider`;
+    const message = `usePageFormioDispatch must be used within a PageFormioProvider`;
     throw new Error(message);
   }
   return context;
