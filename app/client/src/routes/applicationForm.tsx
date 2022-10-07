@@ -21,9 +21,9 @@ import {
 import {
   FormioSubmissionData,
   FormioFetchedResponse,
-  usePageState,
-  usePageDispatch,
-} from "contexts/page";
+  usePageFormioState,
+  usePageFormioDispatch,
+} from "contexts/pageFormio";
 
 function PageMessage() {
   const { displayed, type, text } = usePageMessageState();
@@ -56,19 +56,19 @@ function ApplicationFormContent({ email }: { email: string }) {
   const { csbData } = useCsbState();
   const { samEntities, applicationSubmissions: bapApplicationSubmissions } =
     useBapState();
-  const { formio } = usePageState();
+  const { formio } = usePageFormioState();
   const pageMessageDispatch = usePageMessageDispatch();
-  const pageDispatch = usePageDispatch();
+  const pageFormioDispatch = usePageFormioDispatch();
 
   // reset page message state since it's used across pages
   useEffect(() => {
     pageMessageDispatch({ type: "RESET_MESSAGE" });
   }, [pageMessageDispatch]);
 
-  // reset page context state
+  // reset page formio state since it's used across pages
   useEffect(() => {
-    pageDispatch({ type: "RESET_STATE" });
-  }, [pageDispatch]);
+    pageFormioDispatch({ type: "RESET_FORMIO_DATA" });
+  }, [pageFormioDispatch]);
 
   useFetchedBapApplicationSubmissions();
 
@@ -89,7 +89,7 @@ function ApplicationFormContent({ email }: { email: string }) {
     useState<FormioSubmissionData>({});
 
   useEffect(() => {
-    pageDispatch({ type: "FETCH_FORMIO_DATA_REQUEST" });
+    pageFormioDispatch({ type: "FETCH_FORMIO_DATA_REQUEST" });
 
     getData(`${serverUrl}/api/formio-application-submission/${mongoId}`)
       .then((res: FormioFetchedResponse) => {
@@ -115,15 +115,15 @@ function ApplicationFormContent({ email }: { email: string }) {
           return data;
         });
 
-        pageDispatch({
+        pageFormioDispatch({
           type: "FETCH_FORMIO_DATA_SUCCESS",
           payload: { data: res },
         });
       })
       .catch((err) => {
-        pageDispatch({ type: "FETCH_FORMIO_DATA_FAILURE" });
+        pageFormioDispatch({ type: "FETCH_FORMIO_DATA_FAILURE" });
       });
-  }, [mongoId, pageDispatch]);
+  }, [mongoId, pageFormioDispatch]);
 
   if (formio.status === "idle") {
     return null;

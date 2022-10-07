@@ -9,7 +9,7 @@ import { CsbProvider } from "contexts/csb";
 import { BapProvider } from "contexts/bap";
 import { FormioProvider } from "contexts/formio";
 import { PageMessageProvider } from "contexts/pageMessage";
-import { PageProvider } from "contexts/page";
+import { PageFormioProvider } from "contexts/pageFormio";
 import { ErrorBoundary } from "components/errorBoundary";
 import { App } from "components/app";
 import "./styles.css";
@@ -26,9 +26,9 @@ render(
               <BapProvider>
                 <FormioProvider>
                   <PageMessageProvider>
-                    <PageProvider>
+                    <PageFormioProvider>
                       <App />
-                    </PageProvider>
+                    </PageFormioProvider>
                   </PageMessageProvider>
                 </FormioProvider>
               </BapProvider>

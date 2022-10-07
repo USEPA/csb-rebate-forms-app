@@ -20,9 +20,9 @@ import {
 import {
   FormioSubmissionData,
   FormioFetchedResponse,
-  usePageState,
-  usePageDispatch,
-} from "contexts/page";
+  usePageFormioState,
+  usePageFormioDispatch,
+} from "contexts/pageFormio";
 
 function PageMessage() {
   const { displayed, type, text } = usePageMessageState();
@@ -54,19 +54,19 @@ function PaymentRequestFormContent({ email }: { email: string }) {
   const { content } = useContentState();
   const { csbData } = useCsbState();
   const { samEntities } = useBapState();
-  const { formio } = usePageState();
+  const { formio } = usePageFormioState();
   const pageMessageDispatch = usePageMessageDispatch();
-  const pageDispatch = usePageDispatch();
+  const pageFormioDispatch = usePageFormioDispatch();
 
   // reset page message state since it's used across pages
   useEffect(() => {
     pageMessageDispatch({ type: "RESET_MESSAGE" });
   }, [pageMessageDispatch]);
 
-  // reset page context state
+  // reset page formio state since it's used across pages
   useEffect(() => {
-    pageDispatch({ type: "RESET_STATE" });
-  }, [pageDispatch]);
+    pageFormioDispatch({ type: "RESET_FORMIO_DATA" });
+  }, [pageFormioDispatch]);
 
   // set when form submission data is initially fetched, and then re-set each
   // time a successful update of the submission data is posted to forms.gov
@@ -85,7 +85,7 @@ function PaymentRequestFormContent({ email }: { email: string }) {
     useState<FormioSubmissionData>({});
 
   useEffect(() => {
-    pageDispatch({ type: "FETCH_FORMIO_DATA_REQUEST" });
+    pageFormioDispatch({ type: "FETCH_FORMIO_DATA_REQUEST" });
 
     getData(`${serverUrl}/api/formio-payment-request-submission/${rebateId}`)
       .then((res: FormioFetchedResponse) => {
@@ -108,15 +108,15 @@ function PaymentRequestFormContent({ email }: { email: string }) {
           return data;
         });
 
-        pageDispatch({
+        pageFormioDispatch({
           type: "FETCH_FORMIO_DATA_SUCCESS",
           payload: { data: res },
         });
       })
       .catch((err) => {
-        pageDispatch({ type: "FETCH_FORMIO_DATA_FAILURE" });
+        pageFormioDispatch({ type: "FETCH_FORMIO_DATA_FAILURE" });
       });
-  }, [rebateId, pageDispatch]);
+  }, [rebateId, pageFormioDispatch]);
 
   if (formio.status === "idle") {
     return null;

@@ -45,7 +45,7 @@ type State = {
 };
 
 type Action =
-  | { type: "RESET_STATE" }
+  | { type: "RESET_FORMIO_DATA" }
   | { type: "FETCH_FORMIO_DATA_REQUEST" }
   | {
       type: "FETCH_FORMIO_DATA_SUCCESS";
@@ -69,7 +69,7 @@ const initialState: State = {
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
-    case "RESET_STATE": {
+    case "RESET_FORMIO_DATA": {
       return initialState;
     }
 
@@ -119,7 +119,7 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-export function PageProvider({ children }: Props) {
+export function PageFormioProvider({ children }: Props) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   return (
@@ -132,12 +132,12 @@ export function PageProvider({ children }: Props) {
 }
 
 /**
- * Returns state stored in `PageProvider` context component.
+ * Returns state stored in `PageFormioProvider` context component.
  */
-export function usePageState() {
+export function usePageFormioState() {
   const context = useContext(StateContext);
   if (context === undefined) {
-    const message = `usePageState must be called within a PageProvider`;
+    const message = `usePageFormioState must be called within a PageFormioProvider`;
     throw new Error(message);
   }
   return context;
@@ -145,12 +145,12 @@ export function usePageState() {
 
 /**
  * Returns `dispatch` method for dispatching actions to update state stored in
- * `PageProvider` context component.
+ * `PageFormioProvider` context component.
  */
-export function usePageDispatch() {
+export function usePageFormioDispatch() {
   const context = useContext(DispatchContext);
   if (context === undefined) {
-    const message = `usePageDispatch must be used within a PageProvider`;
+    const message = `usePageFormioDispatch must be used within a PageFormioProvider`;
     throw new Error(message);
   }
   return context;
