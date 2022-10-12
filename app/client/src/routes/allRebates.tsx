@@ -28,21 +28,21 @@ type Rebate = {
   application: {
     formio: FormioApplicationSubmission;
     bap: {
+      modified: string | null;
       comboKey: string | null;
       rebateId: string | null;
       reviewItemId: string | null;
       rebateStatus: string | null;
-      lastModified: string | null;
     } | null;
   };
   paymentRequest: {
     formio: FormioPaymentRequestSubmission | null;
     bap: {
+      modified: string | null;
       comboKey: string | null;
       rebateId: string | null;
       reviewItemId: string | null;
       rebateStatus: string | null;
-      lastModified: string | null;
     } | null;
   };
   closeOut: {
@@ -203,12 +203,12 @@ function useCombinedSubmissions() {
       return bapSubmission.CSB_Form_ID__c === formioSubmission._id;
     });
 
+    const modified = bapMatch?.CSB_Modified_Full_String__c || null;
     const comboKey = bapMatch?.UEI_EFTI_Combo_Key__c || null;
     const rebateId = bapMatch?.Parent_Rebate_ID__c || null;
     const reviewItemId = bapMatch?.CSB_Review_Item_ID__c || null;
     const rebateStatus =
       bapMatch?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c || null;
-    const lastModified = bapMatch?.CSB_Modified_Full_String__c || null;
 
     /**
      * NOTE: If new Application form submissions have been reciently created in
@@ -221,7 +221,7 @@ function useCombinedSubmissions() {
     submissions[rebateId || `_${formioSubmission._id}`] = {
       application: {
         formio: { ...formioSubmission },
-        bap: { comboKey, rebateId, reviewItemId, rebateStatus, lastModified },
+        bap: { modified, comboKey, rebateId, reviewItemId, rebateStatus },
       },
       paymentRequest: { formio: null, bap: null },
       closeOut: { formio: null, bap: null },
@@ -252,12 +252,12 @@ function useCombinedSubmissions() {
 
     // TODO: update this once the BAP team sets up the ETL process for ingesting
     // Payment Request form submissions from forms.gov
+    const modified = bapMatch?.CSB_Modified_Full_String__c || null;
     const comboKey = bapMatch?.UEI_EFTI_Combo_Key__c || null;
     const rebateId = bapMatch?.Parent_Rebate_ID__c || null;
     const reviewItemId = bapMatch?.CSB_Review_Item_ID__c || null;
     const rebateStatus =
       bapMatch?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c || null;
-    const lastModified = bapMatch?.CSB_Modified_Full_String__c || null;
 
     /**
      * NOTE: If the BAP ETL is running, there should be a submission with a
@@ -270,7 +270,7 @@ function useCombinedSubmissions() {
     if (submissions[formioBapRebateId]) {
       submissions[formioBapRebateId].paymentRequest = {
         formio: { ...formioSubmission },
-        bap: { comboKey, rebateId, reviewItemId, rebateStatus, lastModified },
+        bap: { modified, comboKey, rebateId, reviewItemId, rebateStatus },
       };
     }
   }
@@ -307,9 +307,9 @@ function useSortedSubmissions(submissions: { [rebateId: string]: Rebate }) {
     .sort((r1, _r2) => {
       // Application has been updated since the last time the BAP's submissions
       // ETL process has last succesfully run
-      const r1AapplicationHasBeenUpdated = r1.application.bap?.lastModified
+      const r1AapplicationHasBeenUpdated = r1.application.bap?.modified
         ? new Date(r1.application.formio.modified) >
-          new Date(r1.application.bap.lastModified)
+          new Date(r1.application.bap.modified)
         : false;
 
       const r1ApplicationNeedsEdits =
@@ -368,9 +368,8 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
    * The application has been updated since the last time the BAP's submissions
    * ETL process has last succesfully run.
    */
-  const applicationHasBeenUpdated = application.bap?.lastModified
-    ? new Date(application.formio.modified) >
-      new Date(application.bap.lastModified)
+  const applicationHasBeenUpdated = application.bap?.modified
+    ? new Date(application.formio.modified) > new Date(application.bap.modified)
     : false;
 
   const applicationNeedsEdits =
@@ -683,6 +682,7 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
                 comboKey: application.bap.comboKey,
                 rebateId: application.bap.rebateId, // CSB Rebate ID (6 digits)
                 reviewItemId: application.bap.reviewItemId, // CSB Rebate ID w/ form/version ID (9 digits)
+                applicationFormModified: application.bap.modified,
               })
                 .then((res) => {
                   setPostDataResponsePending(false);
@@ -729,9 +729,9 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
    * The application has been updated since the last time the BAP's submissions
    * ETL process has last succesfully run.
    */
-  const paymentRequestHasBeenUpdated = paymentRequest.bap?.lastModified
+  const paymentRequestHasBeenUpdated = paymentRequest.bap?.modified
     ? new Date(paymentRequest.formio.modified) >
-      new Date(paymentRequest.bap.lastModified)
+      new Date(paymentRequest.bap.modified)
     : false;
 
   const paymentRequestNeedsEdits =

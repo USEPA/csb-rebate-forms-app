@@ -165,7 +165,6 @@ function ApplicationFormContent({ email }: { email: string }) {
   });
 
   const bap = {
-    lastModified: match?.CSB_Modified_Full_String__c || null,
     rebateId: match?.Parent_Rebate_ID__c || null,
     rebateStatus: match?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c || null,
   };

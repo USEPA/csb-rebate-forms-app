@@ -397,7 +397,15 @@ router.post(
   "/formio-payment-request-submission",
   storeBapComboKeys,
   (req, res) => {
-    const { email, title, name, comboKey, rebateId, reviewItemId } = req.body;
+    const {
+      email,
+      title,
+      name,
+      comboKey,
+      rebateId,
+      reviewItemId,
+      applicationFormModified,
+    } = req.body;
 
     // verify post data includes one of user's BAP combo keys
     if (!req.bapComboKeys.includes(comboKey)) {
@@ -434,10 +442,11 @@ router.post(
         // issue with the field being changed to an object when the form loads
         const newSubmission = {
           data: {
+            bap_hidden_entity_combo_key: comboKey,
+            hidden_application_form_modified: applicationFormModified,
             hidden_current_user_email: email,
             hidden_current_user_title: title,
             hidden_current_user_name: name,
-            bap_hidden_entity_combo_key: comboKey,
             hidden_bap_rebate_id: rebateId,
             hidden_bap_district_id: CSB_NCES_ID__c,
             hidden_bap_primary_name: Primary_Applicant__r?.Name,
