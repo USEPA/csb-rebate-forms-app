@@ -51,11 +51,11 @@ export type FormioPaymentRequestSubmission = {
   data: {
     [field: string]: unknown;
     // fields injected upon new draft Payment Request submission creation:
-    last_updated_by: string;
+    bap_hidden_entity_combo_key: string;
+    hidden_application_form_modified: string; // ISO 8601 date string
     hidden_current_user_email: string;
     hidden_current_user_title: string;
     hidden_current_user_name: string;
-    bap_hidden_entity_combo_key: string;
     hidden_bap_rebate_id: string;
   };
 };
