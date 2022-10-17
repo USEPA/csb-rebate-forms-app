@@ -78,12 +78,14 @@ function setupConnection(app) {
   return bapConnection
     .loginByOAuth2(BAP_USER, BAP_PASSWORD)
     .then((userInfo) => {
-      const message = `Initializing BAP Connection: ${userInfo.url}.`;
+      const message = `Initializing BAP connection: ${userInfo.url}.`;
       log({ level: "info", message });
       // Store bapConnection in global express object using app.locals
       app.locals.bapConnection = bapConnection;
     })
     .catch((err) => {
+      const message = `Error initializing BAP connection.`;
+      log({ level: "info", message });
       throw err;
     });
 }
@@ -390,41 +392,32 @@ async function queryForApplicationSubmission(req, reviewItemId) {
  * @param {any[]} callback.args arguments to pass to the callback function
  */
 function verifyBapConnection(req, { name, args }) {
-  // BAP connection has not yet been initialized, so set set it up and call
-  // callback function
-  if (!req.app.locals.bapConnection) {
-    const message = `BAP Connection has not yet been initialized.`;
-    log({ level: "info", message });
+  /** @type {jsforce.Connection} */
+  const bapConnection = req.app.locals.bapConnection;
 
-    return setupConnection(req.app)
-      .then(() => name(...args))
-      .catch((err) => {
+  function callback() {
+    return name(...args).catch((err) => {
         const message = `BAP Error: ${err}`;
         log({ level: "error", message, req });
         throw err;
       });
   }
 
-  // BAP connection has already been initialized, so call callback function
-  return name(...args).catch((err) => {
-    // in case of errors, log appropriate error, attempt to setup connection
-    // once more, and then call callback function
-    if (err?.toString() === "invalid_grant: expired access/refresh token") {
-      const message = `BAP access token expired`;
-      log({ level: "info", message, req });
-    } else {
-      const message = `BAP Error: ${err}`;
-      log({ level: "error", message, req });
+  if (!bapConnection) {
+    const message = `BAP connection has not yet been initialized.`;
+    log({ level: "info", message });
+    return setupConnection(req.app).then(() => callback());
     }
 
-    return setupConnection(req.app)
-      .then(() => name(...args))
-      .catch((retryErr) => {
-        const message = `BAP Error: ${retryErr}`;
-        log({ level: "error", message, req });
-        throw retryErr;
-      });
-  });
+  return bapConnection
+    .identity((err, res) => {
+      if (err) {
+        const message = `BAP connection identity error.`;
+        log({ level: "info", message });
+        return setupConnection(req.app).then(() => callback());
+      }
+    })
+    .then((res) => callback());
 }
 
 /**
