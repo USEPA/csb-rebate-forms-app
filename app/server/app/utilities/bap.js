@@ -397,17 +397,17 @@ function verifyBapConnection(req, { name, args }) {
 
   function callback() {
     return name(...args).catch((err) => {
-        const message = `BAP Error: ${err}`;
-        log({ level: "error", message, req });
-        throw err;
-      });
+      const message = `BAP Error: ${err}`;
+      log({ level: "error", message, req });
+      throw err;
+    });
   }
 
   if (!bapConnection) {
     const message = `BAP connection has not yet been initialized.`;
     log({ level: "info", message });
     return setupConnection(req.app).then(() => callback());
-    }
+  }
 
   return bapConnection
     .identity((err, res) => {
