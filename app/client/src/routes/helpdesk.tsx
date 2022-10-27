@@ -20,7 +20,7 @@ import {
   usePageFormioDispatch,
 } from "contexts/pageFormio";
 
-type FormType = "application" | "paymentRequest" | "closeOut";
+type FormType = "application" | "payment-request" | "close-out";
 
 export function Helpdesk() {
   const navigate = useNavigate();
@@ -97,8 +97,8 @@ export function Helpdesk() {
               className="usa-radio__input"
               type="radio"
               name="form-type"
-              value="paymentRequest"
-              checked={formType === "paymentRequest"}
+              value="payment-request"
+              checked={formType === "payment-request"}
               onChange={(ev) => {
                 setFormType(ev.target.value as FormType);
                 pageFormioDispatch({ type: "RESET_FORMIO_DATA" });
@@ -118,8 +118,8 @@ export function Helpdesk() {
               className="usa-radio__input"
               type="radio"
               name="form-type"
-              value="closeOut"
-              checked={formType === "closeOut"}
+              value="close-out"
+              checked={formType === "close-out"}
               onChange={(ev) => {
                 setFormType(ev.target.value as FormType);
                 pageFormioDispatch({ type: "RESET_FORMIO_DATA" });
@@ -211,7 +211,7 @@ export function Helpdesk() {
                         tooltip="Formio submission's MongoDB Object ID"
                       />
                     </th>
-                  ) : formType === "paymentRequest" ? (
+                  ) : formType === "payment-request" ? (
                     <th scope="col">
                       <TextWithTooltip
                         text="Rebate ID"
@@ -279,7 +279,7 @@ export function Helpdesk() {
 
                   {formType === "application" ? (
                     <td>{submission._id}</td>
-                  ) : formType === "paymentRequest" ? (
+                  ) : formType === "payment-request" ? (
                     <td>{submission.data.hidden_bap_rebate_id as string}</td>
                   ) : (
                     <td>&nbsp;</td>
@@ -289,7 +289,7 @@ export function Helpdesk() {
                     <td>
                       {submission.data.sam_hidden_applicant_name as string}
                     </td>
-                  ) : formType === "paymentRequest" ? (
+                  ) : formType === "payment-request" ? (
                     <td>{submission.data.applicantName as string}</td>
                   ) : (
                     <td>&nbsp;</td>
@@ -297,7 +297,7 @@ export function Helpdesk() {
 
                   {formType === "application" ? (
                     <td>{submission.data.last_updated_by as string}</td>
-                  ) : formType === "paymentRequest" ? (
+                  ) : formType === "payment-request" ? (
                     <td>{submission.data.hidden_current_user_email}</td>
                   ) : (
                     <td>&nbsp;</td>
@@ -389,7 +389,7 @@ export function Helpdesk() {
                       <>
                         <strong>Application ID:</strong> {submission._id}
                       </>
-                    ) : formType === "paymentRequest" ? (
+                    ) : formType === "payment-request" ? (
                       <>
                         <strong>Rebate ID:</strong>{" "}
                         {submission.data.hidden_bap_rebate_id}
