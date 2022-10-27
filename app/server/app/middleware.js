@@ -145,7 +145,11 @@ function checkClientRouteExists(req, res, next) {
   const clientRoutes = ["/", "/welcome", "/helpdesk", "/rebate/new"].map(
     (route) => `${subPath}${route}`
   );
-  if (!clientRoutes.includes(req.path) && !req.path.includes("/rebate/")) {
+  if (
+    !clientRoutes.includes(req.path) &&
+    !req.path.includes("/rebate/") &&
+    !req.path.includes("/payment-request/")
+  ) {
     return res.status(404).sendFile(resolve(__dirname, "public/404.html"));
   }
   next();
