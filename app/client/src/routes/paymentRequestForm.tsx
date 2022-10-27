@@ -97,7 +97,7 @@ function PaymentRequestFormContent({ email }: { email: string }) {
           const s3Formio = cloneDeep(formio);
           const mongoId = res.submission._id;
           const comboKey = res.submission.data.bap_hidden_entity_combo_key;
-          s3Formio.formUrl = `${serverUrl}/api/${mongoId}/${comboKey}`;
+          s3Formio.formUrl = `${serverUrl}/api/s3/payment-request/${mongoId}/${comboKey}`;
           return s3Provider(s3Formio);
         };
 
@@ -149,6 +149,8 @@ function PaymentRequestFormContent({ email }: { email: string }) {
   ) {
     return <Loading />;
   }
+
+  const formIsReadOnly = submission.state === "submitted";
 
   const entityComboKey = storedSubmissionData.bap_hidden_entity_combo_key;
   const entity = samEntities.data.entities.find((entity) => {
@@ -208,7 +210,7 @@ function PaymentRequestFormContent({ email }: { email: string }) {
             },
           }}
           options={{
-            readOnly: submission.state === "submitted",
+            readOnly: formIsReadOnly,
             noAlerts: true,
           }}
           onSubmit={(onSubmitSubmission: {
@@ -216,6 +218,8 @@ function PaymentRequestFormContent({ email }: { email: string }) {
             data: FormioSubmissionData;
             metadata: unknown;
           }) => {
+            if (formIsReadOnly) return;
+
             const data = { ...onSubmitSubmission.data };
 
             if (onSubmitSubmission.state === "submitted") {
@@ -296,11 +300,9 @@ function PaymentRequestFormContent({ email }: { email: string }) {
               metadata: unknown;
             };
           }) => {
-            const data = { ...onNextPageParam.submission.data };
+            if (formIsReadOnly) return;
 
-            // don't post an update if form is not in draft state
-            // (form has been already submitted, and fields are read-only)
-            if (submission.state !== "draft") return;
+            const data = { ...onNextPageParam.submission.data };
 
             // don't post an update if no changes have been made to the form
             // (ignoring current user fields)

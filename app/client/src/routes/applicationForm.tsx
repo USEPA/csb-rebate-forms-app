@@ -100,7 +100,7 @@ function ApplicationFormContent({ email }: { email: string }) {
         Formio.Providers.providers.storage.s3 = function (formio: any) {
           const s3Formio = cloneDeep(formio);
           const comboKey = res.submission.data.bap_hidden_entity_combo_key;
-          s3Formio.formUrl = `${serverUrl}/api/${mongoId}/${comboKey}`;
+          s3Formio.formUrl = `${serverUrl}/api/s3/application/${mongoId}/${comboKey}`;
           return s3Provider(s3Formio);
         };
 
@@ -170,6 +170,10 @@ function ApplicationFormContent({ email }: { email: string }) {
   };
 
   const submissionNeedsEdits = bap.rebateStatus === "Edits Requested";
+
+  const formIsReadOnly =
+    (enrollmentClosed && !submissionNeedsEdits) ||
+    submission.state === "submitted";
 
   const entityComboKey = storedSubmissionData.bap_hidden_entity_combo_key;
   const entity = samEntities.data.entities.find((entity) => {
@@ -242,9 +246,7 @@ function ApplicationFormContent({ email }: { email: string }) {
             },
           }}
           options={{
-            readOnly:
-              (enrollmentClosed && !submissionNeedsEdits) ||
-              submission.state === "submitted",
+            readOnly: formIsReadOnly,
             noAlerts: true,
           }}
           onSubmit={(onSubmitSubmission: {
@@ -252,6 +254,8 @@ function ApplicationFormContent({ email }: { email: string }) {
             data: FormioSubmissionData;
             metadata: unknown;
           }) => {
+            if (formIsReadOnly) return;
+
             const data = { ...onSubmitSubmission.data };
 
             // remove `ncesDataSource` and `ncesDataLookup` fields
@@ -337,6 +341,8 @@ function ApplicationFormContent({ email }: { email: string }) {
               metadata: unknown;
             };
           }) => {
+            if (formIsReadOnly) return;
+
             const data = { ...onNextPageParam.submission.data };
 
             // remove `ncesDataSource` and `ncesDataLookup` fields
@@ -346,10 +352,6 @@ function ApplicationFormContent({ email }: { email: string }) {
             if (data.hasOwnProperty("ncesDataLookup")) {
               delete data.ncesDataLookup;
             }
-
-            // don't post an update if form is not in draft state
-            // (form has been already submitted, and fields are read-only)
-            if (submission.state !== "draft") return;
 
             // don't post an update if no changes have been made to the form
             // (ignoring current user fields)

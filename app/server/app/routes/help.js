@@ -52,7 +52,7 @@ router.get("/formio-submission/:formType/:id", (req, res) => {
       });
   }
 
-  if (formType === "paymentRequest") {
+  if (formType === "payment-request") {
     const rebateId = id;
 
     const matchedPaymentRequestFormSubmissions =
@@ -145,7 +145,7 @@ router.post("/formio-submission/:formType/:id", (req, res) => {
       });
   }
 
-  if (formType === "paymentRequest") {
+  if (formType === "payment-request") {
     const rebateId = id;
 
     const matchedPaymentRequestFormSubmissions =
