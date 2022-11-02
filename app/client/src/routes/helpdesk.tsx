@@ -319,7 +319,8 @@ export function Helpdesk() {
                     <button
                       className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
                       disabled={
-                        enrollmentClosed || submission.state === "draft"
+                        submission.state === "draft" ||
+                        (formType === "application" && enrollmentClosed)
                       }
                       onClick={(_ev) => {
                         dialogDispatch({
