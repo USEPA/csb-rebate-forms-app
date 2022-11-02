@@ -46,27 +46,37 @@ function checkEnrollmentPeriodAndBapStatus({
   comboKey,
   req,
 }) {
-  // TODO: update when closing of payment request form's "open enrollment"
-  // functionality is implemented
-  if (formType === "payment-request") {
-    return Promise.resolve();
-  }
-
-  // continue if enrollment isn't closed
-  if (!enrollmentClosed) {
-    return Promise.resolve();
-  }
-
-  // else, enrollment is closed, so only continue if edits are requested
-  return getApplicationSubmissionsStatuses(req, [comboKey]).then(
-    (submissions) => {
-      const submission = submissions.find((s) => s.CSB_Form_ID__c === mongoId);
-      const status = submission?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c;
-      return status === "Edits Requested"
-        ? Promise.resolve()
-        : Promise.reject();
+  if (formType === "application") {
+    // continue if enrollment isn't closed
+    if (!enrollmentClosed) {
+      return Promise.resolve();
     }
-  );
+
+    // else enrollment is closed, so only continue if edits are requested
+    return getApplicationSubmissionsStatuses(req, [comboKey]).then(
+      (submissions) => {
+        const submission = submissions.find((submission) => {
+          return submission.CSB_Form_ID__c === mongoId;
+        });
+        const status = submission?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c;
+        return status === "Edits Requested"
+          ? Promise.resolve()
+          : Promise.reject();
+      }
+    );
+  }
+
+  if (formType === "payment-request") {
+    // TODO: update when closing of payment request form's "open enrollment"
+    // functionality is implemented
+    return Promise.resolve();
+  }
+
+  if (formType === "close-out") {
+    // TODO: update when closing of close out form's "open enrollment"
+    // functionality is implemented
+    return Promise.resolve();
+  }
 }
 
 const router = express.Router();
