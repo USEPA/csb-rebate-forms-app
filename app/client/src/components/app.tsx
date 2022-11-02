@@ -18,40 +18,43 @@ import "@formio/choices.js/public/assets/styles/choices.min.css";
 import "@formio/premium/dist/premium.css";
 import "formiojs/dist/formio.full.min.css";
 // ---
-import { serverBasePath, serverUrl, cloudSpace, fetchData } from "../config";
-import Loading from "components/loading";
-import MarkdownContent from "components/markdownContent";
-import Welcome from "components/welcome";
-import Dashboard from "components/dashboard";
-import ConfirmationDialog from "components/confirmationDialog";
-import Helpdesk from "routes/helpdesk";
-import AllRebates from "routes/allRebates";
-import NewRebate from "routes/newRebate";
-import ExistingRebate from "routes/existingRebate";
+import { serverBasePath, serverUrl, cloudSpace, getData } from "../config";
+import { Loading } from "components/loading";
+import { MarkdownContent } from "components/markdownContent";
+import { Welcome } from "routes/welcome";
+import { Dashboard } from "components/dashboard";
+import { ConfirmationDialog } from "components/confirmationDialog";
+import { Helpdesk } from "routes/helpdesk";
+import { AllRebates } from "routes/allRebates";
+import { NewApplicationForm } from "routes/newApplicationForm";
+import { ApplicationForm } from "routes/applicationForm";
+import { PaymentRequestForm } from "routes/paymentRequestForm";
 import { useContentState, useContentDispatch } from "contexts/content";
-import { useUserState, useUserDispatch } from "contexts/user";
 import { useDialogDispatch, useDialogState } from "contexts/dialog";
+import { useUserState, useUserDispatch } from "contexts/user";
 
-// Custom hook to fetch static content
+type FetchStatus = "idle" | "pending" | "success" | "failure";
+
+/** Custom hook to fetch static content */
 function useFetchedContent() {
-  const dispatch = useContentDispatch();
+  const contentDispatch = useContentDispatch();
 
   useEffect(() => {
-    dispatch({ type: "FETCH_CONTENT_REQUEST" });
-    fetchData(`${serverUrl}/api/content`)
+    contentDispatch({ type: "FETCH_CONTENT_REQUEST" });
+    getData(`${serverUrl}/api/content`)
       .then((res) => {
-        dispatch({
+        contentDispatch({
           type: "FETCH_CONTENT_SUCCESS",
           payload: res,
         });
       })
       .catch((err) => {
-        dispatch({ type: "FETCH_CONTENT_FAILURE" });
+        contentDispatch({ type: "FETCH_CONTENT_FAILURE" });
       });
-  }, [dispatch]);
+  }, [contentDispatch]);
 }
 
-// Custom hook to display a site-wide alert banner
+/** Custom hook to display a site-wide alert banner */
 function useSiteAlertBanner() {
   const { content } = useContentState();
 
@@ -89,7 +92,7 @@ function useSiteAlertBanner() {
   }, [content]);
 }
 
-// Custom hook to display the CSB disclaimer banner for development/staging
+/** Custom hook to display the CSB disclaimer banner for development/staging */
 function useDisclaimerBanner() {
   useEffect(() => {
     if (!(cloudSpace === "dev" || cloudSpace === "staging")) return;
@@ -112,29 +115,28 @@ function useDisclaimerBanner() {
   }, []);
 }
 
-// Custom hook to set up inactivity timer to auto-logout user if they're inactive for >15 minutes
+/** Custom hook to set up inactivity timer to auto-logout user if they're inactive for >15 minutes */
 function useInactivityDialog(callback: () => void) {
   const { epaUserData } = useUserState();
   const { dialogShown, heading } = useDialogState();
-  const dispatch = useDialogDispatch();
+  const dialogDispatch = useDialogDispatch();
+
+  /** Initial time (seconds) used in the logout countdown timer */
+  const initialCountdownSeconds = 60;
+
+  const [logoutTimer, setLogoutTimer] = useState(initialCountdownSeconds);
 
   /**
-   * Initial time (in seconds) used in the warning countdown timer.
+   * One minute less than our intended 15 minute timeout, so `onIdle` is called
+   * and displays a 60 second warning modal to keep user logged in.
    */
-  const warningTime = 60;
-  const [logoutTimer, setLogoutTimer] = useState(warningTime);
-
-  /**
-   * One minute less than our intended timeout (14 instead of 15) so that onIdle
-   * is called and displays a 60-second warning modal to keep user logged in.
-   */
-  const timeout = 14 * 60 * 1000; // 14 minutes to millisecond
+  const timeout = 14 * 60 * 1000; // 14 minutes in milliseconds
 
   const { reset } = useIdleTimer({
     timeout,
     onIdle: () => {
-      // Display 60-second countdown dialog after 14 minutes of idle time
-      dispatch({
+      // display 60 second countdown dialog after 14 minutes of idle time
+      dialogDispatch({
         type: "DISPLAY_DIALOG",
         payload: {
           dismissable: false,
@@ -150,22 +152,22 @@ function useInactivityDialog(callback: () => void) {
     },
     onAction: () => {
       if (!dialogShown) {
-        // Reset logout timer if user confirmed activity
-        // (so countdown starts over on next inactive warning)
-        setLogoutTimer(warningTime);
+        // keep logout timer at initial countdown time if the dialog isn't shown
+        // (so logout timer is ready for the next inactive warning)
+        setLogoutTimer(initialCountdownSeconds);
       }
+
+      if (epaUserData.status !== "success") return;
+
+      const { exp } = epaUserData.data; // seconds
+      const timeToExpire = exp - Date.now() / 1000; // seconds
+      const threeMinutes = 180; // seconds
 
       /**
        * If user makes action and the JWT is set to expire within 3 minutes,
-       * call the callback (hit the /epa-data endpoint) to refresh the JWT
+       * call the callback (access "/epa-user-data") to refresh the JWT
        */
-      if (epaUserData.status !== "success") return;
-
-      const jwtRefreshWindow = 180; // in seconds
-      const exp = epaUserData.data.exp;
-      const timeToExpire = exp - Date.now() / 1000;
-
-      if (timeToExpire < jwtRefreshWindow) {
+      if (timeToExpire < threeMinutes) {
         callback();
         reset();
       }
@@ -175,36 +177,35 @@ function useInactivityDialog(callback: () => void) {
   });
 
   useEffect(() => {
+    // update inactivity warning dialog's time remaining every second
     if (dialogShown && heading === "Inactivity Warning") {
       setTimeout(() => {
-        setLogoutTimer((count: number) => (count > 0 ? count - 1 : count));
-        dispatch({
+        setLogoutTimer((time: number) => (time > 0 ? time - 1 : time));
+        dialogDispatch({
           type: "UPDATE_DIALOG_DESCRIPTION",
           payload: {
-            description: `You will be automatically logged out in ${
-              logoutTimer - 1
-            } seconds due to inactivity.`,
+            description:
+              `You will be automatically logged out in ` +
+              `${logoutTimer - 1} seconds due to inactivity.`,
           },
         });
       }, 1000);
     }
 
-    // Log user out from server if inactivity countdown reaches 0
+    // log user out from server if inactivity countdown reaches 0
     if (logoutTimer === 0) {
       window.location.href = `${serverUrl}/logout?RelayState=/welcome?info=timeout`;
     }
-  }, [dialogShown, heading, logoutTimer, dispatch]);
+  }, [dialogShown, heading, logoutTimer, dialogDispatch]);
 }
 
-// Custom hook to check if user should have access to helpdesk pages
+/** Custom hook to check if user should have access to helpdesk pages */
 export function useHelpdeskAccess() {
-  const [helpdeskAccess, setHelpdeskAccess] = useState<
-    "idle" | "pending" | "success" | "failure"
-  >("idle");
+  const [helpdeskAccess, setHelpdeskAccess] = useState<FetchStatus>("idle");
 
   useEffect(() => {
     setHelpdeskAccess("pending");
-    fetchData(`${serverUrl}/api/helpdesk-access`)
+    getData(`${serverUrl}/api/helpdesk-access`)
       .then((res) => setHelpdeskAccess("success"))
       .catch((err) => setHelpdeskAccess("failure"));
   }, []);
@@ -216,28 +217,32 @@ export function useHelpdeskAccess() {
 function ProtectedRoute({ children }: { children: JSX.Element }) {
   const { pathname } = useLocation();
   const { isAuthenticating, isAuthenticated } = useUserState();
-  const dispatch = useUserDispatch();
+  const userDispatch = useUserDispatch();
 
-  // Check if user is already logged in or needs to be redirected to /welcome route
+  // check if user is already logged in or needs to be logged out (which will
+  // redirect them to the "/welcome" route)
   const verifyUser = useCallback(() => {
-    fetchData(`${serverUrl}/api/epa-data`)
+    getData(`${serverUrl}/api/epa-user-data`)
       .then((res) => {
-        dispatch({
+        userDispatch({
           type: "FETCH_EPA_USER_DATA_SUCCESS",
           payload: { epaUserData: res },
         });
-        dispatch({ type: "USER_SIGN_IN" });
+        userDispatch({ type: "USER_SIGN_IN" });
       })
       .catch((err) => {
-        dispatch({ type: "FETCH_EPA_USER_DATA_FAILURE" });
-        dispatch({ type: "USER_SIGN_OUT" });
+        userDispatch({ type: "FETCH_EPA_USER_DATA_FAILURE" });
+        userDispatch({ type: "USER_SIGN_OUT" });
       });
-  }, [dispatch]);
+  }, [userDispatch]);
 
+  // NOTE: even though `pathname` isn't used in the effect below, it's being
+  // included it in the dependency array as we want to verify the user's access
+  // any time a route changes
   useEffect(() => {
-    dispatch({ type: "FETCH_EPA_USER_DATA_REQUEST" });
+    userDispatch({ type: "FETCH_EPA_USER_DATA_REQUEST" });
     verifyUser();
-  }, [verifyUser, dispatch, pathname]);
+  }, [userDispatch, verifyUser, pathname]);
 
   useInactivityDialog(verifyUser);
 
@@ -257,7 +262,7 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
   );
 }
 
-export default function App() {
+export function App() {
   useFetchedContent();
   useSiteAlertBanner();
   useDisclaimerBanner();
@@ -288,8 +293,12 @@ export default function App() {
             displayed.
           */}
           <Route path="helpdesk" element={<Helpdesk />} />
-          <Route path="rebate/new" element={<NewRebate />} />
-          <Route path="rebate/:id" element={<ExistingRebate />} />
+          <Route path="rebate/new" element={<NewApplicationForm />} />
+          <Route path="rebate/:mongoId" element={<ApplicationForm />} />
+          <Route
+            path="payment-request/:rebateId"
+            element={<PaymentRequestForm />}
+          />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

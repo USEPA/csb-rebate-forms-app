@@ -10,59 +10,61 @@ import {
   serverUrlForHrefs,
   formioBaseUrl,
   formioProjectUrl,
-  fetchData,
+  getData,
 } from "../config";
 import { useHelpdeskAccess } from "components/app";
-import Loading from "components/loading";
-import { useUserState, useUserDispatch } from "contexts/user";
+import { Loading } from "components/loading";
 import { Action, useDialogDispatch } from "contexts/dialog";
+import { useUserState } from "contexts/user";
+import { useCsbState, useCsbDispatch } from "contexts/csb";
+import { useBapState, useBapDispatch } from "contexts/bap";
 
 Formio.setBaseUrl(formioBaseUrl);
 Formio.setProjectUrl(formioProjectUrl);
 Formio.use(premium);
 Formio.use(uswds);
 
-// Custom hook to fetch CSP app specific data
+/** Custom hook to fetch CSP app specific data */
 function useFetchedCsbData() {
-  const dispatch = useUserDispatch();
+  const csbDispatch = useCsbDispatch();
 
   useEffect(() => {
-    dispatch({ type: "FETCH_CSB_DATA_REQUEST" });
-    fetchData(`${serverUrl}/api/csb-data`)
+    csbDispatch({ type: "FETCH_CSB_DATA_REQUEST" });
+    getData(`${serverUrl}/api/csb-data`)
       .then((res) => {
-        dispatch({
+        csbDispatch({
           type: "FETCH_CSB_DATA_SUCCESS",
           payload: { csbData: res },
         });
       })
       .catch((err) => {
-        dispatch({ type: "FETCH_CSB_DATA_FAILURE" });
+        csbDispatch({ type: "FETCH_CSB_DATA_FAILURE" });
       });
-  }, [dispatch]);
+  }, [csbDispatch]);
 }
 
-// Custom hook to fetch BAP data
-function useFetchedBapData() {
-  const dispatch = useUserDispatch();
+/** Custom hook to fetch SAM.gov data */
+function useFetchedSamData() {
+  const bapDispatch = useBapDispatch();
 
   useEffect(() => {
-    dispatch({ type: "FETCH_BAP_USER_DATA_REQUEST" });
-    fetchData(`${serverUrl}/api/bap-data`)
+    bapDispatch({ type: "FETCH_BAP_SAM_DATA_REQUEST" });
+    getData(`${serverUrl}/api/bap-sam-data`)
       .then((res) => {
-        if (res.samResults) {
-          dispatch({
-            type: "FETCH_BAP_USER_DATA_SUCCESS",
-            payload: { bapUserData: res },
+        if (res.results) {
+          bapDispatch({
+            type: "FETCH_BAP_SAM_DATA_SUCCESS",
+            payload: { samEntities: res },
           });
         } else {
-          window.location.href = `${serverUrlForHrefs}/logout?RelayState=/welcome?info=sam-results`;
+          window.location.href = `${serverUrlForHrefs}/logout?RelayState=/welcome?info=bap-sam-results`;
         }
       })
       .catch((err) => {
-        dispatch({ type: "FETCH_BAP_USER_DATA_FAILURE" });
-        window.location.href = `${serverUrlForHrefs}/logout?RelayState=/welcome?error=bap-fetch`;
+        bapDispatch({ type: "FETCH_BAP_SAM_DATA_FAILURE" });
+        window.location.href = `${serverUrlForHrefs}/logout?RelayState=/welcome?error=bap-sam-fetch`;
       });
-  }, [dispatch]);
+  }, [bapDispatch]);
 }
 
 type IconTextProps = {
@@ -100,16 +102,26 @@ function IconText({ order, icon, text }: IconTextProps) {
   );
 }
 
-export default function Dashboard() {
+export function Dashboard() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
-  const { csbData, epaUserData, bapUserData } = useUserState();
-  const dispatch = useDialogDispatch();
+  const { epaUserData } = useUserState();
+  const { csbData } = useCsbState();
+  const { samEntities } = useBapState();
+  const dialogDispatch = useDialogDispatch();
   const helpdeskAccess = useHelpdeskAccess();
 
   useFetchedCsbData();
-  useFetchedBapData();
+  useFetchedSamData();
+
+  const onAllRebatesPage = pathname === "/";
+  const onHelpdeskPage = pathname === "/helpdesk";
+  const onApplicationFormPage = pathname.startsWith("/rebate");
+  const onPaymentRequestFormPage = pathname.startsWith("/payment-request");
+
+  const enrollmentClosed =
+    csbData.status === "success" && csbData.data.enrollmentClosed;
 
   /**
    * When provided a destination location to navigate to, creates an action
@@ -132,7 +144,7 @@ export default function Dashboard() {
     };
   }
 
-  if (bapUserData.status !== "success") {
+  if (samEntities.status !== "success") {
     return <Loading />;
   }
 
@@ -178,7 +190,7 @@ export default function Dashboard() {
         </nav>
 
         <nav>
-          {pathname === "/" ? (
+          {onAllRebatesPage ? (
             <button
               className="margin-bottom-1 usa-button font-sans-2xs"
               disabled
@@ -194,10 +206,10 @@ export default function Dashboard() {
               to="/"
               className="margin-bottom-1 usa-button font-sans-2xs"
               onClick={(ev) => {
-                if (pathname.startsWith("/rebate")) {
+                if (onApplicationFormPage || onPaymentRequestFormPage) {
                   ev.preventDefault();
                   const action = createDialogNavAction("/");
-                  dispatch(action);
+                  dialogDispatch(action);
                 }
               }}
             >
@@ -209,8 +221,9 @@ export default function Dashboard() {
             </Link>
           )}
 
-          {pathname.startsWith("/rebate") ||
-          (csbData.status === "success" && csbData.data.enrollmentClosed) ? (
+          {onApplicationFormPage ||
+          onPaymentRequestFormPage ||
+          enrollmentClosed ? (
             <button
               className="margin-bottom-1 usa-button font-sans-2xs"
               disabled
@@ -236,7 +249,7 @@ export default function Dashboard() {
 
           {helpdeskAccess === "success" && (
             <>
-              {pathname === "/helpdesk" ? (
+              {onHelpdeskPage ? (
                 <button
                   className="margin-bottom-1 usa-button font-sans-2xs"
                   disabled
@@ -248,10 +261,10 @@ export default function Dashboard() {
                   to="/helpdesk"
                   className="margin-bottom-1 usa-button font-sans-2xs"
                   onClick={(ev) => {
-                    if (pathname.startsWith("/rebate")) {
+                    if (onApplicationFormPage || onPaymentRequestFormPage) {
                       ev.preventDefault();
                       const action = createDialogNavAction("/helpdesk");
-                      dispatch(action);
+                      dialogDispatch(action);
                     }
                   }}
                 >

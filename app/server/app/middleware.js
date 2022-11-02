@@ -3,10 +3,9 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const ObjectId = require("mongodb").ObjectId;
 // ---
-const { getRebateSubmissionsData } = require("./utilities/bap");
 const { createJwt, jwtAlgorithm } = require("./utilities/createJwt");
 const log = require("./utilities/logger");
-const { getComboKeys } = require("./utilities/bap");
+const { getBapComboKeys } = require("./utilities/bap");
 
 const cookieName = "csb-token";
 
@@ -146,7 +145,11 @@ function checkClientRouteExists(req, res, next) {
   const clientRoutes = ["/", "/welcome", "/helpdesk", "/rebate/new"].map(
     (route) => `${subPath}${route}`
   );
-  if (!clientRoutes.includes(req.path) && !req.path.includes("/rebate/")) {
+  if (
+    !clientRoutes.includes(req.path) &&
+    !req.path.includes("/rebate/") &&
+    !req.path.includes("/payment-request/")
+  ) {
     return res.status(404).sendFile(resolve(__dirname, "public/404.html"));
   }
   next();
@@ -174,7 +177,7 @@ function appScan(req, res, next) {
  * @param {express.NextFunction} next
  */
 function storeBapComboKeys(req, res, next) {
-  getComboKeys(req.user.mail, req)
+  getBapComboKeys(req, req.user.mail)
     .then((bapComboKeys) => {
       req.bapComboKeys = bapComboKeys;
       next();
@@ -193,9 +196,8 @@ function verifyMongoObjectId(req, res, next) {
   const id = req.params.id;
 
   if (id && !ObjectId.isValid(id)) {
-    return res.status(400).json({
-      message: `MongoDB ObjectId validation error for: ${id}`,
-    });
+    const message = `MongoDB ObjectId validation error for: ${id}`;
+    return res.status(400).json({ message });
   }
 
   next();

@@ -3,36 +3,42 @@ const express = require("express");
 const {
   axiosFormio,
   formioProjectUrl,
-  formioFormName,
+  formioApplicationFormPath,
 } = require("../config/formio");
-const { getSamData } = require("../utilities/bap");
+const { getSamEntities } = require("../utilities/bap");
 
 const router = express.Router();
 
 router.get("/app", (req, res) => {
-  res.json({ status: true });
+  return res.json({ status: true });
 });
 
-router.get("/bap", (req, res) => {
-  getSamData("CleanSchoolBus@erg.com", req)
-    .then(() => {
-      res.json({ status: true });
+router.get("/bap-sam-data", (req, res) => {
+  getSamEntities(req, "bap.sam.data.status@erg.com")
+    .then((bapRes) => {
+      if (!Array.isArray(bapRes)) {
+        throw Error();
+      }
+
+      return res.json({ status: true });
     })
     .catch(() => {
-      res.json({ status: false });
+      return res.json({ status: false });
     });
 });
 
-router.get("/form", (req, res) => {
+const applicationFormApiPath = `${formioProjectUrl}/${formioApplicationFormPath}`;
+
+router.get("/formio-application-schema", (req, res) => {
   axiosFormio(req)
-    .get(`${formioProjectUrl}/${formioFormName}`)
+    .get(applicationFormApiPath)
     .then((axiosRes) => axiosRes.data)
-    .then((schema) =>
+    .then((schema) => {
       // Verify that schema has type of form and a title exists (confirming formio returned a valid schema)
-      res.json({ status: schema.type === "form" && !!schema.title })
-    )
+      return res.json({ status: schema.type === "form" && !!schema.title });
+    })
     .catch(() => {
-      res.json({ status: false });
+      return res.json({ status: false });
     });
 });
 

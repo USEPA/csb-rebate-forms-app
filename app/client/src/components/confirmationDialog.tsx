@@ -9,7 +9,7 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import { useDialogState, useDialogDispatch } from "contexts/dialog";
 
-export default function ConfirmationDialog() {
+export function ConfirmationDialog() {
   const {
     dialogShown,
     dismissable,
@@ -19,14 +19,16 @@ export default function ConfirmationDialog() {
     cancelText,
     confirmedAction,
   } = useDialogState();
-  const dispatch = useDialogDispatch();
+  const dialogDispatch = useDialogDispatch();
 
   const cancelRef = useRef<HTMLButtonElement>(null);
 
   return (
     <AlertDialogOverlay
       isOpen={dialogShown}
-      onDismiss={(ev) => dismissable && dispatch({ type: "RESET_DIALOG" })}
+      onDismiss={(ev) => {
+        dismissable && dialogDispatch({ type: "RESET_DIALOG" });
+      }}
       leastDestructiveRef={cancelRef}
     >
       <AlertDialogContent className="usa-modal">
@@ -49,7 +51,7 @@ export default function ConfirmationDialog() {
                     className="usa-button"
                     onClick={(ev) => {
                       confirmedAction();
-                      dispatch({ type: "RESET_DIALOG" });
+                      dialogDispatch({ type: "RESET_DIALOG" });
                     }}
                   >
                     {confirmText}
@@ -61,7 +63,7 @@ export default function ConfirmationDialog() {
                     <button
                       ref={cancelRef}
                       className="usa-button"
-                      onClick={(ev) => dispatch({ type: "RESET_DIALOG" })}
+                      onClick={(ev) => dialogDispatch({ type: "RESET_DIALOG" })}
                     >
                       {cancelText}
                     </button>
@@ -75,7 +77,7 @@ export default function ConfirmationDialog() {
             <button
               className="usa-button usa-modal__close"
               aria-label="Close this window"
-              onClick={(ev) => dispatch({ type: "RESET_DIALOG" })}
+              onClick={(ev) => dialogDispatch({ type: "RESET_DIALOG" })}
             >
               <svg
                 className="usa-icon"

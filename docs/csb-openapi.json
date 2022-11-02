@@ -21,9 +21,9 @@
         "parameters": [{ "$ref": "#/components/parameters/scan" }]
       }
     },
-    "/status/bap": {
+    "/status/bap-sam-data": {
       "get": {
-        "summary": "/status/bap",
+        "summary": "/status/bap-sam-data",
         "responses": {
           "200": {
             "description": "OK"
@@ -33,9 +33,21 @@
         "parameters": [{ "$ref": "#/components/parameters/scan" }]
       }
     },
-    "/status/form": {
+    "/status/formio-application-schema": {
       "get": {
-        "summary": "/status/form",
+        "summary": "/status/formio-application-schema",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [],
+        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+      }
+    },
+    "/status/formio-payment-request-schema": {
+      "get": {
+        "summary": "/status/formio-payment-request-schema",
         "responses": {
           "200": {
             "description": "OK"
@@ -142,10 +154,18 @@
         "parameters": [{ "$ref": "#/components/parameters/scan" }]
       }
     },
-    "/help/rebate-form-submission/{id}": {
+    "/help/formio-submission/{formType}/{id}": {
       "get": {
-        "summary": "/help/rebate-form-submission/{id}",
+        "summary": "/help/formio-submission/{id}",
         "parameters": [
+          {
+            "name": "formType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "id",
             "in": "path",
@@ -180,7 +200,7 @@
                         }
                       }
                     },
-                    "submissionData": {
+                    "submission": {
                       "type": "object"
                     }
                   }
@@ -192,8 +212,16 @@
         "tags": []
       },
       "post": {
-        "summary": "/help/rebate-form-submission/{id}",
+        "summary": "/help/formio-submission/{formType}/{id}",
         "parameters": [
+          {
+            "name": "formType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "id",
             "in": "path",
@@ -228,7 +256,7 @@
                         }
                       }
                     },
-                    "submissionData": {
+                    "submission": {
                       "type": "object"
                     }
                   }
@@ -238,6 +266,25 @@
           }
         },
         "tags": []
+      }
+    },
+    "/api/content": {
+      "get": {
+        "summary": "/api/content",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [],
+        "parameters": [{ "$ref": "#/components/parameters/scan" }]
       }
     },
     "/api/helpdesk-access": {
@@ -316,9 +363,9 @@
         "parameters": [{ "$ref": "#/components/parameters/scan" }]
       }
     },
-    "/api/epa-data": {
+    "/api/epa-user-data": {
       "get": {
-        "summary": "/api/epa-data",
+        "summary": "/api/epa-user-data",
         "responses": {
           "200": {
             "description": "OK",
@@ -365,9 +412,9 @@
         "parameters": [{ "$ref": "#/components/parameters/scan" }]
       }
     },
-    "/api/bap-data": {
+    "/api/bap-sam-data": {
       "get": {
-        "summary": "/api/bap-data",
+        "summary": "/api/bap-sam-data",
         "responses": {
           "200": {
             "description": "OK",
@@ -376,17 +423,11 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "samResults": {
+                    "results": {
                       "type": "boolean",
                       "example": true
                     },
-                    "samEntities": {
-                      "type": "array",
-                      "items": {
-                        "type": "object"
-                      }
-                    },
-                    "rebateSubmissions": {
+                    "entities": {
                       "type": "array",
                       "items": {
                         "type": "object"
@@ -402,86 +443,9 @@
         "parameters": [{ "$ref": "#/components/parameters/scan" }]
       }
     },
-    "/api/content": {
+    "/api/bap-application-submissions": {
       "get": {
-        "summary": "/api/content",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object"
-                }
-              }
-            }
-          }
-        },
-        "tags": [],
-        "parameters": [{ "$ref": "#/components/parameters/scan" }]
-      }
-    },
-    "/api/{id}/{comboKey}/storage/s3": {
-      "get": {
-        "summary": "/api/{id}/{comboKey}/storage/s3",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "comboKey",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          { "$ref": "#/components/parameters/scan" }
-        ]
-      },
-      "post": {
-        "summary": "/api/{id}/{comboKey}/storage/s3",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "comboKey",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          { "$ref": "#/components/parameters/scan" }
-        ]
-      }
-    },
-    "/api/rebate-form-submission": {
-      "post": {
-        "summary": "/api/rebate-form-submission",
+        "summary": "/api/bap-application-submissions",
         "responses": {
           "200": {
             "description": "OK",
@@ -501,9 +465,9 @@
         "parameters": [{ "$ref": "#/components/parameters/scan" }]
       }
     },
-    "/api/rebate-form-submissions": {
+    "/api/formio-application-submissions": {
       "get": {
-        "summary": "/api/rebate-form-submissions",
+        "summary": "/api/formio-application-submissions",
         "responses": {
           "200": {
             "description": "OK",
@@ -523,12 +487,34 @@
         "parameters": [{ "$ref": "#/components/parameters/scan" }]
       }
     },
-    "/api/rebate-form-submission/{id}": {
+    "/api/formio-application-submission": {
+      "post": {
+        "summary": "/api/formio-application-submission",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [],
+        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+      }
+    },
+    "/api/formio-application-submission/{mongoId}": {
       "get": {
-        "summary": "/api/rebate-form-submission/{id}",
+        "summary": "/api/formio-application-submission/{mongoId}",
         "parameters": [
           {
-            "name": "id",
+            "name": "mongoId",
             "in": "path",
             "required": true,
             "schema": {
@@ -561,7 +547,7 @@
                         }
                       }
                     },
-                    "submissionData": {
+                    "submission": {
                       "type": "object"
                     }
                   }
@@ -573,10 +559,205 @@
         "tags": []
       },
       "post": {
-        "summary": "/api/rebate-form-submission/{id}",
+        "summary": "/api/formio-application-submission/{mongoId}",
         "parameters": [
           {
-            "name": "id",
+            "name": "mongoId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          { "$ref": "#/components/parameters/scan" }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": []
+      }
+    },
+    "/api/s3/{formType}/{mongoId}/{comboKey}/storage/s3": {
+      "get": {
+        "summary": "/api/s3/{formType}/{mongoId}/{comboKey}/storage/s3",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [],
+        "parameters": [
+          {
+            "name": "formType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "mongoId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "comboKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          { "$ref": "#/components/parameters/scan" }
+        ]
+      },
+      "post": {
+        "summary": "/api/s3/{formType}/{mongoId}/{comboKey}/storage/s3",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [],
+        "parameters": [
+          {
+            "name": "formType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "mongoId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "comboKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          { "$ref": "#/components/parameters/scan" }
+        ]
+      }
+    },
+    "/api/formio-payment-request-submissions": {
+      "get": {
+        "summary": "/api/formio-payment-request-submissions",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [],
+        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+      }
+    },
+    "/api/formio-payment-request-submission": {
+      "post": {
+        "summary": "/api/formio-payment-request-submission",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [],
+        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+      }
+    },
+    "/api/formio-payment-request-submission/{rebateId}": {
+      "get": {
+        "summary": "/api/formio-payment-request-submission/{rebateId}",
+        "parameters": [
+          {
+            "name": "rebateId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          { "$ref": "#/components/parameters/scan" }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "userAccess": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "formSchema": {
+                      "type": "object",
+                      "properties": {
+                        "url": {
+                          "type": "string",
+                          "example": "https://formmio/project/form/id"
+                        },
+                        "json": {
+                          "type": "object"
+                        }
+                      }
+                    },
+                    "submission": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": []
+      },
+      "post": {
+        "summary": "/api/formio-payment-request-submission/{rebateId}",
+        "parameters": [
+          {
+            "name": "rebateId",
             "in": "path",
             "required": true,
             "schema": {

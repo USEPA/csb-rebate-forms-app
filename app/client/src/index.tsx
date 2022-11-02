@@ -3,11 +3,15 @@ import { render } from "react-dom";
 import reportWebVitals from "./reportWebVitals";
 // ---
 import { ContentProvider } from "contexts/content";
-import { UserProvider } from "contexts/user";
-import { FormsProvider } from "contexts/forms";
 import { DialogProvider } from "contexts/dialog";
-import ErrorBoundary from "components/errorBoundary";
-import App from "components/app";
+import { UserProvider } from "contexts/user";
+import { CsbProvider } from "contexts/csb";
+import { BapProvider } from "contexts/bap";
+import { FormioProvider } from "contexts/formio";
+import { PageMessageProvider } from "contexts/pageMessage";
+import { PageFormioProvider } from "contexts/pageFormio";
+import { ErrorBoundary } from "components/errorBoundary";
+import { App } from "components/app";
 import "./styles.css";
 
 const container = document.getElementById("root") as HTMLElement;
@@ -16,13 +20,21 @@ render(
   <StrictMode>
     <ErrorBoundary>
       <ContentProvider>
-        <UserProvider>
-          <FormsProvider>
-            <DialogProvider>
-              <App />
-            </DialogProvider>
-          </FormsProvider>
-        </UserProvider>
+        <DialogProvider>
+          <UserProvider>
+            <CsbProvider>
+              <BapProvider>
+                <FormioProvider>
+                  <PageMessageProvider>
+                    <PageFormioProvider>
+                      <App />
+                    </PageFormioProvider>
+                  </PageMessageProvider>
+                </FormioProvider>
+              </BapProvider>
+            </CsbProvider>
+          </UserProvider>
+        </DialogProvider>
       </ContentProvider>
     </ErrorBoundary>
   </StrictMode>,
