@@ -89,19 +89,17 @@ function PaymentRequestFormContent({ email }: { email: string }) {
 
     getData(`${serverUrl}/api/formio-payment-request-submission/${rebateId}`)
       .then((res: FormioFetchedResponse) => {
-        if (!res.submission) return;
-
         // set up s3 re-route to wrapper app
         const s3Provider = Formio.Providers.providers.storage.s3;
         Formio.Providers.providers.storage.s3 = function (formio: any) {
           const s3Formio = cloneDeep(formio);
-          const mongoId = res.submission._id;
-          const comboKey = res.submission.data.bap_hidden_entity_combo_key;
+          const mongoId = res.submission?._id;
+          const comboKey = res.submission?.data.bap_hidden_entity_combo_key;
           s3Formio.formUrl = `${serverUrl}/api/s3/payment-request/${mongoId}/${comboKey}`;
           return s3Provider(s3Formio);
         };
 
-        const data = { ...res.submission.data };
+        const data = { ...res.submission?.data };
 
         setStoredSubmissionData((_prevData) => {
           storedSubmissionDataRef.current = cloneDeep(data);

@@ -93,18 +93,16 @@ function ApplicationFormContent({ email }: { email: string }) {
 
     getData(`${serverUrl}/api/formio-application-submission/${mongoId}`)
       .then((res: FormioFetchedResponse) => {
-        if (!res.submission) return;
-
         // set up s3 re-route to wrapper app
         const s3Provider = Formio.Providers.providers.storage.s3;
         Formio.Providers.providers.storage.s3 = function (formio: any) {
           const s3Formio = cloneDeep(formio);
-          const comboKey = res.submission.data.bap_hidden_entity_combo_key;
+          const comboKey = res.submission?.data.bap_hidden_entity_combo_key;
           s3Formio.formUrl = `${serverUrl}/api/s3/application/${mongoId}/${comboKey}`;
           return s3Provider(s3Formio);
         };
 
-        const data = { ...res.submission.data };
+        const data = { ...res.submission?.data };
 
         // remove `ncesDataSource` and `ncesDataLookup` fields
         if (data.hasOwnProperty("ncesDataSource")) delete data.ncesDataSource;
