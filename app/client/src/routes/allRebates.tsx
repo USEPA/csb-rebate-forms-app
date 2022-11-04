@@ -679,6 +679,7 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
                 email,
                 title,
                 name,
+                entity,
                 comboKey: application.bap.comboKey,
                 rebateId: application.bap.rebateId, // CSB Rebate ID (6 digits)
                 reviewItemId: application.bap.reviewItemId, // CSB Rebate ID w/ form/version ID (9 digits)
