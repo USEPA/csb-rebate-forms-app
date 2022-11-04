@@ -163,6 +163,15 @@ function PaymentRequestFormContent({ email }: { email: string }) {
   // TODO: do we need to account for when ENTITY_STATUS__c does not equal "Active" (e.g. its expired)?
   if (!entity) return null;
 
+  const {
+    UNIQUE_ENTITY_ID__c,
+    ENTITY_EFT_INDICATOR__c,
+    ELEC_BUS_POC_EMAIL__c,
+    ALT_ELEC_BUS_POC_EMAIL__c,
+    GOVT_BUS_POC_EMAIL__c,
+    ALT_GOVT_BUS_POC_EMAIL__c,
+  } = entity;
+
   const { title, name } = getUserInfo(email, entity);
 
   return (
@@ -206,6 +215,12 @@ function PaymentRequestFormContent({ email }: { email: string }) {
               hidden_current_user_email: email,
               hidden_current_user_title: title,
               hidden_current_user_name: name,
+              hidden_sam_uei: UNIQUE_ENTITY_ID__c,
+              hidden_sam_efti: ENTITY_EFT_INDICATOR__c || "0000",
+              hidden_sam_elec_bus_poc_email: ELEC_BUS_POC_EMAIL__c,
+              hidden_sam_alt_elec_bus_poc_email: ALT_ELEC_BUS_POC_EMAIL__c,
+              hidden_sam_govt_bus_poc_email: GOVT_BUS_POC_EMAIL__c,
+              hidden_sam_alt_govt_bus_poc_email: ALT_GOVT_BUS_POC_EMAIL__c,
               ...pendingSubmissionData,
             },
           }}
