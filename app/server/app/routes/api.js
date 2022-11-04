@@ -433,6 +433,7 @@ router.post(
       email,
       title,
       name,
+      entity,
       comboKey,
       rebateId,
       reviewItemId,
@@ -445,6 +446,13 @@ router.post(
       log({ level: "error", message, req });
       return res.status(401).json({ message: "Unauthorized" });
     }
+
+    const {
+      ELEC_BUS_POC_EMAIL__c,
+      ALT_ELEC_BUS_POC_EMAIL__c,
+      GOVT_BUS_POC_EMAIL__c,
+      ALT_GOVT_BUS_POC_EMAIL__c,
+    } = entity;
 
     return getApplicationSubmission(req, reviewItemId)
       .then(({ formsTableRecordQuery, busTableRecordsQuery }) => {
@@ -479,6 +487,10 @@ router.post(
             hidden_current_user_email: email,
             hidden_current_user_title: title,
             hidden_current_user_name: name,
+            hidden_sam_elec_bus_poc_email: ELEC_BUS_POC_EMAIL__c,
+            hidden_sam_alt_elec_bus_poc_email: ALT_ELEC_BUS_POC_EMAIL__c,
+            hidden_sam_govt_bus_poc_email: GOVT_BUS_POC_EMAIL__c,
+            hidden_sam_alt_govt_bus_poc_email: ALT_GOVT_BUS_POC_EMAIL__c,
             hidden_bap_rebate_id: rebateId,
             hidden_bap_district_id: CSB_NCES_ID__c,
             hidden_bap_primary_name: Primary_Applicant__r?.Name,
