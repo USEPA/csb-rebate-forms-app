@@ -6,21 +6,33 @@
   "author": "USEPA (https://www.epa.gov)",
   "contributors": [
     "Brad Cooper <brad.cooper@erg.com>",
+    "Caleb Schwind <caleb.schwind@erg.com>",
     "Courtney Myers <courtney.myers@erg.com>",
     "Devin Galloway <devin.galloway@erg.com>"
   ],
   "devDependencies": {
+    "@cypress/code-coverage": "3.9.12",
+    "@testing-library/cypress": "8.0.2",
     "concurrently": "7.2.2",
+    "cypress": "9.5.4",
+    "cypress-file-upload": "5.0.8",
+    "eslint-plugin-cypress": "2.12.1",
     "husky": "8.0.1",
     "lint-staged": "13.0.3",
-    "prettier": "2.7.1"
-  },
+    "prettier": "2.7.1"  },
   "scripts": {
     "client": "cd client && npm start",
     "server": "cd server && npm start",
-    "start": "concurrently -kc \"blue.dim,green.dim\" \"npm:server\" \"npm:client\""
+    "start": "concurrently -kc \"blue.dim,green.dim\" \"npm:server\" \"npm:client\"",
+    "cypress": "concurrently -kc \"blue.dim,green.dim,yellow.dim\" -n server,client,cypress \"npm:server\" \"npm:client\" \"cypress open --env coverage=false\"",
+    "coverage": "concurrently -kc \"blue.dim,green.dim,yellow.dim\" -n server,client,cypress \"npm:server\" \"cd client && npm run coverage\" \"cypress run --browser edge\""
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,json,css,scss,md}": "prettier --write"
+  },
+  "eslintConfig": {
+    "extends": [
+      "plugin:cypress/recommended"
+    ]
   }
 }
