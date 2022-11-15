@@ -1,4 +1,4 @@
-const axios = require("axios").default;
+const axios = require("axios").default || require("axios"); // TODO: https://github.com/axios/axios/issues/5011
 // ---
 const log = require("../utilities/logger");
 
