@@ -10,82 +10,56 @@ type Props = {
   children: ReactNode;
 };
 
-type EpaUserData = {
-  mail: string;
-  memberof: string;
-  exp: number;
+type CsbData = {
+  enrollmentClosed: boolean;
 };
 
 type State = {
-  isAuthenticating: boolean;
-  isAuthenticated: boolean;
-  epaUserData:
+  csbData:
     | { status: "idle"; data: {} }
     | { status: "pending"; data: {} }
-    | { status: "success"; data: EpaUserData }
+    | { status: "success"; data: CsbData }
     | { status: "failure"; data: {} };
 };
 
 type Action =
-  | { type: "USER_SIGN_IN" }
-  | { type: "USER_SIGN_OUT" }
-  | { type: "FETCH_EPA_USER_DATA_REQUEST" }
+  | { type: "FETCH_CSB_DATA_REQUEST" }
   | {
-      type: "FETCH_EPA_USER_DATA_SUCCESS";
-      payload: { epaUserData: EpaUserData };
+      type: "FETCH_CSB_DATA_SUCCESS";
+      payload: { csbData: CsbData };
     }
-  | { type: "FETCH_EPA_USER_DATA_FAILURE" };
+  | { type: "FETCH_CSB_DATA_FAILURE" };
 
 const StateContext = createContext<State | undefined>(undefined);
 const DispatchContext = createContext<Dispatch<Action> | undefined>(undefined);
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
-    case "USER_SIGN_IN": {
+    case "FETCH_CSB_DATA_REQUEST": {
       return {
         ...state,
-        isAuthenticating: false,
-        isAuthenticated: true,
-      };
-    }
-
-    case "USER_SIGN_OUT": {
-      return {
-        ...state,
-        isAuthenticating: false,
-        isAuthenticated: false,
-        epaUserData: {
-          status: "idle",
-          data: {},
-        },
-      };
-    }
-
-    case "FETCH_EPA_USER_DATA_REQUEST": {
-      return {
-        ...state,
-        epaUserData: {
+        csbData: {
           status: "pending",
           data: {},
         },
       };
     }
 
-    case "FETCH_EPA_USER_DATA_SUCCESS": {
-      const { epaUserData } = action.payload;
+    case "FETCH_CSB_DATA_SUCCESS": {
+      const { csbData } = action.payload;
       return {
         ...state,
-        epaUserData: {
+        csbData: {
           status: "success",
-          data: epaUserData,
+          data: csbData,
         },
       };
     }
 
-    case "FETCH_EPA_USER_DATA_FAILURE": {
+    case "FETCH_CSB_DATA_FAILURE": {
       return {
         ...state,
-        epaUserData: {
+        csbData: {
           status: "failure",
           data: {},
         },
@@ -99,11 +73,9 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-export function UserProvider({ children }: Props) {
+export function CsbProvider({ children }: Props) {
   const initialState: State = {
-    isAuthenticating: true,
-    isAuthenticated: false,
-    epaUserData: {
+    csbData: {
       status: "idle",
       data: {},
     },
@@ -121,12 +93,12 @@ export function UserProvider({ children }: Props) {
 }
 
 /**
- * Returns state stored in `UserProvider` context component.
+ * Returns state stored in `CsbProvider` context component.
  */
-export function useUserState() {
+export function useCsbState() {
   const context = useContext(StateContext);
   if (context === undefined) {
-    const message = `useUserState must be called within a UserProvider`;
+    const message = `useCsbState must be called within a CsbProvider`;
     throw new Error(message);
   }
   return context;
@@ -134,12 +106,12 @@ export function useUserState() {
 
 /**
  * Returns `dispatch` method for dispatching actions to update state stored in
- * `UserProvider` context component.
+ * `CsbProvider` context component.
  */
-export function useUserDispatch() {
+export function useCsbDispatch() {
   const context = useContext(DispatchContext);
   if (context === undefined) {
-    const message = `useUserDispatch must be used within a UserProvider`;
+    const message = `useCsbDispatch must be used within a CsbProvider`;
     throw new Error(message);
   }
   return context;

@@ -30,7 +30,8 @@ const requiredEnvVars = [
   "CSB_ENROLLMENT_PERIOD",
   "FORMIO_BASE_URL",
   "FORMIO_PROJECT_NAME",
-  "FORMIO_FORM_NAME",
+  "FORMIO_APPLICATION_FORM_PATH",
+  "FORMIO_PAYMENT_REQUEST_FORM_PATH",
   "FORMIO_API_KEY",
   "S3_PUBLIC_BUCKET",
   "S3_PUBLIC_REGION",
@@ -38,10 +39,8 @@ const requiredEnvVars = [
 
 requiredEnvVars.forEach((envVar) => {
   if (!process.env[envVar]) {
-    log({
-      level: "error",
-      message: `Required environment variable ${envVar} not found.`,
-    });
+    const message = `Required environment variable ${envVar} not found.`;
+    log({ level: "error", message });
     process.exitCode = 1;
   }
 });

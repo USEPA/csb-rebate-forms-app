@@ -1,7 +1,7 @@
 import { Component, ErrorInfo, ReactNode } from "react";
 // ---
 import { messages } from "../config";
-import Message from "components/message";
+import { Message } from "components/message";
 
 type Props = {
   children: ReactNode;
@@ -11,7 +11,7 @@ type State = {
   hasError: boolean;
 };
 
-export default class ErrorBoundary extends Component<Props, State> {
+export class ErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false,
   };

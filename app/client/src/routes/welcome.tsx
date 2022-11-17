@@ -3,9 +3,9 @@ import { useSearchParams } from "react-router-dom";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrlForHrefs, messages } from "../config";
-import Message from "components/message";
+import { Message } from "components/message";
 
-export default function Welcome() {
+export function Welcome() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [message, setMessage] = useState<{
@@ -35,19 +35,19 @@ export default function Welcome() {
       });
     }
 
-    if (searchParams.get("error") === "bap-fetch") {
+    if (searchParams.get("error") === "bap-sam-fetch") {
       setMessage({
         displayed: true,
         type: "error",
-        text: messages.bapFetchError,
+        text: messages.bapSamFetchError,
       });
     }
 
-    if (searchParams.get("info") === "sam-results") {
+    if (searchParams.get("info") === "bap-sam-results") {
       setMessage({
         displayed: true,
         type: "info",
-        text: messages.noSamResults,
+        text: messages.bapNoSamResults,
       });
     }
 

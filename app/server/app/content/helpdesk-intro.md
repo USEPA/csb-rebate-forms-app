@@ -1,5 +1,3 @@
-## Change Rebate Form Submission State
+## Change a Submitted Form’s Formio Status
 
-Please search for a rebate form by ID below. If the rebate exists, it will be displayed in a table below the search box.
-
-Select the pencil icon to open an existing rebate form. Select the update icon at the end of the row to change a submission's state from _submitted_ back to _draft_.
+Please search for a form by ID below (use _Application ID_ for Application form submissions or _Rebate ID_ for Payment Request form submissions). If the submission exists, it will be displayed in a table below the search box. In the table, view an existing submission or update it's Formio submission state from _Submitted_ back to _Draft_.

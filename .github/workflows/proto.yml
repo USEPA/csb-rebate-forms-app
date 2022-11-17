@@ -40,11 +40,12 @@ jobs:
       SAML_PUBLIC_KEY: ${{ secrets.SAML_PUBLIC_KEY }}
       JWT_PUBLIC_KEY: ${{ secrets.JWT_PUBLIC_KEY }}
       JWT_PRIVATE_KEY: ${{ secrets.JWT_PRIVATE_KEY }}
-      CSB_ENROLLMENT_PERIOD: closed
+      CSB_ENROLLMENT_PERIOD: open
       FORMIO_PKG_AUTH_TOKEN: ${{ secrets.FORMIO_PKG_AUTH_TOKEN }}
       FORMIO_BASE_URL: ${{ secrets.FORMIO_BASE_URL }}
       FORMIO_PROJECT_NAME: ${{ secrets.FORMIO_PROJECT_NAME }}
-      FORMIO_FORM_NAME: ${{ secrets.FORMIO_FORM_NAME }}
+      FORMIO_APPLICATION_FORM_PATH: ${{ secrets.FORMIO_APPLICATION_FORM_PATH }}
+      FORMIO_PAYMENT_REQUEST_FORM_PATH: ${{ secrets.FORMIO_PAYMENT_REQUEST_FORM_PATH }}
       FORMIO_API_KEY: ${{ secrets.FORMIO_API_KEY }}
       BAP_CLIENT_ID: ${{ secrets.BAP_CLIENT_ID }}
       BAP_CLIENT_SECRET: ${{ secrets.BAP_CLIENT_SECRET }}
@@ -53,6 +54,7 @@ jobs:
       BAP_PASSWORD: ${{ secrets.BAP_PASSWORD }}
       BAP_SAM_TABLE: ${{ secrets.BAP_SAM_TABLE }}
       BAP_FORMS_TABLE: ${{ secrets.BAP_FORMS_TABLE }}
+      BAP_BUS_TABLE: ${{ secrets.BAP_BUS_TABLE }}
       AWS_ACCESS_KEY_ID: ${{ secrets.S3_PUBLIC_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_PUBLIC_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: ${{ secrets.S3_PUBLIC_REGION }}
@@ -120,7 +122,8 @@ jobs:
           cf set-env $APP_NAME "CSB_ENROLLMENT_PERIOD" "$CSB_ENROLLMENT_PERIOD" > /dev/null
           cf set-env $APP_NAME "FORMIO_BASE_URL" "$FORMIO_BASE_URL" > /dev/null
           cf set-env $APP_NAME "FORMIO_PROJECT_NAME" "$FORMIO_PROJECT_NAME" > /dev/null
-          cf set-env $APP_NAME "FORMIO_FORM_NAME" "$FORMIO_FORM_NAME" > /dev/null
+          cf set-env $APP_NAME "FORMIO_APPLICATION_FORM_PATH" "$FORMIO_APPLICATION_FORM_PATH" > /dev/null
+          cf set-env $APP_NAME "FORMIO_PAYMENT_REQUEST_FORM_PATH" "$FORMIO_PAYMENT_REQUEST_FORM_PATH" > /dev/null
           cf set-env $APP_NAME "FORMIO_API_KEY" "$FORMIO_API_KEY" > /dev/null
           cf set-env $APP_NAME "BAP_CLIENT_ID" "$BAP_CLIENT_ID" > /dev/null
           cf set-env $APP_NAME "BAP_CLIENT_SECRET" "$BAP_CLIENT_SECRET" > /dev/null
@@ -129,6 +132,7 @@ jobs:
           cf set-env $APP_NAME "BAP_PASSWORD" "$BAP_PASSWORD" > /dev/null
           cf set-env $APP_NAME "BAP_SAM_TABLE" "$BAP_SAM_TABLE" > /dev/null
           cf set-env $APP_NAME "BAP_FORMS_TABLE" "$BAP_FORMS_TABLE" > /dev/null
+          cf set-env $APP_NAME "BAP_BUS_TABLE" "$BAP_BUS_TABLE" > /dev/null
           cf set-env $APP_NAME "S3_PUBLIC_BUCKET" "$S3_PUBLIC_BUCKET" > /dev/null
           cf set-env $APP_NAME "S3_PUBLIC_REGION" "$AWS_DEFAULT_REGION" > /dev/null
 
