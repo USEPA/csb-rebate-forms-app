@@ -214,15 +214,7 @@ router.get("/formio-application-submissions", storeBapComboKeys, (req, res) => {
     `?sort=-modified` +
     `&limit=1000000` +
     `&data.bap_hidden_entity_combo_key=` +
-    `${req.bapComboKeys.join("&data.bap_hidden_entity_combo_key=")}` +
-    `&select=_id,state,modified,` +
-    `data.last_updated_by,` +
-    `data.bap_hidden_entity_combo_key,` +
-    `data.applicantUEI,` +
-    `data.applicantEfti,` +
-    `data.applicantEfti_display,` +
-    `data.applicantOrganizationName,` +
-    `data.schoolDistrictName`;
+    `${req.bapComboKeys.join("&data.bap_hidden_entity_combo_key=")}`;
 
   axiosFormio(req)
     .get(userSubmissionsUrl)
