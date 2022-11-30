@@ -285,11 +285,7 @@ function PaymentRequestFormContent({ email }: { email: string }) {
                     },
                   });
 
-                  setTimeout(() => {
-                    pageMessageDispatch({ type: "RESET_MESSAGE" });
-                    navigate("/");
-                  }, 5000);
-                  return;
+                  navigate("/");
                 }
 
                 if (onSubmitSubmission.state === "draft") {
