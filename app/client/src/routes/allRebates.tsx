@@ -1,5 +1,10 @@
 import { Fragment, useEffect, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import {
+  Link,
+  useLocation,
+  useNavigate,
+  useSearchParams,
+} from "react-router-dom";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages, getData, postData } from "../config";
@@ -23,6 +28,10 @@ import {
   usePageMessageState,
   usePageMessageDispatch,
 } from "contexts/pageMessage";
+
+type LocationState = {
+  submissionSuccessMessage: string;
+};
 
 type Rebate = {
   application: {
@@ -336,10 +345,21 @@ function PageMessage() {
 }
 
 function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
+  const location = useLocation();
   const navigate = useNavigate();
 
   const { csbData } = useCsbState();
   const pageMessageDispatch = usePageMessageDispatch();
+
+  const submissionSuccessMessage =
+    (location.state as LocationState)?.submissionSuccessMessage || null;
+
+  if (submissionSuccessMessage) {
+    pageMessageDispatch({
+      type: "DISPLAY_MESSAGE",
+      payload: { type: "success", text: submissionSuccessMessage },
+    });
+  }
 
   if (csbData.status !== "success") return null;
   const { enrollmentClosed } = csbData.data;

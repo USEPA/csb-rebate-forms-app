@@ -303,15 +303,8 @@ function ApplicationFormContent({ email }: { email: string }) {
                 setPendingSubmissionData({});
 
                 if (onSubmitSubmission.state === "submitted") {
-                  pageMessageDispatch({
-                    type: "DISPLAY_MESSAGE",
-                    payload: {
-                      type: "success",
-                      text: "Form successfully submitted.",
-                    },
-                  });
-
-                  navigate("/");
+                  const submissionSuccessMessage = `Application Form ${mongoId} successfully submitted.`;
+                  navigate("/", { state: { submissionSuccessMessage } });
                 }
 
                 if (onSubmitSubmission.state === "draft") {
