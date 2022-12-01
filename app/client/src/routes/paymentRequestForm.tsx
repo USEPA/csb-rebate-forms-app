@@ -68,6 +68,10 @@ function PaymentRequestFormContent({ email }: { email: string }) {
     pageFormioDispatch({ type: "RESET_FORMIO_DATA" });
   }, [pageFormioDispatch]);
 
+  // create ref to store when form is being submitted, so it can be referenced
+  // in the Form component's `onSubmit` event prop, to prevent double submits
+  const formIsBeingSubmitted = useRef(false);
+
   // set when form submission data is initially fetched, and then re-set each
   // time a successful update of the submission data is posted to forms.gov
   const [storedSubmissionData, setStoredSubmissionData] =
@@ -233,6 +237,12 @@ function PaymentRequestFormContent({ email }: { email: string }) {
           }) => {
             if (formIsReadOnly) return;
 
+            // account for when form is being submitted to prevent double submits
+            if (formIsBeingSubmitted.current) return;
+            if (onSubmitSubmission.state === "submitted") {
+              formIsBeingSubmitted.current = true;
+            }
+
             const data = { ...onSubmitSubmission.data };
 
             if (onSubmitSubmission.state === "submitted") {
@@ -267,19 +277,8 @@ function PaymentRequestFormContent({ email }: { email: string }) {
                 setPendingSubmissionData({});
 
                 if (onSubmitSubmission.state === "submitted") {
-                  pageMessageDispatch({
-                    type: "DISPLAY_MESSAGE",
-                    payload: {
-                      type: "success",
-                      text: "Form successfully submitted.",
-                    },
-                  });
-
-                  setTimeout(() => {
-                    pageMessageDispatch({ type: "RESET_MESSAGE" });
-                    navigate("/");
-                  }, 5000);
-                  return;
+                  const submissionSuccessMessage = `Payment Request Form ${rebateId} successfully submitted.`;
+                  navigate("/", { state: { submissionSuccessMessage } });
                 }
 
                 if (onSubmitSubmission.state === "draft") {
@@ -297,6 +296,8 @@ function PaymentRequestFormContent({ email }: { email: string }) {
                 }
               })
               .catch((err) => {
+                formIsBeingSubmitted.current = false;
+
                 pageMessageDispatch({
                   type: "DISPLAY_MESSAGE",
                   payload: {
