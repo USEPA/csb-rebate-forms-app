@@ -4,7 +4,7 @@ applications:
     routes:
       - route: app-prod.app.cloud.gov/csb
       - route: app.epa.gov/csb
-    instances: 4
+    instances: 11
     memory: 128M
     disk_quota: 512MB
     timeout: 180
@@ -16,3 +16,5 @@ applications:
       NODE_ENV: production
       LOGGER_LEVEL: INFO
       OPTIMIZE_MEMORY: true
+    services:
+      - s3-pub-csb-prod
