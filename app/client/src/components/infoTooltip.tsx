@@ -1,4 +1,4 @@
-import Tooltip from "@reach/tooltip";
+import { Tooltip } from "@reach/tooltip";
 import icons from "uswds/img/sprite.svg";
 
 type InfoTooltipProps = {
