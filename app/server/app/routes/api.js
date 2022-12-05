@@ -55,10 +55,11 @@ function checkEnrollmentPeriodAndBapStatus({
     // else enrollment is closed, so only continue if edits are requested
     return getBapFormSubmissionsStatuses(req, [comboKey]).then(
       (submissions) => {
-        const submission = submissions.find((submission) => {
-          return submission.CSB_Form_ID__c === mongoId;
+        const submission = submissions.find((sub) => {
+          return sub.CSB_Form_ID__c === mongoId;
         });
-        const status = submission?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c;
+        const status =
+          submission?.Parent_CSB_Rebate__r?.CSB_Funding_Request_Status__c;
         return status === "Edits Requested"
           ? Promise.resolve()
           : Promise.reject();
@@ -189,7 +190,7 @@ router.get("/bap-sam-data", (req, res) => {
 });
 
 // --- get user's form submissions statuses from EPA's BAP
-router.get("/bap-application-submissions", storeBapComboKeys, (req, res) => {
+router.get("/bap-form-submissions", storeBapComboKeys, (req, res) => {
   return getBapFormSubmissionsStatuses(req, req.bapComboKeys)
     .then((submissions) => res.json(submissions))
     .catch((error) => {

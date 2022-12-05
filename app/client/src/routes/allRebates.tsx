@@ -204,7 +204,8 @@ function useCombinedSubmissions() {
     const comboKey = bapMatch?.UEI_EFTI_Combo_Key__c || null;
     const rebateId = bapMatch?.Parent_Rebate_ID__c || null;
     const reviewItemId = bapMatch?.CSB_Review_Item_ID__c || null;
-    const status = bapMatch?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c || null;
+    const status =
+      bapMatch?.Parent_CSB_Rebate__r?.CSB_Funding_Request_Status__c || null;
 
     /**
      * NOTE: If new Application form submissions have been reciently created in
@@ -252,7 +253,8 @@ function useCombinedSubmissions() {
     const comboKey = bapMatch?.UEI_EFTI_Combo_Key__c || null;
     const rebateId = bapMatch?.Parent_Rebate_ID__c || null;
     const reviewItemId = bapMatch?.CSB_Review_Item_ID__c || null;
-    const status = bapMatch?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c || null;
+    const status =
+      bapMatch?.Parent_CSB_Rebate__r?.CSB_Payment_Request_Status__c || null;
 
     /**
      * NOTE: If the BAP ETL is running, there should be a submission with a
@@ -300,21 +302,22 @@ function useSortedSubmissions(submissions: { [rebateId: string]: Rebate }) {
       return mostRecientR2Modified - mostRecientR1Modified;
     })
     .sort((r1, _r2) => {
-      // Application has been updated since the last time the BAP's submissions
-      // ETL process has last succesfully run
-      const r1AapplicationHasBeenUpdated = r1.application.bap?.modified
-        ? new Date(r1.application.formio.modified) >
-          new Date(r1.application.bap.modified)
-        : false;
+      // The submission has been updated in Formio since the last time the BAP's
+      // submissions ETL process has last succesfully run
+      const r1ApplicationHasBeenModifiedSinceLastETL =
+        r1.application.bap?.modified // prettier-ignore
+          ? new Date(r1.application.formio.modified) >
+            new Date(r1.application.bap.modified)
+          : false;
 
       const r1ApplicationNeedsEdits =
         r1.application.bap?.status === "Edits Requested" &&
         (r1.application.formio.state === "draft" ||
           (r1.application.formio.state === "submitted" &&
-            !r1AapplicationHasBeenUpdated));
+            !r1ApplicationHasBeenModifiedSinceLastETL));
 
       const r1ApplicationHasBeenSelectedButNoPaymentRequest =
-        r1.application.bap?.status === "Selected" &&
+        r1.application.bap?.status === "Accepted" &&
         !Boolean(r1.paymentRequest.formio);
 
       return r1ApplicationNeedsEdits ||
@@ -352,11 +355,6 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
 
   const { application, paymentRequest } = rebate;
 
-  const applicationHasBeenSelected = application.bap?.status === "Selected";
-
-  const applicationHasBeenSelectedButNoPaymentRequest =
-    applicationHasBeenSelected && !Boolean(paymentRequest.formio);
-
   const {
     applicantUEI,
     applicantEfti,
@@ -370,19 +368,25 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
   const time = new Date(application.formio.modified).toLocaleTimeString();
 
   /**
-   * The application has been updated since the last time the BAP's submissions
-   * ETL process has last succesfully run.
+   * The submission has been updated in Formio since the last time the BAP's
+   * submissions ETL process has last succesfully run.
    */
-  const applicationHasBeenUpdated = application.bap?.modified
+  const applicationHasBeenModifiedSinceLastETL = application.bap?.modified
     ? new Date(application.formio.modified) > new Date(application.bap.modified)
     : false;
 
   const applicationNeedsEdits =
     application.bap?.status === "Edits Requested" &&
     (application.formio.state === "draft" ||
-      (application.formio.state === "submitted" && !applicationHasBeenUpdated));
+      (application.formio.state === "submitted" &&
+        !applicationHasBeenModifiedSinceLastETL));
 
   const applicationHasBeenWithdrawn = application.bap?.status === "Withdrawn";
+
+  const applicationHasBeenSelected = application.bap?.status === "Accepted";
+
+  const applicationHasBeenSelectedButNoPaymentRequest =
+    applicationHasBeenSelected && !Boolean(paymentRequest.formio);
 
   const statusClassNames =
     application.formio.state === "submitted" || enrollmentClosed
@@ -510,31 +514,33 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
           >
             <use
               href={
-                applicationHasBeenSelected
-                  ? `${icons}#check_circle`
-                  : applicationNeedsEdits
+                applicationNeedsEdits
                   ? `${icons}#priority_high`
                   : applicationHasBeenWithdrawn
                   ? `${icons}#close`
-                  : application.formio.state === "submitted"
-                  ? `${icons}#check`
+                  : applicationHasBeenSelected
+                  ? `${icons}#check_circle`
                   : application.formio.state === "draft"
                   ? `${icons}#more_horiz`
+                  : application.formio.state === "submitted"
+                  ? `${icons}#check`
                   : `${icons}#remove` // fallback, not used
               }
             />
           </svg>
           <span className="margin-left-05">
             {
-              applicationHasBeenSelected ||
-              applicationNeedsEdits ||
-              applicationHasBeenWithdrawn
-                ? application.bap?.status
+              applicationNeedsEdits
+                ? "Edits Requested"
+                : applicationHasBeenWithdrawn
+                ? "Withdrawn"
+                : applicationHasBeenSelected
+                ? "Selected"
                 : application.formio.state === "draft"
                 ? "Draft"
                 : application.formio.state === "submitted"
                 ? "Submitted"
-                : application.formio.state // fallback, not used
+                : "" // fallback, not used
             }
           </span>
         </span>
@@ -641,6 +647,7 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
   const { samEntities } = useBapState();
   const pageMessageDispatch = usePageMessageDispatch();
 
+  // NOTE: used to display a loading indicator inside the new Payment Request button
   const [postDataResponsePending, setPostDataResponsePending] = useState(false);
 
   if (epaUserData.status !== "success") return null;
@@ -730,10 +737,10 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
   const time = new Date(paymentRequest.formio.modified).toLocaleTimeString();
 
   /**
-   * The application has been updated since the last time the BAP's submissions
-   * ETL process has last succesfully run.
+   * The submission has been updated in Formio since the last time the BAP's
+   * submissions ETL process has last succesfully run.
    */
-  const paymentRequestHasBeenUpdated = paymentRequest.bap?.modified
+  const paymentRequestHasBeenModifiedSinceLastETL = paymentRequest.bap?.modified
     ? new Date(paymentRequest.formio.modified) >
       new Date(paymentRequest.bap.modified)
     : false;
@@ -742,10 +749,13 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
     paymentRequest.bap?.status === "Edits Requested" &&
     (paymentRequest.formio.state === "draft" ||
       (paymentRequest.formio.state === "submitted" &&
-        !paymentRequestHasBeenUpdated));
+        !paymentRequestHasBeenModifiedSinceLastETL));
 
   const paymentRequestHasBeenWithdrawn =
     paymentRequest.bap?.status === "Withdrawn";
+
+  const paymentRequestFundingApproved =
+    paymentRequest.bap?.status === "Accepted";
 
   const statusClassNames =
     paymentRequest.formio.state === "submitted" ? "text-italic" : "";
@@ -850,23 +860,29 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
                   ? `${icons}#priority_high`
                   : paymentRequestHasBeenWithdrawn
                   ? `${icons}#close`
-                  : paymentRequest.formio.state === "submitted"
-                  ? `${icons}#check`
+                  : paymentRequestFundingApproved
+                  ? `${icons}#check_circle`
                   : paymentRequest.formio.state === "draft"
                   ? `${icons}#more_horiz`
+                  : paymentRequest.formio.state === "submitted"
+                  ? `${icons}#check`
                   : `${icons}#remove` // fallback, not used
               }
             />
           </svg>
           <span className="margin-left-05">
             {
-              paymentRequestNeedsEdits || paymentRequestHasBeenWithdrawn
-                ? paymentRequest.bap?.status
+              paymentRequestNeedsEdits
+                ? "Edits Requested"
+                : paymentRequestHasBeenWithdrawn
+                ? "Withdrawn"
+                : paymentRequestFundingApproved
+                ? "Funding Approved"
                 : paymentRequest.formio.state === "draft"
                 ? "Draft"
                 : paymentRequest.formio.state === "submitted"
                 ? "Submitted"
-                : paymentRequest.formio.state // fallback, not used
+                : "" // fallback, not used
             }
           </span>
         </span>

@@ -53,16 +53,9 @@ export type BapFormSubmission = {
     | "CSB Payment Request"
     | "CSB Closeout Request";
   Parent_CSB_Rebate__r: {
-    CSB_Funding_Request_Status__c: string; // TODO
-    CSB_Payment_Request_Status__c: string; // TODO
-    CSB_Closeout_Request_Status__c: string; // TODO
-    CSB_Rebate_Status__c:
-      | "Draft"
-      | "Submitted"
-      | "Edits Requested"
-      | "Withdrawn"
-      | "Selected"
-      | "Not Selected";
+    CSB_Funding_Request_Status__c: string;
+    CSB_Payment_Request_Status__c: string;
+    CSB_Closeout_Request_Status__c: string;
     attributes: { type: string; url: string };
   };
   attributes: { type: string; url: string };
