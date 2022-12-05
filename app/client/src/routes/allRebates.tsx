@@ -16,6 +16,7 @@ import { TextWithTooltip } from "components/infoTooltip";
 import { useContentState } from "contexts/content";
 import { useUserState } from "contexts/user";
 import { useCsbState } from "contexts/csb";
+import type { BapFormSubmission } from "contexts/bap";
 import { useBapState, useBapDispatch } from "contexts/bap";
 import {
   FormioApplicationSubmission,
@@ -41,7 +42,7 @@ type Rebate = {
       comboKey: string | null;
       rebateId: string | null;
       reviewItemId: string | null;
-      rebateStatus: string | null;
+      status: string | null;
     } | null;
   };
   paymentRequest: {
@@ -51,7 +52,7 @@ type Rebate = {
       comboKey: string | null;
       rebateId: string | null;
       reviewItemId: string | null;
-      rebateStatus: string | null;
+      status: string | null;
     } | null;
   };
   closeOut: {
@@ -62,6 +63,53 @@ type Rebate = {
 
 const defaultTableRowClassNames = "bg-gray-5";
 const highlightedTableRowClassNames = "bg-primary-lighter";
+
+/** Custom hook to fetch form submissions from the BAP */
+export function useFetchedBapFormSubmissions() {
+  const { samEntities } = useBapState();
+  const bapDispatch = useBapDispatch();
+
+  useEffect(() => {
+    // while not used in this code, SAM.gov entities are used in the server
+    // app's `/api/bap-form-submissions` route controller
+    if (samEntities.status !== "success" || !samEntities.data.results) return;
+
+    bapDispatch({ type: "FETCH_BAP_FORM_SUBMISSIONS_REQUEST" });
+
+    getData(`${serverUrl}/api/bap-form-submissions`)
+      .then((res: BapFormSubmission[]) => {
+        const formSubmissions = res.reduce(
+          (submissions, submission) => {
+            const formType =
+              submission.Record_Type_Name__c === "CSB Funding Request"
+                ? "applications"
+                : submission.Record_Type_Name__c === "CSB Payment Request"
+                ? "paymentRequests"
+                : submission.Record_Type_Name__c === "CSB Closeout Request"
+                ? "closeOuts"
+                : null;
+
+            if (formType) submissions[formType].push(submission);
+
+            return submissions;
+          },
+          {
+            applications: [] as BapFormSubmission[],
+            paymentRequests: [] as BapFormSubmission[],
+            closeOuts: [] as BapFormSubmission[],
+          }
+        );
+
+        bapDispatch({
+          type: "FETCH_BAP_FORM_SUBMISSIONS_SUCCESS",
+          payload: { formSubmissions },
+        });
+      })
+      .catch((err) => {
+        bapDispatch({ type: "FETCH_BAP_FORM_SUBMISSIONS_FAILURE" });
+      });
+  }, [samEntities, bapDispatch]);
+}
 
 /** Custom hook to fetch Application form submissions from Forms.gov */
 function useFetchedFormioApplicationSubmissions() {
@@ -88,31 +136,6 @@ function useFetchedFormioApplicationSubmissions() {
         });
       });
   }, [samEntities, formioDispatch]);
-}
-
-/** Custom hook to fetch Application form submissions from the BAP */
-export function useFetchedBapApplicationSubmissions() {
-  const { samEntities } = useBapState();
-  const bapDispatch = useBapDispatch();
-
-  useEffect(() => {
-    // while not used in this code, SAM.gov entities are used in the server
-    // app's `/api/bap-application-submissions` route controller
-    if (samEntities.status !== "success" || !samEntities.data.results) return;
-
-    bapDispatch({ type: "FETCH_BAP_APPLICATION_SUBMISSIONS_REQUEST" });
-
-    getData(`${serverUrl}/api/bap-application-submissions`)
-      .then((res) => {
-        bapDispatch({
-          type: "FETCH_BAP_APPLICATION_SUBMISSIONS_SUCCESS",
-          payload: { applicationSubmissions: res },
-        });
-      })
-      .catch((err) => {
-        bapDispatch({ type: "FETCH_BAP_APPLICATION_SUBMISSIONS_FAILURE" });
-      });
-  }, [samEntities, bapDispatch]);
 }
 
 /** Custom hook to fetch Payment Request form submissions from Forms.gov */
@@ -142,36 +165,6 @@ function useFetchedFormioPaymentRequestSubmissions() {
   }, [samEntities, formioDispatch]);
 }
 
-/** Custom hook to fetch Payment Request form submissions from the BAP */
-function useFetchedBapPaymentRequestSubmissions() {
-  const bapDispatch = useBapDispatch();
-
-  useEffect(() => {
-    bapDispatch({ type: "FETCH_BAP_PAYMENT_REQUEST_SUBMISSIONS_REQUEST" });
-
-    // TODO: update query to fetch BAP data once the BAP team has things set up
-    bapDispatch({
-      type: "FETCH_BAP_PAYMENT_REQUEST_SUBMISSIONS_SUCCESS",
-      payload: {
-        paymentRequestSubmissions: [
-          {
-            attributes: { type: "", url: "" },
-            UEI_EFTI_Combo_Key__c: "",
-            CSB_Form_ID__c: "",
-            CSB_Modified_Full_String__c: "",
-            CSB_Review_Item_ID__c: "",
-            Parent_Rebate_ID__c: "",
-            Parent_CSB_Rebate__r: {
-              attributes: { type: "", url: "" },
-              CSB_Rebate_Status__c: "Draft",
-            },
-          },
-        ],
-      },
-    });
-  }, [bapDispatch]);
-}
-
 /**
  * Custom hook to combine Application form submissions data, Payment Request
  * form submissions data, and Close-Out form submissions data from both the BAP
@@ -179,22 +172,17 @@ function useFetchedBapPaymentRequestSubmissions() {
  * `rebateId` as the keys.
  **/
 function useCombinedSubmissions() {
+  const { formSubmissions: bapFormSubmissions } = useBapState();
   const {
     applicationSubmissions: formioApplicationSubmissions,
     paymentRequestSubmissions: formioPaymentRequestSubmissions,
   } = useFormioState();
 
-  const {
-    applicationSubmissions: bapApplicationSubmissions,
-    paymentRequestSubmissions: bapPaymentRequestSubmissions,
-  } = useBapState();
-
-  // ensure form submissions data has been fetched from both Formio and the BAP
+  // ensure form submissions data has been fetched from both the BAP and Formio
   if (
+    bapFormSubmissions.status !== "success" ||
     formioApplicationSubmissions.status !== "success" ||
-    formioPaymentRequestSubmissions.status !== "success" ||
-    bapApplicationSubmissions.status !== "success" ||
-    bapPaymentRequestSubmissions.status !== "success"
+    formioPaymentRequestSubmissions.status !== "success"
   ) {
     return {};
   }
@@ -208,16 +196,15 @@ function useCombinedSubmissions() {
    * form and Close-out Form submission data structure (both to be updated).
    */
   for (const formioSubmission of formioApplicationSubmissions.data) {
-    const bapMatch = bapApplicationSubmissions.data.find((bapSubmission) => {
-      return bapSubmission.CSB_Form_ID__c === formioSubmission._id;
+    const bapMatch = bapFormSubmissions.data.applications.find((bapSub) => {
+      return bapSub.CSB_Form_ID__c === formioSubmission._id;
     });
 
     const modified = bapMatch?.CSB_Modified_Full_String__c || null;
     const comboKey = bapMatch?.UEI_EFTI_Combo_Key__c || null;
     const rebateId = bapMatch?.Parent_Rebate_ID__c || null;
     const reviewItemId = bapMatch?.CSB_Review_Item_ID__c || null;
-    const rebateStatus =
-      bapMatch?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c || null;
+    const status = bapMatch?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c || null;
 
     /**
      * NOTE: If new Application form submissions have been reciently created in
@@ -230,7 +217,7 @@ function useCombinedSubmissions() {
     submissions[rebateId || `_${formioSubmission._id}`] = {
       application: {
         formio: { ...formioSubmission },
-        bap: { modified, comboKey, rebateId, reviewItemId, rebateStatus },
+        bap: { modified, comboKey, rebateId, reviewItemId, status },
       },
       paymentRequest: { formio: null, bap: null },
       closeOut: { formio: null, bap: null },
@@ -255,8 +242,8 @@ function useCombinedSubmissions() {
   for (const formioSubmission of formioPaymentRequestSubmissions.data) {
     const formioBapRebateId = formioSubmission.data.hidden_bap_rebate_id;
 
-    const bapMatch = bapPaymentRequestSubmissions.data.find((bapSubmission) => {
-      return bapSubmission.Parent_Rebate_ID__c === formioBapRebateId;
+    const bapMatch = bapFormSubmissions.data.paymentRequests.find((bapSub) => {
+      return bapSub.Parent_Rebate_ID__c === formioBapRebateId;
     });
 
     // TODO: update this once the BAP team sets up the ETL process for ingesting
@@ -265,8 +252,7 @@ function useCombinedSubmissions() {
     const comboKey = bapMatch?.UEI_EFTI_Combo_Key__c || null;
     const rebateId = bapMatch?.Parent_Rebate_ID__c || null;
     const reviewItemId = bapMatch?.CSB_Review_Item_ID__c || null;
-    const rebateStatus =
-      bapMatch?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c || null;
+    const status = bapMatch?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c || null;
 
     /**
      * NOTE: If the BAP ETL is running, there should be a submission with a
@@ -279,7 +265,7 @@ function useCombinedSubmissions() {
     if (submissions[formioBapRebateId]) {
       submissions[formioBapRebateId].paymentRequest = {
         formio: { ...formioSubmission },
-        bap: { modified, comboKey, rebateId, reviewItemId, rebateStatus },
+        bap: { modified, comboKey, rebateId, reviewItemId, status },
       };
     }
   }
@@ -322,13 +308,13 @@ function useSortedSubmissions(submissions: { [rebateId: string]: Rebate }) {
         : false;
 
       const r1ApplicationNeedsEdits =
-        r1.application.bap?.rebateStatus === "Edits Requested" &&
+        r1.application.bap?.status === "Edits Requested" &&
         (r1.application.formio.state === "draft" ||
           (r1.application.formio.state === "submitted" &&
             !r1AapplicationHasBeenUpdated));
 
       const r1ApplicationHasBeenSelectedButNoPaymentRequest =
-        r1.application.bap?.rebateStatus === "Selected" &&
+        r1.application.bap?.status === "Selected" &&
         !Boolean(r1.paymentRequest.formio);
 
       return r1ApplicationNeedsEdits ||
@@ -366,8 +352,7 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
 
   const { application, paymentRequest } = rebate;
 
-  const applicationHasBeenSelected =
-    application.bap?.rebateStatus === "Selected";
+  const applicationHasBeenSelected = application.bap?.status === "Selected";
 
   const applicationHasBeenSelectedButNoPaymentRequest =
     applicationHasBeenSelected && !Boolean(paymentRequest.formio);
@@ -393,12 +378,11 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
     : false;
 
   const applicationNeedsEdits =
-    application.bap?.rebateStatus === "Edits Requested" &&
+    application.bap?.status === "Edits Requested" &&
     (application.formio.state === "draft" ||
       (application.formio.state === "submitted" && !applicationHasBeenUpdated));
 
-  const applicationHasBeenWithdrawn =
-    application.bap?.rebateStatus === "Withdrawn";
+  const applicationHasBeenWithdrawn = application.bap?.status === "Withdrawn";
 
   const statusClassNames =
     application.formio.state === "submitted" || enrollmentClosed
@@ -545,7 +529,7 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
               applicationHasBeenSelected ||
               applicationNeedsEdits ||
               applicationHasBeenWithdrawn
-                ? application.bap?.rebateStatus
+                ? application.bap?.status
                 : application.formio.state === "draft"
                 ? "Draft"
                 : application.formio.state === "submitted"
@@ -665,8 +649,7 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
   const email = epaUserData.data.mail;
   const { application, paymentRequest } = rebate;
 
-  const applicationHasBeenSelected =
-    application.bap?.rebateStatus === "Selected";
+  const applicationHasBeenSelected = application.bap?.status === "Selected";
 
   const applicationHasBeenSelectedButNoPaymentRequest =
     applicationHasBeenSelected && !Boolean(paymentRequest.formio);
@@ -756,13 +739,13 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
     : false;
 
   const paymentRequestNeedsEdits =
-    paymentRequest.bap?.rebateStatus === "Edits Requested" &&
+    paymentRequest.bap?.status === "Edits Requested" &&
     (paymentRequest.formio.state === "draft" ||
       (paymentRequest.formio.state === "submitted" &&
         !paymentRequestHasBeenUpdated));
 
   const paymentRequestHasBeenWithdrawn =
-    paymentRequest.bap?.rebateStatus === "Withdrawn";
+    paymentRequest.bap?.status === "Withdrawn";
 
   const statusClassNames =
     paymentRequest.formio.state === "submitted" ? "text-italic" : "";
@@ -878,7 +861,7 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
           <span className="margin-left-05">
             {
               paymentRequestNeedsEdits || paymentRequestHasBeenWithdrawn
-                ? paymentRequest.bap?.rebateStatus
+                ? paymentRequest.bap?.status
                 : paymentRequest.formio.state === "draft"
                 ? "Draft"
                 : paymentRequest.formio.state === "submitted"
@@ -908,11 +891,7 @@ export function AllRebates() {
   const { content } = useContentState();
   const { epaUserData } = useUserState();
   const { csbData } = useCsbState();
-  const {
-    samEntities,
-    applicationSubmissions: bapApplicationSubmissions,
-    paymentRequestSubmissions: bapPaymentRequestSubmissions,
-  } = useBapState();
+  const { samEntities, formSubmissions: bapFormSubmissions } = useBapState();
   const {
     applicationSubmissions: formioApplicationSubmissions,
     paymentRequestSubmissions: formioPaymentRequestSubmissions,
@@ -924,11 +903,9 @@ export function AllRebates() {
     pageMessageDispatch({ type: "RESET_MESSAGE" });
   }, [pageMessageDispatch]);
 
+  useFetchedBapFormSubmissions();
   useFetchedFormioApplicationSubmissions();
-  useFetchedBapApplicationSubmissions();
-
   useFetchedFormioPaymentRequestSubmissions();
-  useFetchedBapPaymentRequestSubmissions();
 
   const submissions = useCombinedSubmissions();
   const sortedSubmissions = useSortedSubmissions(submissions);
@@ -946,14 +923,12 @@ export function AllRebates() {
     epaUserData.status !== "success" ||
     samEntities.status === "idle" ||
     samEntities.status === "pending" ||
+    bapFormSubmissions.status === "idle" ||
+    bapFormSubmissions.status === "pending" ||
     formioApplicationSubmissions.status === "idle" ||
     formioApplicationSubmissions.status === "pending" ||
-    bapApplicationSubmissions.status === "idle" ||
-    bapApplicationSubmissions.status === "pending" ||
     formioPaymentRequestSubmissions.status === "idle" ||
-    formioPaymentRequestSubmissions.status === "pending" ||
-    bapPaymentRequestSubmissions.status === "idle" ||
-    bapPaymentRequestSubmissions.status === "pending"
+    formioPaymentRequestSubmissions.status === "pending"
   ) {
     return <Loading />;
   }
@@ -962,19 +937,22 @@ export function AllRebates() {
     return <Message type="error" text={messages.bapSamFetchError} />;
   }
 
-  if (
-    formioApplicationSubmissions.status === "failure" ||
-    bapApplicationSubmissions.status === "failure"
-  ) {
-    return <Message type="error" text={messages.applicationSubmissionsError} />;
+  if (bapFormSubmissions.status === "failure") {
+    return <Message type="error" text={messages.bapFormSubmissionsError} />;
   }
 
-  if (
-    formioPaymentRequestSubmissions.status === "failure" ||
-    bapPaymentRequestSubmissions.status === "failure"
-  ) {
+  if (formioApplicationSubmissions.status === "failure") {
     return (
-      <Message type="error" text={messages.paymentRequestSubmissionsError} />
+      <Message type="error" text={messages.formioApplicationSubmissionsError} />
+    );
+  }
+
+  if (formioPaymentRequestSubmissions.status === "failure") {
+    return (
+      <Message
+        type="error"
+        text={messages.formioPaymentRequestSubmissionsError}
+      />
     );
   }
 

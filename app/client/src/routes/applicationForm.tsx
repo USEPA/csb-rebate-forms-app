@@ -6,7 +6,7 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, getData, postData } from "../config";
 import { getUserInfo } from "../utilities";
-import { useFetchedBapApplicationSubmissions } from "routes/allRebates";
+import { useFetchedBapFormSubmissions } from "routes/allRebates";
 import { Loading } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
@@ -54,8 +54,7 @@ function ApplicationFormContent({ email }: { email: string }) {
 
   const { content } = useContentState();
   const { csbData } = useCsbState();
-  const { samEntities, applicationSubmissions: bapApplicationSubmissions } =
-    useBapState();
+  const { samEntities, formSubmissions: bapFormSubmissions } = useBapState();
   const { formio } = usePageFormioState();
   const pageMessageDispatch = usePageMessageDispatch();
   const pageFormioDispatch = usePageFormioDispatch();
@@ -70,7 +69,7 @@ function ApplicationFormContent({ email }: { email: string }) {
     pageFormioDispatch({ type: "RESET_FORMIO_DATA" });
   }, [pageFormioDispatch]);
 
-  useFetchedBapApplicationSubmissions();
+  useFetchedBapFormSubmissions();
 
   // create ref to store when form is being submitted, so it can be referenced
   // in the Form component's `onSubmit` event prop, to prevent double submits
@@ -155,14 +154,14 @@ function ApplicationFormContent({ email }: { email: string }) {
     email === "" ||
     csbData.status !== "success" ||
     samEntities.status !== "success" ||
-    bapApplicationSubmissions.status !== "success"
+    bapFormSubmissions.status !== "success"
   ) {
     return <Loading />;
   }
 
   const { enrollmentClosed } = csbData.data;
 
-  const match = bapApplicationSubmissions.data.find((bapSubmission) => {
+  const match = bapFormSubmissions.data.applications.find((bapSubmission) => {
     return bapSubmission.CSB_Form_ID__c === mongoId;
   });
 
