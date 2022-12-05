@@ -34,30 +34,26 @@ type LocationState = {
   submissionSuccessMessage: string;
 };
 
+type BapSubmission = {
+  modified: string | null;
+  comboKey: string | null;
+  rebateId: string | null;
+  reviewItemId: string | null;
+  status: string | null;
+};
+
 type Rebate = {
   application: {
     formio: FormioApplicationSubmission;
-    bap: {
-      modified: string | null;
-      comboKey: string | null;
-      rebateId: string | null;
-      reviewItemId: string | null;
-      status: string | null;
-    } | null;
+    bap: BapSubmission | null;
   };
   paymentRequest: {
     formio: FormioPaymentRequestSubmission | null;
-    bap: {
-      modified: string | null;
-      comboKey: string | null;
-      rebateId: string | null;
-      reviewItemId: string | null;
-      status: string | null;
-    } | null;
+    bap: BapSubmission | null;
   };
   closeOut: {
     formio: FormioCloseOutSubmission | null;
-    bap: null;
+    bap: BapSubmission | null;
   };
 };
 
