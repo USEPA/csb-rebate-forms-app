@@ -200,16 +200,20 @@ async function queryForApplicationSubmissionsStatuses(req, comboKeys) {
   // FROM
   //   ${BAP_FORMS_TABLE}
   // WHERE
-  //   ${comboKeys
+  //   (${comboKeys
   //     .map((key) => `UEI_EFTI_Combo_Key__c = '${key}'`)
-  //     .join(" OR ")}
+  //     .join(" OR ")}) AND
+  //   Latest_Version__c = TRUE
   // ORDER BY
   //   CreatedDate DESC`
 
   return await bapConnection
     .sobject(BAP_FORMS_TABLE)
     .find(
-      { UEI_EFTI_Combo_Key__c: { $in: comboKeys } },
+      {
+        UEI_EFTI_Combo_Key__c: { $in: comboKeys },
+        Latest_Version__c: true,
+      },
       {
         // "*": 1,
         UEI_EFTI_Combo_Key__c: 1,
