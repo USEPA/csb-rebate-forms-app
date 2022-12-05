@@ -38,12 +38,16 @@ const log = require("../utilities/logger");
 
 /**
  * @typedef {Object} BapApplicationSubmission
+ * @property {string} UEI_EFTI_Combo_Key__c
  * @property {string} CSB_Form_ID__c
  * @property {string} CSB_Modified_Full_String__c
- * @property {string} UEI_EFTI_Combo_Key__c
+ * @property {string} CSB_Review_Item_ID__c
  * @property {string} Parent_Rebate_ID__c
+ * @property {string} Record_Type_Name__c
  * @property {Object} Parent_CSB_Rebate__r
- * @property {string} Parent_CSB_Rebate__r.CSB_Rebate_Status__c
+ * @property {string} Parent_CSB_Rebate__r.CSB_Funding_Request_Status__c
+ * @property {string} Parent_CSB_Rebate__r.CSB_Payment_Request_Status__c
+ * @property {string} Parent_CSB_Rebate__r.CSB_Closeout_Request_Status__c
  * @property {Object} attributes
  * @property {string} attributes.type
  * @property {string} attributes.url
@@ -196,7 +200,10 @@ async function queryForApplicationSubmissionsStatuses(req, comboKeys) {
   //   CSB_Modified_Full_String__c,
   //   CSB_Review_Item_ID__c,
   //   Parent_Rebate_ID__c,
-  //   Parent_CSB_Rebate__r.CSB_Rebate_Status__c
+  //   Record_Type_Name__c,
+  //   Parent_CSB_Rebate__r.CSB_Funding_Request_Status__c,
+  //   Parent_CSB_Rebate__r.CSB_Payment_Request_Status__c,
+  //   Parent_CSB_Rebate__r.CSB_Closeout_Request_Status__c
   // FROM
   //   ${BAP_FORMS_TABLE}
   // WHERE
@@ -221,7 +228,11 @@ async function queryForApplicationSubmissionsStatuses(req, comboKeys) {
         CSB_Modified_Full_String__c: 1, // ISO 8601 date string
         CSB_Review_Item_ID__c: 1, // CSB Rebate ID w/ form/version ID (9 digits)
         Parent_Rebate_ID__c: 1, // CSB Rebate ID (6 digits)
-        "Parent_CSB_Rebate__r.CSB_Rebate_Status__c": 1,
+        Record_Type_Name__c: 1, // 'CSB Funding Request' | 'CSB Payment Request' | 'CSB Closeout Request'
+        "Parent_CSB_Rebate__r.CSB_Rebate_Status__c": 1, // TODO: remove after updating the client app to use 'CSB_Funding_Request_Status__c'
+        "Parent_CSB_Rebate__r.CSB_Funding_Request_Status__c": 1,
+        "Parent_CSB_Rebate__r.CSB_Payment_Request_Status__c": 1,
+        "Parent_CSB_Rebate__r.CSB_Closeout_Request_Status__c": 1,
       }
     )
     .sort({ CreatedDate: -1 })
