@@ -37,7 +37,7 @@ const log = require("../utilities/logger");
  */
 
 /**
- * @typedef {Object} BapApplicationSubmission
+ * @typedef {Object} BapFormSubmission
  * @property {string} UEI_EFTI_Combo_Key__c
  * @property {string} CSB_Form_ID__c
  * @property {string} CSB_Modified_Full_String__c
@@ -182,13 +182,13 @@ async function queryForSamEntities(req, email) {
 }
 
 /**
- * Uses cached JSforce connection to query the BAP for application form submissions statuses, and related metadata.
+ * Uses cached JSforce connection to query the BAP for form submissions statuses and related metadata.
  * @param {express.Request} req
  * @param {string[]} comboKeys
- * @returns {Promise<BapApplicationSubmission[]>} collection of fields associated with each application form submission
+ * @returns {Promise<BapFormSubmission[]>} collection of fields associated with each form submission
  */
-async function queryForApplicationSubmissionsStatuses(req, comboKeys) {
-  const message = `Querying BAP for Application form submissions statuses associated with combokeys: ${comboKeys}.`;
+async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
+  const message = `Querying BAP for form submissions statuses associated with combokeys: ${comboKeys}.`;
   log({ level: "info", message });
 
   /** @type {jsforce.Connection} */
@@ -245,7 +245,7 @@ async function queryForApplicationSubmissionsStatuses(req, comboKeys) {
  * @param {string} reviewItemId CSB Rebate ID with the form/version ID (9 digits)
  * @returns {Promise<Object>} application form submission fields
  */
-async function queryForApplicationSubmission(req, reviewItemId) {
+async function queryForBapApplicationSubmission(req, reviewItemId) {
   const message = `Querying BAP for Application form submission associated with CSB Review Item ID: ${reviewItemId}.`;
   log({ level: "info", message });
 
@@ -461,13 +461,13 @@ function getBapComboKeys(req, email) {
 }
 
 /**
- * Fetches application form submissions statuses associated with a provided set of combo keys.
+ * Fetches form submissions statuses associated with a provided set of combo keys.
  * @param {express.Request} req
  * @param {string[]} comboKeys
  */
-function getApplicationSubmissionsStatuses(req, comboKeys) {
+function getBapFormSubmissionsStatuses(req, comboKeys) {
   return verifyBapConnection(req, {
-    name: queryForApplicationSubmissionsStatuses,
+    name: queryForBapFormSubmissionsStatuses,
     args: [req, comboKeys],
   });
 }
@@ -477,9 +477,9 @@ function getApplicationSubmissionsStatuses(req, comboKeys) {
  * @param {express.Request} req
  * @param {string} reviewItemId
  */
-function getApplicationSubmission(req, reviewItemId) {
+function getBapApplicationSubmission(req, reviewItemId) {
   return verifyBapConnection(req, {
-    name: queryForApplicationSubmission,
+    name: queryForBapApplicationSubmission,
     args: [req, reviewItemId],
   });
 }
@@ -487,6 +487,6 @@ function getApplicationSubmission(req, reviewItemId) {
 module.exports = {
   getSamEntities,
   getBapComboKeys,
-  getApplicationSubmissionsStatuses,
-  getApplicationSubmission,
+  getBapFormSubmissionsStatuses,
+  getBapApplicationSubmission,
 };
