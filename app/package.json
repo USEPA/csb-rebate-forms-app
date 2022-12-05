@@ -1,6 +1,6 @@
 {
   "name": "epa-csb",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "U.S. EPA Clean School Bus data collection system",
   "license": "CC0-1.0",
   "author": "USEPA (https://www.epa.gov)",
@@ -10,10 +10,10 @@
     "Devin Galloway <devin.galloway@erg.com>"
   ],
   "devDependencies": {
-    "concurrently": "7.2.2",
-    "husky": "8.0.1",
-    "lint-staged": "13.0.3",
-    "prettier": "2.7.1"
+    "concurrently": "7.6.0",
+    "husky": "8.0.2",
+    "lint-staged": "13.0.4",
+    "prettier": "2.8.0"
   },
   "scripts": {
     "client": "cd client && npm start",
