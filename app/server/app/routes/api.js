@@ -19,8 +19,8 @@ const {
 } = require("../middleware");
 const {
   getSamEntities,
-  getApplicationSubmissionsStatuses,
-  getApplicationSubmission,
+  getBapFormSubmissionsStatuses,
+  getBapApplicationSubmission,
 } = require("../utilities/bap");
 const log = require("../utilities/logger");
 
@@ -53,12 +53,13 @@ function checkEnrollmentPeriodAndBapStatus({
     }
 
     // else enrollment is closed, so only continue if edits are requested
-    return getApplicationSubmissionsStatuses(req, [comboKey]).then(
+    return getBapFormSubmissionsStatuses(req, [comboKey]).then(
       (submissions) => {
-        const submission = submissions.find((submission) => {
-          return submission.CSB_Form_ID__c === mongoId;
+        const submission = submissions.find((sub) => {
+          return sub.CSB_Form_ID__c === mongoId;
         });
-        const status = submission?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c;
+        const status =
+          submission?.Parent_CSB_Rebate__r?.CSB_Funding_Request_Status__c;
         return status === "Edits Requested"
           ? Promise.resolve()
           : Promise.reject();
@@ -188,12 +189,12 @@ router.get("/bap-sam-data", (req, res) => {
     });
 });
 
-// --- get user's Application form submissions statuses from EPA's BAP
-router.get("/bap-application-submissions", storeBapComboKeys, (req, res) => {
-  return getApplicationSubmissionsStatuses(req, req.bapComboKeys)
+// --- get user's form submissions statuses from EPA's BAP
+router.get("/bap-form-submissions", storeBapComboKeys, (req, res) => {
+  return getBapFormSubmissionsStatuses(req, req.bapComboKeys)
     .then((submissions) => res.json(submissions))
     .catch((error) => {
-      const message = `Error getting Application form submissions statuses from BAP`;
+      const message = `Error getting form submissions statuses from BAP`;
       return res.status(401).json({ message });
     });
 });
@@ -448,7 +449,7 @@ router.post(
       ALT_GOVT_BUS_POC_EMAIL__c,
     } = entity;
 
-    return getApplicationSubmission(req, reviewItemId)
+    return getBapApplicationSubmission(req, reviewItemId)
       .then(({ formsTableRecordQuery, busTableRecordsQuery }) => {
         const {
           CSB_NCES_ID__c,

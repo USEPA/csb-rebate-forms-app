@@ -6,7 +6,7 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, getData, postData } from "../config";
 import { getUserInfo } from "../utilities";
-import { useFetchedBapApplicationSubmissions } from "routes/allRebates";
+import { useFetchedBapFormSubmissions } from "routes/allRebates";
 import { Loading } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
@@ -54,8 +54,7 @@ function ApplicationFormContent({ email }: { email: string }) {
 
   const { content } = useContentState();
   const { csbData } = useCsbState();
-  const { samEntities, applicationSubmissions: bapApplicationSubmissions } =
-    useBapState();
+  const { samEntities, formSubmissions: bapFormSubmissions } = useBapState();
   const { formio } = usePageFormioState();
   const pageMessageDispatch = usePageMessageDispatch();
   const pageFormioDispatch = usePageFormioDispatch();
@@ -70,7 +69,7 @@ function ApplicationFormContent({ email }: { email: string }) {
     pageFormioDispatch({ type: "RESET_FORMIO_DATA" });
   }, [pageFormioDispatch]);
 
-  useFetchedBapApplicationSubmissions();
+  useFetchedBapFormSubmissions();
 
   // create ref to store when form is being submitted, so it can be referenced
   // in the Form component's `onSubmit` event prop, to prevent double submits
@@ -155,26 +154,26 @@ function ApplicationFormContent({ email }: { email: string }) {
     email === "" ||
     csbData.status !== "success" ||
     samEntities.status !== "success" ||
-    bapApplicationSubmissions.status !== "success"
+    bapFormSubmissions.status !== "success"
   ) {
     return <Loading />;
   }
 
   const { enrollmentClosed } = csbData.data;
 
-  const match = bapApplicationSubmissions.data.find((bapSubmission) => {
-    return bapSubmission.CSB_Form_ID__c === mongoId;
+  const match = bapFormSubmissions.data.applications.find((bapSub) => {
+    return bapSub.CSB_Form_ID__c === mongoId;
   });
 
   const bap = {
     rebateId: match?.Parent_Rebate_ID__c || null,
-    rebateStatus: match?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c || null,
+    status: match?.Parent_CSB_Rebate__r?.CSB_Funding_Request_Status__c || null,
   };
 
-  const submissionNeedsEdits = bap.rebateStatus === "Edits Requested";
+  const applicationNeedsEdits = bap.status === "Edits Requested";
 
   const formIsReadOnly =
-    (enrollmentClosed && !submissionNeedsEdits) ||
+    (enrollmentClosed && !applicationNeedsEdits) ||
     submission.state === "submitted";
 
   const entityComboKey = storedSubmissionData.bap_hidden_entity_combo_key;

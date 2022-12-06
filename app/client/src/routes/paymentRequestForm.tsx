@@ -6,6 +6,7 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, getData, postData } from "../config";
 import { getUserInfo } from "../utilities";
+import { useFetchedBapFormSubmissions } from "routes/allRebates";
 import { Loading } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
@@ -53,7 +54,7 @@ function PaymentRequestFormContent({ email }: { email: string }) {
 
   const { content } = useContentState();
   const { csbData } = useCsbState();
-  const { samEntities } = useBapState();
+  const { samEntities, formSubmissions: bapFormSubmissions } = useBapState();
   const { formio } = usePageFormioState();
   const pageMessageDispatch = usePageMessageDispatch();
   const pageFormioDispatch = usePageFormioDispatch();
@@ -67,6 +68,8 @@ function PaymentRequestFormContent({ email }: { email: string }) {
   useEffect(() => {
     pageFormioDispatch({ type: "RESET_FORMIO_DATA" });
   }, [pageFormioDispatch]);
+
+  useFetchedBapFormSubmissions();
 
   // create ref to store when form is being submitted, so it can be referenced
   // in the Form component's `onSubmit` event prop, to prevent double submits
@@ -147,12 +150,24 @@ function PaymentRequestFormContent({ email }: { email: string }) {
   if (
     email === "" ||
     csbData.status !== "success" ||
-    samEntities.status !== "success"
+    samEntities.status !== "success" ||
+    bapFormSubmissions.status !== "success"
   ) {
     return <Loading />;
   }
 
-  const formIsReadOnly = submission.state === "submitted";
+  const match = bapFormSubmissions.data.paymentRequests.find((bapSub) => {
+    return bapSub.Parent_Rebate_ID__c === rebateId;
+  });
+
+  const bap = {
+    status: match?.Parent_CSB_Rebate__r?.CSB_Payment_Request_Status__c || null,
+  };
+
+  const paymentRequestNeedsEdits = bap.status === "Edits Requested";
+
+  const formIsReadOnly =
+    !paymentRequestNeedsEdits || submission.state === "submitted";
 
   const entityComboKey = storedSubmissionData.bap_hidden_entity_combo_key;
   const entity = samEntities.data.entities.find((entity) => {
