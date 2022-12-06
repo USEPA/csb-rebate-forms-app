@@ -118,7 +118,7 @@ jobs:
           cf set-env $APP_NAME "SAML_ENTITY_ID" "$SAML_ENTITY_ID" > /dev/null
           cf set-env $APP_NAME "SAML_IDP_CERT" "$SAML_IDP_CERT" > /dev/null
           cf set-env $APP_NAME "SAML_PUBLIC_KEY" "$SAML_PUBLIC_KEY" > /dev/null
-          cf set-env $APP_NAME "SAML_PRIVATE_KEY" "$SAML_PRIVATE_KEY" > /dev/null
+          # cf set-env $APP_NAME "SAML_PRIVATE_KEY" "$SAML_PRIVATE_KEY" > /dev/null
           cf set-env $APP_NAME "JWT_PUBLIC_KEY" "$JWT_PUBLIC_KEY" > /dev/null
           cf set-env $APP_NAME "JWT_PRIVATE_KEY" "$JWT_PRIVATE_KEY" > /dev/null
           cf set-env $APP_NAME "CSB_ENROLLMENT_PERIOD" "$CSB_ENROLLMENT_PERIOD" > /dev/null
