@@ -56,9 +56,10 @@ function axiosFormio(req) {
 
       log({
         level: "error",
-        message: `Formio Error: ${status} ${config.method.toUpperCase()} ${
-          config.url
-        }`,
+        message:
+          `Formio Error: ${status} ` +
+          `${config.method.toUpperCase()} ${config.url}. ` +
+          `Response: ${JSON.stringify(error.response.data)}`,
         req: config,
       });
 
