@@ -652,7 +652,7 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
   const email = epaUserData.data.mail;
   const { application, paymentRequest } = rebate;
 
-  const applicationHasBeenSelected = application.bap?.status === "Selected";
+  const applicationHasBeenSelected = application.bap?.status === "Accepted";
 
   const applicationHasBeenSelectedButNoPaymentRequest =
     applicationHasBeenSelected && !Boolean(paymentRequest.formio);
