@@ -752,6 +752,9 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
       (paymentRequest.formio.state === "submitted" &&
         !paymentRequestHasBeenModifiedSinceLastETL));
 
+  const paymentRequestNeedsClarification =
+    paymentRequest.bap?.status === "Needs Clarification";
+
   const paymentRequestHasBeenWithdrawn =
     paymentRequest.bap?.status === "Withdrawn";
 
@@ -852,47 +855,56 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
         <span>Payment Request</span>
         <br />
         <span className="display-flex flex-align-center font-sans-2xs">
-          <svg
-            className="usa-icon"
-            aria-hidden="true"
-            focusable="false"
-            role="img"
-          >
-            <use
-              href={
-                paymentRequestNeedsEdits
-                  ? `${icons}#priority_high` // icon: !
-                  : paymentRequestHasBeenWithdrawn
-                  ? `${icons}#close` // icon: ✕
-                  : paymentRequestFundingNotApproved
-                  ? `${icons}#cancel` // icon: ✕ inside a circle
-                  : paymentRequestFundingApproved
-                  ? `${icons}#check_circle` // icon: check inside a circle
-                  : paymentRequest.formio.state === "draft"
-                  ? `${icons}#more_horiz` // icon: three horizontal dots
-                  : paymentRequest.formio.state === "submitted"
-                  ? `${icons}#check` // icon: check
-                  : `${icons}#remove` // icon: — (fallback, not used)
-              }
+          {paymentRequestNeedsClarification ? (
+            <TextWithTooltip
+              text="Needs Clarification"
+              tooltip="Check email for instructions on what needs clarification"
             />
-          </svg>
-          <span className="margin-left-05">
-            {
-              paymentRequestNeedsEdits
-                ? "Edits Requested"
-                : paymentRequestHasBeenWithdrawn
-                ? "Withdrawn"
-                : paymentRequestFundingNotApproved
-                ? "Funding Not Approved"
-                : paymentRequestFundingApproved
-                ? "Funding Approved"
-                : paymentRequest.formio.state === "draft"
-                ? "Draft"
-                : paymentRequest.formio.state === "submitted"
-                ? "Submitted"
-                : "" // fallback, not used
-            }
-          </span>
+          ) : (
+            <>
+              <svg
+                className="usa-icon"
+                aria-hidden="true"
+                focusable="false"
+                role="img"
+              >
+                <use
+                  href={
+                    paymentRequestNeedsEdits
+                      ? `${icons}#priority_high` // icon: !
+                      : paymentRequestHasBeenWithdrawn
+                      ? `${icons}#close` // icon: ✕
+                      : paymentRequestFundingNotApproved
+                      ? `${icons}#cancel` // icon: ✕ inside a circle
+                      : paymentRequestFundingApproved
+                      ? `${icons}#check_circle` // icon: check inside a circle
+                      : paymentRequest.formio.state === "draft"
+                      ? `${icons}#more_horiz` // icon: three horizontal dots
+                      : paymentRequest.formio.state === "submitted"
+                      ? `${icons}#check` // icon: check
+                      : `${icons}#remove` // icon: — (fallback, not used)
+                  }
+                />
+              </svg>
+              <span className="margin-left-05">
+                {
+                  paymentRequestNeedsEdits
+                    ? "Edits Requested"
+                    : paymentRequestHasBeenWithdrawn
+                    ? "Withdrawn"
+                    : paymentRequestFundingNotApproved
+                    ? "Funding Not Approved"
+                    : paymentRequestFundingApproved
+                    ? "Funding Approved"
+                    : paymentRequest.formio.state === "draft"
+                    ? "Draft"
+                    : paymentRequest.formio.state === "submitted"
+                    ? "Submitted"
+                    : "" // fallback, not used
+                }
+              </span>
+            </>
+          )}
         </span>
       </td>
 
