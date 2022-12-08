@@ -243,8 +243,6 @@ function useCombinedSubmissions() {
       return bapSub.Parent_Rebate_ID__c === formioBapRebateId;
     });
 
-    // TODO: update this once the BAP team sets up the ETL process for ingesting
-    // Payment Request form submissions from forms.gov
     const modified = bapMatch?.CSB_Modified_Full_String__c || null;
     const comboKey = bapMatch?.UEI_EFTI_Combo_Key__c || null;
     const rebateId = bapMatch?.Parent_Rebate_ID__c || null;
