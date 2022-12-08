@@ -24,35 +24,38 @@ const {
 } = require("../utilities/bap");
 const log = require("../utilities/logger");
 
-const enrollmentClosed = process.env.CSB_ENROLLMENT_PERIOD !== "open";
+const applicationFormOpen = process.env.CSB_APPLICATION_FORM_OPEN === "true";
+const paymentRequestFormOpen =
+  process.env.CSB_PAYMENT_REQUEST_FORM_OPEN === "true";
+const closeOutFormOpen = process.env.CSB_CLOSE_OUT_FORM_OPEN === "true";
 
 const applicationFormApiPath = `${formioProjectUrl}/${formioApplicationFormPath}`;
 const paymentRequestFormApiPath = `${formioProjectUrl}/${formioPaymentRequestFormPath}`;
 
 /**
- * Returns a resolved or rejected promise, depending on if the enrollment period
- * is closed (as set via the `CSB_ENROLLMENT_PERIOD` environment variable), and
- * if the form submission has the status of "Edits Requested" or not (as stored
- * in and returned from the BAP).
+ * Returns a resolved or rejected promise, depending on if the given form's
+ * submission period is open (as set via environment variables), and if the form
+ * submission has the status of "Edits Requested" or not (as stored in and
+ * returned from the BAP).
  * @param {Object} param
  * @param {'application'|'payment-request'|'close-out'} param.formType
  * @param {string} param.mongoId
  * @param {string} param.comboKey
  * @param {express.Request} param.req
  */
-function checkEnrollmentPeriodAndBapStatus({
+function checkFormSubmissionPeriodAndBapStatus({
   formType,
   mongoId,
   comboKey,
   req,
 }) {
   if (formType === "application") {
-    // continue if enrollment isn't closed
-    if (!enrollmentClosed) {
+    if (applicationFormOpen) {
       return Promise.resolve();
     }
 
-    // else enrollment is closed, so only continue if edits are requested
+    // application form submission period is closed, so only continue if edits
+    // are requested
     return getBapFormSubmissionsStatuses(req, [comboKey]).then(
       (submissions) => {
         const submission = submissions.find((sub) => {
@@ -157,7 +160,13 @@ router.get("/helpdesk-access", ensureHelpdesk, (req, res) => {
 
 // --- get CSB app specific data (open enrollment status, etc.)
 router.get("/csb-data", (req, res) => {
-  return res.json({ enrollmentClosed });
+  return res.json({
+    submissionPeriodOpen: {
+      application: applicationFormOpen,
+      paymentRequest: paymentRequestFormOpen,
+      closeOut: closeOutFormOpen,
+    },
+  });
 });
 
 // --- get user data from EPA Gateway/Login.gov
@@ -231,8 +240,8 @@ router.get("/formio-application-submissions", storeBapComboKeys, (req, res) => {
 router.post("/formio-application-submission", storeBapComboKeys, (req, res) => {
   const comboKey = req.body.data?.bap_hidden_entity_combo_key;
 
-  if (enrollmentClosed) {
-    const message = `CSB enrollment period is closed`;
+  if (!applicationFormOpen) {
+    const message = `CSB Application enrollment period is closed`;
     return res.status(400).json({ message });
   }
 
@@ -307,7 +316,7 @@ router.post(
     const comboKey = req.body.data?.bap_hidden_entity_combo_key;
     const formType = "application";
 
-    checkEnrollmentPeriodAndBapStatus({ formType, mongoId, comboKey, req })
+    checkFormSubmissionPeriodAndBapStatus({ formType, mongoId, comboKey, req })
       .then(() => {
         // verify post data includes one of user's BAP combo keys
         if (!req.bapComboKeys.includes(comboKey)) {
@@ -332,7 +341,7 @@ router.post(
           });
       })
       .catch((error) => {
-        const message = `CSB enrollment period is closed`;
+        const message = `CSB Application enrollment period is closed`;
         return res.status(400).json({ message });
       });
   }
@@ -345,7 +354,7 @@ router.post(
   (req, res) => {
     const { formType, mongoId, comboKey } = req.params;
 
-    checkEnrollmentPeriodAndBapStatus({ formType, mongoId, comboKey, req })
+    checkFormSubmissionPeriodAndBapStatus({ formType, mongoId, comboKey, req })
       .then(() => {
         if (!req.bapComboKeys.includes(comboKey)) {
           const message = `User with email ${req.user.mail} attempted to upload file without a matching BAP combo key`;
