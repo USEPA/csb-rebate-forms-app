@@ -67,7 +67,9 @@ export const messages = {
   timeout:
     "For security reasons, you have been logged out due to 15 minutes of inactivity.",
   logout: "You have successfully logged out.",
-  enrollmentClosed: "The CSB enrollment period is closed.",
+  applicationFormClosed: "The CSB Application enrollment period is closed.",
+  paymentRequestFormClosed: "The CSB Payment Request period is closed.",
+  closeOutFormClosed: "The CSB Close-Out period is closed.",
 };
 
 async function fetchData(url: string, options: RequestInit) {

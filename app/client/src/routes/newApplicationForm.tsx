@@ -81,8 +81,8 @@ export function NewApplicationForm() {
         >
           <div className="usa-modal__content">
             <div className="usa-modal__main">
-              {csbData.data.enrollmentClosed ? (
-                <Message type="info" text={messages.enrollmentClosed} />
+              {!csbData.data.submissionPeriodOpen.application ? (
+                <Message type="info" text={messages.applicationFormClosed} />
               ) : activeSamEntities.length <= 0 ? (
                 <Message type="info" text={messages.bapNoSamResults} />
               ) : (

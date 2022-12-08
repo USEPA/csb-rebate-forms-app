@@ -159,7 +159,7 @@ function ApplicationFormContent({ email }: { email: string }) {
     return <Loading />;
   }
 
-  const { enrollmentClosed } = csbData.data;
+  const applicationFormOpen = csbData.data.submissionPeriodOpen.application;
 
   const match = bapFormSubmissions.data.applications.find((bapSub) => {
     return bapSub.CSB_Form_ID__c === mongoId;
@@ -173,7 +173,7 @@ function ApplicationFormContent({ email }: { email: string }) {
   const applicationNeedsEdits = bap.status === "Edits Requested";
 
   const formIsReadOnly =
-    (enrollmentClosed && !applicationNeedsEdits) ||
+    (!applicationFormOpen && !applicationNeedsEdits) ||
     submission.state === "submitted";
 
   const entityComboKey = storedSubmissionData.bap_hidden_entity_combo_key;

@@ -11,7 +11,10 @@ const {
 const { ensureAuthenticated, ensureHelpdesk } = require("../middleware");
 const log = require("../utilities/logger");
 
-const enrollmentClosed = process.env.CSB_ENROLLMENT_PERIOD !== "open";
+const applicationFormOpen = process.env.CSB_APPLICATION_FORM_OPEN === "true";
+// const paymentRequestFormOpen =
+//   process.env.CSB_PAYMENT_REQUEST_FORM_OPEN === "true";
+// const closeOutFormOpen = process.env.CSB_CLOSE_OUT_FORM_OPEN === "true";
 
 const applicationFormApiPath = `${formioProjectUrl}/${formioApplicationFormPath}`;
 const paymentRequestFormApiPath = `${formioProjectUrl}/${formioPaymentRequestFormPath}`;
@@ -105,7 +108,7 @@ router.post("/formio-submission/:formType/:id", (req, res) => {
   if (formType === "application") {
     const mongoId = id;
 
-    if (enrollmentClosed) {
+    if (!applicationFormOpen) {
       const message = `CSB enrollment period is closed`;
       return res.status(400).json({ message });
     }

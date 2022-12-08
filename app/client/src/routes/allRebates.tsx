@@ -347,7 +347,8 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
   }
 
   if (csbData.status !== "success") return null;
-  const { enrollmentClosed } = csbData.data;
+
+  const applicationFormOpen = csbData.data.submissionPeriodOpen.application;
 
   const { application, paymentRequest } = rebate;
 
@@ -385,7 +386,7 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
     applicationHasBeenSelected && !Boolean(paymentRequest.formio);
 
   const statusClassNames =
-    application.formio.state === "submitted" || enrollmentClosed
+    application.formio.state === "submitted" || !applicationFormOpen
       ? "text-italic"
       : "";
 
@@ -446,7 +447,7 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
               <span className="margin-left-1">Edit</span>
             </span>
           </button>
-        ) : enrollmentClosed || application.formio.state === "submitted" ? (
+        ) : !applicationFormOpen || application.formio.state === "submitted" ? (
           <Link
             to={`/rebate/${application.formio._id}`}
             className="usa-button usa-button--base font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
