@@ -55,7 +55,7 @@ export function Helpdesk() {
     navigate("/", { replace: true });
   }
 
-  const { enrollmentClosed } = csbData.data;
+  const applicationFormOpen = csbData.data.submissionPeriodOpen.application;
 
   const { formSchema, submission } = formio.data;
 
@@ -320,7 +320,7 @@ export function Helpdesk() {
                       className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
                       disabled={
                         submission.state === "draft" ||
-                        (formType === "application" && enrollmentClosed)
+                        (formType === "application" && !applicationFormOpen)
                       }
                       onClick={(_ev) => {
                         dialogDispatch({

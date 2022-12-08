@@ -11,7 +11,11 @@ type Props = {
 };
 
 type CsbData = {
-  enrollmentClosed: boolean;
+  submissionPeriodOpen: {
+    application: boolean;
+    paymentRequest: boolean;
+    closeOut: boolean;
+  };
 };
 
 type State = {

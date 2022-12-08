@@ -120,8 +120,9 @@ export function Dashboard() {
   const onApplicationFormPage = pathname.startsWith("/rebate");
   const onPaymentRequestFormPage = pathname.startsWith("/payment-request");
 
-  const enrollmentClosed =
-    csbData.status === "success" && csbData.data.enrollmentClosed;
+  const applicationFormOpen =
+    csbData.status === "success" &&
+    csbData.data.submissionPeriodOpen.application;
 
   /**
    * When provided a destination location to navigate to, creates an action
@@ -223,7 +224,7 @@ export function Dashboard() {
 
           {onApplicationFormPage ||
           onPaymentRequestFormPage ||
-          enrollmentClosed ? (
+          !applicationFormOpen ? (
             <button
               className="margin-bottom-1 usa-button font-sans-2xs"
               disabled
