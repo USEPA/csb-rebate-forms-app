@@ -312,12 +312,11 @@ function useSortedSubmissions(submissions: { [rebateId: string]: Rebate }) {
           (r1.application.formio.state === "submitted" &&
             !r1ApplicationHasBeenModifiedSinceLastETL));
 
-      const r1ApplicationHasBeenSelectedButNoPaymentRequest =
+      const r1ApplicationSelectedButNoPaymentRequest =
         r1.application.bap?.status === "Accepted" &&
         !Boolean(r1.paymentRequest.formio);
 
-      return r1ApplicationNeedsEdits ||
-        r1ApplicationHasBeenSelectedButNoPaymentRequest
+      return r1ApplicationNeedsEdits || r1ApplicationSelectedButNoPaymentRequest
         ? -1
         : 0;
     });
@@ -380,10 +379,13 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
 
   const applicationHasBeenWithdrawn = application.bap?.status === "Withdrawn";
 
-  const applicationHasBeenSelected = application.bap?.status === "Accepted";
+  const applicationNotSelected =
+    paymentRequest.bap?.status === "Coordinator Denied";
 
-  const applicationHasBeenSelectedButNoPaymentRequest =
-    applicationHasBeenSelected && !Boolean(paymentRequest.formio);
+  const applicationSelected = application.bap?.status === "Accepted";
+
+  const applicationSelectedButNoPaymentRequest =
+    applicationSelected && !Boolean(paymentRequest.formio);
 
   const statusClassNames =
     application.formio.state === "submitted" || !applicationFormOpen
@@ -407,7 +409,7 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
   return (
     <tr
       className={
-        applicationNeedsEdits || applicationHasBeenSelectedButNoPaymentRequest
+        applicationNeedsEdits || applicationSelectedButNoPaymentRequest
           ? highlightedTableRowClassNames
           : defaultTableRowClassNames
       }
@@ -502,9 +504,7 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
         <br />
         <span className="display-flex flex-align-center font-sans-2xs">
           <svg
-            className={`usa-icon ${
-              applicationHasBeenSelected ? "text-primary" : ""
-            }`}
+            className={`usa-icon ${applicationSelected ? "text-primary" : ""}`}
             aria-hidden="true"
             focusable="false"
             role="img"
@@ -512,16 +512,18 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
             <use
               href={
                 applicationNeedsEdits
-                  ? `${icons}#priority_high`
+                  ? `${icons}#priority_high` // icon: !
                   : applicationHasBeenWithdrawn
-                  ? `${icons}#close`
-                  : applicationHasBeenSelected
-                  ? `${icons}#check_circle`
+                  ? `${icons}#close` // icon: ✕
+                  : applicationNotSelected
+                  ? `${icons}#check` // TODO: eventually use 'cancel' icon
+                  : applicationSelected
+                  ? `${icons}#check_circle` // icon: check inside a circle
                   : application.formio.state === "draft"
-                  ? `${icons}#more_horiz`
+                  ? `${icons}#more_horiz` // icon: three horizontal dots
                   : application.formio.state === "submitted"
-                  ? `${icons}#check`
-                  : `${icons}#remove` // fallback, not used
+                  ? `${icons}#check` // icon: check
+                  : `${icons}#remove` // icon: — (fallback, not used)
               }
             />
           </svg>
@@ -531,7 +533,9 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
                 ? "Edits Requested"
                 : applicationHasBeenWithdrawn
                 ? "Withdrawn"
-                : applicationHasBeenSelected
+                : applicationNotSelected
+                ? "Submitted" // TODO: eventually show 'Not Selected'
+                : applicationSelected
                 ? "Selected"
                 : application.formio.state === "draft"
                 ? "Draft"
@@ -653,10 +657,10 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
   const email = epaUserData.data.mail;
   const { application, paymentRequest } = rebate;
 
-  const applicationHasBeenSelected = application.bap?.status === "Accepted";
+  const applicationSelected = application.bap?.status === "Accepted";
 
-  const applicationHasBeenSelectedButNoPaymentRequest =
-    applicationHasBeenSelected && !Boolean(paymentRequest.formio);
+  const applicationSelectedButNoPaymentRequest =
+    applicationSelected && !Boolean(paymentRequest.formio);
 
   /** matched SAM.gov entity for the application */
   const entity = samEntities.data.entities.find((entity) => {
@@ -667,7 +671,7 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
     );
   });
 
-  if (applicationHasBeenSelectedButNoPaymentRequest) {
+  if (applicationSelectedButNoPaymentRequest) {
     return (
       <tr className={highlightedTableRowClassNames}>
         <th scope="row" colSpan={6}>
@@ -750,6 +754,9 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
 
   const paymentRequestHasBeenWithdrawn =
     paymentRequest.bap?.status === "Withdrawn";
+
+  const paymentRequestFundingNotApproved =
+    paymentRequest.bap?.status === "Coordinator Denied";
 
   const paymentRequestFundingApproved =
     paymentRequest.bap?.status === "Accepted";
@@ -854,16 +861,18 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
             <use
               href={
                 paymentRequestNeedsEdits
-                  ? `${icons}#priority_high`
+                  ? `${icons}#priority_high` // icon: !
                   : paymentRequestHasBeenWithdrawn
-                  ? `${icons}#close`
+                  ? `${icons}#close` // icon: ✕
+                  : paymentRequestFundingNotApproved
+                  ? `${icons}#cancel` // icon: ✕ inside a circle
                   : paymentRequestFundingApproved
-                  ? `${icons}#check_circle`
+                  ? `${icons}#check_circle` // icon: check inside a circle
                   : paymentRequest.formio.state === "draft"
-                  ? `${icons}#more_horiz`
+                  ? `${icons}#more_horiz` // icon: three horizontal dots
                   : paymentRequest.formio.state === "submitted"
-                  ? `${icons}#check`
-                  : `${icons}#remove` // fallback, not used
+                  ? `${icons}#check` // icon: check
+                  : `${icons}#remove` // icon: — (fallback, not used)
               }
             />
           </svg>
@@ -873,6 +882,8 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
                 ? "Edits Requested"
                 : paymentRequestHasBeenWithdrawn
                 ? "Withdrawn"
+                : paymentRequestFundingNotApproved
+                ? "Funding Not Approved"
                 : paymentRequestFundingApproved
                 ? "Funding Approved"
                 : paymentRequest.formio.state === "draft"
