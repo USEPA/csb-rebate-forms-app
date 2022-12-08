@@ -156,17 +156,22 @@ function PaymentRequestFormContent({ email }: { email: string }) {
     return <Loading />;
   }
 
-  // const match = bapFormSubmissions.data.paymentRequests.find((bapSub) => {
-  //   return bapSub.Parent_Rebate_ID__c === rebateId;
-  // });
+  const paymentRequestFormOpen =
+    csbData.data.submissionPeriodOpen.paymentRequest;
 
-  // const bap = {
-  //   status: match?.Parent_CSB_Rebate__r?.CSB_Payment_Request_Status__c || null,
-  // };
+  const match = bapFormSubmissions.data.paymentRequests.find((bapSub) => {
+    return bapSub.Parent_Rebate_ID__c === rebateId;
+  });
 
-  // const paymentRequestNeedsEdits = bap.status === "Edits Requested";
+  const bap = {
+    status: match?.Parent_CSB_Rebate__r?.CSB_Payment_Request_Status__c || null,
+  };
 
-  const formIsReadOnly = submission.state === "submitted";
+  const paymentRequestNeedsEdits = bap.status === "Edits Requested";
+
+  const formIsReadOnly =
+    (!paymentRequestFormOpen && !paymentRequestNeedsEdits) ||
+    submission.state === "submitted";
 
   const entityComboKey = storedSubmissionData.bap_hidden_entity_combo_key;
   const entity = samEntities.data.entities.find((entity) => {

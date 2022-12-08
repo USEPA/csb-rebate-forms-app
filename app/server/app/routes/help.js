@@ -12,9 +12,9 @@ const { ensureAuthenticated, ensureHelpdesk } = require("../middleware");
 const log = require("../utilities/logger");
 
 const applicationFormOpen = process.env.CSB_APPLICATION_FORM_OPEN === "true";
-// const paymentRequestFormOpen =
-//   process.env.CSB_PAYMENT_REQUEST_FORM_OPEN === "true";
-// const closeOutFormOpen = process.env.CSB_CLOSE_OUT_FORM_OPEN === "true";
+const paymentRequestFormOpen =
+  process.env.CSB_PAYMENT_REQUEST_FORM_OPEN === "true";
+const closeOutFormOpen = process.env.CSB_CLOSE_OUT_FORM_OPEN === "true";
 
 const applicationFormApiPath = `${formioProjectUrl}/${formioApplicationFormPath}`;
 const paymentRequestFormApiPath = `${formioProjectUrl}/${formioPaymentRequestFormPath}`;
@@ -98,6 +98,10 @@ router.get("/formio-submission/:formType/:id", (req, res) => {
         res.status(error?.response?.status || 500).json({ message });
       });
   }
+
+  if (formType === "close-out") {
+    // TODO
+  }
 });
 
 // --- change a submitted Forms.gov form's submission state back to draft
@@ -106,12 +110,12 @@ router.post("/formio-submission/:formType/:id", (req, res) => {
   const { mail } = req.user;
 
   if (formType === "application") {
-    const mongoId = id;
-
     if (!applicationFormOpen) {
-      const message = `CSB enrollment period is closed`;
+      const message = `CSB Application form enrollment period is closed`;
       return res.status(400).json({ message });
     }
+
+    const mongoId = id;
 
     // NOTE: verifyMongoObjectId middleware content:
     if (mongoId && !ObjectId.isValid(mongoId)) {
@@ -149,6 +153,11 @@ router.post("/formio-submission/:formType/:id", (req, res) => {
   }
 
   if (formType === "payment-request") {
+    if (!paymentRequestFormOpen) {
+      const message = `CSB Payment Request form enrollment period is closed`;
+      return res.status(400).json({ message });
+    }
+
     const rebateId = id;
 
     const matchedPaymentRequestFormSubmissions =
@@ -191,6 +200,15 @@ router.post("/formio-submission/:formType/:id", (req, res) => {
         const message = `Error getting Forms.gov Payment Request form submission ${rebateId}`;
         res.status(error?.response?.status || 500).json({ message });
       });
+  }
+
+  if (formType === "close-out") {
+    if (!closeOutFormOpen) {
+      const message = `CSB Close-Out form enrollment period is closed`;
+      return res.status(400).json({ message });
+    }
+
+    // TODO
   }
 });
 

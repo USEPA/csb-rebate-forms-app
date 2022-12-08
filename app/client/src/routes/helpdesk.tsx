@@ -56,6 +56,9 @@ export function Helpdesk() {
   }
 
   const applicationFormOpen = csbData.data.submissionPeriodOpen.application;
+  const paymentRequestFormOpen =
+    csbData.data.submissionPeriodOpen.paymentRequest;
+  const closeOutFormOpen = csbData.data.submissionPeriodOpen.closeOut;
 
   const { formSchema, submission } = formio.data;
 
@@ -311,7 +314,7 @@ export function Helpdesk() {
                         ? "Draft"
                         : submission.state === "submitted"
                         ? "Submitted"
-                        : submission.state // fallback, not used
+                        : "" // fallback, not used
                     }
                   </td>
 
@@ -320,7 +323,10 @@ export function Helpdesk() {
                       className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
                       disabled={
                         submission.state === "draft" ||
-                        (formType === "application" && !applicationFormOpen)
+                        (formType === "application" && !applicationFormOpen) ||
+                        (formType === "payment-request" &&
+                          !paymentRequestFormOpen) ||
+                        (formType === "close-out" && !closeOutFormOpen)
                       }
                       onClick={(_ev) => {
                         dialogDispatch({

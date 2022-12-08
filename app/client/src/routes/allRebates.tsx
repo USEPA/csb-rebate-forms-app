@@ -327,21 +327,10 @@ function PageMessage() {
 }
 
 function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
-  const location = useLocation();
   const navigate = useNavigate();
 
   const { csbData } = useCsbState();
   const pageMessageDispatch = usePageMessageDispatch();
-
-  const submissionSuccessMessage =
-    (location.state as LocationState)?.submissionSuccessMessage || null;
-
-  if (submissionSuccessMessage) {
-    pageMessageDispatch({
-      type: "DISPLAY_MESSAGE",
-      payload: { type: "success", text: submissionSuccessMessage },
-    });
-  }
 
   if (csbData.status !== "success") return null;
 
@@ -642,6 +631,7 @@ save the form for the EFT indicator to be displayed. */
 function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
   const navigate = useNavigate();
 
+  const { csbData } = useCsbState();
   const { epaUserData } = useUserState();
   const { samEntities } = useBapState();
   const pageMessageDispatch = usePageMessageDispatch();
@@ -649,8 +639,12 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
   // NOTE: used to display a loading indicator inside the new Payment Request button
   const [postDataResponsePending, setPostDataResponsePending] = useState(false);
 
+  if (csbData.status !== "success") return null;
   if (epaUserData.status !== "success") return null;
   if (samEntities.status !== "success") return null;
+
+  const paymentRequestFormOpen =
+    csbData.data.submissionPeriodOpen.paymentRequest;
 
   const email = epaUserData.data.mail;
   const { application, paymentRequest } = rebate;
@@ -763,7 +757,9 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
     paymentRequest.bap?.status === "Accepted";
 
   const statusClassNames =
-    paymentRequest.formio.state === "submitted" ? "text-italic" : "";
+    paymentRequest.formio.state === "submitted" || !paymentRequestFormOpen
+      ? "text-italic"
+      : "";
 
   return (
     <tr
@@ -810,7 +806,8 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
               <span className="margin-left-1">Edit</span>
             </span>
           </button>
-        ) : paymentRequest.formio.state === "submitted" ? (
+        ) : !paymentRequestFormOpen ||
+          paymentRequest.formio.state === "submitted" ? (
           <Link
             to={`/payment-request/${hidden_bap_rebate_id}`}
             className="usa-button usa-button--base font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
@@ -920,6 +917,7 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
 }
 
 export function AllRebates() {
+  const location = useLocation();
   const [searchParams] = useSearchParams();
 
   const { content } = useContentState();
@@ -936,6 +934,16 @@ export function AllRebates() {
   useEffect(() => {
     pageMessageDispatch({ type: "RESET_MESSAGE" });
   }, [pageMessageDispatch]);
+
+  const submissionSuccessMessage =
+    (location.state as LocationState)?.submissionSuccessMessage || null;
+
+  if (submissionSuccessMessage) {
+    pageMessageDispatch({
+      type: "DISPLAY_MESSAGE",
+      payload: { type: "success", text: submissionSuccessMessage },
+    });
+  }
 
   useFetchedBapFormSubmissions();
   useFetchedFormioApplicationSubmissions();
