@@ -379,10 +379,38 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
   const applicationSelectedButNoPaymentRequest =
     applicationSelected && !Boolean(paymentRequest.formio);
 
-  const statusClassNames =
+  const statusTableCellClassNames =
     application.formio.state === "submitted" || !applicationFormOpen
       ? "text-italic"
       : "";
+
+  const statusIcon = applicationNeedsEdits
+    ? `${icons}#priority_high` // !
+    : applicationHasBeenWithdrawn
+    ? `${icons}#close` // ✕
+    : applicationNotSelected
+    ? `${icons}#check` // TODO: eventually use 'cancel' icon if we show 'Not Selected'
+    : applicationSelected
+    ? `${icons}#check_circle` // check inside a circle
+    : application.formio.state === "draft"
+    ? `${icons}#more_horiz` // three horizontal dots
+    : application.formio.state === "submitted"
+    ? `${icons}#check` // check
+    : `${icons}#remove`; // — (fallback, not used)
+
+  const statusText = applicationNeedsEdits
+    ? "Edits Requested"
+    : applicationHasBeenWithdrawn
+    ? "Withdrawn"
+    : applicationNotSelected
+    ? "Submitted" // TODO: eventually show 'Not Selected'
+    : applicationSelected
+    ? "Selected"
+    : application.formio.state === "draft"
+    ? "Draft"
+    : application.formio.state === "submitted"
+    ? "Submitted"
+    : ""; // fallback, not used
 
   /**
    * NOTE on the usage of `TextWithTooltip` below:
@@ -406,7 +434,7 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
           : defaultTableRowClassNames
       }
     >
-      <th scope="row" className={statusClassNames}>
+      <th scope="row" className={statusTableCellClassNames}>
         {applicationNeedsEdits ? (
           <button
             className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
@@ -478,7 +506,7 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
         ) : null}
       </th>
 
-      <td className={statusClassNames}>
+      <td className={statusTableCellClassNames}>
         {application.bap?.rebateId ? (
           <span title={`Application ID: ${application.formio._id}`}>
             {application.bap.rebateId}
@@ -491,7 +519,7 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
         )}
       </td>
 
-      <td className={statusClassNames}>
+      <td className={statusTableCellClassNames}>
         <span>Application</span>
         <br />
         <span className="display-flex flex-align-center font-sans-2xs">
@@ -501,45 +529,13 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
             focusable="false"
             role="img"
           >
-            <use
-              href={
-                applicationNeedsEdits
-                  ? `${icons}#priority_high` // icon: !
-                  : applicationHasBeenWithdrawn
-                  ? `${icons}#close` // icon: ✕
-                  : applicationNotSelected
-                  ? `${icons}#check` // TODO: eventually use 'cancel' icon
-                  : applicationSelected
-                  ? `${icons}#check_circle` // icon: check inside a circle
-                  : application.formio.state === "draft"
-                  ? `${icons}#more_horiz` // icon: three horizontal dots
-                  : application.formio.state === "submitted"
-                  ? `${icons}#check` // icon: check
-                  : `${icons}#remove` // icon: — (fallback, not used)
-              }
-            />
+            <use href={statusIcon} />
           </svg>
-          <span className="margin-left-05">
-            {
-              applicationNeedsEdits
-                ? "Edits Requested"
-                : applicationHasBeenWithdrawn
-                ? "Withdrawn"
-                : applicationNotSelected
-                ? "Submitted" // TODO: eventually show 'Not Selected'
-                : applicationSelected
-                ? "Selected"
-                : application.formio.state === "draft"
-                ? "Draft"
-                : application.formio.state === "submitted"
-                ? "Submitted"
-                : "" // fallback, not used
-            }
-          </span>
+          <span className="margin-left-05">{statusText}</span>
         </span>
       </td>
 
-      <td className={statusClassNames}>
+      <td className={statusTableCellClassNames}>
         <>
           {Boolean(applicantUEI) ? (
             applicantUEI
@@ -602,7 +598,7 @@ save the form for the EFT indicator to be displayed. */
         </>
       </td>
 
-      <td className={statusClassNames}>
+      <td className={statusTableCellClassNames}>
         <>
           {Boolean(applicantOrganizationName) ? (
             applicantOrganizationName
@@ -624,7 +620,7 @@ save the form for the EFT indicator to be displayed. */
         </>
       </td>
 
-      <td className={statusClassNames}>
+      <td className={statusTableCellClassNames}>
         {last_updated_by}
         <br />
         <span title={`${date} ${time}`}>{date}</span>
@@ -753,10 +749,38 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
   const paymentRequestFundingApproved =
     paymentRequest.bap?.status === "Accepted";
 
-  const statusClassNames =
+  const statusTableCellClassNames =
     paymentRequest.formio.state === "submitted" || !paymentRequestFormOpen
       ? "text-italic"
       : "";
+
+  const statusIcon = paymentRequestNeedsEdits
+    ? `${icons}#priority_high` // !
+    : paymentRequestHasBeenWithdrawn
+    ? `${icons}#close` // ✕
+    : paymentRequestFundingNotApproved
+    ? `${icons}#cancel` // ✕ inside a circle
+    : paymentRequestFundingApproved
+    ? `${icons}#check_circle` // check inside a circle
+    : paymentRequest.formio.state === "draft"
+    ? `${icons}#more_horiz` // three horizontal dots
+    : paymentRequest.formio.state === "submitted"
+    ? `${icons}#check` // check
+    : `${icons}#remove`; // — (fallback, not used)
+
+  const statusText = paymentRequestNeedsEdits
+    ? "Edits Requested"
+    : paymentRequestHasBeenWithdrawn
+    ? "Withdrawn"
+    : paymentRequestFundingNotApproved
+    ? "Funding Not Approved"
+    : paymentRequestFundingApproved
+    ? "Funding Approved"
+    : paymentRequest.formio.state === "draft"
+    ? "Draft"
+    : paymentRequest.formio.state === "submitted"
+    ? "Submitted"
+    : ""; // fallback, not used
 
   return (
     <tr
@@ -766,7 +790,7 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
           : defaultTableRowClassNames
       }
     >
-      <th scope="row" className={statusClassNames}>
+      <th scope="row" className={statusTableCellClassNames}>
         {paymentRequestNeedsEdits ? (
           <button
             className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
@@ -841,9 +865,9 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
         ) : null}
       </th>
 
-      <td className={statusClassNames}>&nbsp;</td>
+      <td className={statusTableCellClassNames}>&nbsp;</td>
 
-      <td className={statusClassNames}>
+      <td className={statusTableCellClassNames}>
         <span>Payment Request</span>
         <br />
         <span className="display-flex flex-align-center font-sans-2xs">
@@ -860,51 +884,19 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
                 focusable="false"
                 role="img"
               >
-                <use
-                  href={
-                    paymentRequestNeedsEdits
-                      ? `${icons}#priority_high` // icon: !
-                      : paymentRequestHasBeenWithdrawn
-                      ? `${icons}#close` // icon: ✕
-                      : paymentRequestFundingNotApproved
-                      ? `${icons}#cancel` // icon: ✕ inside a circle
-                      : paymentRequestFundingApproved
-                      ? `${icons}#check_circle` // icon: check inside a circle
-                      : paymentRequest.formio.state === "draft"
-                      ? `${icons}#more_horiz` // icon: three horizontal dots
-                      : paymentRequest.formio.state === "submitted"
-                      ? `${icons}#check` // icon: check
-                      : `${icons}#remove` // icon: — (fallback, not used)
-                  }
-                />
+                <use href={statusIcon} />
               </svg>
-              <span className="margin-left-05">
-                {
-                  paymentRequestNeedsEdits
-                    ? "Edits Requested"
-                    : paymentRequestHasBeenWithdrawn
-                    ? "Withdrawn"
-                    : paymentRequestFundingNotApproved
-                    ? "Funding Not Approved"
-                    : paymentRequestFundingApproved
-                    ? "Funding Approved"
-                    : paymentRequest.formio.state === "draft"
-                    ? "Draft"
-                    : paymentRequest.formio.state === "submitted"
-                    ? "Submitted"
-                    : "" // fallback, not used
-                }
-              </span>
+              <span className="margin-left-05">{statusText}</span>
             </>
           )}
         </span>
       </td>
 
-      <td className={statusClassNames}>&nbsp;</td>
+      <td className={statusTableCellClassNames}>&nbsp;</td>
 
-      <td className={statusClassNames}>&nbsp;</td>
+      <td className={statusTableCellClassNames}>&nbsp;</td>
 
-      <td className={statusClassNames}>
+      <td className={statusTableCellClassNames}>
         {hidden_current_user_email}
         <br />
         <span title={`${date} ${time}`}>{date}</span>
