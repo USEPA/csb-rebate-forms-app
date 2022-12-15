@@ -343,6 +343,20 @@ function PageMessage() {
   return <Message type={type} text={text} />;
 }
 
+function FormButtonContent({ type }: { type: "edit" | "view" }) {
+  const icon = type === "edit" ? "edit" : "visibility";
+  const text = type === "edit" ? "Edit" : "View";
+
+  return (
+    <span className="display-flex flex-align-center">
+      <svg className="usa-icon" aria-hidden="true" focusable="false" role="img">
+        <use href={`${icons}#${icon}`} />
+      </svg>
+      <span className="margin-left-1">{text}</span>
+    </span>
+  );
+}
+
 function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
   const navigate = useNavigate();
 
@@ -457,51 +471,21 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
                 });
             }}
           >
-            <span className="display-flex flex-align-center">
-              <svg
-                className="usa-icon"
-                aria-hidden="true"
-                focusable="false"
-                role="img"
-              >
-                <use href={`${icons}#edit`} />
-              </svg>
-              <span className="margin-left-1">Edit</span>
-            </span>
+            <FormButtonContent type="edit" />
           </button>
         ) : !applicationFormOpen || application.formio.state === "submitted" ? (
           <Link
             to={`/rebate/${application.formio._id}`}
             className="usa-button usa-button--base font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
           >
-            <span className="display-flex flex-align-center">
-              <svg
-                className="usa-icon"
-                aria-hidden="true"
-                focusable="false"
-                role="img"
-              >
-                <use href={`${icons}#visibility`} />
-              </svg>
-              <span className="margin-left-1">View</span>
-            </span>
+            <FormButtonContent type="view" />
           </Link>
         ) : application.formio.state === "draft" ? (
           <Link
             to={`/rebate/${application.formio._id}`}
             className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
           >
-            <span className="display-flex flex-align-center">
-              <svg
-                className="usa-icon"
-                aria-hidden="true"
-                focusable="false"
-                role="img"
-              >
-                <use href={`${icons}#edit`} />
-              </svg>
-              <span className="margin-left-1">Edit</span>
-            </span>
+            <FormButtonContent type="edit" />
           </Link>
         ) : null}
       </th>
@@ -815,17 +799,7 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
                 });
             }}
           >
-            <span className="display-flex flex-align-center">
-              <svg
-                className="usa-icon"
-                aria-hidden="true"
-                focusable="false"
-                role="img"
-              >
-                <use href={`${icons}#edit`} />
-              </svg>
-              <span className="margin-left-1">Edit</span>
-            </span>
+            <FormButtonContent type="edit" />
           </button>
         ) : !paymentRequestFormOpen ||
           paymentRequest.formio.state === "submitted" ? (
@@ -833,34 +807,14 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
             to={`/payment-request/${hidden_bap_rebate_id}`}
             className="usa-button usa-button--base font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
           >
-            <span className="display-flex flex-align-center">
-              <svg
-                className="usa-icon"
-                aria-hidden="true"
-                focusable="false"
-                role="img"
-              >
-                <use href={`${icons}#visibility`} />
-              </svg>
-              <span className="margin-left-1">View</span>
-            </span>
+            <FormButtonContent type="view" />
           </Link>
         ) : paymentRequest.formio.state === "draft" ? (
           <Link
             to={`/payment-request/${hidden_bap_rebate_id}`}
             className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
           >
-            <span className="display-flex flex-align-center">
-              <svg
-                className="usa-icon"
-                aria-hidden="true"
-                focusable="false"
-                role="img"
-              >
-                <use href={`${icons}#edit`} />
-              </svg>
-              <span className="margin-left-1">Edit</span>
-            </span>
+            <FormButtonContent type="edit" />
           </Link>
         ) : null}
       </th>
