@@ -60,6 +60,34 @@ type Rebate = {
 const defaultTableRowClassNames = "bg-gray-5";
 const highlightedTableRowClassNames = "bg-primary-lighter";
 
+/**
+ * Determines whether a submission needs edits, based on the BAP status
+ *
+ * NOTE: we can't use the BAP status alone though, because if a submission has
+ * been re-submitted and the BAP hasn't yet run their ETL to pickup the status
+ * change, we need to ensure we properly display the 'submitted' formio status.
+ */
+function submissionNeedsEdits(rebate: Rebate, formType: keyof Rebate) {
+  const submission = rebate[formType];
+
+  if (!submission.formio) return false;
+
+  /**
+   * The submission has been updated in Formio since the last time the BAP's
+   * submissions ETL process has last succesfully run.
+   */
+  const submissionHasBeenUpdatedSinceLastETL = submission.bap?.modified
+    ? new Date(submission.formio.modified) > new Date(submission.bap.modified)
+    : false;
+
+  return (
+    submission.bap?.status === "Edits Requested" &&
+    (submission.formio.state === "draft" ||
+      (submission.formio.state === "submitted" &&
+        !submissionHasBeenUpdatedSinceLastETL))
+  );
+}
+
 /** Custom hook to fetch form submissions from the BAP */
 export function useFetchedBapFormSubmissions() {
   const { samEntities } = useBapState();
@@ -296,23 +324,12 @@ function useSortedSubmissions(submissions: { [rebateId: string]: Rebate }) {
       return mostRecientR2Modified - mostRecientR1Modified;
     })
     .sort((r1, _r2) => {
-      // The submission has been updated in Formio since the last time the BAP's
-      // submissions ETL process has last succesfully run
-      const r1ApplicationHasBeenModifiedSinceLastETL =
-        r1.application.bap?.modified // prettier-ignore
-          ? new Date(r1.application.formio.modified) >
-            new Date(r1.application.bap.modified)
-          : false;
+      const r1ApplicationNeedsEdits = submissionNeedsEdits(r1, "application");
 
-      const r1ApplicationNeedsEdits =
-        r1.application.bap?.status === "Edits Requested" &&
-        (r1.application.formio.state === "draft" ||
-          (r1.application.formio.state === "submitted" &&
-            !r1ApplicationHasBeenModifiedSinceLastETL));
+      const r1ApplicationSelected = r1.application.bap?.status === "Accepted";
 
       const r1ApplicationSelectedButNoPaymentRequest =
-        r1.application.bap?.status === "Accepted" &&
-        !Boolean(r1.paymentRequest.formio);
+        r1ApplicationSelected && !Boolean(r1.paymentRequest.formio);
 
       return r1ApplicationNeedsEdits || r1ApplicationSelectedButNoPaymentRequest
         ? -1
@@ -350,19 +367,7 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
   const date = new Date(application.formio.modified).toLocaleDateString();
   const time = new Date(application.formio.modified).toLocaleTimeString();
 
-  /**
-   * The submission has been updated in Formio since the last time the BAP's
-   * submissions ETL process has last succesfully run.
-   */
-  const applicationHasBeenModifiedSinceLastETL = application.bap?.modified
-    ? new Date(application.formio.modified) > new Date(application.bap.modified)
-    : false;
-
-  const applicationNeedsEdits =
-    application.bap?.status === "Edits Requested" &&
-    (application.formio.state === "draft" ||
-      (application.formio.state === "submitted" &&
-        !applicationHasBeenModifiedSinceLastETL));
+  const applicationNeedsEdits = submissionNeedsEdits(rebate, "application");
 
   const applicationHasBeenWithdrawn = application.bap?.status === "Withdrawn";
 
@@ -729,20 +734,12 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
   const date = new Date(paymentRequest.formio.modified).toLocaleDateString();
   const time = new Date(paymentRequest.formio.modified).toLocaleTimeString();
 
-  /**
-   * The submission has been updated in Formio since the last time the BAP's
-   * submissions ETL process has last succesfully run.
-   */
-  const paymentRequestHasBeenModifiedSinceLastETL = paymentRequest.bap?.modified
-    ? new Date(paymentRequest.formio.modified) >
-      new Date(paymentRequest.bap.modified)
-    : false;
+  // const applicationNeedsEdits = submissionNeedsEdits(rebate, "application");
 
-  const paymentRequestNeedsEdits =
-    paymentRequest.bap?.status === "Edits Requested" &&
-    (paymentRequest.formio.state === "draft" ||
-      (paymentRequest.formio.state === "submitted" &&
-        !paymentRequestHasBeenModifiedSinceLastETL));
+  const paymentRequestNeedsEdits = submissionNeedsEdits(
+    rebate,
+    "paymentRequest"
+  );
 
   const paymentRequestNeedsClarification =
     paymentRequest.bap?.status === "Needs Clarification";
