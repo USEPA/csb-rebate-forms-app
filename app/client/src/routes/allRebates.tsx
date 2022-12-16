@@ -831,8 +831,6 @@ export function AllRebates() {
   const [searchParams] = useSearchParams();
 
   const { content } = useContentState();
-  const { epaUserData } = useUserState();
-  const { csbData } = useCsbState();
   const { samEntities, formSubmissions: bapFormSubmissions } = useBapState();
   const {
     applicationSubmissions: formioApplicationSubmissions,
@@ -859,22 +857,17 @@ export function AllRebates() {
   useFetchedFormioApplicationSubmissions();
   useFetchedFormioPaymentRequestSubmissions();
 
-  const submissions = useCombinedSubmissions();
-  const sortedSubmissions = useSortedSubmissions(submissions);
+  const combinedSubmissions = useCombinedSubmissions();
+  const submissions = useSortedSubmissions(combinedSubmissions);
 
   // log combined 'sortedSubmissions' array if 'debug' search parameter exists
   useEffect(() => {
-    const submissionsAreSet = sortedSubmissions.length > 0;
-    if (searchParams.has("debug") && submissionsAreSet) {
-      console.log(sortedSubmissions);
+    if (searchParams.has("debug") && submissions.length > 0) {
+      console.log(submissions);
     }
-  }, [searchParams, sortedSubmissions]);
+  }, [searchParams, submissions]);
 
   if (
-    csbData.status !== "success" ||
-    epaUserData.status !== "success" ||
-    samEntities.status === "idle" ||
-    samEntities.status === "pending" ||
     bapFormSubmissions.status === "idle" ||
     bapFormSubmissions.status === "pending" ||
     formioApplicationSubmissions.status === "idle" ||
@@ -910,7 +903,7 @@ export function AllRebates() {
 
   return (
     <>
-      {sortedSubmissions.length === 0 ? (
+      {submissions.length === 0 ? (
         <div className="margin-top-4">
           <Message type="info" text={messages.newApplication} />
         </div>
@@ -994,14 +987,14 @@ export function AllRebates() {
               </thead>
 
               <tbody>
-                {sortedSubmissions.map((rebate, index) => (
+                {submissions.map((rebate, index) => (
                   <Fragment key={rebate.rebateId}>
                     <ApplicationSubmission rebate={rebate} />
 
                     <PaymentRequestSubmission rebate={rebate} />
 
                     {/* blank row after all rebates but the last one */}
-                    {index !== sortedSubmissions.length - 1 && (
+                    {index !== submissions.length - 1 && (
                       <tr className="bg-white">
                         <th className="p-0" scope="row" colSpan={6}>
                           &nbsp;
