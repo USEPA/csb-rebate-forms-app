@@ -34,6 +34,11 @@ type LocationState = {
   submissionSuccessMessage: string;
 };
 
+type FormioSubmission =
+  | FormioApplicationSubmission
+  | FormioPaymentRequestSubmission
+  | FormioCloseOutSubmission;
+
 type BapSubmission = {
   modified: string | null;
   comboKey: string | null;
@@ -67,24 +72,26 @@ const highlightedTableRowClassNames = "bg-primary-lighter";
  * been re-submitted and the BAP hasn't yet run their ETL to pickup the status
  * change, we need to ensure we properly display the 'submitted' formio status.
  */
-function submissionNeedsEdits(rebate: Rebate, formType: keyof Rebate) {
-  const submission = rebate[formType];
+export function submissionNeedsEdits(options: {
+  formio: FormioSubmission | null;
+  bap: BapSubmission | null;
+}) {
+  const { formio, bap } = options;
 
-  if (!submission.formio) return false;
+  if (!formio) return false;
 
   /**
    * The submission has been updated in Formio since the last time the BAP's
    * submissions ETL process has last succesfully run.
    */
-  const submissionHasBeenUpdatedSinceLastETL = submission.bap?.modified
-    ? new Date(submission.formio.modified) > new Date(submission.bap.modified)
+  const submissionHasBeenUpdatedSinceLastETL = bap?.modified
+    ? new Date(formio.modified) > new Date(bap.modified)
     : false;
 
   return (
-    submission.bap?.status === "Edits Requested" &&
-    (submission.formio.state === "draft" ||
-      (submission.formio.state === "submitted" &&
-        !submissionHasBeenUpdatedSinceLastETL))
+    bap?.status === "Edits Requested" &&
+    (formio.state === "draft" ||
+      (formio.state === "submitted" && !submissionHasBeenUpdatedSinceLastETL))
   );
 }
 
@@ -324,7 +331,10 @@ function useSortedSubmissions(submissions: { [rebateId: string]: Rebate }) {
       return mostRecientR2Modified - mostRecientR1Modified;
     })
     .sort((r1, _r2) => {
-      const r1ApplicationNeedsEdits = submissionNeedsEdits(r1, "application");
+      const r1ApplicationNeedsEdits = submissionNeedsEdits({
+        formio: r1.application.formio,
+        bap: r1.application.bap,
+      });
 
       const r1ApplicationSelected = r1.application.bap?.status === "Accepted";
 
@@ -378,7 +388,10 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
   const date = new Date(application.formio.modified).toLocaleDateString();
   const time = new Date(application.formio.modified).toLocaleTimeString();
 
-  const applicationNeedsEdits = submissionNeedsEdits(rebate, "application");
+  const applicationNeedsEdits = submissionNeedsEdits({
+    formio: application.formio,
+    bap: application.bap,
+  });
 
   const applicationHasBeenWithdrawn = application.bap?.status === "Withdrawn";
 
@@ -694,12 +707,15 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
   const date = new Date(paymentRequest.formio.modified).toLocaleDateString();
   const time = new Date(paymentRequest.formio.modified).toLocaleTimeString();
 
-  // const applicationNeedsEdits = submissionNeedsEdits(rebate, "application");
+  // const applicationNeedsEdits = submissionNeedsEdits({
+  //   formio: application.formio,
+  //   bap: application.bap,
+  // });
 
-  const paymentRequestNeedsEdits = submissionNeedsEdits(
-    rebate,
-    "paymentRequest"
-  );
+  const paymentRequestNeedsEdits = submissionNeedsEdits({
+    formio: paymentRequest.formio,
+    bap: paymentRequest.bap,
+  });
 
   const paymentRequestNeedsClarification =
     paymentRequest.bap?.status === "Needs Clarification";
