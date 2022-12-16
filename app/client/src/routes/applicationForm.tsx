@@ -18,15 +18,15 @@ import { useUserState } from "contexts/user";
 import { useCsbState } from "contexts/csb";
 import { useBapState } from "contexts/bap";
 import {
+  FormioSubmissionData,
+  FormioFetchedResponse,
+  useFormioFormState,
+  useFormioFormDispatch,
+} from "contexts/formioForm";
+import {
   usePageMessageState,
   usePageMessageDispatch,
 } from "contexts/pageMessage";
-import {
-  FormioSubmissionData,
-  FormioFetchedResponse,
-  usePageFormioState,
-  usePageFormioDispatch,
-} from "contexts/pageFormio";
 
 function PageMessage() {
   const { displayed, type, text } = usePageMessageState();
@@ -58,19 +58,19 @@ function ApplicationFormContent({ email }: { email: string }) {
   const { content } = useContentState();
   const { csbData } = useCsbState();
   const { samEntities, formSubmissions: bapFormSubmissions } = useBapState();
-  const { formio } = usePageFormioState();
+  const { formio } = useFormioFormState();
+  const formioFormDispatch = useFormioFormDispatch();
   const pageMessageDispatch = usePageMessageDispatch();
-  const pageFormioDispatch = usePageFormioDispatch();
+
+  // reset formio form state since it's used across pages
+  useEffect(() => {
+    formioFormDispatch({ type: "RESET_FORMIO_DATA" });
+  }, [formioFormDispatch]);
 
   // reset page message state since it's used across pages
   useEffect(() => {
     pageMessageDispatch({ type: "RESET_MESSAGE" });
   }, [pageMessageDispatch]);
-
-  // reset page formio state since it's used across pages
-  useEffect(() => {
-    pageFormioDispatch({ type: "RESET_FORMIO_DATA" });
-  }, [pageFormioDispatch]);
 
   useFetchedBapFormSubmissions();
 
@@ -95,7 +95,7 @@ function ApplicationFormContent({ email }: { email: string }) {
     useState<FormioSubmissionData>({});
 
   useEffect(() => {
-    pageFormioDispatch({ type: "FETCH_FORMIO_DATA_REQUEST" });
+    formioFormDispatch({ type: "FETCH_FORMIO_DATA_REQUEST" });
 
     getData(`${serverUrl}/api/formio-application-submission/${mongoId}`)
       .then((res: FormioFetchedResponse) => {
@@ -119,15 +119,15 @@ function ApplicationFormContent({ email }: { email: string }) {
           return data;
         });
 
-        pageFormioDispatch({
+        formioFormDispatch({
           type: "FETCH_FORMIO_DATA_SUCCESS",
           payload: { data: res },
         });
       })
       .catch((err) => {
-        pageFormioDispatch({ type: "FETCH_FORMIO_DATA_FAILURE" });
+        formioFormDispatch({ type: "FETCH_FORMIO_DATA_FAILURE" });
       });
-  }, [mongoId, pageFormioDispatch]);
+  }, [mongoId, formioFormDispatch]);
 
   if (formio.status === "idle") {
     return null;
