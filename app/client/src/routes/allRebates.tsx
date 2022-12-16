@@ -358,10 +358,7 @@ function FormButtonContent({ type }: { type: "edit" | "view" }) {
 }
 
 function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
-  const navigate = useNavigate();
-
   const { csbData } = useCsbState();
-  const pageMessageDispatch = usePageMessageDispatch();
 
   if (csbData.status !== "success") return null;
 
@@ -450,29 +447,12 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
     >
       <th scope="row" className={statusTableCellClassNames}>
         {applicationNeedsEdits ? (
-          <button
+          <Link
+            to={`/rebate/${application.formio._id}`}
             className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-            onClick={(ev) => {
-              pageMessageDispatch({ type: "RESET_MESSAGE" });
-
-              // change the submission's state to draft, then redirect to the
-              // form to allow user to edit
-              postData(
-                `${serverUrl}/api/formio-application-submission/${application.formio._id}`,
-                { data: application.formio.data, state: "draft" }
-              )
-                .then((res) => navigate(`/rebate/${res._id}`))
-                .catch((err) => {
-                  const text = `Error updating Application ${application.bap?.rebateId}. Please try again.`;
-                  pageMessageDispatch({
-                    type: "DISPLAY_MESSAGE",
-                    payload: { type: "error", text },
-                  });
-                });
-            }}
           >
             <FormButtonContent type="edit" />
-          </button>
+          </Link>
         ) : !applicationFormOpen || application.formio.state === "submitted" ? (
           <Link
             to={`/rebate/${application.formio._id}`}
@@ -776,31 +756,12 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
     >
       <th scope="row" className={statusTableCellClassNames}>
         {paymentRequestNeedsEdits ? (
-          <button
+          <Link
+            to={`/payment-request/${hidden_bap_rebate_id}`}
             className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-            onClick={(ev) => {
-              if (!paymentRequest.formio) return;
-
-              pageMessageDispatch({ type: "RESET_MESSAGE" });
-
-              // change the submission's state to draft, then redirect to the
-              // form to allow user to edit
-              postData(
-                `${serverUrl}/api/formio-payment-request-submission/${hidden_bap_rebate_id}`,
-                { data: paymentRequest.formio.data, state: "draft" }
-              )
-                .then((res) => navigate(`/rebate/${res._id}`))
-                .catch((err) => {
-                  const text = `Error updating Payment Request ${paymentRequest.bap?.rebateId}. Please try again.`;
-                  pageMessageDispatch({
-                    type: "DISPLAY_MESSAGE",
-                    payload: { type: "error", text },
-                  });
-                });
-            }}
           >
             <FormButtonContent type="edit" />
-          </button>
+          </Link>
         ) : !paymentRequestFormOpen ||
           paymentRequest.formio.state === "submitted" ? (
           <Link
