@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useState } from "react";
+import type { LinkProps } from "react-router-dom";
 import {
   Link,
   useLocation,
@@ -353,17 +354,28 @@ function PageMessage() {
   return <Message type={type} text={text} />;
 }
 
-function FormButtonContent({ type }: { type: "edit" | "view" }) {
-  const icon = type === "edit" ? "edit" : "visibility";
-  const text = type === "edit" ? "Edit" : "View";
+function ButtonLink(props: { type: "edit" | "view"; to: LinkProps["to"] }) {
+  const icon = props.type === "edit" ? "edit" : "visibility";
+  const text = props.type === "edit" ? "Edit" : "View";
+  const linkClassNames =
+    `usa-button ` +
+    `${props.type === "view" ? "usa-button--base " : ""}` +
+    `font-sans-2xs margin-right-0 padding-x-105 padding-y-1`;
 
   return (
-    <span className="display-flex flex-align-center">
-      <svg className="usa-icon" aria-hidden="true" focusable="false" role="img">
-        <use href={`${icons}#${icon}`} />
-      </svg>
-      <span className="margin-left-1">{text}</span>
-    </span>
+    <Link to={props.to} className={linkClassNames}>
+      <span className="display-flex flex-align-center">
+        <svg
+          className="usa-icon"
+          aria-hidden="true"
+          focusable="false"
+          role="img"
+        >
+          <use href={`${icons}#${icon}`} />
+        </svg>
+        <span className="margin-left-1">{text}</span>
+      </span>
+    </Link>
   );
 }
 
@@ -436,6 +448,8 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
     ? "Submitted"
     : ""; // fallback, not used
 
+  const applicationFormUrl = `/rebate/${application.formio._id}`;
+
   /**
    * NOTE on the usage of `TextWithTooltip` below:
    * When a form is first initially created, and the user has not yet clicked
@@ -460,26 +474,11 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
     >
       <th scope="row" className={statusTableCellClassNames}>
         {applicationNeedsEdits ? (
-          <Link
-            to={`/rebate/${application.formio._id}`}
-            className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-          >
-            <FormButtonContent type="edit" />
-          </Link>
+          <ButtonLink type="edit" to={applicationFormUrl} />
         ) : application.formio.state === "submitted" || !applicationFormOpen ? (
-          <Link
-            to={`/rebate/${application.formio._id}`}
-            className="usa-button usa-button--base font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-          >
-            <FormButtonContent type="view" />
-          </Link>
+          <ButtonLink type="view" to={applicationFormUrl} />
         ) : application.formio.state === "draft" ? (
-          <Link
-            to={`/rebate/${application.formio._id}`}
-            className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-          >
-            <FormButtonContent type="edit" />
-          </Link>
+          <ButtonLink type="edit" to={applicationFormUrl} />
         ) : null}
       </th>
 
@@ -762,6 +761,8 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
     ? "Submitted"
     : ""; // fallback, not used
 
+  const paymentRequestFormUrl = `/payment-request/${hidden_bap_rebate_id}`;
+
   return (
     <tr
       className={
@@ -772,34 +773,14 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
     >
       <th scope="row" className={statusTableCellClassNames}>
         {applicationNeedsEdits ? (
-          <Link
-            to={`/payment-request/${hidden_bap_rebate_id}`}
-            className="usa-button usa-button--base font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-          >
-            <FormButtonContent type="view" />
-          </Link>
+          <ButtonLink type="view" to={paymentRequestFormUrl} />
         ) : paymentRequestNeedsEdits ? (
-          <Link
-            to={`/payment-request/${hidden_bap_rebate_id}`}
-            className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-          >
-            <FormButtonContent type="edit" />
-          </Link>
+          <ButtonLink type="edit" to={paymentRequestFormUrl} />
         ) : paymentRequest.formio.state === "submitted" ||
           !paymentRequestFormOpen ? (
-          <Link
-            to={`/payment-request/${hidden_bap_rebate_id}`}
-            className="usa-button usa-button--base font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-          >
-            <FormButtonContent type="view" />
-          </Link>
+          <ButtonLink type="view" to={paymentRequestFormUrl} />
         ) : paymentRequest.formio.state === "draft" ? (
-          <Link
-            to={`/payment-request/${hidden_bap_rebate_id}`}
-            className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-          >
-            <FormButtonContent type="edit" />
-          </Link>
+          <ButtonLink type="edit" to={paymentRequestFormUrl} />
         ) : null}
       </th>
 
