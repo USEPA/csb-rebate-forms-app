@@ -6,7 +6,10 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, getData, postData } from "../config";
 import { getUserInfo } from "../utilities";
-import { useFetchedBapFormSubmissions } from "routes/allRebates";
+import {
+  submissionNeedsEdits,
+  useFetchedBapFormSubmissions,
+} from "routes/allRebates";
 import { Loading } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
@@ -166,15 +169,21 @@ function ApplicationFormContent({ email }: { email: string }) {
   });
 
   const bap = {
+    modified: match?.CSB_Modified_Full_String__c || null,
+    comboKey: match?.UEI_EFTI_Combo_Key__c || null,
     rebateId: match?.Parent_Rebate_ID__c || null,
+    reviewItemId: match?.CSB_Review_Item_ID__c || null,
     status: match?.Parent_CSB_Rebate__r?.CSB_Funding_Request_Status__c || null,
   };
 
-  const applicationNeedsEdits = bap.status === "Edits Requested";
+  const applicationNeedsEdits = submissionNeedsEdits({
+    formio: submission,
+    bap,
+  });
 
   const formIsReadOnly =
-    (!applicationFormOpen && !applicationNeedsEdits) ||
-    submission.state === "submitted";
+    (submission.state === "submitted" || !applicationFormOpen) &&
+    !applicationNeedsEdits;
 
   const entityComboKey = storedSubmissionData.bap_hidden_entity_combo_key;
   const entity = samEntities.data.entities.find((entity) => {
