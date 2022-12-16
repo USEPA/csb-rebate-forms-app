@@ -175,7 +175,7 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-export function FormioProvider({ children }: Props) {
+export function FormioSubmissionsProvider({ children }: Props) {
   const initialState: State = {
     applicationSubmissions: {
       status: "idle",
@@ -199,12 +199,12 @@ export function FormioProvider({ children }: Props) {
 }
 
 /**
- * Returns state stored in `FormioProvider` context component.
+ * Returns state stored in `FormioSubmissionsProvider` context component.
  */
-export function useFormioState() {
+export function useFormioSubmissionsState() {
   const context = useContext(StateContext);
   if (context === undefined) {
-    const message = `useFormioState must be called within a FormioProvider`;
+    const message = `useFormioSubmissionsState must be called within a FormioSubmissionsProvider`;
     throw new Error(message);
   }
   return context;
@@ -212,12 +212,12 @@ export function useFormioState() {
 
 /**
  * Returns `dispatch` method for dispatching actions to update state stored in
- * `FormioProvider` context component.
+ * `FormioSubmissionsProvider` context component.
  */
-export function useFormioDispatch() {
+export function useFormioSubmissionsDispatch() {
   const context = useContext(DispatchContext);
   if (context === undefined) {
-    const message = `useFormioDispatch must be used within a FormioProvider`;
+    const message = `useFormioSubmissionsDispatch must be used within a FormioSubmissionsProvider`;
     throw new Error(message);
   }
   return context;

@@ -23,9 +23,9 @@ import {
   FormioApplicationSubmission,
   FormioPaymentRequestSubmission,
   FormioCloseOutSubmission,
-  useFormioState,
-  useFormioDispatch,
-} from "contexts/formio";
+  useFormioSubmissionsState,
+  useFormioSubmissionsDispatch,
+} from "contexts/formioSubmissions";
 import {
   usePageMessageState,
   usePageMessageDispatch,
@@ -146,55 +146,57 @@ export function useFetchedBapFormSubmissions() {
 /** Custom hook to fetch Application form submissions from Forms.gov */
 function useFetchedFormioApplicationSubmissions() {
   const { samEntities } = useBapState();
-  const formioDispatch = useFormioDispatch();
+  const formioSubmissionsDispatch = useFormioSubmissionsDispatch();
 
   useEffect(() => {
     // while not used in this code, SAM.gov entities are used in the server
     // app's `/api/formio-application-submissions` route controller
     if (samEntities.status !== "success" || !samEntities.data.results) return;
 
-    formioDispatch({ type: "FETCH_FORMIO_APPLICATION_SUBMISSIONS_REQUEST" });
+    formioSubmissionsDispatch({
+      type: "FETCH_FORMIO_APPLICATION_SUBMISSIONS_REQUEST",
+    });
 
     getData(`${serverUrl}/api/formio-application-submissions`)
       .then((res) => {
-        formioDispatch({
+        formioSubmissionsDispatch({
           type: "FETCH_FORMIO_APPLICATION_SUBMISSIONS_SUCCESS",
           payload: { applicationSubmissions: res },
         });
       })
       .catch((err) => {
-        formioDispatch({
+        formioSubmissionsDispatch({
           type: "FETCH_FORMIO_APPLICATION_SUBMISSIONS_FAILURE",
         });
       });
-  }, [samEntities, formioDispatch]);
+  }, [samEntities, formioSubmissionsDispatch]);
 }
 
 /** Custom hook to fetch Payment Request form submissions from Forms.gov */
 function useFetchedFormioPaymentRequestSubmissions() {
   const { samEntities } = useBapState();
-  const formioDispatch = useFormioDispatch();
+  const formioSubmissionsDispatch = useFormioSubmissionsDispatch();
 
   useEffect(() => {
     if (samEntities.status !== "success" || !samEntities.data.results) return;
 
-    formioDispatch({
+    formioSubmissionsDispatch({
       type: "FETCH_FORMIO_PAYMENT_REQUEST_SUBMISSIONS_REQUEST",
     });
 
     getData(`${serverUrl}/api/formio-payment-request-submissions`)
       .then((res) => {
-        formioDispatch({
+        formioSubmissionsDispatch({
           type: "FETCH_FORMIO_PAYMENT_REQUEST_SUBMISSIONS_SUCCESS",
           payload: { paymentRequestSubmissions: res },
         });
       })
       .catch((err) => {
-        formioDispatch({
+        formioSubmissionsDispatch({
           type: "FETCH_FORMIO_PAYMENT_REQUEST_SUBMISSIONS_FAILURE",
         });
       });
-  }, [samEntities, formioDispatch]);
+  }, [samEntities, formioSubmissionsDispatch]);
 }
 
 /**
@@ -208,7 +210,7 @@ function useCombinedSubmissions() {
   const {
     applicationSubmissions: formioApplicationSubmissions,
     paymentRequestSubmissions: formioPaymentRequestSubmissions,
-  } = useFormioState();
+  } = useFormioSubmissionsState();
 
   // ensure form submissions data has been fetched from both the BAP and Formio
   if (
@@ -835,7 +837,7 @@ export function AllRebates() {
   const {
     applicationSubmissions: formioApplicationSubmissions,
     paymentRequestSubmissions: formioPaymentRequestSubmissions,
-  } = useFormioState();
+  } = useFormioSubmissionsState();
   const pageMessageDispatch = usePageMessageDispatch();
 
   // reset page message state since it's used across pages

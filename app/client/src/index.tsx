@@ -7,7 +7,7 @@ import { DialogProvider } from "contexts/dialog";
 import { UserProvider } from "contexts/user";
 import { CsbProvider } from "contexts/csb";
 import { BapProvider } from "contexts/bap";
-import { FormioProvider } from "contexts/formio";
+import { FormioSubmissionsProvider } from "contexts/formioSubmissions";
 import { PageMessageProvider } from "contexts/pageMessage";
 import { PageFormioProvider } from "contexts/pageFormio";
 import { ErrorBoundary } from "components/errorBoundary";
@@ -24,13 +24,13 @@ render(
           <UserProvider>
             <CsbProvider>
               <BapProvider>
-                <FormioProvider>
+                <FormioSubmissionsProvider>
                   <PageMessageProvider>
                     <PageFormioProvider>
                       <App />
                     </PageFormioProvider>
                   </PageMessageProvider>
-                </FormioProvider>
+                </FormioSubmissionsProvider>
               </BapProvider>
             </CsbProvider>
           </UserProvider>
