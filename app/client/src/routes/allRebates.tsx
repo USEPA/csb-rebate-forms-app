@@ -466,7 +466,7 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
           >
             <FormButtonContent type="edit" />
           </Link>
-        ) : !applicationFormOpen || application.formio.state === "submitted" ? (
+        ) : application.formio.state === "submitted" || !applicationFormOpen ? (
           <Link
             to={`/rebate/${application.formio._id}`}
             className="usa-button usa-button--base font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
@@ -707,10 +707,10 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
   const date = new Date(paymentRequest.formio.modified).toLocaleDateString();
   const time = new Date(paymentRequest.formio.modified).toLocaleTimeString();
 
-  // const applicationNeedsEdits = submissionNeedsEdits({
-  //   formio: application.formio,
-  //   bap: application.bap,
-  // });
+  const applicationNeedsEdits = submissionNeedsEdits({
+    formio: application.formio,
+    bap: application.bap,
+  });
 
   const paymentRequestNeedsEdits = submissionNeedsEdits({
     formio: paymentRequest.formio,
@@ -771,15 +771,22 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
       }
     >
       <th scope="row" className={statusTableCellClassNames}>
-        {paymentRequestNeedsEdits ? (
+        {applicationNeedsEdits ? (
+          <Link
+            to={`/payment-request/${hidden_bap_rebate_id}`}
+            className="usa-button usa-button--base font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
+          >
+            <FormButtonContent type="view" />
+          </Link>
+        ) : paymentRequestNeedsEdits ? (
           <Link
             to={`/payment-request/${hidden_bap_rebate_id}`}
             className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
           >
             <FormButtonContent type="edit" />
           </Link>
-        ) : !paymentRequestFormOpen ||
-          paymentRequest.formio.state === "submitted" ? (
+        ) : paymentRequest.formio.state === "submitted" ||
+          !paymentRequestFormOpen ? (
           <Link
             to={`/payment-request/${hidden_bap_rebate_id}`}
             className="usa-button usa-button--base font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
