@@ -305,7 +305,11 @@ export function App() {
           />
           <Route
             path="payment-request/:rebateId"
-            element={<PaymentRequestForm />}
+            element={
+              <CombinedRebates>
+                <PaymentRequestForm />
+              </CombinedRebates>
+            }
           />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>

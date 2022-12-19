@@ -6,17 +6,15 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, getData, postData } from "../config";
 import { getUserInfo } from "../utilities";
-import {
-  submissionNeedsEdits,
-  useFetchedBapFormSubmissions,
-} from "routes/allRebates";
 import { Loading } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
+import { submissionNeedsEdits } from "components/combinedRebates";
 import { useContentState } from "contexts/content";
 import { useUserState } from "contexts/user";
 import { useCsbState } from "contexts/csb";
 import { useBapState } from "contexts/bap";
+import { useCombinedRebatesState } from "contexts/combinedRebates";
 import {
   FormioSubmissionData,
   FormioFetchedResponse,
@@ -57,7 +55,8 @@ function PaymentRequestFormContent({ email }: { email: string }) {
 
   const { content } = useContentState();
   const { csbData } = useCsbState();
-  const { samEntities, formSubmissions: bapFormSubmissions } = useBapState();
+  const { samEntities } = useBapState();
+  const { rebates } = useCombinedRebatesState();
   const { formio } = useFormioFormState();
   const formioFormDispatch = useFormioFormDispatch();
   const pageMessageDispatch = usePageMessageDispatch();
@@ -71,8 +70,6 @@ function PaymentRequestFormContent({ email }: { email: string }) {
   useEffect(() => {
     pageMessageDispatch({ type: "RESET_MESSAGE" });
   }, [pageMessageDispatch]);
-
-  useFetchedBapFormSubmissions();
 
   // create ref to store when form is being submitted, so it can be referenced
   // in the Form component's `onSubmit` event prop, to prevent double submits
@@ -153,8 +150,7 @@ function PaymentRequestFormContent({ email }: { email: string }) {
   if (
     email === "" ||
     csbData.status !== "success" ||
-    samEntities.status !== "success" ||
-    bapFormSubmissions.status !== "success"
+    samEntities.status !== "success"
   ) {
     return <Loading />;
   }
@@ -162,22 +158,16 @@ function PaymentRequestFormContent({ email }: { email: string }) {
   const paymentRequestFormOpen =
     csbData.data.submissionPeriodOpen.paymentRequest;
 
-  const match = bapFormSubmissions.data.paymentRequests.find((bapSub) => {
-    return bapSub.Parent_Rebate_ID__c === rebateId;
+  const rebate = rebates.find((item) => {
+    return item.paymentRequest.bap?.rebateId === rebateId;
   });
 
-  const bap = {
-    modified: match?.CSB_Modified_Full_String__c || null,
-    comboKey: match?.UEI_EFTI_Combo_Key__c || null,
-    rebateId: match?.Parent_Rebate_ID__c || null,
-    reviewItemId: match?.CSB_Review_Item_ID__c || null,
-    status: match?.Parent_CSB_Rebate__r?.CSB_Payment_Request_Status__c || null,
-  };
-
-  const paymentRequestNeedsEdits = submissionNeedsEdits({
-    formio: submission,
-    bap,
-  });
+  const paymentRequestNeedsEdits = !rebate
+    ? false
+    : submissionNeedsEdits({
+        formio: submission,
+        bap: rebate.paymentRequest.bap,
+      });
 
   const formIsReadOnly =
     (submission.state === "submitted" || !paymentRequestFormOpen) &&
