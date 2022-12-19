@@ -24,6 +24,7 @@ import { MarkdownContent } from "components/markdownContent";
 import { Welcome } from "routes/welcome";
 import { Dashboard } from "components/dashboard";
 import { ConfirmationDialog } from "components/confirmationDialog";
+import { CombinedRebates } from "components/combinedRebates";
 import { Helpdesk } from "routes/helpdesk";
 import { AllRebates } from "routes/allRebates";
 import { NewApplicationForm } from "routes/newApplicationForm";
@@ -294,7 +295,14 @@ export function App() {
           */}
           <Route path="helpdesk" element={<Helpdesk />} />
           <Route path="rebate/new" element={<NewApplicationForm />} />
-          <Route path="rebate/:mongoId" element={<ApplicationForm />} />
+          <Route
+            path="rebate/:mongoId"
+            element={
+              <CombinedRebates>
+                <ApplicationForm />
+              </CombinedRebates>
+            }
+          />
           <Route
             path="payment-request/:rebateId"
             element={<PaymentRequestForm />}
