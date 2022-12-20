@@ -45,13 +45,15 @@ export type Rebate = {
 };
 
 type State = {
-  rebates: Rebate[];
+  rebates: (Rebate & { rebateId: string })[];
 };
 
 type Action =
   | {
       type: "SET_COMBINED_REBATES";
-      payload: { rebates: Rebate[] };
+      payload: {
+        rebates: (Rebate & { rebateId: string })[];
+      };
     }
   | { type: "RESET_COMBINED_REBATES" };
 

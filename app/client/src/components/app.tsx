@@ -25,11 +25,11 @@ import { Welcome } from "routes/welcome";
 import { Dashboard } from "components/dashboard";
 import { ConfirmationDialog } from "components/confirmationDialog";
 import { CombinedRebates } from "components/combinedRebates";
-import { Helpdesk } from "routes/helpdesk";
 import { AllRebates } from "routes/allRebates";
 import { NewApplicationForm } from "routes/newApplicationForm";
 import { ApplicationForm } from "routes/applicationForm";
 import { PaymentRequestForm } from "routes/paymentRequestForm";
+import { Helpdesk } from "routes/helpdesk";
 import { useContentState, useContentDispatch } from "contexts/content";
 import { useDialogDispatch, useDialogState } from "contexts/dialog";
 import { useUserState, useUserDispatch } from "contexts/user";
@@ -280,20 +280,14 @@ export function App() {
             </ProtectedRoute>
           }
         >
-          <Route index element={<AllRebates />} />
-          {/*
-            NOTE: The helpdesk route is only accessible to users who should have
-            access to it. When a user tries to access the `Helpdesk` route, an
-            API call to the server is made (`/helpdesk-access`). Verification
-            happens on the server via the user's EPA WAA groups stored in the
-            JWT, and server responds appropriately. If user is a member of the
-            appropriate WAA groups, they'll have access to the route, otherwise
-            they'll be redirected to the index route (`AllRebates`). This same
-            API call happens inside the `Dashboard` component as well, to
-            determine whether a button/link to the helpdesk route should be
-            displayed.
-          */}
-          <Route path="helpdesk" element={<Helpdesk />} />
+          <Route
+            index
+            element={
+              <CombinedRebates>
+                <AllRebates />
+              </CombinedRebates>
+            }
+          />
           <Route path="rebate/new" element={<NewApplicationForm />} />
           <Route
             path="rebate/:mongoId"
@@ -311,6 +305,19 @@ export function App() {
               </CombinedRebates>
             }
           />
+          {/*
+            NOTE: The helpdesk route is only accessible to users who should have
+            access to it. When a user tries to access the `Helpdesk` route, an
+            API call to the server is made (`/helpdesk-access`). Verification
+            happens on the server via the user's EPA WAA groups stored in the
+            JWT, and server responds appropriately. If user is a member of the
+            appropriate WAA groups, they'll have access to the route, otherwise
+            they'll be redirected to the index route (`AllRebates`). This same
+            API call happens inside the `Dashboard` component as well, to
+            determine whether a button/link to the helpdesk route should be
+            displayed.
+          */}
+          <Route path="helpdesk" element={<Helpdesk />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
