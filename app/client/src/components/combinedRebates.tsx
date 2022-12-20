@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 // ---
 import { serverUrl, messages, getData } from "../config";
@@ -53,14 +53,14 @@ export function submissionNeedsEdits(options: {
 
 /** Custom hook to fetch submissions from the BAP and Forms.gov */
 function useFetchedFormSubmissions() {
-  const { samEntities } = useBapState();
   const bapDispatch = useBapDispatch();
   const formioSubmissionsDispatch = useFormioSubmissionsDispatch();
+  const combinedRebatesDispatch = useCombinedRebatesDispatch();
 
   useEffect(() => {
-    // while not used in this code, SAM.gov entities are used in the server
-    // app's `/api/bap-form-submissions` route controller
-    if (samEntities.status !== "success" || !samEntities.data.results) return;
+    combinedRebatesDispatch({
+      type: "RESET_COMBINED_REBATES",
+    });
 
     bapDispatch({
       type: "FETCH_BAP_FORM_SUBMISSIONS_REQUEST",
@@ -88,12 +88,12 @@ function useFetchedFormSubmissions() {
           ]
         ) => {
           const [
-            bapFormSubmissionsRes,
-            formioApplicationFormSubmissionsRes,
-            formioPaymentRequestSubmissionsRes,
+            bapFormSubmissions,
+            formioApplicationSubmissions,
+            formioPaymentRequestSubmissions,
           ] = responses;
 
-          const bapFormSubmissions = bapFormSubmissionsRes.reduce(
+          const bapFormSubmissionsSorted = bapFormSubmissions.reduce(
             (submissions, submission) => {
               const formType =
                 submission.Record_Type_Name__c === "CSB Funding Request"
@@ -118,21 +118,21 @@ function useFetchedFormSubmissions() {
           bapDispatch({
             type: "FETCH_BAP_FORM_SUBMISSIONS_SUCCESS",
             payload: {
-              formSubmissions: bapFormSubmissions,
+              formSubmissions: bapFormSubmissionsSorted,
             },
           });
 
           formioSubmissionsDispatch({
             type: "FETCH_FORMIO_APPLICATION_SUBMISSIONS_SUCCESS",
             payload: {
-              applicationSubmissions: formioApplicationFormSubmissionsRes,
+              applicationSubmissions: formioApplicationSubmissions,
             },
           });
 
           formioSubmissionsDispatch({
             type: "FETCH_FORMIO_PAYMENT_REQUEST_SUBMISSIONS_SUCCESS",
             payload: {
-              paymentRequestSubmissions: formioPaymentRequestSubmissionsRes,
+              paymentRequestSubmissions: formioPaymentRequestSubmissions,
             },
           });
         }
@@ -150,7 +150,7 @@ function useFetchedFormSubmissions() {
           type: "FETCH_FORMIO_PAYMENT_REQUEST_SUBMISSIONS_FAILURE",
         });
       });
-  }, [samEntities, bapDispatch, formioSubmissionsDispatch]);
+  }, [combinedRebatesDispatch, bapDispatch, formioSubmissionsDispatch]);
 }
 
 /**
@@ -318,17 +318,20 @@ export function CombinedRebates({ children }: { children: JSX.Element }) {
   } = useFormioSubmissionsState();
   const combinedRebatesDispatch = useCombinedRebatesDispatch();
 
-  combinedRebatesDispatch({ type: "RESET_COMBINED_REBATES" });
-
+  const [totalFetchedRebates, setTotalFetchedRebates] = useState(0);
   useFetchedFormSubmissions();
 
   const combinedRebates = useCombinedSubmissions();
   const sortedRebates = useSortedRebates(combinedRebates);
 
-  combinedRebatesDispatch({
-    type: "SET_COMBINED_REBATES",
-    payload: { rebates: sortedRebates },
-  });
+  if (totalFetchedRebates !== sortedRebates.length) {
+    combinedRebatesDispatch({
+      type: "SET_COMBINED_REBATES",
+      payload: { rebates: sortedRebates },
+    });
+
+    setTotalFetchedRebates(sortedRebates.length);
+  }
 
   // log 'sortedRebates' array if 'debug' search parameter exists
   useEffect(() => {
@@ -337,14 +340,7 @@ export function CombinedRebates({ children }: { children: JSX.Element }) {
     }
   }, [searchParams, sortedRebates]);
 
-  if (
-    bapFormSubmissions.status === "idle" ||
-    bapFormSubmissions.status === "pending" ||
-    formioApplicationSubmissions.status === "idle" ||
-    formioApplicationSubmissions.status === "pending" ||
-    formioPaymentRequestSubmissions.status === "idle" ||
-    formioPaymentRequestSubmissions.status === "pending"
-  ) {
+  if (totalFetchedRebates === 0) {
     return <Loading />;
   }
 
@@ -355,8 +351,6 @@ export function CombinedRebates({ children }: { children: JSX.Element }) {
   ) {
     return <Message type="error" text={messages.formSubmissionsError} />;
   }
-
-  console.log("combinedRebates rendering");
 
   return children;
 }
