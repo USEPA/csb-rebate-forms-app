@@ -198,22 +198,25 @@ function PaymentRequestFormContent({ email }: { email: string }) {
   const paymentRequestFormOpen =
     csbData.data.submissionPeriodOpen.paymentRequest;
 
-  const match = bapFormSubmissions.data.paymentRequests.find((bapSub) => {
-    return bapSub.Parent_Rebate_ID__c === rebateId;
-  });
+  const rebate = sortedRebates.find((item) => item.rebateId === rebateId);
 
-  const bap = {
-    modified: match?.CSB_Modified_Full_String__c || null,
-    comboKey: match?.UEI_EFTI_Combo_Key__c || null,
-    rebateId: match?.Parent_Rebate_ID__c || null,
-    reviewItemId: match?.CSB_Review_Item_ID__c || null,
-    status: match?.Parent_CSB_Rebate__r?.CSB_Payment_Request_Status__c || null,
-  };
+  const applicationNeedsEdits = !rebate
+    ? false
+    : submissionNeedsEdits({
+        formio: rebate.application.formio,
+        bap: rebate.application.bap,
+      });
 
-  const paymentRequestNeedsEdits = submissionNeedsEdits({
-    formio: submission,
-    bap,
-  });
+  const paymentRequestNeedsEdits = !rebate
+    ? false
+    : submissionNeedsEdits({
+        formio: rebate.paymentRequest.formio,
+        bap: rebate.paymentRequest.bap,
+      });
+
+  // TODO: if a corresponding application needs edits, display a message to the
+  // user that this payment request will be deleted.
+  console.log({ applicationNeedsEdits, paymentRequestNeedsEdits });
 
   const formIsReadOnly =
     (submission.state === "submitted" || !paymentRequestFormOpen) &&

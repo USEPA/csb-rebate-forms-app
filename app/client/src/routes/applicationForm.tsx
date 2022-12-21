@@ -200,22 +200,28 @@ function ApplicationFormContent({ email }: { email: string }) {
 
   const applicationFormOpen = csbData.data.submissionPeriodOpen.application;
 
-  const match = bapFormSubmissions.data.applications.find((bapSub) => {
-    return bapSub.CSB_Form_ID__c === mongoId;
+  const rebate = sortedRebates.find((item) => {
+    return item.application.formio._id === mongoId;
   });
 
-  const bap = {
-    modified: match?.CSB_Modified_Full_String__c || null,
-    comboKey: match?.UEI_EFTI_Combo_Key__c || null,
-    rebateId: match?.Parent_Rebate_ID__c || null,
-    reviewItemId: match?.CSB_Review_Item_ID__c || null,
-    status: match?.Parent_CSB_Rebate__r?.CSB_Funding_Request_Status__c || null,
-  };
+  const applicationNeedsEdits = !rebate
+    ? false
+    : submissionNeedsEdits({
+        formio: rebate.application.formio,
+        bap: rebate.application.bap,
+      });
 
-  const applicationNeedsEdits = submissionNeedsEdits({
-    formio: submission,
-    bap,
-  });
+  const paymentRequestNeedsEdits = !rebate
+    ? false
+    : submissionNeedsEdits({
+        formio: rebate.paymentRequest.formio,
+        bap: rebate.paymentRequest.bap,
+      });
+
+  // TODO: if application needs edits and there's already a corresponding
+  // payment request (regardless of it's state), delete it...
+  // (when the user first clicks "Next" or maybe right away?)
+  console.log({ applicationNeedsEdits, paymentRequestNeedsEdits });
 
   const formIsReadOnly =
     (submission.state === "submitted" || !applicationFormOpen) &&
@@ -263,7 +269,7 @@ function ApplicationFormContent({ email }: { email: string }) {
           </div>
         </li>
 
-        {bap.rebateId && (
+        {rebate?.application.bap?.rebateId && (
           <li className="usa-icon-list__item">
             <div className="usa-icon-list__icon text-primary">
               <svg className="usa-icon" aria-hidden="true" role="img">
@@ -271,7 +277,7 @@ function ApplicationFormContent({ email }: { email: string }) {
               </svg>
             </div>
             <div className="usa-icon-list__content">
-              <strong>Rebate ID:</strong> {bap.rebateId}
+              <strong>Rebate ID:</strong> {rebate.application.bap.rebateId}
             </div>
           </li>
         )}
