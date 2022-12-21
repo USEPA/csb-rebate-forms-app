@@ -221,7 +221,7 @@ function useCombinedSubmissions() {
     return {};
   }
 
-  const submissions: { [rebateId: string]: Rebate } = {};
+  const rebates: { [rebateId: string]: Rebate } = {};
 
   /**
    * Iterate over Formio Application form submissions, matching them with
@@ -247,9 +247,9 @@ function useCombinedSubmissions() {
      * Formio submissions, all of the fields above will be null, so instead of
      * assigning the submission's key as `rebateId` (which will be null), we'll
      * assign it to be an underscore concatenated with the Formio submission's
-     * mongoDB ObjectID – just so each submission object still has a unique ID.
+     * mongoDB ObjectID – just so each submission object still has a unique ID.
      */
-    submissions[rebateId || `_${formioSubmission._id}`] = {
+    rebates[rebateId || `_${formioSubmission._id}`] = {
       application: {
         formio: { ...formioSubmission },
         bap: { modified, comboKey, rebateId, reviewItemId, status },
@@ -296,23 +296,27 @@ function useCombinedSubmissions() {
      * assigning the Payment Request data to it, so if the BAP ETL process isn't
      * returning data, it won't break our app.
      */
-    if (submissions[formioBapRebateId]) {
-      submissions[formioBapRebateId].paymentRequest = {
+    if (rebates[formioBapRebateId]) {
+      rebates[formioBapRebateId].paymentRequest = {
         formio: { ...formioSubmission },
         bap: { modified, comboKey, rebateId, reviewItemId, status },
       };
     }
   }
 
-  return submissions;
+  return rebates;
 }
 
 /**
- * Custom hook that sorts submissions by most recient formio modified date,
- * regardless of form (Application, Payment Request, or Close-Out).
+ * Custom hook that sorts rebates by:
+ * - most recient formio modified date, regardless of form
+ *   (Application, Payment Request, or Close-Out)
+ * - Application submissions needing edits
+ * - selected Applications submissions without a corresponding Payment Request
+ *   submission
  **/
-function useSortedSubmissions(submissions: { [rebateId: string]: Rebate }) {
-  return Object.entries(submissions)
+function useSortedRebates(rebates: { [rebateId: string]: Rebate }) {
+  return Object.entries(rebates)
     .map(([rebateId, rebate]) => ({ rebateId, ...rebate }))
     .sort((r1, r2) => {
       const mostRecientR1Modified = [
@@ -857,16 +861,15 @@ export function AllRebates() {
   useFetchedFormioApplicationSubmissions();
   useFetchedFormioPaymentRequestSubmissions();
 
-  const submissions = useCombinedSubmissions();
-  const sortedSubmissions = useSortedSubmissions(submissions);
+  const combinedRebates = useCombinedSubmissions();
+  const sortedRebates = useSortedRebates(combinedRebates);
 
-  // log combined 'sortedSubmissions' array if 'debug' search parameter exists
+  // log combined 'sortedRebates' array if 'debug' search parameter exists
   useEffect(() => {
-    const submissionsAreSet = sortedSubmissions.length > 0;
-    if (searchParams.has("debug") && submissionsAreSet) {
-      console.log(sortedSubmissions);
+    if (searchParams.has("debug") && sortedRebates.length > 0) {
+      console.log(sortedRebates);
     }
-  }, [searchParams, sortedSubmissions]);
+  }, [searchParams, sortedRebates]);
 
   if (
     bapFormSubmissions.status === "idle" ||
@@ -900,7 +903,7 @@ export function AllRebates() {
 
   return (
     <>
-      {sortedSubmissions.length === 0 ? (
+      {sortedRebates.length === 0 ? (
         <div className="margin-top-4">
           <Message type="info" text={messages.newApplication} />
         </div>
@@ -984,14 +987,14 @@ export function AllRebates() {
               </thead>
 
               <tbody>
-                {sortedSubmissions.map((rebate, index) => (
+                {sortedRebates.map((rebate, index) => (
                   <Fragment key={rebate.rebateId}>
                     <ApplicationSubmission rebate={rebate} />
 
                     <PaymentRequestSubmission rebate={rebate} />
 
                     {/* blank row after all rebates but the last one */}
-                    {index !== sortedSubmissions.length - 1 && (
+                    {index !== sortedRebates.length - 1 && (
                       <tr className="bg-white">
                         <th className="p-0" scope="row" colSpan={6}>
                           &nbsp;
