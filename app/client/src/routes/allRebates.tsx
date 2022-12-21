@@ -96,107 +96,101 @@ export function submissionNeedsEdits(options: {
   );
 }
 
-/** Custom hook to fetch form submissions from the BAP */
-export function useFetchedBapFormSubmissions() {
-  const { samEntities } = useBapState();
+/** Custom hook to fetch submissions from the BAP and Forms.gov */
+export function useFetchedFormSubmissions() {
   const bapDispatch = useBapDispatch();
-
-  useEffect(() => {
-    // while not used in this code, SAM.gov entities are used in the server
-    // app's `/api/bap-form-submissions` route controller
-    if (samEntities.status !== "success" || !samEntities.data.results) return;
-
-    bapDispatch({ type: "FETCH_BAP_FORM_SUBMISSIONS_REQUEST" });
-
-    getData(`${serverUrl}/api/bap-form-submissions`)
-      .then((res: BapFormSubmission[]) => {
-        const formSubmissions = res.reduce(
-          (submissions, submission) => {
-            const formType =
-              submission.Record_Type_Name__c === "CSB Funding Request"
-                ? "applications"
-                : submission.Record_Type_Name__c === "CSB Payment Request"
-                ? "paymentRequests"
-                : submission.Record_Type_Name__c === "CSB Closeout Request"
-                ? "closeOuts"
-                : null;
-
-            if (formType) submissions[formType].push(submission);
-
-            return submissions;
-          },
-          {
-            applications: [] as BapFormSubmission[],
-            paymentRequests: [] as BapFormSubmission[],
-            closeOuts: [] as BapFormSubmission[],
-          }
-        );
-
-        bapDispatch({
-          type: "FETCH_BAP_FORM_SUBMISSIONS_SUCCESS",
-          payload: { formSubmissions },
-        });
-      })
-      .catch((err) => {
-        bapDispatch({ type: "FETCH_BAP_FORM_SUBMISSIONS_FAILURE" });
-      });
-  }, [samEntities, bapDispatch]);
-}
-
-/** Custom hook to fetch Application form submissions from Forms.gov */
-function useFetchedFormioApplicationSubmissions() {
-  const { samEntities } = useBapState();
   const formioSubmissionsDispatch = useFormioSubmissionsDispatch();
 
   useEffect(() => {
-    // while not used in this code, SAM.gov entities are used in the server
-    // app's `/api/formio-application-submissions` route controller
-    if (samEntities.status !== "success" || !samEntities.data.results) return;
+    bapDispatch({
+      type: "FETCH_BAP_FORM_SUBMISSIONS_REQUEST",
+    });
 
     formioSubmissionsDispatch({
       type: "FETCH_FORMIO_APPLICATION_SUBMISSIONS_REQUEST",
     });
 
-    getData(`${serverUrl}/api/formio-application-submissions`)
-      .then((res) => {
-        formioSubmissionsDispatch({
-          type: "FETCH_FORMIO_APPLICATION_SUBMISSIONS_SUCCESS",
-          payload: { applicationSubmissions: res },
-        });
-      })
-      .catch((err) => {
-        formioSubmissionsDispatch({
-          type: "FETCH_FORMIO_APPLICATION_SUBMISSIONS_FAILURE",
-        });
-      });
-  }, [samEntities, formioSubmissionsDispatch]);
-}
-
-/** Custom hook to fetch Payment Request form submissions from Forms.gov */
-function useFetchedFormioPaymentRequestSubmissions() {
-  const { samEntities } = useBapState();
-  const formioSubmissionsDispatch = useFormioSubmissionsDispatch();
-
-  useEffect(() => {
-    if (samEntities.status !== "success" || !samEntities.data.results) return;
-
     formioSubmissionsDispatch({
       type: "FETCH_FORMIO_PAYMENT_REQUEST_SUBMISSIONS_REQUEST",
     });
 
-    getData(`${serverUrl}/api/formio-payment-request-submissions`)
-      .then((res) => {
-        formioSubmissionsDispatch({
-          type: "FETCH_FORMIO_PAYMENT_REQUEST_SUBMISSIONS_SUCCESS",
-          payload: { paymentRequestSubmissions: res },
-        });
-      })
+    Promise.all([
+      getData(`${serverUrl}/api/bap-form-submissions`),
+      getData(`${serverUrl}/api/formio-application-submissions`),
+      getData(`${serverUrl}/api/formio-payment-request-submissions`),
+    ])
+      .then(
+        (
+          responses: [
+            BapFormSubmission[],
+            FormioApplicationSubmission[],
+            FormioPaymentRequestSubmission[]
+          ]
+        ) => {
+          const [
+            bapFormSubmissions,
+            formioApplicationSubmissions,
+            formioPaymentRequestSubmissions,
+          ] = responses;
+
+          const bapFormSubmissionsSorted = bapFormSubmissions.reduce(
+            (submissions, submission) => {
+              const formType =
+                submission.Record_Type_Name__c === "CSB Funding Request"
+                  ? "applications"
+                  : submission.Record_Type_Name__c === "CSB Payment Request"
+                  ? "paymentRequests"
+                  : submission.Record_Type_Name__c === "CSB Closeout Request"
+                  ? "closeOuts"
+                  : null;
+
+              if (formType) submissions[formType].push(submission);
+
+              return submissions;
+            },
+            {
+              applications: [] as BapFormSubmission[],
+              paymentRequests: [] as BapFormSubmission[],
+              closeOuts: [] as BapFormSubmission[],
+            }
+          );
+
+          bapDispatch({
+            type: "FETCH_BAP_FORM_SUBMISSIONS_SUCCESS",
+            payload: {
+              formSubmissions: bapFormSubmissionsSorted,
+            },
+          });
+
+          formioSubmissionsDispatch({
+            type: "FETCH_FORMIO_APPLICATION_SUBMISSIONS_SUCCESS",
+            payload: {
+              applicationSubmissions: formioApplicationSubmissions,
+            },
+          });
+
+          formioSubmissionsDispatch({
+            type: "FETCH_FORMIO_PAYMENT_REQUEST_SUBMISSIONS_SUCCESS",
+            payload: {
+              paymentRequestSubmissions: formioPaymentRequestSubmissions,
+            },
+          });
+        }
+      )
       .catch((err) => {
+        bapDispatch({
+          type: "FETCH_BAP_FORM_SUBMISSIONS_FAILURE",
+        });
+
+        formioSubmissionsDispatch({
+          type: "FETCH_FORMIO_APPLICATION_SUBMISSIONS_FAILURE",
+        });
+
         formioSubmissionsDispatch({
           type: "FETCH_FORMIO_PAYMENT_REQUEST_SUBMISSIONS_FAILURE",
         });
       });
-  }, [samEntities, formioSubmissionsDispatch]);
+  }, [bapDispatch, formioSubmissionsDispatch]);
 }
 
 /**
@@ -205,7 +199,7 @@ function useFetchedFormioPaymentRequestSubmissions() {
  * and Formio into a single `submissions` object, with the BAP assigned
  * `rebateId` as the keys.
  **/
-function useCombinedSubmissions() {
+export function useCombinedSubmissions() {
   const { formSubmissions: bapFormSubmissions } = useBapState();
   const {
     applicationSubmissions: formioApplicationSubmissions,
@@ -221,7 +215,7 @@ function useCombinedSubmissions() {
     return {};
   }
 
-  const submissions: { [rebateId: string]: Rebate } = {};
+  const rebates: { [rebateId: string]: Rebate } = {};
 
   /**
    * Iterate over Formio Application form submissions, matching them with
@@ -247,9 +241,9 @@ function useCombinedSubmissions() {
      * Formio submissions, all of the fields above will be null, so instead of
      * assigning the submission's key as `rebateId` (which will be null), we'll
      * assign it to be an underscore concatenated with the Formio submission's
-     * mongoDB ObjectID – just so each submission object still has a unique ID.
+     * mongoDB ObjectID – just so each submission object still has a unique ID.
      */
-    submissions[rebateId || `_${formioSubmission._id}`] = {
+    rebates[rebateId || `_${formioSubmission._id}`] = {
       application: {
         formio: { ...formioSubmission },
         bap: { modified, comboKey, rebateId, reviewItemId, status },
@@ -296,23 +290,27 @@ function useCombinedSubmissions() {
      * assigning the Payment Request data to it, so if the BAP ETL process isn't
      * returning data, it won't break our app.
      */
-    if (submissions[formioBapRebateId]) {
-      submissions[formioBapRebateId].paymentRequest = {
+    if (rebates[formioBapRebateId]) {
+      rebates[formioBapRebateId].paymentRequest = {
         formio: { ...formioSubmission },
         bap: { modified, comboKey, rebateId, reviewItemId, status },
       };
     }
   }
 
-  return submissions;
+  return rebates;
 }
 
 /**
- * Custom hook that sorts submissions by most recient formio modified date,
- * regardless of form (Application, Payment Request, or Close-Out).
+ * Custom hook that sorts rebates by:
+ * - most recient formio modified date, regardless of form
+ *   (Application, Payment Request, or Close-Out)
+ * - Application submissions needing edits
+ * - selected Applications submissions without a corresponding Payment Request
+ *   submission
  **/
-function useSortedSubmissions(submissions: { [rebateId: string]: Rebate }) {
-  return Object.entries(submissions)
+export function useSortedRebates(rebates: { [rebateId: string]: Rebate }) {
+  return Object.entries(rebates)
     .map(([rebateId, rebate]) => ({ rebateId, ...rebate }))
     .sort((r1, r2) => {
       const mostRecientR1Modified = [
@@ -831,9 +829,7 @@ export function AllRebates() {
   const [searchParams] = useSearchParams();
 
   const { content } = useContentState();
-  const { epaUserData } = useUserState();
-  const { csbData } = useCsbState();
-  const { samEntities, formSubmissions: bapFormSubmissions } = useBapState();
+  const { formSubmissions: bapFormSubmissions } = useBapState();
   const {
     applicationSubmissions: formioApplicationSubmissions,
     paymentRequestSubmissions: formioPaymentRequestSubmissions,
@@ -855,26 +851,19 @@ export function AllRebates() {
     });
   }
 
-  useFetchedBapFormSubmissions();
-  useFetchedFormioApplicationSubmissions();
-  useFetchedFormioPaymentRequestSubmissions();
+  useFetchedFormSubmissions();
 
-  const submissions = useCombinedSubmissions();
-  const sortedSubmissions = useSortedSubmissions(submissions);
+  const combinedRebates = useCombinedSubmissions();
+  const sortedRebates = useSortedRebates(combinedRebates);
 
-  // log combined 'sortedSubmissions' array if 'debug' search parameter exists
+  // log combined 'sortedRebates' array if 'debug' search parameter exists
   useEffect(() => {
-    const submissionsAreSet = sortedSubmissions.length > 0;
-    if (searchParams.has("debug") && submissionsAreSet) {
-      console.log(sortedSubmissions);
+    if (searchParams.has("debug") && sortedRebates.length > 0) {
+      console.log(sortedRebates);
     }
-  }, [searchParams, sortedSubmissions]);
+  }, [searchParams, sortedRebates]);
 
   if (
-    csbData.status !== "success" ||
-    epaUserData.status !== "success" ||
-    samEntities.status === "idle" ||
-    samEntities.status === "pending" ||
     bapFormSubmissions.status === "idle" ||
     bapFormSubmissions.status === "pending" ||
     formioApplicationSubmissions.status === "idle" ||
@@ -885,32 +874,17 @@ export function AllRebates() {
     return <Loading />;
   }
 
-  if (samEntities.status === "failure") {
-    return <Message type="error" text={messages.bapSamFetchError} />;
-  }
-
-  if (bapFormSubmissions.status === "failure") {
-    return <Message type="error" text={messages.bapFormSubmissionsError} />;
-  }
-
-  if (formioApplicationSubmissions.status === "failure") {
-    return (
-      <Message type="error" text={messages.formioApplicationSubmissionsError} />
-    );
-  }
-
-  if (formioPaymentRequestSubmissions.status === "failure") {
-    return (
-      <Message
-        type="error"
-        text={messages.formioPaymentRequestSubmissionsError}
-      />
-    );
+  if (
+    bapFormSubmissions.status === "failure" ||
+    formioApplicationSubmissions.status === "failure" ||
+    formioPaymentRequestSubmissions.status === "failure"
+  ) {
+    return <Message type="error" text={messages.formSubmissionsError} />;
   }
 
   return (
     <>
-      {sortedSubmissions.length === 0 ? (
+      {sortedRebates.length === 0 ? (
         <div className="margin-top-4">
           <Message type="info" text={messages.newApplication} />
         </div>
@@ -994,14 +968,14 @@ export function AllRebates() {
               </thead>
 
               <tbody>
-                {sortedSubmissions.map((rebate, index) => (
+                {sortedRebates.map((rebate, index) => (
                   <Fragment key={rebate.rebateId}>
                     <ApplicationSubmission rebate={rebate} />
 
                     <PaymentRequestSubmission rebate={rebate} />
 
                     {/* blank row after all rebates but the last one */}
-                    {index !== sortedSubmissions.length - 1 && (
+                    {index !== sortedRebates.length - 1 && (
                       <tr className="bg-white">
                         <th className="p-0" scope="row" colSpan={6}>
                           &nbsp;

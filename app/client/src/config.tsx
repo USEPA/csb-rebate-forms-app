@@ -55,11 +55,7 @@ export const messages = {
   bapSamFetchError: "Error loading SAM.gov data. Please contact support.",
   bapNoSamResults:
     "No SAM.gov records match your email. Only Government and Electronic Business SAM.gov Points of Contacts (and alternates) may edit and submit Clean School Bus Rebate Forms.",
-  bapFormSubmissionsError: "Error loading form submissions.",
-  formioApplicationSubmissionsError:
-    "Error loading Application form submissions.",
-  formioPaymentRequestSubmissionsError:
-    "Error loading Payment Request form submissions.",
+  formSubmissionsError: "Error loading form submissions.",
   newApplication:
     "Please select the “New Application” button above to create your first rebate application.",
   helpdeskSubmissionSearchError:

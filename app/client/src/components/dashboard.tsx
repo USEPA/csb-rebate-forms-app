@@ -145,7 +145,7 @@ export function Dashboard() {
     };
   }
 
-  if (samEntities.status !== "success") {
+  if (csbData.status !== "success" || samEntities.status !== "success") {
     return <Loading />;
   }
 
