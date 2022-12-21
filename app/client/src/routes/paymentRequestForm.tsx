@@ -214,13 +214,23 @@ function PaymentRequestFormContent({ email }: { email: string }) {
         bap: rebate.paymentRequest.bap,
       });
 
-  // TODO: if a corresponding application needs edits, display a message to the
-  // user that this payment request will be deleted.
-  console.log({ applicationNeedsEdits, paymentRequestNeedsEdits });
+  // NOTE: If a corresponding Application form submission needs edits, a warning
+  // message is displayed that this Payment Request form submission will be
+  // deleted, and the form will be rendered read-only.
+  if (applicationNeedsEdits) {
+    pageMessageDispatch({
+      type: "DISPLAY_MESSAGE",
+      payload: {
+        type: "warning",
+        text: messages.paymentRequestFormWillBeDeleted,
+      },
+    });
+  }
 
   const formIsReadOnly =
-    (submission.state === "submitted" || !paymentRequestFormOpen) &&
-    !paymentRequestNeedsEdits;
+    applicationNeedsEdits ||
+    ((submission.state === "submitted" || !paymentRequestFormOpen) &&
+      !paymentRequestNeedsEdits);
 
   const entityComboKey = storedSubmissionData.bap_hidden_entity_combo_key;
   const entity = samEntities.data.entities.find((entity) => {
