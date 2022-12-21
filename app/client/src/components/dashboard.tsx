@@ -145,7 +145,11 @@ export function Dashboard() {
     };
   }
 
-  if (samEntities.status !== "success") {
+  if (
+    epaUserData.status !== "success" ||
+    csbData.status !== "success" ||
+    samEntities.status !== "success"
+  ) {
     return <Loading />;
   }
 
@@ -177,9 +181,7 @@ export function Dashboard() {
       <div className="desktop:display-flex flex-justify border-bottom">
         <nav className="desktop:order-last mobile-lg:display-flex flex-align-center flex-justify-end">
           <p className="margin-bottom-1 margin-right-1">
-            <span>
-              {epaUserData.status === "success" && epaUserData.data.mail}
-            </span>
+            <span>{epaUserData.data.mail}</span>
           </p>
 
           <a

@@ -831,9 +831,7 @@ export function AllRebates() {
   const [searchParams] = useSearchParams();
 
   const { content } = useContentState();
-  const { epaUserData } = useUserState();
-  const { csbData } = useCsbState();
-  const { samEntities, formSubmissions: bapFormSubmissions } = useBapState();
+  const { formSubmissions: bapFormSubmissions } = useBapState();
   const {
     applicationSubmissions: formioApplicationSubmissions,
     paymentRequestSubmissions: formioPaymentRequestSubmissions,
@@ -871,10 +869,6 @@ export function AllRebates() {
   }, [searchParams, sortedSubmissions]);
 
   if (
-    csbData.status !== "success" ||
-    epaUserData.status !== "success" ||
-    samEntities.status === "idle" ||
-    samEntities.status === "pending" ||
     bapFormSubmissions.status === "idle" ||
     bapFormSubmissions.status === "pending" ||
     formioApplicationSubmissions.status === "idle" ||
@@ -883,10 +877,6 @@ export function AllRebates() {
     formioPaymentRequestSubmissions.status === "pending"
   ) {
     return <Loading />;
-  }
-
-  if (samEntities.status === "failure") {
-    return <Message type="error" text={messages.bapSamFetchError} />;
   }
 
   if (bapFormSubmissions.status === "failure") {
