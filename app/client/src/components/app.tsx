@@ -24,12 +24,11 @@ import { MarkdownContent } from "components/markdownContent";
 import { Welcome } from "routes/welcome";
 import { Dashboard } from "components/dashboard";
 import { ConfirmationDialog } from "components/confirmationDialog";
-import { CombinedRebates } from "components/combinedRebates";
+import { Helpdesk } from "routes/helpdesk";
 import { AllRebates } from "routes/allRebates";
 import { NewApplicationForm } from "routes/newApplicationForm";
 import { ApplicationForm } from "routes/applicationForm";
 import { PaymentRequestForm } from "routes/paymentRequestForm";
-import { Helpdesk } from "routes/helpdesk";
 import { useContentState, useContentDispatch } from "contexts/content";
 import { useDialogDispatch, useDialogState } from "contexts/dialog";
 import { useUserState, useUserDispatch } from "contexts/user";
@@ -280,31 +279,7 @@ export function App() {
             </ProtectedRoute>
           }
         >
-          <Route
-            index
-            element={
-              <CombinedRebates>
-                <AllRebates />
-              </CombinedRebates>
-            }
-          />
-          <Route path="rebate/new" element={<NewApplicationForm />} />
-          <Route
-            path="rebate/:mongoId"
-            element={
-              <CombinedRebates>
-                <ApplicationForm />
-              </CombinedRebates>
-            }
-          />
-          <Route
-            path="payment-request/:rebateId"
-            element={
-              <CombinedRebates>
-                <PaymentRequestForm />
-              </CombinedRebates>
-            }
-          />
+          <Route index element={<AllRebates />} />
           {/*
             NOTE: The helpdesk route is only accessible to users who should have
             access to it. When a user tries to access the `Helpdesk` route, an
@@ -318,6 +293,12 @@ export function App() {
             displayed.
           */}
           <Route path="helpdesk" element={<Helpdesk />} />
+          <Route path="rebate/new" element={<NewApplicationForm />} />
+          <Route path="rebate/:mongoId" element={<ApplicationForm />} />
+          <Route
+            path="payment-request/:rebateId"
+            element={<PaymentRequestForm />}
+          />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
