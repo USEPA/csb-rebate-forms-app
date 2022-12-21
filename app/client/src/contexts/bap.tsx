@@ -43,10 +43,10 @@ export type BapSamEntity = {
 };
 
 export type BapFormSubmission = {
-  UEI_EFTI_Combo_Key__c: string;
+  UEI_EFTI_Combo_Key__c: string; // UEI + EFTI combo key
   CSB_Form_ID__c: string; // MongoDB ObjectId string
   CSB_Modified_Full_String__c: string; // ISO 8601 date string
-  CSB_Review_Item_ID__c: string; // CSB Rebate ID w/ form/version ID (9 digits)
+  CSB_Review_Item_ID__c: string; // CSB Rebate ID with form/version ID (9 digits)
   Parent_Rebate_ID__c: string; // CSB Rebate ID (6 digits)
   Record_Type_Name__c:
     | "CSB Funding Request"

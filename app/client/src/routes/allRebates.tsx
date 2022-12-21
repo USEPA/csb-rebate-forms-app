@@ -41,10 +41,10 @@ type FormioSubmission =
   | FormioCloseOutSubmission;
 
 type BapSubmission = {
-  modified: string | null;
-  comboKey: string | null;
-  rebateId: string | null;
-  reviewItemId: string | null;
+  modified: string | null; // ISO 8601 date string
+  comboKey: string | null; // UEI + EFTI combo key
+  rebateId: string | null; // CSB Rebate ID (6 digits)
+  reviewItemId: string | null; // CSB Rebate ID with form/version ID (9 digits)
   status: string | null;
 };
 
@@ -662,7 +662,7 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
                 entity,
                 comboKey: application.bap.comboKey,
                 rebateId: application.bap.rebateId, // CSB Rebate ID (6 digits)
-                reviewItemId: application.bap.reviewItemId, // CSB Rebate ID w/ form/version ID (9 digits)
+                reviewItemId: application.bap.reviewItemId, // CSB Rebate ID with form/version ID (9 digits)
                 applicationFormModified: application.bap.modified,
               })
                 .then((res) => {
