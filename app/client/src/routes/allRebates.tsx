@@ -143,60 +143,101 @@ export function useFetchedBapFormSubmissions() {
   }, [samEntities, bapDispatch]);
 }
 
-/** Custom hook to fetch Application form submissions from Forms.gov */
-function useFetchedFormioApplicationSubmissions() {
-  const { samEntities } = useBapState();
+/** Custom hook to fetch submissions from the BAP and Forms.gov */
+export function useFetchedFormSubmissions() {
+  const bapDispatch = useBapDispatch();
   const formioSubmissionsDispatch = useFormioSubmissionsDispatch();
 
   useEffect(() => {
-    // while not used in this code, SAM.gov entities are used in the server
-    // app's `/api/formio-application-submissions` route controller
-    if (samEntities.status !== "success" || !samEntities.data.results) return;
+    bapDispatch({
+      type: "FETCH_BAP_FORM_SUBMISSIONS_REQUEST",
+    });
 
     formioSubmissionsDispatch({
       type: "FETCH_FORMIO_APPLICATION_SUBMISSIONS_REQUEST",
     });
 
-    getData(`${serverUrl}/api/formio-application-submissions`)
-      .then((res) => {
-        formioSubmissionsDispatch({
-          type: "FETCH_FORMIO_APPLICATION_SUBMISSIONS_SUCCESS",
-          payload: { applicationSubmissions: res },
-        });
-      })
-      .catch((err) => {
-        formioSubmissionsDispatch({
-          type: "FETCH_FORMIO_APPLICATION_SUBMISSIONS_FAILURE",
-        });
-      });
-  }, [samEntities, formioSubmissionsDispatch]);
-}
-
-/** Custom hook to fetch Payment Request form submissions from Forms.gov */
-function useFetchedFormioPaymentRequestSubmissions() {
-  const { samEntities } = useBapState();
-  const formioSubmissionsDispatch = useFormioSubmissionsDispatch();
-
-  useEffect(() => {
-    if (samEntities.status !== "success" || !samEntities.data.results) return;
-
     formioSubmissionsDispatch({
       type: "FETCH_FORMIO_PAYMENT_REQUEST_SUBMISSIONS_REQUEST",
     });
 
-    getData(`${serverUrl}/api/formio-payment-request-submissions`)
-      .then((res) => {
-        formioSubmissionsDispatch({
-          type: "FETCH_FORMIO_PAYMENT_REQUEST_SUBMISSIONS_SUCCESS",
-          payload: { paymentRequestSubmissions: res },
-        });
-      })
+    Promise.all([
+      getData(`${serverUrl}/api/bap-form-submissions`),
+      getData(`${serverUrl}/api/formio-application-submissions`),
+      getData(`${serverUrl}/api/formio-payment-request-submissions`),
+    ])
+      .then(
+        (
+          responses: [
+            BapFormSubmission[],
+            FormioApplicationSubmission[],
+            FormioPaymentRequestSubmission[]
+          ]
+        ) => {
+          const [
+            bapFormSubmissions,
+            formioApplicationSubmissions,
+            formioPaymentRequestSubmissions,
+          ] = responses;
+
+          const bapFormSubmissionsSorted = bapFormSubmissions.reduce(
+            (submissions, submission) => {
+              const formType =
+                submission.Record_Type_Name__c === "CSB Funding Request"
+                  ? "applications"
+                  : submission.Record_Type_Name__c === "CSB Payment Request"
+                  ? "paymentRequests"
+                  : submission.Record_Type_Name__c === "CSB Closeout Request"
+                  ? "closeOuts"
+                  : null;
+
+              if (formType) submissions[formType].push(submission);
+
+              return submissions;
+            },
+            {
+              applications: [] as BapFormSubmission[],
+              paymentRequests: [] as BapFormSubmission[],
+              closeOuts: [] as BapFormSubmission[],
+            }
+          );
+
+          bapDispatch({
+            type: "FETCH_BAP_FORM_SUBMISSIONS_SUCCESS",
+            payload: {
+              formSubmissions: bapFormSubmissionsSorted,
+            },
+          });
+
+          formioSubmissionsDispatch({
+            type: "FETCH_FORMIO_APPLICATION_SUBMISSIONS_SUCCESS",
+            payload: {
+              applicationSubmissions: formioApplicationSubmissions,
+            },
+          });
+
+          formioSubmissionsDispatch({
+            type: "FETCH_FORMIO_PAYMENT_REQUEST_SUBMISSIONS_SUCCESS",
+            payload: {
+              paymentRequestSubmissions: formioPaymentRequestSubmissions,
+            },
+          });
+        }
+      )
       .catch((err) => {
+        bapDispatch({
+          type: "FETCH_BAP_FORM_SUBMISSIONS_FAILURE",
+        });
+
+        formioSubmissionsDispatch({
+          type: "FETCH_FORMIO_APPLICATION_SUBMISSIONS_FAILURE",
+        });
+
         formioSubmissionsDispatch({
           type: "FETCH_FORMIO_PAYMENT_REQUEST_SUBMISSIONS_FAILURE",
         });
       });
-  }, [samEntities, formioSubmissionsDispatch]);
+  }, [bapDispatch, formioSubmissionsDispatch]);
 }
 
 /**
@@ -857,9 +898,7 @@ export function AllRebates() {
     });
   }
 
-  useFetchedBapFormSubmissions();
-  useFetchedFormioApplicationSubmissions();
-  useFetchedFormioPaymentRequestSubmissions();
+  useFetchedFormSubmissions();
 
   const combinedRebates = useCombinedSubmissions();
   const sortedRebates = useSortedRebates(combinedRebates);
@@ -882,23 +921,12 @@ export function AllRebates() {
     return <Loading />;
   }
 
-  if (bapFormSubmissions.status === "failure") {
-    return <Message type="error" text={messages.bapFormSubmissionsError} />;
-  }
-
-  if (formioApplicationSubmissions.status === "failure") {
-    return (
-      <Message type="error" text={messages.formioApplicationSubmissionsError} />
-    );
-  }
-
-  if (formioPaymentRequestSubmissions.status === "failure") {
-    return (
-      <Message
-        type="error"
-        text={messages.formioPaymentRequestSubmissionsError}
-      />
-    );
+  if (
+    bapFormSubmissions.status === "failure" ||
+    formioApplicationSubmissions.status === "failure" ||
+    formioPaymentRequestSubmissions.status === "failure"
+  ) {
+    return <Message type="error" text={messages.formSubmissionsError} />;
   }
 
   return (
