@@ -1,14 +1,16 @@
 import { useMemo, useEffect, useState, useRef } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Formio, Form } from "@formio/react";
 import { cloneDeep, isEqual } from "lodash";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl, getData, postData } from "../config";
+import { serverUrl, messages, getData, postData } from "../config";
 import { getUserInfo } from "../utilities";
 import {
   submissionNeedsEdits,
-  useFetchedBapFormSubmissions,
+  useFetchedFormSubmissions,
+  useCombinedSubmissions,
+  useSortedRebates,
 } from "routes/allRebates";
 import { Loading } from "components/loading";
 import { Message } from "components/message";
@@ -17,6 +19,7 @@ import { useContentState } from "contexts/content";
 import { useUserState } from "contexts/user";
 import { useCsbState } from "contexts/csb";
 import { useBapState } from "contexts/bap";
+import { useFormioSubmissionsState } from "contexts/formioSubmissions";
 import {
   FormioSubmissionData,
   FormioFetchedResponse,
@@ -54,10 +57,15 @@ export function ApplicationForm() {
 function ApplicationFormContent({ email }: { email: string }) {
   const navigate = useNavigate();
   const { mongoId } = useParams<"mongoId">(); // MongoDB ObjectId string
+  const [searchParams] = useSearchParams();
 
   const { content } = useContentState();
   const { csbData } = useCsbState();
   const { samEntities, formSubmissions: bapFormSubmissions } = useBapState();
+  const {
+    applicationSubmissions: formioApplicationSubmissions,
+    paymentRequestSubmissions: formioPaymentRequestSubmissions,
+  } = useFormioSubmissionsState();
   const { formio } = useFormioFormState();
   const formioFormDispatch = useFormioFormDispatch();
   const pageMessageDispatch = usePageMessageDispatch();
@@ -72,7 +80,17 @@ function ApplicationFormContent({ email }: { email: string }) {
     pageMessageDispatch({ type: "RESET_MESSAGE" });
   }, [pageMessageDispatch]);
 
-  useFetchedBapFormSubmissions();
+  useFetchedFormSubmissions();
+
+  const combinedRebates = useCombinedSubmissions();
+  const sortedRebates = useSortedRebates(combinedRebates);
+
+  // log combined 'sortedRebates' array if 'debug' search parameter exists
+  useEffect(() => {
+    if (searchParams.has("debug") && sortedRebates.length > 0) {
+      console.log(sortedRebates);
+    }
+  }, [searchParams, sortedRebates]);
 
   // create ref to store when form is being submitted, so it can be referenced
   // in the Form component's `onSubmit` event prop, to prevent double submits
@@ -156,10 +174,28 @@ function ApplicationFormContent({ email }: { email: string }) {
   if (
     email === "" ||
     csbData.status !== "success" ||
-    samEntities.status !== "success" ||
-    bapFormSubmissions.status !== "success"
+    samEntities.status !== "success"
   ) {
     return <Loading />;
+  }
+
+  if (
+    bapFormSubmissions.status === "idle" ||
+    bapFormSubmissions.status === "pending" ||
+    formioApplicationSubmissions.status === "idle" ||
+    formioApplicationSubmissions.status === "pending" ||
+    formioPaymentRequestSubmissions.status === "idle" ||
+    formioPaymentRequestSubmissions.status === "pending"
+  ) {
+    return <Loading />;
+  }
+
+  if (
+    bapFormSubmissions.status === "failure" ||
+    formioApplicationSubmissions.status === "failure" ||
+    formioPaymentRequestSubmissions.status === "failure"
+  ) {
+    return <Message type="error" text={messages.formSubmissionsError} />;
   }
 
   const applicationFormOpen = csbData.data.submissionPeriodOpen.application;

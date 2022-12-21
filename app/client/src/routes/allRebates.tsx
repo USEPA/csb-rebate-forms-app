@@ -96,53 +96,6 @@ export function submissionNeedsEdits(options: {
   );
 }
 
-/** Custom hook to fetch form submissions from the BAP */
-export function useFetchedBapFormSubmissions() {
-  const { samEntities } = useBapState();
-  const bapDispatch = useBapDispatch();
-
-  useEffect(() => {
-    // while not used in this code, SAM.gov entities are used in the server
-    // app's `/api/bap-form-submissions` route controller
-    if (samEntities.status !== "success" || !samEntities.data.results) return;
-
-    bapDispatch({ type: "FETCH_BAP_FORM_SUBMISSIONS_REQUEST" });
-
-    getData(`${serverUrl}/api/bap-form-submissions`)
-      .then((res: BapFormSubmission[]) => {
-        const formSubmissions = res.reduce(
-          (submissions, submission) => {
-            const formType =
-              submission.Record_Type_Name__c === "CSB Funding Request"
-                ? "applications"
-                : submission.Record_Type_Name__c === "CSB Payment Request"
-                ? "paymentRequests"
-                : submission.Record_Type_Name__c === "CSB Closeout Request"
-                ? "closeOuts"
-                : null;
-
-            if (formType) submissions[formType].push(submission);
-
-            return submissions;
-          },
-          {
-            applications: [] as BapFormSubmission[],
-            paymentRequests: [] as BapFormSubmission[],
-            closeOuts: [] as BapFormSubmission[],
-          }
-        );
-
-        bapDispatch({
-          type: "FETCH_BAP_FORM_SUBMISSIONS_SUCCESS",
-          payload: { formSubmissions },
-        });
-      })
-      .catch((err) => {
-        bapDispatch({ type: "FETCH_BAP_FORM_SUBMISSIONS_FAILURE" });
-      });
-  }, [samEntities, bapDispatch]);
-}
-
 /** Custom hook to fetch submissions from the BAP and Forms.gov */
 export function useFetchedFormSubmissions() {
   const bapDispatch = useBapDispatch();
@@ -246,7 +199,7 @@ export function useFetchedFormSubmissions() {
  * and Formio into a single `submissions` object, with the BAP assigned
  * `rebateId` as the keys.
  **/
-function useCombinedSubmissions() {
+export function useCombinedSubmissions() {
   const { formSubmissions: bapFormSubmissions } = useBapState();
   const {
     applicationSubmissions: formioApplicationSubmissions,
@@ -356,7 +309,7 @@ function useCombinedSubmissions() {
  * - selected Applications submissions without a corresponding Payment Request
  *   submission
  **/
-function useSortedRebates(rebates: { [rebateId: string]: Rebate }) {
+export function useSortedRebates(rebates: { [rebateId: string]: Rebate }) {
   return Object.entries(rebates)
     .map(([rebateId, rebate]) => ({ rebateId, ...rebate }))
     .sort((r1, r2) => {
