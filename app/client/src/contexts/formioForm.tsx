@@ -119,7 +119,7 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-export function PageFormioProvider({ children }: Props) {
+export function FormioFormProvider({ children }: Props) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   return (
@@ -132,12 +132,12 @@ export function PageFormioProvider({ children }: Props) {
 }
 
 /**
- * Returns state stored in `PageFormioProvider` context component.
+ * Returns state stored in `FormioFormProvider` context component.
  */
-export function usePageFormioState() {
+export function useFormioFormState() {
   const context = useContext(StateContext);
   if (context === undefined) {
-    const message = `usePageFormioState must be called within a PageFormioProvider`;
+    const message = `useFormioFormState must be called within a FormioFormProvider`;
     throw new Error(message);
   }
   return context;
@@ -145,12 +145,12 @@ export function usePageFormioState() {
 
 /**
  * Returns `dispatch` method for dispatching actions to update state stored in
- * `PageFormioProvider` context component.
+ * `FormioFormProvider` context component.
  */
-export function usePageFormioDispatch() {
+export function useFormioFormDispatch() {
   const context = useContext(DispatchContext);
   if (context === undefined) {
-    const message = `usePageFormioDispatch must be used within a PageFormioProvider`;
+    const message = `useFormioFormDispatch must be used within a FormioFormProvider`;
     throw new Error(message);
   }
   return context;

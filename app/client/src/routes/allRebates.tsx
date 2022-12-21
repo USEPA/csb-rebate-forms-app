@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useState } from "react";
+import type { LinkProps } from "react-router-dom";
 import {
   Link,
   useLocation,
@@ -22,9 +23,9 @@ import {
   FormioApplicationSubmission,
   FormioPaymentRequestSubmission,
   FormioCloseOutSubmission,
-  useFormioState,
-  useFormioDispatch,
-} from "contexts/formio";
+  useFormioSubmissionsState,
+  useFormioSubmissionsDispatch,
+} from "contexts/formioSubmissions";
 import {
   usePageMessageState,
   usePageMessageDispatch,
@@ -33,6 +34,11 @@ import {
 type LocationState = {
   submissionSuccessMessage: string;
 };
+
+type FormioSubmission =
+  | FormioApplicationSubmission
+  | FormioPaymentRequestSubmission
+  | FormioCloseOutSubmission;
 
 type BapSubmission = {
   modified: string | null;
@@ -59,6 +65,36 @@ type Rebate = {
 
 const defaultTableRowClassNames = "bg-gray-5";
 const highlightedTableRowClassNames = "bg-primary-lighter";
+
+/**
+ * Determines whether a submission needs edits, based on the BAP status
+ *
+ * NOTE: we can't use the BAP status alone though, because if a submission has
+ * been re-submitted and the BAP hasn't yet run their ETL to pickup the status
+ * change, we need to ensure we properly display the 'submitted' formio status.
+ */
+export function submissionNeedsEdits(options: {
+  formio: FormioSubmission | null;
+  bap: BapSubmission | null;
+}) {
+  const { formio, bap } = options;
+
+  if (!formio) return false;
+
+  /**
+   * The submission has been updated in Formio since the last time the BAP's
+   * submissions ETL process has last succesfully run.
+   */
+  const submissionHasBeenUpdatedSinceLastETL = bap?.modified
+    ? new Date(formio.modified) > new Date(bap.modified)
+    : false;
+
+  return (
+    bap?.status === "Edits Requested" &&
+    (formio.state === "draft" ||
+      (formio.state === "submitted" && !submissionHasBeenUpdatedSinceLastETL))
+  );
+}
 
 /** Custom hook to fetch form submissions from the BAP */
 export function useFetchedBapFormSubmissions() {
@@ -110,55 +146,57 @@ export function useFetchedBapFormSubmissions() {
 /** Custom hook to fetch Application form submissions from Forms.gov */
 function useFetchedFormioApplicationSubmissions() {
   const { samEntities } = useBapState();
-  const formioDispatch = useFormioDispatch();
+  const formioSubmissionsDispatch = useFormioSubmissionsDispatch();
 
   useEffect(() => {
     // while not used in this code, SAM.gov entities are used in the server
     // app's `/api/formio-application-submissions` route controller
     if (samEntities.status !== "success" || !samEntities.data.results) return;
 
-    formioDispatch({ type: "FETCH_FORMIO_APPLICATION_SUBMISSIONS_REQUEST" });
+    formioSubmissionsDispatch({
+      type: "FETCH_FORMIO_APPLICATION_SUBMISSIONS_REQUEST",
+    });
 
     getData(`${serverUrl}/api/formio-application-submissions`)
       .then((res) => {
-        formioDispatch({
+        formioSubmissionsDispatch({
           type: "FETCH_FORMIO_APPLICATION_SUBMISSIONS_SUCCESS",
           payload: { applicationSubmissions: res },
         });
       })
       .catch((err) => {
-        formioDispatch({
+        formioSubmissionsDispatch({
           type: "FETCH_FORMIO_APPLICATION_SUBMISSIONS_FAILURE",
         });
       });
-  }, [samEntities, formioDispatch]);
+  }, [samEntities, formioSubmissionsDispatch]);
 }
 
 /** Custom hook to fetch Payment Request form submissions from Forms.gov */
 function useFetchedFormioPaymentRequestSubmissions() {
   const { samEntities } = useBapState();
-  const formioDispatch = useFormioDispatch();
+  const formioSubmissionsDispatch = useFormioSubmissionsDispatch();
 
   useEffect(() => {
     if (samEntities.status !== "success" || !samEntities.data.results) return;
 
-    formioDispatch({
+    formioSubmissionsDispatch({
       type: "FETCH_FORMIO_PAYMENT_REQUEST_SUBMISSIONS_REQUEST",
     });
 
     getData(`${serverUrl}/api/formio-payment-request-submissions`)
       .then((res) => {
-        formioDispatch({
+        formioSubmissionsDispatch({
           type: "FETCH_FORMIO_PAYMENT_REQUEST_SUBMISSIONS_SUCCESS",
           payload: { paymentRequestSubmissions: res },
         });
       })
       .catch((err) => {
-        formioDispatch({
+        formioSubmissionsDispatch({
           type: "FETCH_FORMIO_PAYMENT_REQUEST_SUBMISSIONS_FAILURE",
         });
       });
-  }, [samEntities, formioDispatch]);
+  }, [samEntities, formioSubmissionsDispatch]);
 }
 
 /**
@@ -172,7 +210,7 @@ function useCombinedSubmissions() {
   const {
     applicationSubmissions: formioApplicationSubmissions,
     paymentRequestSubmissions: formioPaymentRequestSubmissions,
-  } = useFormioState();
+  } = useFormioSubmissionsState();
 
   // ensure form submissions data has been fetched from both the BAP and Formio
   if (
@@ -296,23 +334,15 @@ function useSortedSubmissions(submissions: { [rebateId: string]: Rebate }) {
       return mostRecientR2Modified - mostRecientR1Modified;
     })
     .sort((r1, _r2) => {
-      // The submission has been updated in Formio since the last time the BAP's
-      // submissions ETL process has last succesfully run
-      const r1ApplicationHasBeenModifiedSinceLastETL =
-        r1.application.bap?.modified // prettier-ignore
-          ? new Date(r1.application.formio.modified) >
-            new Date(r1.application.bap.modified)
-          : false;
+      const r1ApplicationNeedsEdits = submissionNeedsEdits({
+        formio: r1.application.formio,
+        bap: r1.application.bap,
+      });
 
-      const r1ApplicationNeedsEdits =
-        r1.application.bap?.status === "Edits Requested" &&
-        (r1.application.formio.state === "draft" ||
-          (r1.application.formio.state === "submitted" &&
-            !r1ApplicationHasBeenModifiedSinceLastETL));
+      const r1ApplicationSelected = r1.application.bap?.status === "Accepted";
 
       const r1ApplicationSelectedButNoPaymentRequest =
-        r1.application.bap?.status === "Accepted" &&
-        !Boolean(r1.paymentRequest.formio);
+        r1ApplicationSelected && !Boolean(r1.paymentRequest.formio);
 
       return r1ApplicationNeedsEdits || r1ApplicationSelectedButNoPaymentRequest
         ? -1
@@ -326,11 +356,33 @@ function PageMessage() {
   return <Message type={type} text={text} />;
 }
 
-function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
-  const navigate = useNavigate();
+function ButtonLink(props: { type: "edit" | "view"; to: LinkProps["to"] }) {
+  const icon = props.type === "edit" ? "edit" : "visibility";
+  const text = props.type === "edit" ? "Edit" : "View";
+  const linkClassNames =
+    `usa-button ` +
+    `${props.type === "view" ? "usa-button--base " : ""}` +
+    `font-sans-2xs margin-right-0 padding-x-105 padding-y-1`;
 
+  return (
+    <Link to={props.to} className={linkClassNames}>
+      <span className="display-flex flex-align-center">
+        <svg
+          className="usa-icon"
+          aria-hidden="true"
+          focusable="false"
+          role="img"
+        >
+          <use href={`${icons}#${icon}`} />
+        </svg>
+        <span className="margin-left-1">{text}</span>
+      </span>
+    </Link>
+  );
+}
+
+function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
   const { csbData } = useCsbState();
-  const pageMessageDispatch = usePageMessageDispatch();
 
   if (csbData.status !== "success") return null;
 
@@ -350,19 +402,10 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
   const date = new Date(application.formio.modified).toLocaleDateString();
   const time = new Date(application.formio.modified).toLocaleTimeString();
 
-  /**
-   * The submission has been updated in Formio since the last time the BAP's
-   * submissions ETL process has last succesfully run.
-   */
-  const applicationHasBeenModifiedSinceLastETL = application.bap?.modified
-    ? new Date(application.formio.modified) > new Date(application.bap.modified)
-    : false;
-
-  const applicationNeedsEdits =
-    application.bap?.status === "Edits Requested" &&
-    (application.formio.state === "draft" ||
-      (application.formio.state === "submitted" &&
-        !applicationHasBeenModifiedSinceLastETL));
+  const applicationNeedsEdits = submissionNeedsEdits({
+    formio: application.formio,
+    bap: application.bap,
+  });
 
   const applicationHasBeenWithdrawn = application.bap?.status === "Withdrawn";
 
@@ -374,10 +417,40 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
   const applicationSelectedButNoPaymentRequest =
     applicationSelected && !Boolean(paymentRequest.formio);
 
-  const statusClassNames =
+  const statusTableCellClassNames =
     application.formio.state === "submitted" || !applicationFormOpen
       ? "text-italic"
       : "";
+
+  const statusIcon = applicationNeedsEdits
+    ? `${icons}#priority_high` // !
+    : applicationHasBeenWithdrawn
+    ? `${icons}#close` // ✕
+    : applicationNotSelected
+    ? `${icons}#check` // TODO: eventually use 'cancel' icon if we show 'Not Selected'
+    : applicationSelected
+    ? `${icons}#check_circle` // check inside a circle
+    : application.formio.state === "draft"
+    ? `${icons}#more_horiz` // three horizontal dots
+    : application.formio.state === "submitted"
+    ? `${icons}#check` // check
+    : `${icons}#remove`; // — (fallback, not used)
+
+  const statusText = applicationNeedsEdits
+    ? "Edits Requested"
+    : applicationHasBeenWithdrawn
+    ? "Withdrawn"
+    : applicationNotSelected
+    ? "Submitted" // TODO: eventually show 'Not Selected'
+    : applicationSelected
+    ? "Selected"
+    : application.formio.state === "draft"
+    ? "Draft"
+    : application.formio.state === "submitted"
+    ? "Submitted"
+    : ""; // fallback, not used
+
+  const applicationFormUrl = `/rebate/${application.formio._id}`;
 
   /**
    * NOTE on the usage of `TextWithTooltip` below:
@@ -401,79 +474,17 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
           : defaultTableRowClassNames
       }
     >
-      <th scope="row" className={statusClassNames}>
+      <th scope="row" className={statusTableCellClassNames}>
         {applicationNeedsEdits ? (
-          <button
-            className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-            onClick={(ev) => {
-              pageMessageDispatch({ type: "RESET_MESSAGE" });
-
-              // change the submission's state to draft, then redirect to the
-              // form to allow user to edit
-              postData(
-                `${serverUrl}/api/formio-application-submission/${application.formio._id}`,
-                { data: application.formio.data, state: "draft" }
-              )
-                .then((res) => navigate(`/rebate/${res._id}`))
-                .catch((err) => {
-                  const text = `Error updating Application ${application.bap?.rebateId}. Please try again.`;
-                  pageMessageDispatch({
-                    type: "DISPLAY_MESSAGE",
-                    payload: { type: "error", text },
-                  });
-                });
-            }}
-          >
-            <span className="display-flex flex-align-center">
-              <svg
-                className="usa-icon"
-                aria-hidden="true"
-                focusable="false"
-                role="img"
-              >
-                <use href={`${icons}#edit`} />
-              </svg>
-              <span className="margin-left-1">Edit</span>
-            </span>
-          </button>
-        ) : !applicationFormOpen || application.formio.state === "submitted" ? (
-          <Link
-            to={`/rebate/${application.formio._id}`}
-            className="usa-button usa-button--base font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-          >
-            <span className="display-flex flex-align-center">
-              <svg
-                className="usa-icon"
-                aria-hidden="true"
-                focusable="false"
-                role="img"
-              >
-                <use href={`${icons}#visibility`} />
-              </svg>
-              <span className="margin-left-1">View</span>
-            </span>
-          </Link>
+          <ButtonLink type="edit" to={applicationFormUrl} />
+        ) : application.formio.state === "submitted" || !applicationFormOpen ? (
+          <ButtonLink type="view" to={applicationFormUrl} />
         ) : application.formio.state === "draft" ? (
-          <Link
-            to={`/rebate/${application.formio._id}`}
-            className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-          >
-            <span className="display-flex flex-align-center">
-              <svg
-                className="usa-icon"
-                aria-hidden="true"
-                focusable="false"
-                role="img"
-              >
-                <use href={`${icons}#edit`} />
-              </svg>
-              <span className="margin-left-1">Edit</span>
-            </span>
-          </Link>
+          <ButtonLink type="edit" to={applicationFormUrl} />
         ) : null}
       </th>
 
-      <td className={statusClassNames}>
+      <td className={statusTableCellClassNames}>
         {application.bap?.rebateId ? (
           <span title={`Application ID: ${application.formio._id}`}>
             {application.bap.rebateId}
@@ -486,7 +497,7 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
         )}
       </td>
 
-      <td className={statusClassNames}>
+      <td className={statusTableCellClassNames}>
         <span>Application</span>
         <br />
         <span className="display-flex flex-align-center font-sans-2xs">
@@ -496,45 +507,13 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
             focusable="false"
             role="img"
           >
-            <use
-              href={
-                applicationNeedsEdits
-                  ? `${icons}#priority_high` // icon: !
-                  : applicationHasBeenWithdrawn
-                  ? `${icons}#close` // icon: ✕
-                  : applicationNotSelected
-                  ? `${icons}#check` // TODO: eventually use 'cancel' icon
-                  : applicationSelected
-                  ? `${icons}#check_circle` // icon: check inside a circle
-                  : application.formio.state === "draft"
-                  ? `${icons}#more_horiz` // icon: three horizontal dots
-                  : application.formio.state === "submitted"
-                  ? `${icons}#check` // icon: check
-                  : `${icons}#remove` // icon: — (fallback, not used)
-              }
-            />
+            <use href={statusIcon} />
           </svg>
-          <span className="margin-left-05">
-            {
-              applicationNeedsEdits
-                ? "Edits Requested"
-                : applicationHasBeenWithdrawn
-                ? "Withdrawn"
-                : applicationNotSelected
-                ? "Submitted" // TODO: eventually show 'Not Selected'
-                : applicationSelected
-                ? "Selected"
-                : application.formio.state === "draft"
-                ? "Draft"
-                : application.formio.state === "submitted"
-                ? "Submitted"
-                : "" // fallback, not used
-            }
-          </span>
+          <span className="margin-left-05">{statusText}</span>
         </span>
       </td>
 
-      <td className={statusClassNames}>
+      <td className={statusTableCellClassNames}>
         <>
           {Boolean(applicantUEI) ? (
             applicantUEI
@@ -597,7 +576,7 @@ save the form for the EFT indicator to be displayed. */
         </>
       </td>
 
-      <td className={statusClassNames}>
+      <td className={statusTableCellClassNames}>
         <>
           {Boolean(applicantOrganizationName) ? (
             applicantOrganizationName
@@ -619,7 +598,7 @@ save the form for the EFT indicator to be displayed. */
         </>
       </td>
 
-      <td className={statusClassNames}>
+      <td className={statusTableCellClassNames}>
         {last_updated_by}
         <br />
         <span title={`${date} ${time}`}>{date}</span>
@@ -729,20 +708,15 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
   const date = new Date(paymentRequest.formio.modified).toLocaleDateString();
   const time = new Date(paymentRequest.formio.modified).toLocaleTimeString();
 
-  /**
-   * The submission has been updated in Formio since the last time the BAP's
-   * submissions ETL process has last succesfully run.
-   */
-  const paymentRequestHasBeenModifiedSinceLastETL = paymentRequest.bap?.modified
-    ? new Date(paymentRequest.formio.modified) >
-      new Date(paymentRequest.bap.modified)
-    : false;
+  const applicationNeedsEdits = submissionNeedsEdits({
+    formio: application.formio,
+    bap: application.bap,
+  });
 
-  const paymentRequestNeedsEdits =
-    paymentRequest.bap?.status === "Edits Requested" &&
-    (paymentRequest.formio.state === "draft" ||
-      (paymentRequest.formio.state === "submitted" &&
-        !paymentRequestHasBeenModifiedSinceLastETL));
+  const paymentRequestNeedsEdits = submissionNeedsEdits({
+    formio: paymentRequest.formio,
+    bap: paymentRequest.bap,
+  });
 
   const paymentRequestNeedsClarification =
     paymentRequest.bap?.status === "Needs Clarification";
@@ -756,10 +730,40 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
   const paymentRequestFundingApproved =
     paymentRequest.bap?.status === "Accepted";
 
-  const statusClassNames =
+  const statusTableCellClassNames =
     paymentRequest.formio.state === "submitted" || !paymentRequestFormOpen
       ? "text-italic"
       : "";
+
+  const statusIcon = paymentRequestNeedsEdits
+    ? `${icons}#priority_high` // !
+    : paymentRequestHasBeenWithdrawn
+    ? `${icons}#close` // ✕
+    : paymentRequestFundingNotApproved
+    ? `${icons}#cancel` // ✕ inside a circle
+    : paymentRequestFundingApproved
+    ? `${icons}#check_circle` // check inside a circle
+    : paymentRequest.formio.state === "draft"
+    ? `${icons}#more_horiz` // three horizontal dots
+    : paymentRequest.formio.state === "submitted"
+    ? `${icons}#check` // check
+    : `${icons}#remove`; // — (fallback, not used)
+
+  const statusText = paymentRequestNeedsEdits
+    ? "Edits Requested"
+    : paymentRequestHasBeenWithdrawn
+    ? "Withdrawn"
+    : paymentRequestFundingNotApproved
+    ? "Funding Not Approved"
+    : paymentRequestFundingApproved
+    ? "Funding Approved"
+    : paymentRequest.formio.state === "draft"
+    ? "Draft"
+    : paymentRequest.formio.state === "submitted"
+    ? "Submitted"
+    : ""; // fallback, not used
+
+  const paymentRequestFormUrl = `/payment-request/${hidden_bap_rebate_id}`;
 
   return (
     <tr
@@ -769,84 +773,22 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
           : defaultTableRowClassNames
       }
     >
-      <th scope="row" className={statusClassNames}>
-        {paymentRequestNeedsEdits ? (
-          <button
-            className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-            onClick={(ev) => {
-              if (!paymentRequest.formio) return;
-
-              pageMessageDispatch({ type: "RESET_MESSAGE" });
-
-              // change the submission's state to draft, then redirect to the
-              // form to allow user to edit
-              postData(
-                `${serverUrl}/api/formio-payment-request-submission/${hidden_bap_rebate_id}`,
-                { data: paymentRequest.formio.data, state: "draft" }
-              )
-                .then((res) => navigate(`/rebate/${res._id}`))
-                .catch((err) => {
-                  const text = `Error updating Payment Request ${paymentRequest.bap?.rebateId}. Please try again.`;
-                  pageMessageDispatch({
-                    type: "DISPLAY_MESSAGE",
-                    payload: { type: "error", text },
-                  });
-                });
-            }}
-          >
-            <span className="display-flex flex-align-center">
-              <svg
-                className="usa-icon"
-                aria-hidden="true"
-                focusable="false"
-                role="img"
-              >
-                <use href={`${icons}#edit`} />
-              </svg>
-              <span className="margin-left-1">Edit</span>
-            </span>
-          </button>
-        ) : !paymentRequestFormOpen ||
-          paymentRequest.formio.state === "submitted" ? (
-          <Link
-            to={`/payment-request/${hidden_bap_rebate_id}`}
-            className="usa-button usa-button--base font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-          >
-            <span className="display-flex flex-align-center">
-              <svg
-                className="usa-icon"
-                aria-hidden="true"
-                focusable="false"
-                role="img"
-              >
-                <use href={`${icons}#visibility`} />
-              </svg>
-              <span className="margin-left-1">View</span>
-            </span>
-          </Link>
+      <th scope="row" className={statusTableCellClassNames}>
+        {applicationNeedsEdits ? (
+          <ButtonLink type="view" to={paymentRequestFormUrl} />
+        ) : paymentRequestNeedsEdits ? (
+          <ButtonLink type="edit" to={paymentRequestFormUrl} />
+        ) : paymentRequest.formio.state === "submitted" ||
+          !paymentRequestFormOpen ? (
+          <ButtonLink type="view" to={paymentRequestFormUrl} />
         ) : paymentRequest.formio.state === "draft" ? (
-          <Link
-            to={`/payment-request/${hidden_bap_rebate_id}`}
-            className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-          >
-            <span className="display-flex flex-align-center">
-              <svg
-                className="usa-icon"
-                aria-hidden="true"
-                focusable="false"
-                role="img"
-              >
-                <use href={`${icons}#edit`} />
-              </svg>
-              <span className="margin-left-1">Edit</span>
-            </span>
-          </Link>
+          <ButtonLink type="edit" to={paymentRequestFormUrl} />
         ) : null}
       </th>
 
-      <td className={statusClassNames}>&nbsp;</td>
+      <td className={statusTableCellClassNames}>&nbsp;</td>
 
-      <td className={statusClassNames}>
+      <td className={statusTableCellClassNames}>
         <span>Payment Request</span>
         <br />
         <span className="display-flex flex-align-center font-sans-2xs">
@@ -863,51 +805,19 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
                 focusable="false"
                 role="img"
               >
-                <use
-                  href={
-                    paymentRequestNeedsEdits
-                      ? `${icons}#priority_high` // icon: !
-                      : paymentRequestHasBeenWithdrawn
-                      ? `${icons}#close` // icon: ✕
-                      : paymentRequestFundingNotApproved
-                      ? `${icons}#cancel` // icon: ✕ inside a circle
-                      : paymentRequestFundingApproved
-                      ? `${icons}#check_circle` // icon: check inside a circle
-                      : paymentRequest.formio.state === "draft"
-                      ? `${icons}#more_horiz` // icon: three horizontal dots
-                      : paymentRequest.formio.state === "submitted"
-                      ? `${icons}#check` // icon: check
-                      : `${icons}#remove` // icon: — (fallback, not used)
-                  }
-                />
+                <use href={statusIcon} />
               </svg>
-              <span className="margin-left-05">
-                {
-                  paymentRequestNeedsEdits
-                    ? "Edits Requested"
-                    : paymentRequestHasBeenWithdrawn
-                    ? "Withdrawn"
-                    : paymentRequestFundingNotApproved
-                    ? "Funding Not Approved"
-                    : paymentRequestFundingApproved
-                    ? "Funding Approved"
-                    : paymentRequest.formio.state === "draft"
-                    ? "Draft"
-                    : paymentRequest.formio.state === "submitted"
-                    ? "Submitted"
-                    : "" // fallback, not used
-                }
-              </span>
+              <span className="margin-left-05">{statusText}</span>
             </>
           )}
         </span>
       </td>
 
-      <td className={statusClassNames}>&nbsp;</td>
+      <td className={statusTableCellClassNames}>&nbsp;</td>
 
-      <td className={statusClassNames}>&nbsp;</td>
+      <td className={statusTableCellClassNames}>&nbsp;</td>
 
-      <td className={statusClassNames}>
+      <td className={statusTableCellClassNames}>
         {hidden_current_user_email}
         <br />
         <span title={`${date} ${time}`}>{date}</span>
@@ -927,7 +837,7 @@ export function AllRebates() {
   const {
     applicationSubmissions: formioApplicationSubmissions,
     paymentRequestSubmissions: formioPaymentRequestSubmissions,
-  } = useFormioState();
+  } = useFormioSubmissionsState();
   const pageMessageDispatch = usePageMessageDispatch();
 
   // reset page message state since it's used across pages

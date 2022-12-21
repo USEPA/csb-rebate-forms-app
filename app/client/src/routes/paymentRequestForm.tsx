@@ -6,7 +6,10 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, getData, postData } from "../config";
 import { getUserInfo } from "../utilities";
-import { useFetchedBapFormSubmissions } from "routes/allRebates";
+import {
+  submissionNeedsEdits,
+  useFetchedBapFormSubmissions,
+} from "routes/allRebates";
 import { Loading } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
@@ -15,15 +18,15 @@ import { useUserState } from "contexts/user";
 import { useCsbState } from "contexts/csb";
 import { useBapState } from "contexts/bap";
 import {
+  FormioSubmissionData,
+  FormioFetchedResponse,
+  useFormioFormState,
+  useFormioFormDispatch,
+} from "contexts/formioForm";
+import {
   usePageMessageState,
   usePageMessageDispatch,
 } from "contexts/pageMessage";
-import {
-  FormioSubmissionData,
-  FormioFetchedResponse,
-  usePageFormioState,
-  usePageFormioDispatch,
-} from "contexts/pageFormio";
 
 function PageMessage() {
   const { displayed, type, text } = usePageMessageState();
@@ -55,19 +58,19 @@ function PaymentRequestFormContent({ email }: { email: string }) {
   const { content } = useContentState();
   const { csbData } = useCsbState();
   const { samEntities, formSubmissions: bapFormSubmissions } = useBapState();
-  const { formio } = usePageFormioState();
+  const { formio } = useFormioFormState();
+  const formioFormDispatch = useFormioFormDispatch();
   const pageMessageDispatch = usePageMessageDispatch();
-  const pageFormioDispatch = usePageFormioDispatch();
+
+  // reset formio form state since it's used across pages
+  useEffect(() => {
+    formioFormDispatch({ type: "RESET_FORMIO_DATA" });
+  }, [formioFormDispatch]);
 
   // reset page message state since it's used across pages
   useEffect(() => {
     pageMessageDispatch({ type: "RESET_MESSAGE" });
   }, [pageMessageDispatch]);
-
-  // reset page formio state since it's used across pages
-  useEffect(() => {
-    pageFormioDispatch({ type: "RESET_FORMIO_DATA" });
-  }, [pageFormioDispatch]);
 
   useFetchedBapFormSubmissions();
 
@@ -92,7 +95,7 @@ function PaymentRequestFormContent({ email }: { email: string }) {
     useState<FormioSubmissionData>({});
 
   useEffect(() => {
-    pageFormioDispatch({ type: "FETCH_FORMIO_DATA_REQUEST" });
+    formioFormDispatch({ type: "FETCH_FORMIO_DATA_REQUEST" });
 
     getData(`${serverUrl}/api/formio-payment-request-submission/${rebateId}`)
       .then((res: FormioFetchedResponse) => {
@@ -113,15 +116,15 @@ function PaymentRequestFormContent({ email }: { email: string }) {
           return data;
         });
 
-        pageFormioDispatch({
+        formioFormDispatch({
           type: "FETCH_FORMIO_DATA_SUCCESS",
           payload: { data: res },
         });
       })
       .catch((err) => {
-        pageFormioDispatch({ type: "FETCH_FORMIO_DATA_FAILURE" });
+        formioFormDispatch({ type: "FETCH_FORMIO_DATA_FAILURE" });
       });
-  }, [rebateId, pageFormioDispatch]);
+  }, [rebateId, formioFormDispatch]);
 
   if (formio.status === "idle") {
     return null;
@@ -164,14 +167,21 @@ function PaymentRequestFormContent({ email }: { email: string }) {
   });
 
   const bap = {
+    modified: match?.CSB_Modified_Full_String__c || null,
+    comboKey: match?.UEI_EFTI_Combo_Key__c || null,
+    rebateId: match?.Parent_Rebate_ID__c || null,
+    reviewItemId: match?.CSB_Review_Item_ID__c || null,
     status: match?.Parent_CSB_Rebate__r?.CSB_Payment_Request_Status__c || null,
   };
 
-  const paymentRequestNeedsEdits = bap.status === "Edits Requested";
+  const paymentRequestNeedsEdits = submissionNeedsEdits({
+    formio: submission,
+    bap,
+  });
 
   const formIsReadOnly =
-    (!paymentRequestFormOpen && !paymentRequestNeedsEdits) ||
-    submission.state === "submitted";
+    (submission.state === "submitted" || !paymentRequestFormOpen) &&
+    !paymentRequestNeedsEdits;
 
   const entityComboKey = storedSubmissionData.bap_hidden_entity_combo_key;
   const entity = samEntities.data.entities.find((entity) => {
