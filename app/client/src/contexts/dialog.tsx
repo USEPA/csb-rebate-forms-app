@@ -16,8 +16,9 @@ type State = {
   heading: string;
   description: string;
   confirmText: string;
-  cancelText?: string;
+  dismissText?: string;
   confirmedAction: () => void;
+  dismissedAction?: () => void;
 };
 
 export type Action =
@@ -28,8 +29,9 @@ export type Action =
         heading: string;
         description: string;
         confirmText: string;
-        cancelText?: string;
+        dismissText?: string;
         confirmedAction: () => void;
+        dismissedAction?: () => void;
       };
     }
   | {
@@ -50,9 +52,10 @@ function reducer(state: State, action: Action): State {
         heading,
         description,
         confirmText,
-        cancelText,
+        dismissText,
         dismissable,
         confirmedAction,
+        dismissedAction,
       } = action.payload;
 
       return {
@@ -61,8 +64,9 @@ function reducer(state: State, action: Action): State {
         heading,
         description,
         confirmText,
-        cancelText,
+        dismissText,
         confirmedAction,
+        dismissedAction,
       };
     }
 
@@ -81,8 +85,9 @@ function reducer(state: State, action: Action): State {
         heading: "",
         description: "",
         confirmText: "",
-        cancelText: "",
+        dismissText: "",
         confirmedAction: () => {},
+        dismissedAction: () => {},
       };
     }
 
@@ -100,8 +105,9 @@ export function DialogProvider({ children }: Props) {
     heading: "",
     description: "",
     confirmText: "",
-    cancelText: "",
+    dismissText: "",
     confirmedAction: () => {},
+    dismissedAction: () => {},
   };
 
   const [state, dispatch] = useReducer(reducer, initialState);

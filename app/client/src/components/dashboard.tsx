@@ -139,7 +139,7 @@ export function Dashboard() {
         description:
           "If you haven’t saved the current form, any changes you’ve made will be lost.",
         confirmText: "Yes",
-        cancelText: "Cancel",
+        dismissText: "Cancel",
         confirmedAction: () => navigate(destination),
       },
     };

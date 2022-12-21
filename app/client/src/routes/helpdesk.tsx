@@ -338,7 +338,7 @@ export function Helpdesk() {
                             description:
                               "Once the submission is back in a draft state, all users with access to this submission will be able to further edit it.",
                             confirmText: "Yes",
-                            cancelText: "Cancel",
+                            dismissText: "Cancel",
                             confirmedAction: () => {
                               setFormDisplayed(false);
                               formioFormDispatch({
