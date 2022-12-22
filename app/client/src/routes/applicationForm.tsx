@@ -277,30 +277,10 @@ function ApplicationFormContent({ email }: { email: string }) {
               }, 5000);
             })
             .catch((err) => {
-              pageMessageDispatch({ type: "RESET_MESSAGE" });
-
-              dialogDispatch({
-                type: "DISPLAY_DIALOG",
-                payload: {
-                  dismissable: true,
-                  heading: "Error Deleting Submission",
-                  description: (
-                    <>
-                      <p>
-                        Error deleting Payment Request form submission{" "}
-                        <strong>{rebate.rebateId}</strong>.
-                      </p>
-                      <p>
-                        Please please select the button below or reload the page
-                        to attempt the deletion again, or contact the helpdesk
-                        if the problem persists.
-                      </p>
-                    </>
-                  ),
-                  confirmText: "Reload Page",
-                  confirmedAction: () => window.location.reload(),
-                  dismissedAction: () => window.location.reload(),
-                },
+              const text = `Error deleting Payment Request form submission ${rebate.rebateId}. Please reload the page to attempt the deletion again, or contact the helpdesk if the problem persists.`;
+              pageMessageDispatch({
+                type: "DISPLAY_MESSAGE",
+                payload: { type: "error", text },
               });
             });
         },
