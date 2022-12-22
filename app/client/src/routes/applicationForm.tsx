@@ -255,6 +255,20 @@ function ApplicationFormContent({ email }: { email: string }) {
         ),
         confirmText: "Delete Payment Request Form Submission",
         confirmedAction: () => {
+          const paymentRequest = rebate.paymentRequest.formio;
+
+          if (!paymentRequest) {
+            const text = `Please notify the helpdesk that a problem exists preventing the deletion of Payment Request form submission ${rebate.rebateId}.`;
+            pageMessageDispatch({
+              type: "DISPLAY_MESSAGE",
+              payload: { type: "error", text },
+            });
+
+            // NOTE: logging rebate for helpdesk debugging purposes
+            console.log(rebate);
+            return;
+          }
+
           const text = `Deleting Payment Request form submission ${rebate.rebateId}...`;
           pageMessageDispatch({
             type: "DISPLAY_MESSAGE",
@@ -263,7 +277,11 @@ function ApplicationFormContent({ email }: { email: string }) {
 
           postData(
             `${serverUrl}/api/delete-formio-payment-request-submission`,
-            { submission: rebate.paymentRequest.formio }
+            {
+              mongoId: paymentRequest._id,
+              rebateId: paymentRequest.data.hidden_bap_rebate_id,
+              comboKey: paymentRequest.data.bap_hidden_entity_combo_key,
+            }
           )
             .then((res) => {
               const text = `Payment Request form submission ${rebate.rebateId} successfully deleted. This page will reload in 5 seconds.`;
