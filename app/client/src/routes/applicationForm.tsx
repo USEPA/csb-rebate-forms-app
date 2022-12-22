@@ -1,29 +1,36 @@
 import { useMemo, useEffect, useState, useRef } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Formio, Form } from "@formio/react";
 import { cloneDeep, isEqual } from "lodash";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl, getData, postData } from "../config";
+import { serverUrl, messages, getData, postData } from "../config";
 import { getUserInfo } from "../utilities";
-import { useFetchedBapApplicationSubmissions } from "routes/allRebates";
+import {
+  submissionNeedsEdits,
+  useFetchedFormSubmissions,
+  useCombinedSubmissions,
+  useSortedRebates,
+} from "routes/allRebates";
 import { Loading } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { useContentState } from "contexts/content";
+import { useDialogDispatch } from "contexts/dialog";
 import { useUserState } from "contexts/user";
 import { useCsbState } from "contexts/csb";
 import { useBapState } from "contexts/bap";
+import { useFormioSubmissionsState } from "contexts/formioSubmissions";
+import {
+  FormioSubmissionData,
+  FormioFetchedResponse,
+  useFormioFormState,
+  useFormioFormDispatch,
+} from "contexts/formioForm";
 import {
   usePageMessageState,
   usePageMessageDispatch,
 } from "contexts/pageMessage";
-import {
-  FormioSubmissionData,
-  FormioFetchedResponse,
-  usePageFormioState,
-  usePageFormioDispatch,
-} from "contexts/pageFormio";
 
 function PageMessage() {
   const { displayed, type, text } = usePageMessageState();
@@ -51,26 +58,45 @@ export function ApplicationForm() {
 function ApplicationFormContent({ email }: { email: string }) {
   const navigate = useNavigate();
   const { mongoId } = useParams<"mongoId">(); // MongoDB ObjectId string
+  const [searchParams] = useSearchParams();
 
   const { content } = useContentState();
   const { csbData } = useCsbState();
-  const { samEntities, applicationSubmissions: bapApplicationSubmissions } =
-    useBapState();
-  const { formio } = usePageFormioState();
+  const { samEntities, formSubmissions: bapFormSubmissions } = useBapState();
+  const {
+    applicationSubmissions: formioApplicationSubmissions,
+    paymentRequestSubmissions: formioPaymentRequestSubmissions,
+  } = useFormioSubmissionsState();
+  const { formio } = useFormioFormState();
+  const dialogDispatch = useDialogDispatch();
+  const formioFormDispatch = useFormioFormDispatch();
   const pageMessageDispatch = usePageMessageDispatch();
-  const pageFormioDispatch = usePageFormioDispatch();
+
+  // reset formio form state since it's used across pages
+  useEffect(() => {
+    formioFormDispatch({ type: "RESET_FORMIO_DATA" });
+  }, [formioFormDispatch]);
 
   // reset page message state since it's used across pages
   useEffect(() => {
     pageMessageDispatch({ type: "RESET_MESSAGE" });
   }, [pageMessageDispatch]);
 
-  // reset page formio state since it's used across pages
-  useEffect(() => {
-    pageFormioDispatch({ type: "RESET_FORMIO_DATA" });
-  }, [pageFormioDispatch]);
+  useFetchedFormSubmissions();
 
-  useFetchedBapApplicationSubmissions();
+  const combinedRebates = useCombinedSubmissions();
+  const sortedRebates = useSortedRebates(combinedRebates);
+
+  // log combined 'sortedRebates' array if 'debug' search parameter exists
+  useEffect(() => {
+    if (searchParams.has("debug") && sortedRebates.length > 0) {
+      console.log(sortedRebates);
+    }
+  }, [searchParams, sortedRebates]);
+
+  // create ref to store when form is being submitted, so it can be referenced
+  // in the Form component's `onSubmit` event prop, to prevent double submits
+  const formIsBeingSubmitted = useRef(false);
 
   // set when form submission data is initially fetched, and then re-set each
   // time a successful update of the submission data is posted to forms.gov
@@ -89,7 +115,7 @@ function ApplicationFormContent({ email }: { email: string }) {
     useState<FormioSubmissionData>({});
 
   useEffect(() => {
-    pageFormioDispatch({ type: "FETCH_FORMIO_DATA_REQUEST" });
+    formioFormDispatch({ type: "FETCH_FORMIO_DATA_REQUEST" });
 
     getData(`${serverUrl}/api/formio-application-submission/${mongoId}`)
       .then((res: FormioFetchedResponse) => {
@@ -113,15 +139,15 @@ function ApplicationFormContent({ email }: { email: string }) {
           return data;
         });
 
-        pageFormioDispatch({
+        formioFormDispatch({
           type: "FETCH_FORMIO_DATA_SUCCESS",
           payload: { data: res },
         });
       })
       .catch((err) => {
-        pageFormioDispatch({ type: "FETCH_FORMIO_DATA_FAILURE" });
+        formioFormDispatch({ type: "FETCH_FORMIO_DATA_FAILURE" });
       });
-  }, [mongoId, pageFormioDispatch]);
+  }, [mongoId, formioFormDispatch]);
 
   if (formio.status === "idle") {
     return null;
@@ -150,28 +176,134 @@ function ApplicationFormContent({ email }: { email: string }) {
   if (
     email === "" ||
     csbData.status !== "success" ||
-    samEntities.status !== "success" ||
-    bapApplicationSubmissions.status !== "success"
+    samEntities.status !== "success"
   ) {
     return <Loading />;
   }
 
-  const { enrollmentClosed } = csbData.data;
+  if (
+    bapFormSubmissions.status === "idle" ||
+    bapFormSubmissions.status === "pending" ||
+    formioApplicationSubmissions.status === "idle" ||
+    formioApplicationSubmissions.status === "pending" ||
+    formioPaymentRequestSubmissions.status === "idle" ||
+    formioPaymentRequestSubmissions.status === "pending"
+  ) {
+    return <Loading />;
+  }
 
-  const match = bapApplicationSubmissions.data.find((bapSubmission) => {
-    return bapSubmission.CSB_Form_ID__c === mongoId;
+  if (
+    bapFormSubmissions.status === "failure" ||
+    formioApplicationSubmissions.status === "failure" ||
+    formioPaymentRequestSubmissions.status === "failure"
+  ) {
+    return <Message type="error" text={messages.formSubmissionsError} />;
+  }
+
+  const applicationFormOpen = csbData.data.submissionPeriodOpen.application;
+
+  const rebate = sortedRebates.find((item) => {
+    return item.application.formio._id === mongoId;
   });
 
-  const bap = {
-    rebateId: match?.Parent_Rebate_ID__c || null,
-    rebateStatus: match?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c || null,
-  };
+  const applicationNeedsEdits = !rebate
+    ? false
+    : submissionNeedsEdits({
+        formio: rebate.application.formio,
+        bap: rebate.application.bap,
+      });
 
-  const submissionNeedsEdits = bap.rebateStatus === "Edits Requested";
+  const applicationNeedsEditsAndPaymentRequestExists =
+    applicationNeedsEdits && rebate?.paymentRequest.formio;
+
+  // NOTE: If the Application form submission needs edits and there's a
+  // corresponding Payment Request form submission, display a confirmation
+  // dialog prompting the user to delete the Payment Request form submission,
+  // as it's data will no longer valid when the Application form submission's
+  // data is changed.
+  if (applicationNeedsEditsAndPaymentRequestExists) {
+    dialogDispatch({
+      type: "DISPLAY_DIALOG",
+      payload: {
+        dismissable: true,
+        heading: "Submission Edits Requested",
+        description: (
+          <>
+            <p>
+              This Application form submission requires edits, but before you
+              can make edits, the associated Payment Request form submission
+              needs to be deleted.
+            </p>
+            <p>
+              If you’d like to view the Payment Request form submission instead,
+              please close this dialog box, and you will be re-directed to the
+              associated Payment Request form submission page.
+            </p>
+            <p>
+              If you’d like to proceed with deleting the associated Payment
+              Request Form submission, please select the{" "}
+              <strong>Delete Payment Request Form Submission</strong> button
+              below, and the Payment Request Form submission will be deleted.
+            </p>
+            <p>
+              <em>
+                Please note: once deleted, the submission will be removed from
+                your dashboard and cannot be recovered.
+              </em>
+            </p>
+          </>
+        ),
+        confirmText: "Delete Payment Request Form Submission",
+        confirmedAction: () => {
+          const paymentRequest = rebate.paymentRequest.formio;
+
+          if (!paymentRequest) {
+            const text = `Please notify the helpdesk that a problem exists preventing the deletion of Payment Request form submission ${rebate.rebateId}.`;
+            pageMessageDispatch({
+              type: "DISPLAY_MESSAGE",
+              payload: { type: "error", text },
+            });
+
+            // NOTE: logging rebate for helpdesk debugging purposes
+            console.log(rebate);
+            return;
+          }
+
+          const text = `Deleting Payment Request form submission ${rebate.rebateId}...`;
+          pageMessageDispatch({
+            type: "DISPLAY_MESSAGE",
+            payload: { type: "info", text },
+          });
+
+          postData(
+            `${serverUrl}/api/delete-formio-payment-request-submission`,
+            {
+              mongoId: paymentRequest._id,
+              rebateId: paymentRequest.data.hidden_bap_rebate_id,
+              comboKey: paymentRequest.data.bap_hidden_entity_combo_key,
+            }
+          )
+            .then((res) => {
+              window.location.reload();
+            })
+            .catch((err) => {
+              const text = `Error deleting Payment Request form submission ${rebate.rebateId}. Please reload the page to attempt the deletion again, or contact the helpdesk if the problem persists.`;
+              pageMessageDispatch({
+                type: "DISPLAY_MESSAGE",
+                payload: { type: "error", text },
+              });
+            });
+        },
+        dismissedAction: () => navigate(`/payment-request/${rebate.rebateId}`),
+      },
+    });
+
+    return <PageMessage />;
+  }
 
   const formIsReadOnly =
-    (enrollmentClosed && !submissionNeedsEdits) ||
-    submission.state === "submitted";
+    (submission.state === "submitted" || !applicationFormOpen) &&
+    !applicationNeedsEdits;
 
   const entityComboKey = storedSubmissionData.bap_hidden_entity_combo_key;
   const entity = samEntities.data.entities.find((entity) => {
@@ -215,7 +347,7 @@ function ApplicationFormContent({ email }: { email: string }) {
           </div>
         </li>
 
-        {bap.rebateId && (
+        {rebate?.application.bap?.rebateId && (
           <li className="usa-icon-list__item">
             <div className="usa-icon-list__icon text-primary">
               <svg className="usa-icon" aria-hidden="true" role="img">
@@ -223,7 +355,7 @@ function ApplicationFormContent({ email }: { email: string }) {
               </svg>
             </div>
             <div className="usa-icon-list__content">
-              <strong>Rebate ID:</strong> {bap.rebateId}
+              <strong>Rebate ID:</strong> {rebate.application.bap.rebateId}
             </div>
           </li>
         )}
@@ -253,6 +385,12 @@ function ApplicationFormContent({ email }: { email: string }) {
             metadata: unknown;
           }) => {
             if (formIsReadOnly) return;
+
+            // account for when form is being submitted to prevent double submits
+            if (formIsBeingSubmitted.current) return;
+            if (onSubmitSubmission.state === "submitted") {
+              formIsBeingSubmitted.current = true;
+            }
 
             const data = { ...onSubmitSubmission.data };
 
@@ -293,19 +431,8 @@ function ApplicationFormContent({ email }: { email: string }) {
                 setPendingSubmissionData({});
 
                 if (onSubmitSubmission.state === "submitted") {
-                  pageMessageDispatch({
-                    type: "DISPLAY_MESSAGE",
-                    payload: {
-                      type: "success",
-                      text: "Form successfully submitted.",
-                    },
-                  });
-
-                  setTimeout(() => {
-                    pageMessageDispatch({ type: "RESET_MESSAGE" });
-                    navigate("/");
-                  }, 5000);
-                  return;
+                  const submissionSuccessMessage = `Application Form ${mongoId} successfully submitted.`;
+                  navigate("/", { state: { submissionSuccessMessage } });
                 }
 
                 if (onSubmitSubmission.state === "draft") {
@@ -323,6 +450,8 @@ function ApplicationFormContent({ email }: { email: string }) {
                 }
               })
               .catch((err) => {
+                formIsBeingSubmitted.current = false;
+
                 pageMessageDispatch({
                   type: "DISPLAY_MESSAGE",
                   payload: {

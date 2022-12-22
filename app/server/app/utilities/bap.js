@@ -37,13 +37,17 @@ const log = require("../utilities/logger");
  */
 
 /**
- * @typedef {Object} BapApplicationSubmission
+ * @typedef {Object} BapFormSubmission
+ * @property {string} UEI_EFTI_Combo_Key__c
  * @property {string} CSB_Form_ID__c
  * @property {string} CSB_Modified_Full_String__c
- * @property {string} UEI_EFTI_Combo_Key__c
+ * @property {string} CSB_Review_Item_ID__c
  * @property {string} Parent_Rebate_ID__c
+ * @property {string} Record_Type_Name__c
  * @property {Object} Parent_CSB_Rebate__r
- * @property {string} Parent_CSB_Rebate__r.CSB_Rebate_Status__c
+ * @property {string} Parent_CSB_Rebate__r.CSB_Funding_Request_Status__c
+ * @property {string} Parent_CSB_Rebate__r.CSB_Payment_Request_Status__c
+ * @property {string} Parent_CSB_Rebate__r.CSB_Closeout_Request_Status__c
  * @property {Object} attributes
  * @property {string} attributes.type
  * @property {string} attributes.url
@@ -178,17 +182,46 @@ async function queryForSamEntities(req, email) {
 }
 
 /**
- * Uses cached JSforce connection to query the BAP for application form submissions statuses, and related metadata.
+ * Uses cached JSforce connection to query the BAP for form submissions statuses and related metadata.
  * @param {express.Request} req
  * @param {string[]} comboKeys
- * @returns {Promise<BapApplicationSubmission[]>} collection of fields associated with each application form submission
+ * @returns {Promise<BapFormSubmission[]>} collection of fields associated with each form submission
  */
-async function queryForApplicationSubmissionsStatuses(req, comboKeys) {
-  const message = `Querying BAP for Application form submissions statuses associated with combokeys: ${comboKeys}.`;
+async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
+  const message = `Querying BAP for form submissions statuses associated with combokeys: ${comboKeys}.`;
   log({ level: "info", message });
 
   /** @type {jsforce.Connection} */
   const bapConnection = req.app.locals.bapConnection;
+
+  // `SELECT
+  //   Parent_Rebate_ID__c,
+  // FROM
+  //   ${BAP_FORMS_TABLE}
+  // WHERE
+  //   (${comboKeys
+  //     .map((key) => `UEI_EFTI_Combo_Key__c = '${key}'`)
+  //     .join(" OR ")}) AND
+  //   Latest_Version__c = TRUE`
+
+  const parentRebateIdsQuery = await bapConnection
+    .sobject(BAP_FORMS_TABLE)
+    .find(
+      {
+        UEI_EFTI_Combo_Key__c: { $in: comboKeys },
+        Latest_Version__c: true,
+      },
+      {
+        // "*": 1,
+        Parent_Rebate_ID__c: 1, // CSB Rebate ID (6 digits)
+      }
+    )
+    .sort({ CreatedDate: -1 })
+    .execute(async (err, records) => ((await err) ? err : records));
+
+  const parentRebateIds = parentRebateIdsQuery.map((item) => {
+    return item.Parent_Rebate_ID__c;
+  });
 
   // `SELECT
   //   UEI_EFTI_Combo_Key__c,
@@ -196,32 +229,44 @@ async function queryForApplicationSubmissionsStatuses(req, comboKeys) {
   //   CSB_Modified_Full_String__c,
   //   CSB_Review_Item_ID__c,
   //   Parent_Rebate_ID__c,
-  //   Parent_CSB_Rebate__r.CSB_Rebate_Status__c
+  //   Record_Type_Name__c,
+  //   Parent_CSB_Rebate__r.CSB_Funding_Request_Status__c,
+  //   Parent_CSB_Rebate__r.CSB_Payment_Request_Status__c,
+  //   Parent_CSB_Rebate__r.CSB_Closeout_Request_Status__c
   // FROM
   //   ${BAP_FORMS_TABLE}
   // WHERE
-  //   ${comboKeys
-  //     .map((key) => `UEI_EFTI_Combo_Key__c = '${key}'`)
-  //     .join(" OR ")}
+  //   (${parentRebateIds
+  //     .map((id) => `Parent_CSB_Rebate__r.CSB_Rebate_ID__c = '${id}'`)
+  //     .join(" OR ")}) AND
+  //   Latest_Version__c = TRUE
   // ORDER BY
   //   CreatedDate DESC`
 
-  return await bapConnection
+  const submissions = await bapConnection
     .sobject(BAP_FORMS_TABLE)
     .find(
-      { UEI_EFTI_Combo_Key__c: { $in: comboKeys } },
+      {
+        "Parent_CSB_Rebate__r.CSB_Rebate_ID__c": { $in: parentRebateIds },
+        Latest_Version__c: true,
+      },
       {
         // "*": 1,
         UEI_EFTI_Combo_Key__c: 1,
         CSB_Form_ID__c: 1, // MongoDB ObjectId string
         CSB_Modified_Full_String__c: 1, // ISO 8601 date string
-        CSB_Review_Item_ID__c: 1, // CSB Rebate ID w/ form/version ID (9 digits)
+        CSB_Review_Item_ID__c: 1, // CSB Rebate ID with form/version ID (9 digits)
         Parent_Rebate_ID__c: 1, // CSB Rebate ID (6 digits)
-        "Parent_CSB_Rebate__r.CSB_Rebate_Status__c": 1,
+        Record_Type_Name__c: 1, // 'CSB Funding Request' | 'CSB Payment Request' | 'CSB Closeout Request'
+        "Parent_CSB_Rebate__r.CSB_Funding_Request_Status__c": 1,
+        "Parent_CSB_Rebate__r.CSB_Payment_Request_Status__c": 1,
+        "Parent_CSB_Rebate__r.CSB_Closeout_Request_Status__c": 1,
       }
     )
     .sort({ CreatedDate: -1 })
     .execute(async (err, records) => ((await err) ? err : records));
+
+  return submissions;
 }
 
 /**
@@ -230,7 +275,7 @@ async function queryForApplicationSubmissionsStatuses(req, comboKeys) {
  * @param {string} reviewItemId CSB Rebate ID with the form/version ID (9 digits)
  * @returns {Promise<Object>} application form submission fields
  */
-async function queryForApplicationSubmission(req, reviewItemId) {
+async function queryForBapApplicationSubmission(req, reviewItemId) {
   const message = `Querying BAP for Application form submission associated with CSB Review Item ID: ${reviewItemId}.`;
   log({ level: "info", message });
 
@@ -446,13 +491,13 @@ function getBapComboKeys(req, email) {
 }
 
 /**
- * Fetches application form submissions statuses associated with a provided set of combo keys.
+ * Fetches form submissions statuses associated with a provided set of combo keys.
  * @param {express.Request} req
  * @param {string[]} comboKeys
  */
-function getApplicationSubmissionsStatuses(req, comboKeys) {
+function getBapFormSubmissionsStatuses(req, comboKeys) {
   return verifyBapConnection(req, {
-    name: queryForApplicationSubmissionsStatuses,
+    name: queryForBapFormSubmissionsStatuses,
     args: [req, comboKeys],
   });
 }
@@ -462,9 +507,9 @@ function getApplicationSubmissionsStatuses(req, comboKeys) {
  * @param {express.Request} req
  * @param {string} reviewItemId
  */
-function getApplicationSubmission(req, reviewItemId) {
+function getBapApplicationSubmission(req, reviewItemId) {
   return verifyBapConnection(req, {
-    name: queryForApplicationSubmission,
+    name: queryForBapApplicationSubmission,
     args: [req, reviewItemId],
   });
 }
@@ -472,6 +517,6 @@ function getApplicationSubmission(req, reviewItemId) {
 module.exports = {
   getSamEntities,
   getBapComboKeys,
-  getApplicationSubmissionsStatuses,
-  getApplicationSubmission,
+  getBapFormSubmissionsStatuses,
+  getBapApplicationSubmission,
 };

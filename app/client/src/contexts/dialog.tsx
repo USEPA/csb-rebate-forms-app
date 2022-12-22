@@ -14,10 +14,11 @@ type State = {
   dialogShown: boolean;
   dismissable: boolean;
   heading: string;
-  description: string;
+  description: ReactNode;
   confirmText: string;
-  cancelText?: string;
+  dismissText?: string;
   confirmedAction: () => void;
+  dismissedAction?: () => void;
 };
 
 export type Action =
@@ -26,16 +27,17 @@ export type Action =
       payload: {
         dismissable: boolean;
         heading: string;
-        description: string;
+        description: ReactNode;
         confirmText: string;
-        cancelText?: string;
+        dismissText?: string;
         confirmedAction: () => void;
+        dismissedAction?: () => void;
       };
     }
   | {
       type: "UPDATE_DIALOG_DESCRIPTION";
       payload: {
-        description: string;
+        description: ReactNode;
       };
     }
   | { type: "RESET_DIALOG" };
@@ -50,9 +52,10 @@ function reducer(state: State, action: Action): State {
         heading,
         description,
         confirmText,
-        cancelText,
+        dismissText,
         dismissable,
         confirmedAction,
+        dismissedAction,
       } = action.payload;
 
       return {
@@ -61,8 +64,9 @@ function reducer(state: State, action: Action): State {
         heading,
         description,
         confirmText,
-        cancelText,
+        dismissText,
         confirmedAction,
+        dismissedAction,
       };
     }
 
@@ -79,10 +83,11 @@ function reducer(state: State, action: Action): State {
         dialogShown: false,
         dismissable: true,
         heading: "",
-        description: "",
+        description: null,
         confirmText: "",
-        cancelText: "",
+        dismissText: "",
         confirmedAction: () => {},
+        dismissedAction: () => {},
       };
     }
 
@@ -98,10 +103,11 @@ export function DialogProvider({ children }: Props) {
     dialogShown: false,
     dismissable: true,
     heading: "",
-    description: "",
+    description: null,
     confirmText: "",
-    cancelText: "",
+    dismissText: "",
     confirmedAction: () => {},
+    dismissedAction: () => {},
   };
 
   const [state, dispatch] = useReducer(reducer, initialState);

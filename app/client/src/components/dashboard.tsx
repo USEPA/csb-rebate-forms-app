@@ -120,8 +120,9 @@ export function Dashboard() {
   const onApplicationFormPage = pathname.startsWith("/rebate");
   const onPaymentRequestFormPage = pathname.startsWith("/payment-request");
 
-  const enrollmentClosed =
-    csbData.status === "success" && csbData.data.enrollmentClosed;
+  const applicationFormOpen =
+    csbData.status === "success" &&
+    csbData.data.submissionPeriodOpen.application;
 
   /**
    * When provided a destination location to navigate to, creates an action
@@ -135,16 +136,20 @@ export function Dashboard() {
       payload: {
         dismissable: true,
         heading: "Are you sure you want to navigate away from this page?",
-        description:
-          "If you haven’t saved the current form, any changes you’ve made will be lost.",
+        description: (
+          <p>
+            If you haven’t saved the current form, any changes you’ve made will
+            be lost.
+          </p>
+        ),
         confirmText: "Yes",
-        cancelText: "Cancel",
+        dismissText: "Cancel",
         confirmedAction: () => navigate(destination),
       },
     };
   }
 
-  if (samEntities.status !== "success") {
+  if (csbData.status !== "success" || samEntities.status !== "success") {
     return <Loading />;
   }
 
@@ -223,7 +228,7 @@ export function Dashboard() {
 
           {onApplicationFormPage ||
           onPaymentRequestFormPage ||
-          enrollmentClosed ? (
+          !applicationFormOpen ? (
             <button
               className="margin-bottom-1 usa-button font-sans-2xs"
               disabled

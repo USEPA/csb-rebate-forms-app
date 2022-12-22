@@ -780,6 +780,25 @@
         },
         "tags": []
       }
+    },
+    "/api/delete-formio-payment-request-submission": {
+      "post": {
+        "summary": "/api/delete-formio-payment-request-submission",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [],
+        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+      }
     }
   },
   "tags": [],

@@ -1,7 +1,7 @@
 const { resolve } = require("node:path");
 const { readFile } = require("node:fs/promises");
 const express = require("express");
-const axios = require("axios").default;
+const axios = require("axios").default || require("axios"); // TODO: https://github.com/axios/axios/issues/5011
 const ObjectId = require("mongodb").ObjectId;
 // ---
 const {
@@ -19,64 +19,62 @@ const {
 } = require("../middleware");
 const {
   getSamEntities,
-  getApplicationSubmissionsStatuses,
-  getApplicationSubmission,
+  getBapFormSubmissionsStatuses,
+  getBapApplicationSubmission,
 } = require("../utilities/bap");
 const log = require("../utilities/logger");
 
-const enrollmentClosed = process.env.CSB_ENROLLMENT_PERIOD !== "open";
+const applicationFormOpen = process.env.CSB_APPLICATION_FORM_OPEN === "true";
+const paymentRequestFormOpen =
+  process.env.CSB_PAYMENT_REQUEST_FORM_OPEN === "true";
+const closeOutFormOpen = process.env.CSB_CLOSE_OUT_FORM_OPEN === "true";
 
 const applicationFormApiPath = `${formioProjectUrl}/${formioApplicationFormPath}`;
 const paymentRequestFormApiPath = `${formioProjectUrl}/${formioPaymentRequestFormPath}`;
 
 /**
- * Returns a resolved or rejected promise, depending on if the enrollment period
- * is closed (as set via the `CSB_ENROLLMENT_PERIOD` environment variable), and
- * if the form submission has the status of "Edits Requested" or not (as stored
- * in and returned from the BAP).
+ * Returns a resolved or rejected promise, depending on if the given form's
+ * submission period is open (as set via environment variables), and if the form
+ * submission has the status of "Edits Requested" or not (as stored in and
+ * returned from the BAP).
  * @param {Object} param
  * @param {'application'|'payment-request'|'close-out'} param.formType
  * @param {string} param.mongoId
  * @param {string} param.comboKey
  * @param {express.Request} param.req
  */
-function checkEnrollmentPeriodAndBapStatus({
+function checkFormSubmissionPeriodAndBapStatus({
   formType,
   mongoId,
   comboKey,
   req,
 }) {
-  if (formType === "application") {
-    // continue if enrollment isn't closed
-    if (!enrollmentClosed) {
-      return Promise.resolve();
-    }
-
-    // else enrollment is closed, so only continue if edits are requested
-    return getApplicationSubmissionsStatuses(req, [comboKey]).then(
-      (submissions) => {
-        const submission = submissions.find((submission) => {
-          return submission.CSB_Form_ID__c === mongoId;
-        });
-        const status = submission?.Parent_CSB_Rebate__r?.CSB_Rebate_Status__c;
-        return status === "Edits Requested"
-          ? Promise.resolve()
-          : Promise.reject();
-      }
-    );
-  }
-
-  if (formType === "payment-request") {
-    // TODO: update when closing of payment request form's "open enrollment"
-    // functionality is implemented
+  // form submission period is open, so continue
+  if (
+    (formType === "application" && applicationFormOpen) ||
+    (formType === "payment-request" && paymentRequestFormOpen) ||
+    (formType === "close-out" && closeOutFormOpen)
+  ) {
     return Promise.resolve();
   }
 
-  if (formType === "close-out") {
-    // TODO: update when closing of close out form's "open enrollment"
-    // functionality is implemented
-    return Promise.resolve();
-  }
+  // form submission period is closed, so only continue if edits are requested
+  return getBapFormSubmissionsStatuses(req, [comboKey]).then((submissions) => {
+    const submission = submissions.find((s) => s.CSB_Form_ID__c === mongoId);
+
+    const statusField =
+      formType === "application"
+        ? "CSB_Funding_Request_Status__c"
+        : formType === "payment-request"
+        ? "CSB_Payment_Request_Status__c"
+        : formType === "close-out"
+        ? "CSB_Closeout_Request_Status__c"
+        : null;
+
+    return submission?.Parent_CSB_Rebate__r?.[statusField] === "Edits Requested"
+      ? Promise.resolve()
+      : Promise.reject();
+  });
 }
 
 const router = express.Router();
@@ -156,7 +154,13 @@ router.get("/helpdesk-access", ensureHelpdesk, (req, res) => {
 
 // --- get CSB app specific data (open enrollment status, etc.)
 router.get("/csb-data", (req, res) => {
-  return res.json({ enrollmentClosed });
+  return res.json({
+    submissionPeriodOpen: {
+      application: applicationFormOpen,
+      paymentRequest: paymentRequestFormOpen,
+      closeOut: closeOutFormOpen,
+    },
+  });
 });
 
 // --- get user data from EPA Gateway/Login.gov
@@ -188,12 +192,12 @@ router.get("/bap-sam-data", (req, res) => {
     });
 });
 
-// --- get user's Application form submissions statuses from EPA's BAP
-router.get("/bap-application-submissions", storeBapComboKeys, (req, res) => {
-  return getApplicationSubmissionsStatuses(req, req.bapComboKeys)
+// --- get user's form submissions statuses from EPA's BAP
+router.get("/bap-form-submissions", storeBapComboKeys, (req, res) => {
+  return getBapFormSubmissionsStatuses(req, req.bapComboKeys)
     .then((submissions) => res.json(submissions))
     .catch((error) => {
-      const message = `Error getting Application form submissions statuses from BAP`;
+      const message = `Error getting form submissions statuses from BAP`;
       return res.status(401).json({ message });
     });
 });
@@ -230,14 +234,14 @@ router.get("/formio-application-submissions", storeBapComboKeys, (req, res) => {
 router.post("/formio-application-submission", storeBapComboKeys, (req, res) => {
   const comboKey = req.body.data?.bap_hidden_entity_combo_key;
 
-  if (enrollmentClosed) {
-    const message = `CSB enrollment period is closed`;
+  if (!applicationFormOpen) {
+    const message = `CSB Application form enrollment period is closed`;
     return res.status(400).json({ message });
   }
 
   // verify post data includes one of user's BAP combo keys
   if (!req.bapComboKeys.includes(comboKey)) {
-    const message = `User with email ${req.user.mail} attempted to post a new Application form without a matching BAP combo key`;
+    const message = `User with email ${req.user.mail} attempted to post a new Application form submission without a matching BAP combo key`;
     log({ level: "error", message, req });
     return res.status(401).json({ message: "Unauthorized" });
   }
@@ -303,35 +307,36 @@ router.post(
   storeBapComboKeys,
   (req, res) => {
     const { mongoId } = req.params;
-    const comboKey = req.body.data?.bap_hidden_entity_combo_key;
+    const submission = req.body;
+    const comboKey = submission.data?.bap_hidden_entity_combo_key;
     const formType = "application";
 
-    checkEnrollmentPeriodAndBapStatus({ formType, mongoId, comboKey, req })
+    checkFormSubmissionPeriodAndBapStatus({ formType, mongoId, comboKey, req })
       .then(() => {
         // verify post data includes one of user's BAP combo keys
         if (!req.bapComboKeys.includes(comboKey)) {
-          const message = `User with email ${req.user.mail} attempted to update existing Application form without a matching BAP combo key`;
+          const message = `User with email ${req.user.mail} attempted to update Application form submission ${mongoId} without a matching BAP combo key`;
           log({ level: "error", message, req });
           return res.status(401).json({ message: "Unauthorized" });
         }
 
         // add custom metadata to track formio submissions from wrapper
-        req.body.metadata = {
-          ...req.body.metadata,
+        submission.metadata = {
+          ...submission.metadata,
           ...formioCsbMetadata,
         };
 
         axiosFormio(req)
-          .put(`${applicationFormApiPath}/submission/${mongoId}`, req.body)
+          .put(`${applicationFormApiPath}/submission/${mongoId}`, submission)
           .then((axiosRes) => axiosRes.data)
           .then((submission) => res.json(submission))
           .catch((error) => {
-            const message = `Error updating Forms.gov Application form submission`;
+            const message = `Error updating Forms.gov Application form submission ${mongoId}`;
             return res.status(error?.response?.status || 500).json({ message });
           });
       })
       .catch((error) => {
-        const message = `CSB enrollment period is closed`;
+        const message = `CSB Application form enrollment period is closed`;
         return res.status(400).json({ message });
       });
   }
@@ -344,10 +349,10 @@ router.post(
   (req, res) => {
     const { formType, mongoId, comboKey } = req.params;
 
-    checkEnrollmentPeriodAndBapStatus({ formType, mongoId, comboKey, req })
+    checkFormSubmissionPeriodAndBapStatus({ formType, mongoId, comboKey, req })
       .then(() => {
         if (!req.bapComboKeys.includes(comboKey)) {
-          const message = `User with email ${req.user.mail} attempted to upload file without a matching BAP combo key`;
+          const message = `User with email ${req.user.mail} attempted to upload a file without a matching BAP combo key`;
           log({ level: "error", message, req });
           return res.status(401).json({ message: "Unauthorized" });
         }
@@ -362,7 +367,15 @@ router.post(
           });
       })
       .catch((error) => {
-        const message = `CSB enrollment period is closed`;
+        const formName =
+          formType === "application"
+            ? "CSB Application"
+              ? formType === "payment-request"
+              : "CSB Payment Request"
+              ? formType === "close-out"
+              : "CSB Close-Out"
+            : "CSB";
+        const message = `${formName} form enrollment period is closed`;
         return res.status(400).json({ message });
       });
   }
@@ -376,7 +389,7 @@ router.get(
     const { comboKey } = req.params;
 
     if (!req.bapComboKeys.includes(comboKey)) {
-      const message = `User with email ${req.user.mail} attempted to download file without a matching BAP combo key`;
+      const message = `User with email ${req.user.mail} attempted to download a file without a matching BAP combo key`;
       log({ level: "error", message, req });
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -434,7 +447,7 @@ router.post(
 
     // verify post data includes one of user's BAP combo keys
     if (!req.bapComboKeys.includes(comboKey)) {
-      const message = `User with email ${req.user.mail} attempted to post a new Payment Request form without a matching BAP combo key`;
+      const message = `User with email ${req.user.mail} attempted to post a new Payment Request form submission without a matching BAP combo key`;
       log({ level: "error", message, req });
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -448,7 +461,7 @@ router.post(
       ALT_GOVT_BUS_POC_EMAIL__c,
     } = entity;
 
-    return getApplicationSubmission(req, reviewItemId)
+    return getBapApplicationSubmission(req, reviewItemId)
       .then(({ formsTableRecordQuery, busTableRecordsQuery }) => {
         const {
           CSB_NCES_ID__c,
@@ -474,7 +487,7 @@ router.post(
 
         // NOTE: `purchaseOrders` is initialized as an empty array to fix some
         // issue with the field being changed to an object when the form loads
-        const newSubmission = {
+        const submission = {
           data: {
             bap_hidden_entity_combo_key: comboKey,
             hidden_application_form_modified: applicationFormModified,
@@ -515,7 +528,7 @@ router.post(
         };
 
         axiosFormio(req)
-          .post(`${paymentRequestFormApiPath}/submission`, newSubmission)
+          .post(`${paymentRequestFormApiPath}/submission`, submission)
           .then((axiosRes) => axiosRes.data)
           .then((submission) => res.json(submission))
           .catch((error) => {
@@ -597,35 +610,100 @@ router.post(
   "/formio-payment-request-submission/:rebateId",
   storeBapComboKeys,
   (req, res) => {
+    const { rebateId } = req.params; // CSB Rebate ID (6 digits)
     const { mongoId, submission } = req.body;
     const comboKey = submission.data?.bap_hidden_entity_combo_key;
+    const formType = "payment-request";
+
+    checkFormSubmissionPeriodAndBapStatus({ formType, mongoId, comboKey, req })
+      .then(() => {
+        // verify post data includes one of user's BAP combo keys
+        if (!req.bapComboKeys.includes(comboKey)) {
+          const message = `User with email ${req.user.mail} attempted to update Payment Request form submission ${rebateId} without a matching BAP combo key`;
+          log({ level: "error", message, req });
+          return res.status(401).json({ message: "Unauthorized" });
+        }
+
+        // NOTE: verifyMongoObjectId middleware content:
+        if (mongoId && !ObjectId.isValid(mongoId)) {
+          const message = `MongoDB ObjectId validation error for: ${mongoId}`;
+          return res.status(400).json({ message });
+        }
+
+        // add custom metadata to track formio submissions from wrapper
+        submission.metadata = {
+          ...submission.metadata,
+          ...formioCsbMetadata,
+        };
+
+        axiosFormio(req)
+          .put(`${paymentRequestFormApiPath}/submission/${mongoId}`, submission)
+          .then((axiosRes) => axiosRes.data)
+          .then((submission) => res.json(submission))
+          .catch((error) => {
+            const message = `Error updating Forms.gov Payment Request form submission ${rebateId}`;
+            return res.status(error?.response?.status || 500).json({ message });
+          });
+      })
+      .catch((error) => {
+        const message = `CSB Payment Request form enrollment period is closed`;
+        return res.status(400).json({ message });
+      });
+  }
+);
+
+// --- delete an existing Payment Request form submission from Forms.gov
+router.post(
+  "/delete-formio-payment-request-submission",
+  storeBapComboKeys,
+  (req, res) => {
+    const { mongoId, rebateId, comboKey } = req.body;
 
     // verify post data includes one of user's BAP combo keys
     if (!req.bapComboKeys.includes(comboKey)) {
-      const message = `User with email ${req.user.mail} attempted to update existing Payment Request form without a matching BAP combo key`;
+      const message = `User with email ${req.user.mail} attempted to delete Payment Request form submission ${rebateId} without a matching BAP combo key`;
       log({ level: "error", message, req });
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    // NOTE: verifyMongoObjectId middleware content:
-    if (mongoId && !ObjectId.isValid(mongoId)) {
-      const message = `MongoDB ObjectId validation error for: ${mongoId}`;
-      return res.status(400).json({ message });
-    }
+    // ensure the BAP status of the corresponding Application form submission
+    // is "Edits Requested" before deleting the Payment Request form submission
+    // from Forms.gov
+    getBapFormSubmissionsStatuses(req, req.bapComboKeys)
+      .then((submissions) => {
+        const application = submissions.find((submission) => {
+          return (
+            submission.Parent_Rebate_ID__c === rebateId &&
+            submission.Record_Type_Name__c === "CSB Funding Request"
+          );
+        });
 
-    // add custom metadata to track formio submissions from wrapper
-    submission.metadata = {
-      ...submission.metadata,
-      ...formioCsbMetadata,
-    };
+        const applicationNeedsEdits =
+          application?.Parent_CSB_Rebate__r.CSB_Funding_Request_Status__c ===
+          "Edits Requested";
 
-    axiosFormio(req)
-      .put(`${paymentRequestFormApiPath}/submission/${mongoId}`, submission)
-      .then((axiosRes) => axiosRes.data)
-      .then((submission) => res.json(submission))
+        if (!applicationNeedsEdits) {
+          const message = `CSB Application form submission does not need edits`;
+          return res.status(400).json({ message });
+        }
+
+        axiosFormio(req)
+          .delete(`${paymentRequestFormApiPath}/submission/${mongoId}`)
+          .then((axiosRes) => axiosRes.data)
+          .then((response) => {
+            const message = `User with email ${req.user.mail} successfully deleted Payment Request form submission ${rebateId}`;
+            log({ level: "info", message, req });
+
+            res.json(response);
+          })
+          .catch((error) => {
+            const message = `Error deleting Forms.gov Payment Request form submission ${rebateId}`;
+            return res.status(error?.response?.status || 500).json({ message });
+          });
+      })
       .catch((error) => {
-        const message = `Error updating Forms.gov Payment Request form submission`;
-        return res.status(error?.response?.status || 500).json({ message });
+        const message = `Error getting form submissions statuses from BAP`;
+        return res.status(401).json({ message });
       });
   }
 );

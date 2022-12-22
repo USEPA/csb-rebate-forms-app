@@ -16,9 +16,9 @@ import { useUserState } from "contexts/user";
 import { useCsbState } from "contexts/csb";
 import {
   FormioFetchedResponse,
-  usePageFormioState,
-  usePageFormioDispatch,
-} from "contexts/pageFormio";
+  useFormioFormState,
+  useFormioFormDispatch,
+} from "contexts/formioForm";
 
 type FormType = "application" | "payment-request" | "close-out";
 
@@ -29,14 +29,14 @@ export function Helpdesk() {
   const dialogDispatch = useDialogDispatch();
   const { epaUserData } = useUserState();
   const { csbData } = useCsbState();
-  const { formio } = usePageFormioState();
-  const pageFormioDispatch = usePageFormioDispatch();
+  const { formio } = useFormioFormState();
+  const formioFormDispatch = useFormioFormDispatch();
   const helpdeskAccess = useHelpdeskAccess();
 
-  // reset page formio state since it's used across pages
+  // reset formio form state since it's used across pages
   useEffect(() => {
-    pageFormioDispatch({ type: "RESET_FORMIO_DATA" });
-  }, [pageFormioDispatch]);
+    formioFormDispatch({ type: "RESET_FORMIO_DATA" });
+  }, [formioFormDispatch]);
 
   const [formType, setFormType] = useState<FormType>("application");
   const [searchId, setSearchId] = useState("");
@@ -55,7 +55,10 @@ export function Helpdesk() {
     navigate("/", { replace: true });
   }
 
-  const { enrollmentClosed } = csbData.data;
+  const applicationFormOpen = csbData.data.submissionPeriodOpen.application;
+  const paymentRequestFormOpen =
+    csbData.data.submissionPeriodOpen.paymentRequest;
+  const closeOutFormOpen = csbData.data.submissionPeriodOpen.closeOut;
 
   const { formSchema, submission } = formio.data;
 
@@ -80,7 +83,7 @@ export function Helpdesk() {
               checked={formType === "application"}
               onChange={(ev) => {
                 setFormType(ev.target.value as FormType);
-                pageFormioDispatch({ type: "RESET_FORMIO_DATA" });
+                formioFormDispatch({ type: "RESET_FORMIO_DATA" });
               }}
             />
             <label
@@ -101,7 +104,7 @@ export function Helpdesk() {
               checked={formType === "payment-request"}
               onChange={(ev) => {
                 setFormType(ev.target.value as FormType);
-                pageFormioDispatch({ type: "RESET_FORMIO_DATA" });
+                formioFormDispatch({ type: "RESET_FORMIO_DATA" });
               }}
             />
             <label
@@ -122,7 +125,7 @@ export function Helpdesk() {
               checked={formType === "close-out"}
               onChange={(ev) => {
                 setFormType(ev.target.value as FormType);
-                pageFormioDispatch({ type: "RESET_FORMIO_DATA" });
+                formioFormDispatch({ type: "RESET_FORMIO_DATA" });
               }}
               disabled={true} // NOTE: disabled until the close-out form is created
             />
@@ -141,19 +144,19 @@ export function Helpdesk() {
           onSubmit={(ev) => {
             ev.preventDefault();
             setFormDisplayed(false);
-            pageFormioDispatch({ type: "FETCH_FORMIO_DATA_REQUEST" });
+            formioFormDispatch({ type: "FETCH_FORMIO_DATA_REQUEST" });
             getData(
               `${serverUrl}/help/formio-submission/${formType}/${searchId}`
             )
               .then((res: FormioFetchedResponse) => {
                 if (!res.submission) return;
-                pageFormioDispatch({
+                formioFormDispatch({
                   type: "FETCH_FORMIO_DATA_SUCCESS",
                   payload: { data: res },
                 });
               })
               .catch((err) => {
-                pageFormioDispatch({ type: "FETCH_FORMIO_DATA_FAILURE" });
+                formioFormDispatch({ type: "FETCH_FORMIO_DATA_FAILURE" });
               });
           }}
         >
@@ -311,7 +314,7 @@ export function Helpdesk() {
                         ? "Draft"
                         : submission.state === "submitted"
                         ? "Submitted"
-                        : submission.state // fallback, not used
+                        : "" // fallback, not used
                     }
                   </td>
 
@@ -320,7 +323,10 @@ export function Helpdesk() {
                       className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
                       disabled={
                         submission.state === "draft" ||
-                        (formType === "application" && enrollmentClosed)
+                        (formType === "application" && !applicationFormOpen) ||
+                        (formType === "payment-request" &&
+                          !paymentRequestFormOpen) ||
+                        (formType === "close-out" && !closeOutFormOpen)
                       }
                       onClick={(_ev) => {
                         dialogDispatch({
@@ -329,13 +335,18 @@ export function Helpdesk() {
                             dismissable: true,
                             heading:
                               "Are you sure you want to change this submission's state back to draft?",
-                            description:
-                              "Once the submission is back in a draft state, all users with access to this submission will be able to further edit it.",
+                            description: (
+                              <p>
+                                Once the submission is back in a draft state,
+                                all users with access to this submission will be
+                                able to further edit it.
+                              </p>
+                            ),
                             confirmText: "Yes",
-                            cancelText: "Cancel",
+                            dismissText: "Cancel",
                             confirmedAction: () => {
                               setFormDisplayed(false);
-                              pageFormioDispatch({
+                              formioFormDispatch({
                                 type: "FETCH_FORMIO_DATA_REQUEST",
                               });
                               postData(
@@ -343,13 +354,13 @@ export function Helpdesk() {
                                 {}
                               )
                                 .then((res: FormioFetchedResponse) => {
-                                  pageFormioDispatch({
+                                  formioFormDispatch({
                                     type: "FETCH_FORMIO_DATA_SUCCESS",
                                     payload: { data: res },
                                   });
                                 })
                                 .catch((err) => {
-                                  pageFormioDispatch({
+                                  formioFormDispatch({
                                     type: "FETCH_FORMIO_DATA_FAILURE",
                                   });
                                 });

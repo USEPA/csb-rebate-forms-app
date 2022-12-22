@@ -1,4 +1,4 @@
-const axios = require("axios").default;
+const axios = require("axios").default || require("axios"); // TODO: https://github.com/axios/axios/issues/5011
 // ---
 const log = require("../utilities/logger");
 
@@ -56,9 +56,10 @@ function axiosFormio(req) {
 
       log({
         level: "error",
-        message: `Formio Error: ${status} ${config.method.toUpperCase()} ${
-          config.url
-        }`,
+        message:
+          `Formio Error: ${status} ` +
+          `${config.method.toUpperCase()} ${config.url}. ` +
+          `Response: ${JSON.stringify(error.response.data)}`,
         req: config,
       });
 

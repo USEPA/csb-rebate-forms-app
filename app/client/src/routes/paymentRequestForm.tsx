@@ -1,11 +1,17 @@
 import { useMemo, useEffect, useState, useRef } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Formio, Form } from "@formio/react";
 import { cloneDeep, isEqual } from "lodash";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl, getData, postData } from "../config";
+import { serverUrl, messages, getData, postData } from "../config";
 import { getUserInfo } from "../utilities";
+import {
+  submissionNeedsEdits,
+  useFetchedFormSubmissions,
+  useCombinedSubmissions,
+  useSortedRebates,
+} from "routes/allRebates";
 import { Loading } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
@@ -13,16 +19,17 @@ import { useContentState } from "contexts/content";
 import { useUserState } from "contexts/user";
 import { useCsbState } from "contexts/csb";
 import { useBapState } from "contexts/bap";
+import { useFormioSubmissionsState } from "contexts/formioSubmissions";
+import {
+  FormioSubmissionData,
+  FormioFetchedResponse,
+  useFormioFormState,
+  useFormioFormDispatch,
+} from "contexts/formioForm";
 import {
   usePageMessageState,
   usePageMessageDispatch,
 } from "contexts/pageMessage";
-import {
-  FormioSubmissionData,
-  FormioFetchedResponse,
-  usePageFormioState,
-  usePageFormioDispatch,
-} from "contexts/pageFormio";
 
 function PageMessage() {
   const { displayed, type, text } = usePageMessageState();
@@ -50,23 +57,44 @@ export function PaymentRequestForm() {
 function PaymentRequestFormContent({ email }: { email: string }) {
   const navigate = useNavigate();
   const { rebateId } = useParams<"rebateId">(); // CSB Rebate ID (6 digits)
+  const [searchParams] = useSearchParams();
 
   const { content } = useContentState();
   const { csbData } = useCsbState();
-  const { samEntities } = useBapState();
-  const { formio } = usePageFormioState();
+  const { samEntities, formSubmissions: bapFormSubmissions } = useBapState();
+  const {
+    applicationSubmissions: formioApplicationSubmissions,
+    paymentRequestSubmissions: formioPaymentRequestSubmissions,
+  } = useFormioSubmissionsState();
+  const { formio } = useFormioFormState();
+  const formioFormDispatch = useFormioFormDispatch();
   const pageMessageDispatch = usePageMessageDispatch();
-  const pageFormioDispatch = usePageFormioDispatch();
+
+  // reset formio form state since it's used across pages
+  useEffect(() => {
+    formioFormDispatch({ type: "RESET_FORMIO_DATA" });
+  }, [formioFormDispatch]);
 
   // reset page message state since it's used across pages
   useEffect(() => {
     pageMessageDispatch({ type: "RESET_MESSAGE" });
   }, [pageMessageDispatch]);
 
-  // reset page formio state since it's used across pages
+  useFetchedFormSubmissions();
+
+  const combinedRebates = useCombinedSubmissions();
+  const sortedRebates = useSortedRebates(combinedRebates);
+
+  // log combined 'sortedRebates' array if 'debug' search parameter exists
   useEffect(() => {
-    pageFormioDispatch({ type: "RESET_FORMIO_DATA" });
-  }, [pageFormioDispatch]);
+    if (searchParams.has("debug") && sortedRebates.length > 0) {
+      console.log(sortedRebates);
+    }
+  }, [searchParams, sortedRebates]);
+
+  // create ref to store when form is being submitted, so it can be referenced
+  // in the Form component's `onSubmit` event prop, to prevent double submits
+  const formIsBeingSubmitted = useRef(false);
 
   // set when form submission data is initially fetched, and then re-set each
   // time a successful update of the submission data is posted to forms.gov
@@ -85,7 +113,7 @@ function PaymentRequestFormContent({ email }: { email: string }) {
     useState<FormioSubmissionData>({});
 
   useEffect(() => {
-    pageFormioDispatch({ type: "FETCH_FORMIO_DATA_REQUEST" });
+    formioFormDispatch({ type: "FETCH_FORMIO_DATA_REQUEST" });
 
     getData(`${serverUrl}/api/formio-payment-request-submission/${rebateId}`)
       .then((res: FormioFetchedResponse) => {
@@ -106,15 +134,15 @@ function PaymentRequestFormContent({ email }: { email: string }) {
           return data;
         });
 
-        pageFormioDispatch({
+        formioFormDispatch({
           type: "FETCH_FORMIO_DATA_SUCCESS",
           payload: { data: res },
         });
       })
       .catch((err) => {
-        pageFormioDispatch({ type: "FETCH_FORMIO_DATA_FAILURE" });
+        formioFormDispatch({ type: "FETCH_FORMIO_DATA_FAILURE" });
       });
-  }, [rebateId, pageFormioDispatch]);
+  }, [rebateId, formioFormDispatch]);
 
   if (formio.status === "idle") {
     return null;
@@ -148,7 +176,61 @@ function PaymentRequestFormContent({ email }: { email: string }) {
     return <Loading />;
   }
 
-  const formIsReadOnly = submission.state === "submitted";
+  if (
+    bapFormSubmissions.status === "idle" ||
+    bapFormSubmissions.status === "pending" ||
+    formioApplicationSubmissions.status === "idle" ||
+    formioApplicationSubmissions.status === "pending" ||
+    formioPaymentRequestSubmissions.status === "idle" ||
+    formioPaymentRequestSubmissions.status === "pending"
+  ) {
+    return <Loading />;
+  }
+
+  if (
+    bapFormSubmissions.status === "failure" ||
+    formioApplicationSubmissions.status === "failure" ||
+    formioPaymentRequestSubmissions.status === "failure"
+  ) {
+    return <Message type="error" text={messages.formSubmissionsError} />;
+  }
+
+  const paymentRequestFormOpen =
+    csbData.data.submissionPeriodOpen.paymentRequest;
+
+  const rebate = sortedRebates.find((item) => item.rebateId === rebateId);
+
+  const applicationNeedsEdits = !rebate
+    ? false
+    : submissionNeedsEdits({
+        formio: rebate.application.formio,
+        bap: rebate.application.bap,
+      });
+
+  const paymentRequestNeedsEdits = !rebate
+    ? false
+    : submissionNeedsEdits({
+        formio: rebate.paymentRequest.formio,
+        bap: rebate.paymentRequest.bap,
+      });
+
+  // NOTE: If a corresponding Application form submission needs edits, a warning
+  // message is displayed that this Payment Request form submission will be
+  // deleted, and the form will be rendered read-only.
+  if (applicationNeedsEdits) {
+    pageMessageDispatch({
+      type: "DISPLAY_MESSAGE",
+      payload: {
+        type: "warning",
+        text: messages.paymentRequestFormWillBeDeleted,
+      },
+    });
+  }
+
+  const formIsReadOnly =
+    applicationNeedsEdits ||
+    ((submission.state === "submitted" || !paymentRequestFormOpen) &&
+      !paymentRequestNeedsEdits);
 
   const entityComboKey = storedSubmissionData.bap_hidden_entity_combo_key;
   const entity = samEntities.data.entities.find((entity) => {
@@ -233,6 +315,12 @@ function PaymentRequestFormContent({ email }: { email: string }) {
           }) => {
             if (formIsReadOnly) return;
 
+            // account for when form is being submitted to prevent double submits
+            if (formIsBeingSubmitted.current) return;
+            if (onSubmitSubmission.state === "submitted") {
+              formIsBeingSubmitted.current = true;
+            }
+
             const data = { ...onSubmitSubmission.data };
 
             if (onSubmitSubmission.state === "submitted") {
@@ -267,19 +355,8 @@ function PaymentRequestFormContent({ email }: { email: string }) {
                 setPendingSubmissionData({});
 
                 if (onSubmitSubmission.state === "submitted") {
-                  pageMessageDispatch({
-                    type: "DISPLAY_MESSAGE",
-                    payload: {
-                      type: "success",
-                      text: "Form successfully submitted.",
-                    },
-                  });
-
-                  setTimeout(() => {
-                    pageMessageDispatch({ type: "RESET_MESSAGE" });
-                    navigate("/");
-                  }, 5000);
-                  return;
+                  const submissionSuccessMessage = `Payment Request Form ${rebateId} successfully submitted.`;
+                  navigate("/", { state: { submissionSuccessMessage } });
                 }
 
                 if (onSubmitSubmission.state === "draft") {
@@ -297,6 +374,8 @@ function PaymentRequestFormContent({ email }: { email: string }) {
                 }
               })
               .catch((err) => {
+                formIsBeingSubmitted.current = false;
+
                 pageMessageDispatch({
                   type: "DISPLAY_MESSAGE",
                   payload: {
