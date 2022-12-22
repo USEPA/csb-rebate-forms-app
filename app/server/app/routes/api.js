@@ -657,11 +657,7 @@ router.post(
   "/delete-formio-payment-request-submission",
   storeBapComboKeys,
   (req, res) => {
-    const { submission } = req.body;
-
-    const mongoId = submission._id;
-    const rebateId = submission.data.hidden_bap_rebate_id;
-    const comboKey = submission.data.bap_hidden_entity_combo_key;
+    const { mongoId, rebateId, comboKey } = req.body;
 
     // verify post data includes one of user's BAP combo keys
     if (!req.bapComboKeys.includes(comboKey)) {
