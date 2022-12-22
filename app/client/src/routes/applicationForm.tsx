@@ -16,6 +16,7 @@ import { Loading } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { useContentState } from "contexts/content";
+import { useDialogDispatch } from "contexts/dialog";
 import { useUserState } from "contexts/user";
 import { useCsbState } from "contexts/csb";
 import { useBapState } from "contexts/bap";
@@ -67,6 +68,7 @@ function ApplicationFormContent({ email }: { email: string }) {
     paymentRequestSubmissions: formioPaymentRequestSubmissions,
   } = useFormioSubmissionsState();
   const { formio } = useFormioFormState();
+  const dialogDispatch = useDialogDispatch();
   const formioFormDispatch = useFormioFormDispatch();
   const pageMessageDispatch = usePageMessageDispatch();
 
@@ -211,17 +213,66 @@ function ApplicationFormContent({ email }: { email: string }) {
         bap: rebate.application.bap,
       });
 
-  const paymentRequestNeedsEdits = !rebate
-    ? false
-    : submissionNeedsEdits({
-        formio: rebate.paymentRequest.formio,
-        bap: rebate.paymentRequest.bap,
-      });
+  // NOTE: If the Application form submission needs edits and there's a
+  // corresponding Payment Request form submission, display a confirmation
+  // dialog prompting the user to delete the Payment Request form submission,
+  // as it's data will no longer valid when the Application form submission's
+  // data is changed.
+  if (applicationNeedsEdits && rebate?.paymentRequest.formio) {
+    dialogDispatch({
+      type: "DISPLAY_DIALOG",
+      payload: {
+        dismissable: true,
+        heading: "Edits Requested",
+        description: (
+          <>
+            <p>
+              This Application form submission requires edits, but before you
+              can make edits, the associated Payment Request form submission
+              needs to be deleted.
+            </p>
+            <p>
+              If you’d like to view the Payment Request form submission instead,
+              please close this dialog box, and you will be to re-directed to
+              the associated Payment Request form submission page.
+            </p>
+            <p>
+              If you’d like to proceed with deleting the associated Payment
+              Request Form submission, please select the{" "}
+              <strong>Delete Payment Request Form Submission</strong> button
+              below, and the Payment Request Form submission will be deleted.
+            </p>
+            <p>
+              <em>
+                Please note: once deleted, the submission will be removed from
+                your dashboard and cannot be recovered.
+              </em>
+            </p>
+          </>
+        ),
+        confirmText: "Delete Payment Request Form Submission",
+        confirmedAction: () => {
+          // TODO: display a message indicating the deletion is occurring,
+          // and prevent user from editing form (maybe the form is hidden?)
 
-  // TODO: if application needs edits and there's already a corresponding
-  // payment request (regardless of it's state), delete it...
-  // (when the user first clicks "Next" or maybe right away?)
-  console.log({ applicationNeedsEdits, paymentRequestNeedsEdits });
+          postData(
+            `${serverUrl}/api/delete-formio-payment-request-submission`,
+            { submission: rebate.paymentRequest.formio }
+          )
+            .then((res) => {
+              // TODO: display a message indicating the delete succeeded,
+              // and allow user to edit the form
+              console.log(res);
+            })
+            .catch((err) => {
+              // TODO: display a message indicating the delete failed
+              console.log(err);
+            });
+        },
+        dismissedAction: () => navigate(`/payment-request/${rebate.rebateId}`),
+      },
+    });
+  }
 
   const formIsReadOnly =
     (submission.state === "submitted" || !applicationFormOpen) &&
