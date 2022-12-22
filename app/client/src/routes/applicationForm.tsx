@@ -236,8 +236,8 @@ function ApplicationFormContent({ email }: { email: string }) {
             </p>
             <p>
               If you’d like to view the Payment Request form submission instead,
-              please close this dialog box, and you will be to re-directed to
-              the associated Payment Request form submission page.
+              please close this dialog box, and you will be re-directed to the
+              associated Payment Request form submission page.
             </p>
             <p>
               If you’d like to proceed with deleting the associated Payment
@@ -284,15 +284,7 @@ function ApplicationFormContent({ email }: { email: string }) {
             }
           )
             .then((res) => {
-              const text = `Payment Request form submission ${rebate.rebateId} successfully deleted. This page will reload in 5 seconds.`;
-              pageMessageDispatch({
-                type: "DISPLAY_MESSAGE",
-                payload: { type: "success", text },
-              });
-
-              setTimeout(() => {
-                window.location.reload();
-              }, 5000);
+              window.location.reload();
             })
             .catch((err) => {
               const text = `Error deleting Payment Request form submission ${rebate.rebateId}. Please reload the page to attempt the deletion again, or contact the helpdesk if the problem persists.`;
