@@ -195,6 +195,35 @@ async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
   const bapConnection = req.app.locals.bapConnection;
 
   // `SELECT
+  //   Parent_Rebate_ID__c,
+  // FROM
+  //   ${BAP_FORMS_TABLE}
+  // WHERE
+  //   (${comboKeys
+  //     .map((key) => `UEI_EFTI_Combo_Key__c = '${key}'`)
+  //     .join(" OR ")}) AND
+  //   Latest_Version__c = TRUE`
+
+  const parentRebateIdsQuery = await bapConnection
+    .sobject(BAP_FORMS_TABLE)
+    .find(
+      {
+        UEI_EFTI_Combo_Key__c: { $in: comboKeys },
+        Latest_Version__c: true,
+      },
+      {
+        // "*": 1,
+        Parent_Rebate_ID__c: 1, // CSB Rebate ID (6 digits)
+      }
+    )
+    .sort({ CreatedDate: -1 })
+    .execute(async (err, records) => ((await err) ? err : records));
+
+  const parentRebateIds = parentRebateIdsQuery.map((item) => {
+    return item.Parent_Rebate_ID__c;
+  });
+
+  // `SELECT
   //   UEI_EFTI_Combo_Key__c,
   //   CSB_Form_ID__c,
   //   CSB_Modified_Full_String__c,
@@ -207,18 +236,18 @@ async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
   // FROM
   //   ${BAP_FORMS_TABLE}
   // WHERE
-  //   (${comboKeys
-  //     .map((key) => `UEI_EFTI_Combo_Key__c = '${key}'`)
+  //   (${parentRebateIds
+  //     .map((id) => `Parent_CSB_Rebate__r.CSB_Rebate_ID__c = '${id}'`)
   //     .join(" OR ")}) AND
   //   Latest_Version__c = TRUE
   // ORDER BY
   //   CreatedDate DESC`
 
-  return await bapConnection
+  const submissions = await bapConnection
     .sobject(BAP_FORMS_TABLE)
     .find(
       {
-        UEI_EFTI_Combo_Key__c: { $in: comboKeys },
+        "Parent_CSB_Rebate__r.CSB_Rebate_ID__c": { $in: parentRebateIds },
         Latest_Version__c: true,
       },
       {
@@ -236,6 +265,8 @@ async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
     )
     .sort({ CreatedDate: -1 })
     .execute(async (err, records) => ((await err) ? err : records));
+
+  return submissions;
 }
 
 /**
