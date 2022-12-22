@@ -14,7 +14,7 @@ type State = {
   dialogShown: boolean;
   dismissable: boolean;
   heading: string;
-  description: string;
+  description: ReactNode;
   confirmText: string;
   dismissText?: string;
   confirmedAction: () => void;
@@ -27,7 +27,7 @@ export type Action =
       payload: {
         dismissable: boolean;
         heading: string;
-        description: string;
+        description: ReactNode;
         confirmText: string;
         dismissText?: string;
         confirmedAction: () => void;
@@ -37,7 +37,7 @@ export type Action =
   | {
       type: "UPDATE_DIALOG_DESCRIPTION";
       payload: {
-        description: string;
+        description: ReactNode;
       };
     }
   | { type: "RESET_DIALOG" };
@@ -83,7 +83,7 @@ function reducer(state: State, action: Action): State {
         dialogShown: false,
         dismissable: true,
         heading: "",
-        description: "",
+        description: null,
         confirmText: "",
         dismissText: "",
         confirmedAction: () => {},
@@ -103,7 +103,7 @@ export function DialogProvider({ children }: Props) {
     dialogShown: false,
     dismissable: true,
     heading: "",
-    description: "",
+    description: null,
     confirmText: "",
     dismissText: "",
     confirmedAction: () => {},

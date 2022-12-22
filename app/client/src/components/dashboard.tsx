@@ -136,8 +136,12 @@ export function Dashboard() {
       payload: {
         dismissable: true,
         heading: "Are you sure you want to navigate away from this page?",
-        description:
-          "If you haven’t saved the current form, any changes you’ve made will be lost.",
+        description: (
+          <p>
+            If you haven’t saved the current form, any changes you’ve made will
+            be lost.
+          </p>
+        ),
         confirmText: "Yes",
         dismissText: "Cancel",
         confirmedAction: () => navigate(destination),

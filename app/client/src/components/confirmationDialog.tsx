@@ -41,9 +41,7 @@ export function ConfirmationDialog() {
             </AlertDialogLabel>
 
             <AlertDialogDescription>
-              <div className="usa-prose">
-                <p>{description}</p>
-              </div>
+              <div className="usa-prose">{description}</div>
             </AlertDialogDescription>
 
             <div className="usa-modal__footer">
