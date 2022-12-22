@@ -654,7 +654,7 @@ router.post(
 
 // --- delete an existing Payment Request form submission from Forms.gov
 router.post(
-  "delete-formio-payment-request-submission",
+  "/delete-formio-payment-request-submission",
   storeBapComboKeys,
   (req, res) => {
     const { submission } = req.body;
@@ -691,19 +691,14 @@ router.post(
           return res.status(400).json({ message });
         }
 
-        // TODO: delete submission from Forms.gov
-        // logging BAP Application form submission data and
-        // Formio Payment Request form submission data for now
-        console.log({ application, submission });
-
-        // axiosFormio(req)
-        //   .delete(`${paymentRequestFormApiPath}/submission/${mongoId}`)
-        //   .then((axiosRes) => axiosRes.data)
-        //   .then((response) => res.json(response))
-        //   .catch((error) => {
-        //     const message = `Error deleting Forms.gov Payment Request form submission ${rebateId}`;
-        //     return res.status(error?.response?.status || 500).json({ message });
-        //   });
+        axiosFormio(req)
+          .delete(`${paymentRequestFormApiPath}/submission/${mongoId}`)
+          .then((axiosRes) => axiosRes.data)
+          .then((response) => res.json(response))
+          .catch((error) => {
+            const message = `Error deleting Forms.gov Payment Request form submission ${rebateId}`;
+            return res.status(error?.response?.status || 500).json({ message });
+          });
       })
       .catch((error) => {
         const message = `Error getting form submissions statuses from BAP`;
