@@ -690,7 +690,12 @@ router.post(
         axiosFormio(req)
           .delete(`${paymentRequestFormApiPath}/submission/${mongoId}`)
           .then((axiosRes) => axiosRes.data)
-          .then((response) => res.json(response))
+          .then((response) => {
+            const message = `User with email ${req.user.mail} successfully deleted Payment Request form submission ${rebateId}`;
+            log({ level: "info", message, req });
+
+            res.json(response);
+          })
           .catch((error) => {
             const message = `Error deleting Forms.gov Payment Request form submission ${rebateId}`;
             return res.status(error?.response?.status || 500).json({ message });
