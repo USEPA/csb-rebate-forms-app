@@ -213,17 +213,20 @@ function ApplicationFormContent({ email }: { email: string }) {
         bap: rebate.application.bap,
       });
 
+  const applicationNeedsEditsAndPaymentRequestExists =
+    applicationNeedsEdits && rebate?.paymentRequest.formio;
+
   // NOTE: If the Application form submission needs edits and there's a
   // corresponding Payment Request form submission, display a confirmation
   // dialog prompting the user to delete the Payment Request form submission,
   // as it's data will no longer valid when the Application form submission's
   // data is changed.
-  if (applicationNeedsEdits && rebate?.paymentRequest.formio) {
+  if (applicationNeedsEditsAndPaymentRequestExists) {
     dialogDispatch({
       type: "DISPLAY_DIALOG",
       payload: {
         dismissable: true,
-        heading: "Edits Requested",
+        heading: "Submission Edits Requested",
         description: (
           <>
             <p>
@@ -252,26 +255,60 @@ function ApplicationFormContent({ email }: { email: string }) {
         ),
         confirmText: "Delete Payment Request Form Submission",
         confirmedAction: () => {
-          // TODO: display a message indicating the deletion is occurring,
-          // and prevent user from editing form (maybe the form is hidden?)
+          const text = `Deleting Payment Request form submission ${rebate.rebateId}...`;
+          pageMessageDispatch({
+            type: "DISPLAY_MESSAGE",
+            payload: { type: "info", text },
+          });
 
           postData(
             `${serverUrl}/api/delete-formio-payment-request-submission`,
             { submission: rebate.paymentRequest.formio }
           )
             .then((res) => {
-              // TODO: display a message indicating the delete succeeded,
-              // and allow user to edit the form
-              console.log(res);
+              const text = `Payment Request form submission ${rebate.rebateId} successfully deleted. This page will reload in 5 seconds.`;
+              pageMessageDispatch({
+                type: "DISPLAY_MESSAGE",
+                payload: { type: "success", text },
+              });
+
+              setTimeout(() => {
+                window.location.reload();
+              }, 5000);
             })
             .catch((err) => {
-              // TODO: display a message indicating the delete failed
-              console.log(err);
+              pageMessageDispatch({ type: "RESET_MESSAGE" });
+
+              dialogDispatch({
+                type: "DISPLAY_DIALOG",
+                payload: {
+                  dismissable: true,
+                  heading: "Error Deleting Submission",
+                  description: (
+                    <>
+                      <p>
+                        Error deleting Payment Request form submission{" "}
+                        <strong>{rebate.rebateId}</strong>.
+                      </p>
+                      <p>
+                        Please please select the button below or reload the page
+                        to attempt the deletion again, or contact the helpdesk
+                        if the problem persists.
+                      </p>
+                    </>
+                  ),
+                  confirmText: "Reload Page",
+                  confirmedAction: () => window.location.reload(),
+                  dismissedAction: () => window.location.reload(),
+                },
+              });
             });
         },
         dismissedAction: () => navigate(`/payment-request/${rebate.rebateId}`),
       },
     });
+
+    return <PageMessage />;
   }
 
   const formIsReadOnly =
