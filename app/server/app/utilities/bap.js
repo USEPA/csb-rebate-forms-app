@@ -226,7 +226,7 @@ async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
         UEI_EFTI_Combo_Key__c: 1,
         CSB_Form_ID__c: 1, // MongoDB ObjectId string
         CSB_Modified_Full_String__c: 1, // ISO 8601 date string
-        CSB_Review_Item_ID__c: 1, // CSB Rebate ID w/ form/version ID (9 digits)
+        CSB_Review_Item_ID__c: 1, // CSB Rebate ID with form/version ID (9 digits)
         Parent_Rebate_ID__c: 1, // CSB Rebate ID (6 digits)
         Record_Type_Name__c: 1, // 'CSB Funding Request' | 'CSB Payment Request' | 'CSB Closeout Request'
         "Parent_CSB_Rebate__r.CSB_Funding_Request_Status__c": 1,

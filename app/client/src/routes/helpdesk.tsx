@@ -335,10 +335,15 @@ export function Helpdesk() {
                             dismissable: true,
                             heading:
                               "Are you sure you want to change this submission's state back to draft?",
-                            description:
-                              "Once the submission is back in a draft state, all users with access to this submission will be able to further edit it.",
+                            description: (
+                              <p>
+                                Once the submission is back in a draft state,
+                                all users with access to this submission will be
+                                able to further edit it.
+                              </p>
+                            ),
                             confirmText: "Yes",
-                            cancelText: "Cancel",
+                            dismissText: "Cancel",
                             confirmedAction: () => {
                               setFormDisplayed(false);
                               formioFormDispatch({

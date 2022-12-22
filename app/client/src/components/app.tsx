@@ -141,7 +141,12 @@ function useInactivityDialog(callback: () => void) {
         payload: {
           dismissable: false,
           heading: "Inactivity Warning",
-          description: `You will be automatically logged out in ${logoutTimer} seconds due to inactivity.`,
+          description: (
+            <p>
+              You will be automatically logged out in {logoutTimer} seconds due
+              to inactivity.
+            </p>
+          ),
           confirmText: "Stay logged in",
           confirmedAction: () => {
             callback();

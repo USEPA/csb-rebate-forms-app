@@ -16,8 +16,9 @@ export function ConfirmationDialog() {
     heading,
     description,
     confirmText,
-    cancelText,
+    dismissText,
     confirmedAction,
+    dismissedAction,
   } = useDialogState();
   const dialogDispatch = useDialogDispatch();
 
@@ -27,6 +28,7 @@ export function ConfirmationDialog() {
     <AlertDialogOverlay
       isOpen={dialogShown}
       onDismiss={(ev) => {
+        dismissable && dismissedAction && dismissedAction();
         dismissable && dialogDispatch({ type: "RESET_DIALOG" });
       }}
       leastDestructiveRef={cancelRef}
@@ -39,9 +41,7 @@ export function ConfirmationDialog() {
             </AlertDialogLabel>
 
             <AlertDialogDescription>
-              <div className="usa-prose">
-                <p>{description}</p>
-              </div>
+              <div className="usa-prose">{description}</div>
             </AlertDialogDescription>
 
             <div className="usa-modal__footer">
@@ -58,14 +58,17 @@ export function ConfirmationDialog() {
                   </button>
                 </li>
 
-                {dismissable && cancelText && (
+                {dismissable && dismissText && (
                   <li className="usa-button-group__item">
                     <button
                       ref={cancelRef}
                       className="usa-button"
-                      onClick={(ev) => dialogDispatch({ type: "RESET_DIALOG" })}
+                      onClick={(ev) => {
+                        dismissedAction && dismissedAction();
+                        dialogDispatch({ type: "RESET_DIALOG" });
+                      }}
                     >
-                      {cancelText}
+                      {dismissText}
                     </button>
                   </li>
                 )}
@@ -77,7 +80,10 @@ export function ConfirmationDialog() {
             <button
               className="usa-button usa-modal__close"
               aria-label="Close this window"
-              onClick={(ev) => dialogDispatch({ type: "RESET_DIALOG" })}
+              onClick={(ev) => {
+                dismissedAction && dismissedAction();
+                dialogDispatch({ type: "RESET_DIALOG" });
+              }}
             >
               <svg
                 className="usa-icon"
