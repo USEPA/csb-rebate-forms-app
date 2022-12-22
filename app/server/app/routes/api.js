@@ -677,7 +677,7 @@ router.post(
       .then((submissions) => {
         const application = submissions.find((submission) => {
           return (
-            submission.CSB_Form_ID__c === mongoId &&
+            submission.Parent_Rebate_ID__c === rebateId &&
             submission.Record_Type_Name__c === "CSB Funding Request"
           );
         });
