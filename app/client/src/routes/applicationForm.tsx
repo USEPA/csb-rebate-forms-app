@@ -230,27 +230,36 @@ function ApplicationFormContent({ email }: { email: string }) {
         description: (
           <>
             <p>
-              This Application form submission requires edits, but before you
-              can make edits, the associated Payment Request form submission
-              needs to be deleted.
+              This Application form submission has been opened at the request of
+              the applicant to make edits, but before you can make edits, the
+              associated Payment Request form submission needs to be deleted. If
+              the request to make edits to your Application form submission was
+              made in error, contact the Clean School Bus Program helpline at{" "}
+              <a href="mailto:cleanschoolbus@epa.gov">cleanschoolbus@epa.gov</a>
+              .
             </p>
             <p>
-              If you’d like to view the Payment Request form submission instead,
-              please close this dialog box, and you will be re-directed to the
-              associated Payment Request form submission page.
+              If you’d like to view the Payment Request form submission before
+              deletion, please close this dialog box, and you will be
+              re-directed to the associated Payment Request form.
             </p>
             <p>
-              If you’d like to proceed with deleting the associated Payment
-              Request Form submission, please select the{" "}
+              To proceed with deleting the associated Payment Request form
+              submission, please select the{" "}
               <strong>Delete Payment Request Form Submission</strong> button
-              below, and the Payment Request Form submission will be deleted.
+              below, and the Payment Request form submission will be deleted.
+              The Application form will then be open for editing.
             </p>
-            <p>
-              <em>
-                Please note: once deleted, the submission will be removed from
-                your dashboard and cannot be recovered.
-              </em>
-            </p>
+
+            <div className="usa-alert usa-alert--error" role="alert">
+              <div className="usa-alert__body">
+                <p className="usa-alert__text">
+                  <strong>Please note:</strong> Once deleted, the Payment
+                  Request form submission will be removed from your dashboard
+                  and cannot be recovered.
+                </p>
+              </div>
+            </div>
           </>
         ),
         confirmText: "Delete Payment Request Form Submission",

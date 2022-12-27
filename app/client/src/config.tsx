@@ -69,7 +69,7 @@ export const messages = {
     "The CSB Payment Request form enrollment period is closed.",
   closeOutFormClosed: "The CSB Close-Out form enrollment period is closed.",
   paymentRequestFormWillBeDeleted:
-    "The Application form submission associated with this Payment Request form submission requires edits, so this this form has been set to read-only mode. Visit your dashboard to make edits to the associated Application form submission.",
+    "A request to edit the Application form associated with this draft or submitted Payment Request form has been made, so this this form has been set to read-only mode. Visit your dashboard to make edits to the associated Application form submission.",
 };
 
 async function fetchData(url: string, options: RequestInit) {
