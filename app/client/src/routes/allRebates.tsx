@@ -737,9 +737,7 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
       ? "text-italic"
       : "";
 
-  const statusIconClassNames = paymentRequestFundingApproved
-    ? "usa-icon text-primary" // blue
-    : "usa-icon";
+  const statusIconClassNames = "usa-icon";
 
   const statusIcon = paymentRequestNeedsEdits
     ? `${icons}#priority_high` // !
@@ -747,8 +745,6 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
     ? `${icons}#close` // ✕
     : paymentRequestFundingNotApproved
     ? `${icons}#cancel` // ✕ inside a circle
-    : paymentRequestFundingApproved
-    ? `${icons}#check_circle` // check inside a circle
     : paymentRequest.formio.state === "draft"
     ? `${icons}#more_horiz` // three horizontal dots
     : paymentRequest.formio.state === "submitted"
@@ -761,8 +757,6 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
     ? "Withdrawn"
     : paymentRequestFundingNotApproved
     ? "Funding Not Approved"
-    : paymentRequestFundingApproved
-    ? "Funding Approved"
     : paymentRequest.formio.state === "draft"
     ? "Draft"
     : paymentRequest.formio.state === "submitted"
@@ -801,7 +795,14 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
           {paymentRequestNeedsClarification ? (
             <TextWithTooltip
               text="Needs Clarification"
-              tooltip="Check email for instructions on what needs clarification"
+              tooltip="Check your email for instructions on what needs clarification"
+            />
+          ) : paymentRequestFundingApproved ? (
+            <TextWithTooltip
+              text="Funding Approved"
+              tooltip="Check your email for more details on funding"
+              iconName="check_circle" // check inside a circle
+              iconClassNames="text-primary" // blue
             />
           ) : (
             <>

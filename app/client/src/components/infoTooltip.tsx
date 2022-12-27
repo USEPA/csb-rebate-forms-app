@@ -1,11 +1,17 @@
 import { Tooltip } from "@reach/tooltip";
 import icons from "uswds/img/sprite.svg";
 
-type InfoTooltipProps = {
+export function InfoTooltip(props: {
   label: string;
-};
+  iconName?: string;
+  iconClassNames?: string;
+}) {
+  const { label, iconName, iconClassNames } = props;
 
-export function InfoTooltip({ label }: InfoTooltipProps) {
+  const svgClassNames = iconClassNames
+    ? `usa-icon margin-right-05 text-base ${iconClassNames}`
+    : `usa-icon margin-right-05 text-base`;
+
   return (
     <Tooltip
       label={label}
@@ -13,26 +19,32 @@ export function InfoTooltip({ label }: InfoTooltipProps) {
       style={{ backgroundColor: "rgba(0, 0, 0, 0.875)" }}
     >
       <svg
-        className="usa-icon margin-right-05 text-base"
+        className={svgClassNames}
         aria-hidden="true"
         focusable="false"
         role="img"
       >
-        <use href={`${icons}#info`} />
+        <use href={`${icons}#${iconName ? iconName : "info"}`} />
       </svg>
     </Tooltip>
   );
 }
 
-type TextWithTooltipProps = {
+export function TextWithTooltip(props: {
   text: string;
   tooltip: string;
-};
+  iconName?: string;
+  iconClassNames?: string;
+}) {
+  const { text, tooltip, iconName, iconClassNames } = props;
 
-export function TextWithTooltip({ text, tooltip }: TextWithTooltipProps) {
   return (
     <span className="display-inline-flex flex-align-center text-no-wrap">
-      <InfoTooltip label={tooltip} />
+      <InfoTooltip
+        label={tooltip}
+        iconName={iconName}
+        iconClassNames={iconClassNames}
+      />
       {text}
     </span>
   );
