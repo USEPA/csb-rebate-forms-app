@@ -405,10 +405,13 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
     bap: application.bap,
   });
 
+  const applicationNeedsClarification =
+    application.bap?.status === "Needs Clarification";
+
   const applicationHasBeenWithdrawn = application.bap?.status === "Withdrawn";
 
   const applicationNotSelected =
-    paymentRequest.bap?.status === "Coordinator Denied";
+    application.bap?.status === "Coordinator Denied";
 
   const applicationSelected = application.bap?.status === "Accepted";
 
@@ -503,15 +506,24 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
         <span>Application</span>
         <br />
         <span className="display-flex flex-align-center font-sans-2xs">
-          <svg
-            className={statusIconClassNames}
-            aria-hidden="true"
-            focusable="false"
-            role="img"
-          >
-            <use href={statusIcon} />
-          </svg>
-          <span className="margin-left-05">{statusText}</span>
+          {applicationNeedsClarification ? (
+            <TextWithTooltip
+              text="Needs Clarification"
+              tooltip="Check your email for instructions on what needs clarification"
+            />
+          ) : (
+            <>
+              <svg
+                className={statusIconClassNames}
+                aria-hidden="true"
+                focusable="false"
+                role="img"
+              >
+                <use href={statusIcon} />
+              </svg>
+              <span className="margin-left-05">{statusText}</span>
+            </>
+          )}
         </span>
       </td>
 
