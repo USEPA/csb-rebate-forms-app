@@ -337,12 +337,19 @@ export function useSortedRebates(rebates: { [rebateId: string]: Rebate }) {
         bap: r1.application.bap,
       });
 
+      const r1PaymentRequestNeedsEdits = submissionNeedsEdits({
+        formio: r1.paymentRequest.formio,
+        bap: r1.paymentRequest.bap,
+      });
+
       const r1ApplicationSelected = r1.application.bap?.status === "Accepted";
 
       const r1ApplicationSelectedButNoPaymentRequest =
         r1ApplicationSelected && !Boolean(r1.paymentRequest.formio);
 
-      return r1ApplicationNeedsEdits || r1ApplicationSelectedButNoPaymentRequest
+      return r1ApplicationNeedsEdits ||
+        r1PaymentRequestNeedsEdits ||
+        r1ApplicationSelectedButNoPaymentRequest
         ? -1
         : 0;
     });
@@ -405,10 +412,13 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
     bap: application.bap,
   });
 
+  const applicationNeedsClarification =
+    application.bap?.status === "Needs Clarification";
+
   const applicationHasBeenWithdrawn = application.bap?.status === "Withdrawn";
 
   const applicationNotSelected =
-    paymentRequest.bap?.status === "Coordinator Denied";
+    application.bap?.status === "Coordinator Denied";
 
   const applicationSelected = application.bap?.status === "Accepted";
 
@@ -419,6 +429,10 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
     application.formio.state === "submitted" || !applicationFormOpen
       ? "text-italic"
       : "";
+
+  const statusIconClassNames = applicationSelected
+    ? "usa-icon text-primary" // blue
+    : "usa-icon";
 
   const statusIcon = applicationNeedsEdits
     ? `${icons}#priority_high` // !
@@ -499,15 +513,24 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
         <span>Application</span>
         <br />
         <span className="display-flex flex-align-center font-sans-2xs">
-          <svg
-            className={`usa-icon ${applicationSelected ? "text-primary" : ""}`}
-            aria-hidden="true"
-            focusable="false"
-            role="img"
-          >
-            <use href={statusIcon} />
-          </svg>
-          <span className="margin-left-05">{statusText}</span>
+          {applicationNeedsClarification ? (
+            <TextWithTooltip
+              text="Needs Clarification"
+              tooltip="Check your email for instructions on what needs clarification"
+            />
+          ) : (
+            <>
+              <svg
+                className={statusIconClassNames}
+                aria-hidden="true"
+                focusable="false"
+                role="img"
+              >
+                <use href={statusIcon} />
+              </svg>
+              <span className="margin-left-05">{statusText}</span>
+            </>
+          )}
         </span>
       </td>
 
@@ -733,14 +756,14 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
       ? "text-italic"
       : "";
 
+  const statusIconClassNames = "usa-icon";
+
   const statusIcon = paymentRequestNeedsEdits
     ? `${icons}#priority_high` // !
     : paymentRequestHasBeenWithdrawn
     ? `${icons}#close` // ✕
     : paymentRequestFundingNotApproved
     ? `${icons}#cancel` // ✕ inside a circle
-    : paymentRequestFundingApproved
-    ? `${icons}#check_circle` // check inside a circle
     : paymentRequest.formio.state === "draft"
     ? `${icons}#more_horiz` // three horizontal dots
     : paymentRequest.formio.state === "submitted"
@@ -753,8 +776,6 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
     ? "Withdrawn"
     : paymentRequestFundingNotApproved
     ? "Funding Not Approved"
-    : paymentRequestFundingApproved
-    ? "Funding Approved"
     : paymentRequest.formio.state === "draft"
     ? "Draft"
     : paymentRequest.formio.state === "submitted"
@@ -793,12 +814,19 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
           {paymentRequestNeedsClarification ? (
             <TextWithTooltip
               text="Needs Clarification"
-              tooltip="Check email for instructions on what needs clarification"
+              tooltip="Check your email for instructions on what needs clarification"
+            />
+          ) : paymentRequestFundingApproved ? (
+            <TextWithTooltip
+              text="Funding Approved"
+              tooltip="Check your email for more details on funding"
+              iconName="check_circle" // check inside a circle
+              iconClassNames="text-primary" // blue
             />
           ) : (
             <>
               <svg
-                className="usa-icon"
+                className={statusIconClassNames}
                 aria-hidden="true"
                 focusable="false"
                 role="img"
