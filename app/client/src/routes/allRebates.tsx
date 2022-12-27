@@ -420,6 +420,10 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
       ? "text-italic"
       : "";
 
+  const statusIconClassNames = applicationSelected
+    ? "usa-icon text-primary" // blue
+    : "usa-icon";
+
   const statusIcon = applicationNeedsEdits
     ? `${icons}#priority_high` // !
     : applicationHasBeenWithdrawn
@@ -500,7 +504,7 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
         <br />
         <span className="display-flex flex-align-center font-sans-2xs">
           <svg
-            className={`usa-icon ${applicationSelected ? "text-primary" : ""}`}
+            className={statusIconClassNames}
             aria-hidden="true"
             focusable="false"
             role="img"
@@ -733,6 +737,10 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
       ? "text-italic"
       : "";
 
+  const statusIconClassNames = paymentRequestFundingApproved
+    ? "usa-icon text-primary" // blue
+    : "usa-icon";
+
   const statusIcon = paymentRequestNeedsEdits
     ? `${icons}#priority_high` // !
     : paymentRequestHasBeenWithdrawn
@@ -798,7 +806,7 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
           ) : (
             <>
               <svg
-                className="usa-icon"
+                className={statusIconClassNames}
                 aria-hidden="true"
                 focusable="false"
                 role="img"
