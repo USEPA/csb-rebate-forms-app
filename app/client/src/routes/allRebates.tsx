@@ -337,12 +337,19 @@ export function useSortedRebates(rebates: { [rebateId: string]: Rebate }) {
         bap: r1.application.bap,
       });
 
+      const r1PaymentRequestNeedsEdits = submissionNeedsEdits({
+        formio: r1.paymentRequest.formio,
+        bap: r1.paymentRequest.bap,
+      });
+
       const r1ApplicationSelected = r1.application.bap?.status === "Accepted";
 
       const r1ApplicationSelectedButNoPaymentRequest =
         r1ApplicationSelected && !Boolean(r1.paymentRequest.formio);
 
-      return r1ApplicationNeedsEdits || r1ApplicationSelectedButNoPaymentRequest
+      return r1ApplicationNeedsEdits ||
+        r1PaymentRequestNeedsEdits ||
+        r1ApplicationSelectedButNoPaymentRequest
         ? -1
         : 0;
     });
