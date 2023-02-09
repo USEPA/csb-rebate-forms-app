@@ -223,6 +223,8 @@ async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
     return item.Parent_Rebate_ID__c;
   });
 
+  if (parentRebateIds.length === 0) return [];
+
   // `SELECT
   //   UEI_EFTI_Combo_Key__c,
   //   CSB_Form_ID__c,
