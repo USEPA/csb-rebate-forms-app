@@ -12,6 +12,7 @@ import { FormioFormProvider } from "contexts/formioForm";
 import { PageMessageProvider } from "contexts/pageMessage";
 import { ErrorBoundary } from "components/errorBoundary";
 import { App } from "components/app";
+import "./tailwind-preflight.css";
 import "./styles.css";
 
 const container = document.getElementById("root") as HTMLElement;
