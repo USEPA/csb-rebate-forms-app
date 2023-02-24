@@ -9,7 +9,7 @@ The CSB Rebate Forms Application allows eligible entities (e.g., school district
 
 
 ## Documentation
-- [How to contribute to the project](/docs/CONTRIBUTING.md), learn how to help improve the application. 
+- [How to contribute to the project](/docs/CONTRIBUTING.md) - learn how to help improve the application. 
 
 ## Disclaimer
 
