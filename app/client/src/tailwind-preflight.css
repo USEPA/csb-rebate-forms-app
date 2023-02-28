@@ -167,7 +167,6 @@ Prevent `sub` and `sup` elements from affecting the line height in all browsers.
   font-size: 100%; /* 1 */
   font-weight: inherit; /* 1 */
   line-height: inherit; /* 1 */
-  color: inherit; /* 1 */
   margin: 0; /* 2 */
   padding: 0; /* 3 */
 }
