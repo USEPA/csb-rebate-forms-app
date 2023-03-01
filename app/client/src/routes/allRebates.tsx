@@ -1,11 +1,6 @@
 import { Fragment, useEffect, useState } from "react";
 import type { LinkProps } from "react-router-dom";
-import {
-  Link,
-  useLocation,
-  useNavigate,
-  useSearchParams,
-} from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages, getData, postData } from "../config";
@@ -30,10 +25,7 @@ import {
   usePageMessageState,
   usePageMessageDispatch,
 } from "contexts/pageMessage";
-
-type LocationState = {
-  submissionSuccessMessage: string;
-};
+import { useNotificationsDispatch } from "contexts/notifications";
 
 type FormioSubmission =
   | FormioApplicationSubmission
@@ -853,7 +845,6 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
 }
 
 export function AllRebates() {
-  const location = useLocation();
   const [searchParams] = useSearchParams();
 
   const { content } = useContentState();
@@ -868,16 +859,6 @@ export function AllRebates() {
   useEffect(() => {
     pageMessageDispatch({ type: "RESET_MESSAGE" });
   }, [pageMessageDispatch]);
-
-  const submissionSuccessMessage =
-    (location.state as LocationState)?.submissionSuccessMessage || null;
-
-  if (submissionSuccessMessage) {
-    pageMessageDispatch({
-      type: "DISPLAY_MESSAGE",
-      payload: { type: "success", text: submissionSuccessMessage },
-    });
-  }
 
   useFetchedFormSubmissions();
 

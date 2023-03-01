@@ -479,9 +479,7 @@ function ApplicationFormContent({ email }: { email: string }) {
                     },
                   });
 
-                  // TODO: determine if we should continue to display USWDS message on the dashboard, or just in the notification message
-                  const submissionSuccessMessage = `Application Form ${mongoId} submitted successfully.`;
-                  navigate("/", { state: { submissionSuccessMessage } });
+                  navigate("/");
                 }
 
                 if (onSubmitSubmission.state === "draft") {
