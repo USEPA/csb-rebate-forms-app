@@ -9,7 +9,6 @@ import { CsbProvider } from "contexts/csb";
 import { BapProvider } from "contexts/bap";
 import { FormioSubmissionsProvider } from "contexts/formioSubmissions";
 import { FormioFormProvider } from "contexts/formioForm";
-import { PageMessageProvider } from "contexts/pageMessage";
 import { NotificationsProvider } from "contexts/notifications";
 import { ErrorBoundary } from "components/errorBoundary";
 import { App } from "components/app";
@@ -28,11 +27,9 @@ render(
               <BapProvider>
                 <FormioSubmissionsProvider>
                   <FormioFormProvider>
-                    <PageMessageProvider>
-                      <NotificationsProvider>
-                        <App />
-                      </NotificationsProvider>
-                    </PageMessageProvider>
+                    <NotificationsProvider>
+                      <App />
+                    </NotificationsProvider>
                   </FormioFormProvider>
                 </FormioSubmissionsProvider>
               </BapProvider>
