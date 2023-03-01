@@ -14,6 +14,7 @@ import {
 } from "../config";
 import { useHelpdeskAccess } from "components/app";
 import { Loading } from "components/loading";
+import { Notifications } from "components/notifications";
 import { Action, useDialogDispatch } from "contexts/dialog";
 import { useUserState } from "contexts/user";
 import { useCsbState, useCsbDispatch } from "contexts/csb";
@@ -282,6 +283,8 @@ export function Dashboard() {
       </div>
 
       <Outlet />
+
+      <Notifications />
     </div>
   );
 }

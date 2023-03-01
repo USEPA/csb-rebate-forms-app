@@ -1,11 +1,6 @@
 import { Fragment, useEffect, useState } from "react";
 import type { LinkProps } from "react-router-dom";
-import {
-  Link,
-  useLocation,
-  useNavigate,
-  useSearchParams,
-} from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages, getData, postData } from "../config";
@@ -26,14 +21,7 @@ import {
   useFormioSubmissionsState,
   useFormioSubmissionsDispatch,
 } from "contexts/formioSubmissions";
-import {
-  usePageMessageState,
-  usePageMessageDispatch,
-} from "contexts/pageMessage";
-
-type LocationState = {
-  submissionSuccessMessage: string;
-};
+import { useNotificationsDispatch } from "contexts/notifications";
 
 type FormioSubmission =
   | FormioApplicationSubmission
@@ -355,12 +343,6 @@ export function useSortedRebates(rebates: { [rebateId: string]: Rebate }) {
     });
 }
 
-function PageMessage() {
-  const { displayed, type, text } = usePageMessageState();
-  if (!displayed) return null;
-  return <Message type={type} text={text} />;
-}
-
 function ButtonLink(props: { type: "edit" | "view"; to: LinkProps["to"] }) {
   const icon = props.type === "edit" ? "edit" : "visibility";
   const text = props.type === "edit" ? "Edit" : "View";
@@ -634,7 +616,7 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
   const { csbData } = useCsbState();
   const { epaUserData } = useUserState();
   const { samEntities } = useBapState();
-  const pageMessageDispatch = usePageMessageDispatch();
+  const notificationsDispatch = useNotificationsDispatch();
 
   // NOTE: used to display a loading indicator inside the new Payment Request button
   const [postDataResponsePending, setPostDataResponsePending] = useState(false);
@@ -673,7 +655,6 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
               if (!application.bap?.rebateId || !entity) return;
 
               setPostDataResponsePending(true);
-              pageMessageDispatch({ type: "RESET_MESSAGE" });
 
               const { title, name } = getUserInfo(email, entity);
 
@@ -694,10 +675,22 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
                 })
                 .catch((err) => {
                   setPostDataResponsePending(false);
-                  const text = `Error creating Payment Request ${application.bap?.rebateId}. Please try again.`;
-                  pageMessageDispatch({
-                    type: "DISPLAY_MESSAGE",
-                    payload: { type: "error", text },
+                  notificationsDispatch({
+                    type: "DISPLAY_NOTIFICATION",
+                    payload: {
+                      type: "error",
+                      body: (
+                        <>
+                          <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                            Error creating Payment Request{" "}
+                            <em>{application.bap?.rebateId}</em>.
+                          </p>
+                          <p className="tw-mt-1 tw-text-sm tw-text-gray-500">
+                            Please try again.
+                          </p>
+                        </>
+                      ),
+                    },
                   });
                 });
             }}
@@ -853,7 +846,6 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
 }
 
 export function AllRebates() {
-  const location = useLocation();
   const [searchParams] = useSearchParams();
 
   const { content } = useContentState();
@@ -862,23 +854,6 @@ export function AllRebates() {
     applicationSubmissions: formioApplicationSubmissions,
     paymentRequestSubmissions: formioPaymentRequestSubmissions,
   } = useFormioSubmissionsState();
-  const pageMessageDispatch = usePageMessageDispatch();
-
-  // reset page message state since it's used across pages
-  useEffect(() => {
-    pageMessageDispatch({ type: "RESET_MESSAGE" });
-  }, [pageMessageDispatch]);
-
-  const submissionSuccessMessage =
-    (location.state as LocationState)?.submissionSuccessMessage || null;
-
-  if (submissionSuccessMessage) {
-    pageMessageDispatch({
-      type: "DISPLAY_MESSAGE",
-      payload: { type: "success", text: submissionSuccessMessage },
-    });
-  }
-
   useFetchedFormSubmissions();
 
   const combinedRebates = useCombinedSubmissions();
@@ -924,8 +899,6 @@ export function AllRebates() {
               children={content.data?.allRebatesIntro || ""}
             />
           )}
-
-          <PageMessage />
 
           <div className="usa-table-container--scrollable" tabIndex={0}>
             <table
@@ -1015,8 +988,6 @@ export function AllRebates() {
               </tbody>
             </table>
           </div>
-
-          <PageMessage />
         </>
       )}
 

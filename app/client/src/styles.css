@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* --- EPA/USWDS --- */
 .usa-site-alert .usa-alert {
   max-width: 1400px;

@@ -13,15 +13,18 @@ type Props = {
 type State = {
   displayed: boolean;
   type: "info" | "success" | "warning" | "error";
-  text: string;
+  body: ReactNode;
 };
 
 type Action =
   | {
-      type: "DISPLAY_MESSAGE";
-      payload: { type: "info" | "success" | "warning" | "error"; text: string };
+      type: "DISPLAY_NOTIFICATION";
+      payload: {
+        type: "info" | "success" | "warning" | "error";
+        body: ReactNode;
+      };
     }
-  | { type: "RESET_MESSAGE" };
+  | { type: "DISMISS_NOTIFICATION" };
 
 const StateContext = createContext<State | undefined>(undefined);
 const DispatchContext = createContext<Dispatch<Action> | undefined>(undefined);
@@ -29,25 +32,26 @@ const DispatchContext = createContext<Dispatch<Action> | undefined>(undefined);
 const initialState: State = {
   displayed: false,
   type: "info",
-  text: "",
+  body: null,
 };
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
-    case "DISPLAY_MESSAGE": {
-      const { type, text } = action.payload;
+    case "DISPLAY_NOTIFICATION": {
+      const { type, body } = action.payload;
       return {
         displayed: true,
         type,
-        text,
+        body,
       };
     }
 
-    case "RESET_MESSAGE": {
+    case "DISMISS_NOTIFICATION": {
+      const { type, body } = state;
       return {
         displayed: false,
-        type: "info",
-        text: "",
+        type,
+        body,
       };
     }
 
@@ -58,7 +62,7 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-export function PageMessageProvider({ children }: Props) {
+export function NotificationsProvider({ children }: Props) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   return (
@@ -71,12 +75,12 @@ export function PageMessageProvider({ children }: Props) {
 }
 
 /**
- * Returns state stored in `PageMessageProvider` context component.
+ * Returns state stored in `NotificationsProvider` context component.
  */
-export function usePageMessageState() {
+export function useNotificationsState() {
   const context = useContext(StateContext);
   if (context === undefined) {
-    const message = `usePageMessageState must be called within a PageMessageProvider`;
+    const message = `useNotificationsState must be called within a NotificationsProvider`;
     throw new Error(message);
   }
   return context;
@@ -84,12 +88,12 @@ export function usePageMessageState() {
 
 /**
  * Returns `dispatch` method for dispatching actions to update state stored in
- * `PageMessageProvider` context component.
+ * `NotificationsProvider` context component.
  */
-export function usePageMessageDispatch() {
+export function useNotificationsDispatch() {
   const context = useContext(DispatchContext);
   if (context === undefined) {
-    const message = `usePageMessageDispatch must be used within a PageMessageProvider`;
+    const message = `useNotificationsDispatch must be used within a NotificationsProvider`;
     throw new Error(message);
   }
   return context;
