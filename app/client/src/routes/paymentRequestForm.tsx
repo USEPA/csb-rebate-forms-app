@@ -26,16 +26,7 @@ import {
   useFormioFormState,
   useFormioFormDispatch,
 } from "contexts/formioForm";
-import {
-  usePageMessageState,
-  usePageMessageDispatch,
-} from "contexts/pageMessage";
-
-function PageMessage() {
-  const { displayed, type, text } = usePageMessageState();
-  if (!displayed) return null;
-  return <Message type={type} text={text} />;
-}
+import { useNotificationsDispatch } from "contexts/notifications";
 
 export function PaymentRequestForm() {
   const { epaUserData } = useUserState();
@@ -68,17 +59,12 @@ function PaymentRequestFormContent({ email }: { email: string }) {
   } = useFormioSubmissionsState();
   const { formio } = useFormioFormState();
   const formioFormDispatch = useFormioFormDispatch();
-  const pageMessageDispatch = usePageMessageDispatch();
+  const notificationsDispatch = useNotificationsDispatch();
 
   // reset formio form state since it's used across pages
   useEffect(() => {
     formioFormDispatch({ type: "RESET_FORMIO_DATA" });
   }, [formioFormDispatch]);
-
-  // reset page message state since it's used across pages
-  useEffect(() => {
-    pageMessageDispatch({ type: "RESET_MESSAGE" });
-  }, [pageMessageDispatch]);
 
   useFetchedFormSubmissions();
 
@@ -160,12 +146,8 @@ function PaymentRequestFormContent({ email }: { email: string }) {
     !formSchema ||
     !submission
   ) {
-    return (
-      <Message
-        type="error"
-        text="The requested submission does not exist, or you do not have access. Please contact support if you believe this is a mistake."
-      />
-    );
+    const text = `The requested submission does not exist, or you do not have access. Please contact support if you believe this is a mistake.`;
+    return <Message type="error" text={text} />;
   }
 
   if (
@@ -214,19 +196,6 @@ function PaymentRequestFormContent({ email }: { email: string }) {
         bap: rebate.paymentRequest.bap,
       });
 
-  // NOTE: If a corresponding Application form submission needs edits, a warning
-  // message is displayed that this Payment Request form submission will be
-  // deleted, and the form will be rendered read-only.
-  if (applicationNeedsEdits) {
-    pageMessageDispatch({
-      type: "DISPLAY_MESSAGE",
-      payload: {
-        type: "warning",
-        text: messages.paymentRequestFormWillBeDeleted,
-      },
-    });
-  }
-
   const formIsReadOnly =
     applicationNeedsEdits ||
     ((submission.state === "submitted" || !paymentRequestFormOpen) &&
@@ -269,7 +238,12 @@ function PaymentRequestFormContent({ email }: { email: string }) {
         />
       )}
 
-      <PageMessage />
+      {applicationNeedsEdits && (
+        <Message
+          type="warning"
+          text={messages.paymentRequestFormWillBeDeleted}
+        />
+      )}
 
       <ul className="usa-icon-list">
         <li className="usa-icon-list__item">
@@ -324,16 +298,30 @@ function PaymentRequestFormContent({ email }: { email: string }) {
             const data = { ...onSubmitSubmission.data };
 
             if (onSubmitSubmission.state === "submitted") {
-              pageMessageDispatch({
-                type: "DISPLAY_MESSAGE",
-                payload: { type: "info", text: "Submitting form..." },
+              notificationsDispatch({
+                type: "DISPLAY_NOTIFICATION",
+                payload: {
+                  type: "info",
+                  body: (
+                    <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                      Submitting...
+                    </p>
+                  ),
+                },
               });
             }
 
             if (onSubmitSubmission.state === "draft") {
-              pageMessageDispatch({
-                type: "DISPLAY_MESSAGE",
-                payload: { type: "info", text: "Saving form..." },
+              notificationsDispatch({
+                type: "DISPLAY_NOTIFICATION",
+                payload: {
+                  type: "info",
+                  body: (
+                    <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                      Saving draft...
+                    </p>
+                  ),
+                },
               });
             }
 
@@ -355,32 +343,56 @@ function PaymentRequestFormContent({ email }: { email: string }) {
                 setPendingSubmissionData({});
 
                 if (onSubmitSubmission.state === "submitted") {
-                  const submissionSuccessMessage = `Payment Request Form ${rebateId} successfully submitted.`;
+                  notificationsDispatch({
+                    type: "DISPLAY_NOTIFICATION",
+                    payload: {
+                      type: "success",
+                      body: (
+                        <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                          Payment Request Form <em>{rebateId}</em> submitted
+                          successfully.
+                        </p>
+                      ),
+                    },
+                  });
+
+                  // TODO: determine if we should continue to display USWDS message on the dashboard, or just in the notification message
+                  const submissionSuccessMessage = `Payment Request Form ${rebateId} submitted successfully.`;
                   navigate("/", { state: { submissionSuccessMessage } });
                 }
 
                 if (onSubmitSubmission.state === "draft") {
-                  pageMessageDispatch({
-                    type: "DISPLAY_MESSAGE",
+                  notificationsDispatch({
+                    type: "DISPLAY_NOTIFICATION",
                     payload: {
                       type: "success",
-                      text: "Draft successfully saved.",
+                      body: (
+                        <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                          Draft saved successfully.
+                        </p>
+                      ),
                     },
                   });
 
                   setTimeout(() => {
-                    pageMessageDispatch({ type: "RESET_MESSAGE" });
+                    notificationsDispatch({ type: "DISMISS_NOTIFICATION" });
                   }, 5000);
                 }
               })
               .catch((err) => {
                 formIsBeingSubmitted.current = false;
 
-                pageMessageDispatch({
-                  type: "DISPLAY_MESSAGE",
+                notificationsDispatch({
+                  type: "DISPLAY_NOTIFICATION",
                   payload: {
                     type: "error",
-                    text: "Error submitting Payment Request form.",
+                    body: (
+                      <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                        {onSubmitSubmission.state === "submitted"
+                          ? "Error submitting Payment Request form."
+                          : "Error saving draft."}
+                      </p>
+                    ),
                   },
                 });
               });
@@ -408,9 +420,16 @@ function PaymentRequestFormContent({ email }: { email: string }) {
             delete storedDataToCheck.hidden_current_user_name;
             if (isEqual(dataToCheck, storedDataToCheck)) return;
 
-            pageMessageDispatch({
-              type: "DISPLAY_MESSAGE",
-              payload: { type: "info", text: "Saving form..." },
+            notificationsDispatch({
+              type: "DISPLAY_NOTIFICATION",
+              payload: {
+                type: "info",
+                body: (
+                  <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                    Saving draft...
+                  </p>
+                ),
+              },
             });
 
             setPendingSubmissionData(data);
@@ -434,24 +453,32 @@ function PaymentRequestFormContent({ email }: { email: string }) {
 
                 setPendingSubmissionData({});
 
-                pageMessageDispatch({
-                  type: "DISPLAY_MESSAGE",
+                notificationsDispatch({
+                  type: "DISPLAY_NOTIFICATION",
                   payload: {
                     type: "success",
-                    text: "Draft successfully saved.",
+                    body: (
+                      <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                        Draft saved successfully.
+                      </p>
+                    ),
                   },
                 });
 
                 setTimeout(() => {
-                  pageMessageDispatch({ type: "RESET_MESSAGE" });
+                  notificationsDispatch({ type: "DISMISS_NOTIFICATION" });
                 }, 5000);
               })
               .catch((err) => {
-                pageMessageDispatch({
-                  type: "DISPLAY_MESSAGE",
+                notificationsDispatch({
+                  type: "DISPLAY_NOTIFICATION",
                   payload: {
                     type: "error",
-                    text: "Error saving draft Payment Request form.",
+                    body: (
+                      <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                        Error saving draft.
+                      </p>
+                    ),
                   },
                 });
               });
@@ -459,7 +486,12 @@ function PaymentRequestFormContent({ email }: { email: string }) {
         />
       </div>
 
-      <PageMessage />
+      {applicationNeedsEdits && (
+        <Message
+          type="warning"
+          text={messages.paymentRequestFormWillBeDeleted}
+        />
+      )}
     </div>
   );
 }

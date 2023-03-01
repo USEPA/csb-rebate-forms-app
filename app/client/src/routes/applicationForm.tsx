@@ -151,12 +151,8 @@ function ApplicationFormContent({ email }: { email: string }) {
     !formSchema ||
     !submission
   ) {
-    return (
-      <Message
-        type="error"
-        text="The requested submission does not exist, or you do not have access. Please contact support if you believe this is a mistake."
-      />
-    );
+    const text = `The requested submission does not exist, or you do not have access. Please contact support if you believe this is a mistake.`;
+    return <Message type="error" text={text} />;
   }
 
   if (
@@ -260,7 +256,7 @@ function ApplicationFormContent({ email }: { email: string }) {
                 body: (
                   <>
                     <p className="tw-text-sm tw-font-medium tw-text-gray-900">
-                      Error deleting Payment Request <em>{rebate.rebateId}</em>
+                      Error deleting Payment Request <em>{rebate.rebateId}</em>.
                     </p>
                     <p className="tw-mt-1 tw-text-sm tw-text-gray-500">
                       Please notify the helpdesk that a problem exists
@@ -309,7 +305,7 @@ function ApplicationFormContent({ email }: { email: string }) {
                     <>
                       <p className="tw-text-sm tw-font-medium tw-text-gray-900">
                         Error deleting Payment Request{" "}
-                        <em>{rebate.rebateId}</em>
+                        <em>{rebate.rebateId}</em>.
                       </p>
                       <p className="tw-mt-1 tw-text-sm tw-text-gray-500">
                         Please reload the page to attempt the deletion again, or
@@ -434,7 +430,7 @@ function ApplicationFormContent({ email }: { email: string }) {
                   type: "info",
                   body: (
                     <p className="tw-text-sm tw-font-medium tw-text-gray-900">
-                      Submitting form...
+                      Submitting...
                     </p>
                   ),
                 },
@@ -448,7 +444,7 @@ function ApplicationFormContent({ email }: { email: string }) {
                   type: "info",
                   body: (
                     <p className="tw-text-sm tw-font-medium tw-text-gray-900">
-                      Saving form...
+                      Saving draft...
                     </p>
                   ),
                 },
@@ -476,15 +472,15 @@ function ApplicationFormContent({ email }: { email: string }) {
                       type: "success",
                       body: (
                         <p className="tw-text-sm tw-font-medium tw-text-gray-900">
-                          Application Form <em>{mongoId}</em> successfully
-                          submitted.
+                          Application Form <em>{mongoId}</em> submitted
+                          successfully.
                         </p>
                       ),
                     },
                   });
 
                   // TODO: determine if we should continue to display USWDS message on the dashboard, or just in the notification message
-                  const submissionSuccessMessage = `Application Form ${mongoId} successfully submitted.`;
+                  const submissionSuccessMessage = `Application Form ${mongoId} submitted successfully.`;
                   navigate("/", { state: { submissionSuccessMessage } });
                 }
 
@@ -495,7 +491,7 @@ function ApplicationFormContent({ email }: { email: string }) {
                       type: "success",
                       body: (
                         <p className="tw-text-sm tw-font-medium tw-text-gray-900">
-                          Draft successfully saved.
+                          Draft saved successfully.
                         </p>
                       ),
                     },
@@ -515,7 +511,9 @@ function ApplicationFormContent({ email }: { email: string }) {
                     type: "error",
                     body: (
                       <p className="tw-text-sm tw-font-medium tw-text-gray-900">
-                        Error submitting Application form.
+                        {onSubmitSubmission.state === "submitted"
+                          ? "Error submitting Application form."
+                          : "Error saving draft."}
                       </p>
                     ),
                   },
@@ -559,7 +557,7 @@ function ApplicationFormContent({ email }: { email: string }) {
                 type: "info",
                 body: (
                   <p className="tw-text-sm tw-font-medium tw-text-gray-900">
-                    Saving form...
+                    Saving draft...
                   </p>
                 ),
               },
@@ -585,7 +583,7 @@ function ApplicationFormContent({ email }: { email: string }) {
                     type: "success",
                     body: (
                       <p className="tw-text-sm tw-font-medium tw-text-gray-900">
-                        Draft successfully saved.
+                        Draft saved successfully.
                       </p>
                     ),
                   },
@@ -602,7 +600,7 @@ function ApplicationFormContent({ email }: { email: string }) {
                     type: "error",
                     body: (
                       <p className="tw-text-sm tw-font-medium tw-text-gray-900">
-                        Error saving draft Application form.
+                        Error saving draft.
                       </p>
                     ),
                   },
