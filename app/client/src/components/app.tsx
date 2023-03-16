@@ -33,8 +33,6 @@ import { useContentState, useContentDispatch } from "contexts/content";
 import { useDialogDispatch, useDialogState } from "contexts/dialog";
 import { useUserState, useUserDispatch } from "contexts/user";
 
-type FetchStatus = "idle" | "pending" | "success" | "failure";
-
 /** Custom hook to fetch static content */
 function useFetchedContent() {
   const contentDispatch = useContentDispatch();
@@ -204,16 +202,28 @@ function useInactivityDialog(callback: () => void) {
   }, [dialogShown, heading, logoutTimer, dialogDispatch]);
 }
 
-/** Custom hook to check if user should have access to helpdesk pages */
+/** Custom hook to check if user should have access to the helpdesk page */
 export function useHelpdeskAccess() {
-  const [helpdeskAccess, setHelpdeskAccess] = useState<FetchStatus>("idle");
+  const { epaUserData } = useUserState();
+
+  const [helpdeskAccess, setHelpdeskAccess] =
+    useState<typeof epaUserData["status"]>("idle");
 
   useEffect(() => {
-    setHelpdeskAccess("pending");
-    getData(`${serverUrl}/api/helpdesk-access`)
-      .then((res) => setHelpdeskAccess("success"))
-      .catch((err) => setHelpdeskAccess("failure"));
-  }, []);
+    if (epaUserData.status === "pending") {
+      setHelpdeskAccess("pending");
+    }
+
+    if (epaUserData.status === "success") {
+      const userRoles = epaUserData.data.memberof.split(",");
+
+      setHelpdeskAccess(
+        userRoles.includes("csb_admin") || userRoles.includes("csb_helpdesk")
+          ? "success"
+          : "failure"
+      );
+    }
+  }, [epaUserData]);
 
   return helpdeskAccess;
 }

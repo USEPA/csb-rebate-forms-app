@@ -13,7 +13,6 @@ const {
 } = require("../config/formio");
 const {
   ensureAuthenticated,
-  ensureHelpdesk,
   storeBapComboKeys,
   verifyMongoObjectId,
 } = require("../middleware");
@@ -146,11 +145,6 @@ router.get("/content", (req, res) => {
 });
 
 router.use(ensureAuthenticated);
-
-// --- verification used to check if user has access to the /helpdesk route (using ensureHelpdesk middleware)
-router.get("/helpdesk-access", ensureHelpdesk, (req, res) => {
-  res.sendStatus(200);
-});
 
 // --- get CSB app specific data (open enrollment status, etc.)
 router.get("/csb-data", (req, res) => {
