@@ -1,12 +1,6 @@
 import ReactMarkdown, { Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-type Props = {
-  className?: string;
-  children: string;
-  components?: Components;
-};
-
 // NOTE: This is just a wrapper around the <ReactMarkdown /> component to
 // automatically use the GitHub Flavored Markdown (GFM) remark plugin to support
 // GFM in the static content files, and set some default attributes for
@@ -14,7 +8,13 @@ type Props = {
 // to determine if an anchor link should open in a new tab – see note below).
 // Any additional elements beyond anchor links can be passed when to explicitly
 // set how those components should be rendered.
-export function MarkdownContent({ className, children, components }: Props) {
+export function MarkdownContent(props: {
+  className?: string;
+  children: string;
+  components?: Components;
+}) {
+  const { className, children, components } = props;
+
   return (
     <ReactMarkdown
       className={className || ""}

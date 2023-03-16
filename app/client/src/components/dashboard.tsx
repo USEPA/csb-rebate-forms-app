@@ -68,13 +68,13 @@ function useFetchedSamData() {
   }, [bapDispatch]);
 }
 
-type IconTextProps = {
+function IconText(props: {
   order: "icon-text" | "text-icon";
   icon: string;
   text: string;
-};
+}) {
+  const { order, icon, text } = props;
 
-function IconText({ order, icon, text }: IconTextProps) {
   const Icon = (
     <svg
       key="icon"
