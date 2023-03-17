@@ -121,25 +121,25 @@ export function NewApplicationForm() {
 
                 <div className="tw-m-auto tw-max-w-3xl tw-p-4 sm:tw-p-8">
                   {!csbData.data.submissionPeriodOpen.application ? (
-                    <div className="margin-top-2">
+                    <div className="-tw-mb-4">
                       <Message
                         type="info"
                         text={messages.applicationFormClosed}
                       />
                     </div>
                   ) : activeSamEntities.length <= 0 ? (
-                    <div className="margin-top-2">
+                    <div className="-tw-mb-4">
                       <Message type="info" text={messages.bapNoSamResults} />
                     </div>
                   ) : (
                     <>
                       {content.status === "success" && (
                         <MarkdownContent
-                          className="margin-top-2 text-center"
+                          className="tw-mt-4 tw-text-center"
                           children={content.data?.newApplicationDialog || ""}
                           components={{
                             h2: (props) => (
-                              <h2 className="tw-text-2xl sm:tw-text-3xl">
+                              <h2 className="tw-text-xl sm:tw-text-2xl md:tw-text-3xl">
                                 {props.children}
                               </h2>
                             ),
