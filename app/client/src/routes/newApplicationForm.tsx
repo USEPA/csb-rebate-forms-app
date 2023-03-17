@@ -107,11 +107,14 @@ export function NewApplicationForm() {
                   <div className="tw-absolute tw-top-0 tw-right-0 tw-pt-4 tw-pr-4">
                     <button
                       type="button"
-                      className="tw-rounded-md tw-bg-white tw-text-gray-400 tw-transition-none hover:tw-text-gray-700"
+                      className="tw-rounded-md tw-bg-white tw-text-gray-400 tw-transition-none hover:tw-text-gray-700 focus:tw-text-gray-700"
                       onClick={(ev) => navigate("/")}
                     >
                       <span className="tw-sr-only">Close</span>
-                      <XMarkIcon className="tw-h-6 tw-w-6" aria-hidden="true" />
+                      <XMarkIcon
+                        className="tw-h-6 tw-w-6 tw-transition-none"
+                        aria-hidden="true"
+                      />
                     </button>
                   </div>
                 </div>
