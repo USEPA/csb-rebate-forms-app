@@ -8,7 +8,6 @@ import {
   useLocation,
 } from "react-router-dom";
 import { useIdleTimer } from "react-idle-timer";
-import "@reach/dialog/styles.css";
 import "@reach/tooltip/styles.css";
 import "uswds/css/uswds.css";
 import "uswds/js/uswds.js";
