@@ -31,7 +31,7 @@
   display: none;
 }
 
-/* --- React UI --- */
-[data-reach-tooltip] {
-  z-index: 100000;
+/* --- Radix UI --- */
+[data-radix-popper-content-wrapper] {
+  transition-property: none;
 }
