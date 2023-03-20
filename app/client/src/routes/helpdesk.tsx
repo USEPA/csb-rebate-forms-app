@@ -9,7 +9,7 @@ import { useHelpdeskAccess } from "components/app";
 import { Loading } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
-import { TextWithTooltip } from "components/infoTooltip";
+import { TextWithTooltip } from "components/tooltip";
 import { useContentState } from "contexts/content";
 import { useDialogDispatch } from "contexts/dialog";
 import { useUserState } from "contexts/user";

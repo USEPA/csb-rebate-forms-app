@@ -31,31 +31,7 @@
   display: none;
 }
 
-/* --- React UI --- */
-[data-reach-dialog-overlay] {
-  /* match USWDS modal */
-  z-index: 99999;
-  padding: 1.5rem;
-  text-align: center;
-  background: rgba(0, 0, 0, 0.7);
-}
-
-[data-reach-dialog-overlay]::before {
-  /* match USWDS modal */
-  content: "";
-  display: inline-block;
-  height: 100%;
-  vertical-align: middle;
-}
-
-[data-reach-dialog-content] {
-  /* match USWDS modal */
-  overflow-x: auto;
-  margin: 1.25rem auto;
-  padding: 0;
-  width: 100%;
-}
-
-[data-reach-tooltip] {
-  z-index: 100000;
+/* --- Radix UI --- */
+[data-radix-popper-content-wrapper] {
+  transition-property: none;
 }

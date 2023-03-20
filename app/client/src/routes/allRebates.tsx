@@ -8,7 +8,7 @@ import { getUserInfo } from "../utilities";
 import { Loading, LoadingButtonIcon } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
-import { TextWithTooltip } from "components/infoTooltip";
+import { TextWithTooltip } from "components/tooltip";
 import { useContentState } from "contexts/content";
 import { useUserState } from "contexts/user";
 import { useCsbState } from "contexts/csb";

@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { DialogOverlay, DialogContent } from "@reach/dialog";
+import { Dialog, Transition } from "@headlessui/react";
+import { XMarkIcon } from "@heroicons/react/24/outline";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages, postData } from "../config";
@@ -8,7 +9,7 @@ import { getUserInfo } from "../utilities";
 import { Loading } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
-import { TextWithTooltip } from "components/infoTooltip";
+import { TextWithTooltip } from "components/tooltip";
 import { useContentState } from "contexts/content";
 import { useUserState } from "contexts/user";
 import { useCsbState } from "contexts/csb";
@@ -72,161 +73,185 @@ export function NewApplicationForm() {
   });
 
   return (
-    <div className="margin-top-2">
-      <DialogOverlay isOpen={true} onDismiss={(ev) => navigate("/")}>
-        <DialogContent
-          className="usa-modal usa-modal--lg"
-          aria-labelledby="csb-new-application-modal-heading"
-          aria-describedby="csb-new-application-modal-description"
+    <Transition.Root show={true} as={Fragment}>
+      <Dialog
+        as="div"
+        className="tw-relative tw-z-10"
+        onClose={(ev) => navigate("/")}
+      >
+        <Transition.Child
+          as={Fragment}
+          enter="tw-duration-300 tw-ease-out"
+          enterFrom="tw-opacity-0"
+          enterTo="tw-opacity-100"
+          leave="tw-duration-200 tw-ease-in"
+          leaveFrom="tw-opacity-100"
+          leaveTo="tw-opacity-0"
         >
-          <div className="usa-modal__content">
-            <div className="usa-modal__main">
-              {!csbData.data.submissionPeriodOpen.application ? (
-                <Message type="info" text={messages.applicationFormClosed} />
-              ) : activeSamEntities.length <= 0 ? (
-                <Message type="info" text={messages.bapNoSamResults} />
-              ) : (
-                <>
-                  {content.status === "success" && (
-                    <MarkdownContent
-                      className="margin-top-4"
-                      children={content.data?.newApplicationDialog || ""}
-                      components={{
-                        h2: (props) => (
-                          <h2
-                            id="csb-new-application-modal-heading"
-                            className="usa-modal__heading text-center"
-                          >
-                            {props.children}
-                          </h2>
-                        ),
-                        p: (props) => (
-                          <p
-                            id="csb-new-application-modal-description"
-                            className="text-center"
-                          >
-                            {props.children}
-                          </p>
-                        ),
-                      }}
-                    />
-                  )}
+          <div className="tw-fixed tw-inset-0 tw-bg-black/70 tw-transition-colors" />
+        </Transition.Child>
 
-                  {message.displayed && (
-                    <Message type={message.type} text={message.text} />
-                  )}
-
-                  <div className="usa-table-container--scrollable" tabIndex={0}>
-                    <table
-                      aria-label="SAM.gov Entities"
-                      className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full"
+        <div className="tw-fixed tw-inset-0 tw-z-10 tw-overflow-y-auto">
+          <div className="tw-flex tw-min-h-full tw-items-end tw-justify-center tw-p-4 sm:tw-items-center">
+            <Transition.Child
+              as={Fragment}
+              enter="tw-duration-300 tw-ease-out"
+              enterFrom="tw-translate-y-4 tw-opacity-0 sm:tw-translate-y-0"
+              enterTo="tw-translate-y-0 tw-opacity-100"
+              leave="tw-duration-200 tw-ease-in"
+              leaveFrom="tw-translate-y-0 tw-opacity-100"
+              leaveTo="tw-translate-y-4 tw-opacity-0 sm:tw-translate-y-0"
+            >
+              <Dialog.Panel className="tw-relative tw-transform tw-overflow-hidden tw-rounded-lg tw-bg-white tw-p-4 tw-shadow-xl tw-transition-all sm:tw-w-full sm:tw-max-w-4xl sm:tw-p-6">
+                <div className="twpf">
+                  <div className="tw-absolute tw-top-0 tw-right-0 tw-pt-4 tw-pr-4">
+                    <button
+                      type="button"
+                      className="tw-rounded-md tw-bg-white tw-text-gray-400 tw-transition-none hover:tw-text-gray-700 focus:tw-text-gray-700"
+                      onClick={(ev) => navigate("/")}
                     >
-                      <thead>
-                        <tr className="font-sans-2xs text-no-wrap">
-                          <th scope="col">
-                            <span className="usa-sr-only">Create</span>
-                          </th>
-                          <th scope="col">
-                            <TextWithTooltip
-                              text="UEI"
-                              tooltip="Unique Entity ID from SAM.gov"
-                            />
-                          </th>
-                          <th scope="col">
-                            <TextWithTooltip
-                              text="EFT Indicator"
-                              tooltip="Electronic Funds Transfer Indicator listing the associated bank account from SAM.gov"
-                            />
-                          </th>
-                          <th scope="col">
-                            <TextWithTooltip
-                              text="Applicant"
-                              tooltip="Legal Business Name from SAM.gov for this UEI"
-                            />
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {activeSamEntities.map((entity, index) => (
-                          <tr key={index}>
-                            <th scope="row" className="font-sans-2xs">
-                              <button
-                                className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-                                onClick={(ev) => {
-                                  setMessage({
-                                    displayed: true,
-                                    type: "info",
-                                    text: "Creating new rebate form application...",
-                                  });
+                      <span className="tw-sr-only">Close</span>
+                      <XMarkIcon
+                        className="tw-h-6 tw-w-6 tw-transition-none"
+                        aria-hidden="true"
+                      />
+                    </button>
+                  </div>
+                </div>
 
-                                  createNewApplication(email, entity)
-                                    .then((res) => {
-                                      navigate(`/rebate/${res._id}`);
-                                    })
-                                    .catch((err) => {
+                <div className="tw-m-auto tw-max-w-3xl tw-p-4 sm:tw-p-8">
+                  {!csbData.data.submissionPeriodOpen.application ? (
+                    <div className="-tw-mb-4">
+                      <Message
+                        type="info"
+                        text={messages.applicationFormClosed}
+                      />
+                    </div>
+                  ) : activeSamEntities.length <= 0 ? (
+                    <div className="-tw-mb-4">
+                      <Message type="info" text={messages.bapNoSamResults} />
+                    </div>
+                  ) : (
+                    <>
+                      {content.status === "success" && (
+                        <MarkdownContent
+                          className="tw-mt-4 tw-text-center"
+                          children={content.data?.newApplicationDialog || ""}
+                          components={{
+                            h2: (props) => (
+                              <h2 className="tw-text-xl sm:tw-text-2xl md:tw-text-3xl">
+                                {props.children}
+                              </h2>
+                            ),
+                          }}
+                        />
+                      )}
+
+                      {message.displayed && (
+                        <Message type={message.type} text={message.text} />
+                      )}
+
+                      <div
+                        className="usa-table-container--scrollable"
+                        tabIndex={0}
+                      >
+                        <table
+                          aria-label="SAM.gov Entities"
+                          className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full"
+                        >
+                          <thead>
+                            <tr className="font-sans-2xs text-no-wrap">
+                              <th scope="col">
+                                <span className="usa-sr-only">Create</span>
+                              </th>
+                              <th scope="col">
+                                <TextWithTooltip
+                                  text="UEI"
+                                  tooltip="Unique Entity ID from SAM.gov"
+                                />
+                              </th>
+                              <th scope="col">
+                                <TextWithTooltip
+                                  text="EFT Indicator"
+                                  tooltip="Electronic Funds Transfer Indicator listing the associated bank account from SAM.gov"
+                                />
+                              </th>
+                              <th scope="col">
+                                <TextWithTooltip
+                                  text="Applicant"
+                                  tooltip="Legal Business Name from SAM.gov for this UEI"
+                                />
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {activeSamEntities.map((entity, index) => (
+                              <tr key={index}>
+                                <th scope="row" className="font-sans-2xs">
+                                  <button
+                                    className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
+                                    onClick={(ev) => {
                                       setMessage({
                                         displayed: true,
-                                        type: "error",
-                                        text: "Error creating new rebate form application.",
+                                        type: "info",
+                                        text: "Creating new rebate form application...",
                                       });
-                                    });
-                                }}
-                              >
-                                <span className="usa-sr-only">
-                                  Create Form with UEI:{" "}
-                                  {entity.UNIQUE_ENTITY_ID__c} and EFTI:{" "}
-                                  {entity.ENTITY_EFT_INDICATOR__c}
-                                </span>
-                                <span className="display-flex flex-align-center">
-                                  <svg
-                                    className="usa-icon"
-                                    aria-hidden="true"
-                                    focusable="false"
-                                    role="img"
-                                  >
-                                    <use href={`${icons}#arrow_forward`} />
-                                  </svg>
-                                  <span className="mobile-lg:display-none margin-left-1">
-                                    New Form
-                                  </span>
-                                </span>
-                              </button>
-                            </th>
-                            <td className="font-sans-2xs">
-                              {entity.UNIQUE_ENTITY_ID__c}
-                            </td>
-                            <td className="font-sans-2xs">
-                              {entity.ENTITY_EFT_INDICATOR__c || "0000"}
-                            </td>
-                            <td className="font-sans-2xs">
-                              {entity.LEGAL_BUSINESS_NAME__c}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </>
-              )}
-            </div>
 
-            <button
-              className="usa-button usa-modal__close"
-              aria-label="Close this window"
-              onClick={(ev) => navigate("/")}
-            >
-              <svg
-                className="usa-icon"
-                aria-hidden="true"
-                focusable="false"
-                role="img"
-              >
-                <use href={`${icons}#close`} />
-              </svg>
-            </button>
+                                      createNewApplication(email, entity)
+                                        .then((res) => {
+                                          navigate(`/rebate/${res._id}`);
+                                        })
+                                        .catch((err) => {
+                                          setMessage({
+                                            displayed: true,
+                                            type: "error",
+                                            text: "Error creating new rebate form application.",
+                                          });
+                                        });
+                                    }}
+                                  >
+                                    <span className="usa-sr-only">
+                                      Create Form with UEI:{" "}
+                                      {entity.UNIQUE_ENTITY_ID__c} and EFTI:{" "}
+                                      {entity.ENTITY_EFT_INDICATOR__c}
+                                    </span>
+                                    <span className="display-flex flex-align-center">
+                                      <svg
+                                        className="usa-icon"
+                                        aria-hidden="true"
+                                        focusable="false"
+                                        role="img"
+                                      >
+                                        <use href={`${icons}#arrow_forward`} />
+                                      </svg>
+                                      <span className="mobile-lg:display-none margin-left-1">
+                                        New Form
+                                      </span>
+                                    </span>
+                                  </button>
+                                </th>
+                                <td className="font-sans-2xs">
+                                  {entity.UNIQUE_ENTITY_ID__c}
+                                </td>
+                                <td className="font-sans-2xs">
+                                  {entity.ENTITY_EFT_INDICATOR__c || "0000"}
+                                </td>
+                                <td className="font-sans-2xs">
+                                  {entity.LEGAL_BUSINESS_NAME__c}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </Dialog.Panel>
+            </Transition.Child>
           </div>
-        </DialogContent>
-      </DialogOverlay>
-    </div>
+        </div>
+      </Dialog>
+    </Transition.Root>
   );
 }
