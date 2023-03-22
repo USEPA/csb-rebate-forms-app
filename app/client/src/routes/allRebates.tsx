@@ -12,8 +12,7 @@ import { TextWithTooltip } from "components/tooltip";
 import { useContentState } from "contexts/content";
 import { useUserState } from "contexts/user";
 import { useCsbState } from "contexts/csb";
-import type { BapFormSubmission } from "contexts/bap";
-import { useBapState, useBapDispatch } from "contexts/bap";
+import { BapFormSubmission, useBapState, useBapDispatch } from "contexts/bap";
 import {
   FormioApplicationSubmission,
   FormioPaymentRequestSubmission,
@@ -103,68 +102,60 @@ export function useFetchedFormSubmissions() {
     });
 
     Promise.all([
-      getData(`${serverUrl}/api/bap-form-submissions`),
-      getData(`${serverUrl}/api/formio-application-submissions`),
-      getData(`${serverUrl}/api/formio-payment-request-submissions`),
+      getData<BapFormSubmission[]>(`${serverUrl}/api/bap-form-submissions`),
+      getData<FormioApplicationSubmission[]>(`${serverUrl}/api/formio-application-submissions`), // prettier-ignore
+      getData<FormioPaymentRequestSubmission[]>(`${serverUrl}/api/formio-payment-request-submissions`), // prettier-ignore
     ])
-      .then(
-        (
-          responses: [
-            BapFormSubmission[],
-            FormioApplicationSubmission[],
-            FormioPaymentRequestSubmission[]
-          ]
-        ) => {
-          const [
-            bapFormSubmissions,
-            formioApplicationSubmissions,
-            formioPaymentRequestSubmissions,
-          ] = responses;
+      .then((responses) => {
+        const [
+          bapFormSubmissions,
+          formioApplicationSubmissions,
+          formioPaymentRequestSubmissions,
+        ] = responses;
 
-          const bapFormSubmissionsSorted = bapFormSubmissions.reduce(
-            (submissions, submission) => {
-              const formType =
-                submission.Record_Type_Name__c === "CSB Funding Request"
-                  ? "applications"
-                  : submission.Record_Type_Name__c === "CSB Payment Request"
-                  ? "paymentRequests"
-                  : submission.Record_Type_Name__c === "CSB Closeout Request"
-                  ? "closeOuts"
-                  : null;
+        const bapFormSubmissionsSorted = bapFormSubmissions.reduce(
+          (submissions, submission) => {
+            const formType =
+              submission.Record_Type_Name__c === "CSB Funding Request"
+                ? "applications"
+                : submission.Record_Type_Name__c === "CSB Payment Request"
+                ? "paymentRequests"
+                : submission.Record_Type_Name__c === "CSB Closeout Request"
+                ? "closeOuts"
+                : null;
 
-              if (formType) submissions[formType].push(submission);
+            if (formType) submissions[formType].push(submission);
 
-              return submissions;
-            },
-            {
-              applications: [] as BapFormSubmission[],
-              paymentRequests: [] as BapFormSubmission[],
-              closeOuts: [] as BapFormSubmission[],
-            }
-          );
+            return submissions;
+          },
+          {
+            applications: [] as BapFormSubmission[],
+            paymentRequests: [] as BapFormSubmission[],
+            closeOuts: [] as BapFormSubmission[],
+          }
+        );
 
-          bapDispatch({
-            type: "FETCH_BAP_FORM_SUBMISSIONS_SUCCESS",
-            payload: {
-              formSubmissions: bapFormSubmissionsSorted,
-            },
-          });
+        bapDispatch({
+          type: "FETCH_BAP_FORM_SUBMISSIONS_SUCCESS",
+          payload: {
+            formSubmissions: bapFormSubmissionsSorted,
+          },
+        });
 
-          formioSubmissionsDispatch({
-            type: "FETCH_FORMIO_APPLICATION_SUBMISSIONS_SUCCESS",
-            payload: {
-              applicationSubmissions: formioApplicationSubmissions,
-            },
-          });
+        formioSubmissionsDispatch({
+          type: "FETCH_FORMIO_APPLICATION_SUBMISSIONS_SUCCESS",
+          payload: {
+            applicationSubmissions: formioApplicationSubmissions,
+          },
+        });
 
-          formioSubmissionsDispatch({
-            type: "FETCH_FORMIO_PAYMENT_REQUEST_SUBMISSIONS_SUCCESS",
-            payload: {
-              paymentRequestSubmissions: formioPaymentRequestSubmissions,
-            },
-          });
-        }
-      )
+        formioSubmissionsDispatch({
+          type: "FETCH_FORMIO_PAYMENT_REQUEST_SUBMISSIONS_SUCCESS",
+          payload: {
+            paymentRequestSubmissions: formioPaymentRequestSubmissions,
+          },
+        });
+      })
       .catch((err) => {
         bapDispatch({
           type: "FETCH_BAP_FORM_SUBMISSIONS_FAILURE",

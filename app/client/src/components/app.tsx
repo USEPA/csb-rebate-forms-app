@@ -28,9 +28,9 @@ import { AllRebates } from "routes/allRebates";
 import { NewApplicationForm } from "routes/newApplicationForm";
 import { ApplicationForm } from "routes/applicationForm";
 import { PaymentRequestForm } from "routes/paymentRequestForm";
-import { useContentState, useContentDispatch } from "contexts/content";
+import { Content, useContentState, useContentDispatch } from "contexts/content";
 import { useDialogDispatch, useDialogState } from "contexts/dialog";
-import { useUserState, useUserDispatch } from "contexts/user";
+import { EpaUserData, useUserState, useUserDispatch } from "contexts/user";
 
 /** Custom hook to fetch static content */
 function useFetchedContent() {
@@ -38,7 +38,7 @@ function useFetchedContent() {
 
   useEffect(() => {
     contentDispatch({ type: "FETCH_CONTENT_REQUEST" });
-    getData(`${serverUrl}/api/content`)
+    getData<Content>(`${serverUrl}/api/content`)
       .then((res) => {
         contentDispatch({
           type: "FETCH_CONTENT_SUCCESS",
@@ -206,7 +206,7 @@ export function useHelpdeskAccess() {
   const { epaUserData } = useUserState();
 
   const [helpdeskAccess, setHelpdeskAccess] =
-    useState<typeof epaUserData["status"]>("idle");
+    useState<(typeof epaUserData)["status"]>("idle");
 
   useEffect(() => {
     if (epaUserData.status === "pending") {
@@ -236,7 +236,7 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
   // check if user is already logged in or needs to be logged out (which will
   // redirect them to the "/welcome" route)
   const verifyUser = useCallback(() => {
-    getData(`${serverUrl}/api/epa-user-data`)
+    getData<EpaUserData>(`${serverUrl}/api/epa-user-data`)
       .then((res) => {
         userDispatch({
           type: "FETCH_EPA_USER_DATA_SUCCESS",

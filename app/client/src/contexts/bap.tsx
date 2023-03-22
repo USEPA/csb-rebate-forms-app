@@ -61,7 +61,7 @@ export type BapFormSubmission = {
   attributes: { type: string; url: string };
 };
 
-type BapFormSubmissions = {
+export type BapFormSubmissions = {
   applications: BapFormSubmission[];
   paymentRequests: BapFormSubmission[];
   closeOuts: BapFormSubmission[];

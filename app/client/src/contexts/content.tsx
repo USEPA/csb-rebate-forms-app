@@ -10,7 +10,7 @@ type Props = {
   children: ReactNode;
 };
 
-type Content = {
+export type Content = {
   siteAlert: string;
   helpdeskIntro: string;
   allRebatesIntro: string;

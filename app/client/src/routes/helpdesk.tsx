@@ -14,13 +14,18 @@ import { useContentState } from "contexts/content";
 import { useDialogDispatch } from "contexts/dialog";
 import { useUserState } from "contexts/user";
 import { useCsbState } from "contexts/csb";
-import {
-  FormioFetchedResponse,
-  useFormioFormState,
-  useFormioFormDispatch,
-} from "contexts/formioForm";
+import { useFormioFormState, useFormioFormDispatch } from "contexts/formioForm";
 
 type FormType = "application" | "payment-request" | "close-out";
+
+type FormioSubmission = {
+  [field: string]: unknown;
+  _id: string; // MongoDB ObjectId string
+  state: "submitted" | "draft";
+  modified: string; // ISO 8601 date string
+  data: { [field: string]: unknown };
+  metadata: { [field: string]: unknown };
+};
 
 export function Helpdesk() {
   const navigate = useNavigate();
@@ -55,10 +60,11 @@ export function Helpdesk() {
     navigate("/", { replace: true });
   }
 
-  const applicationFormOpen = csbData.data.submissionPeriodOpen.application;
-  const paymentRequestFormOpen =
-    csbData.data.submissionPeriodOpen.paymentRequest;
-  const closeOutFormOpen = csbData.data.submissionPeriodOpen.closeOut;
+  const { submissionPeriodOpen } = csbData.data;
+
+  const applicationFormOpen = submissionPeriodOpen.application;
+  const paymentRequestFormOpen = submissionPeriodOpen.paymentRequest;
+  const closeOutFormOpen = submissionPeriodOpen.closeOut;
 
   const { formSchema, submission } = formio.data;
 
@@ -145,10 +151,11 @@ export function Helpdesk() {
             ev.preventDefault();
             setFormDisplayed(false);
             formioFormDispatch({ type: "FETCH_FORMIO_DATA_REQUEST" });
-            getData(
-              `${serverUrl}/help/formio-submission/${formType}/${searchId}`
-            )
-              .then((res: FormioFetchedResponse) => {
+            getData<
+              | { userAccess: false; formSchema: null; submission: null }
+              | { userAccess: true; formSchema: { url: string; json: object }; submission: FormioSubmission } // prettier-ignore
+            >(`${serverUrl}/help/formio-submission/${formType}/${searchId}`)
+              .then((res) => {
                 if (!res.submission) return;
                 formioFormDispatch({
                   type: "FETCH_FORMIO_DATA_SUCCESS",
@@ -349,11 +356,14 @@ export function Helpdesk() {
                               formioFormDispatch({
                                 type: "FETCH_FORMIO_DATA_REQUEST",
                               });
-                              postData(
+                              postData<
+                                | { userAccess: false; formSchema: null; submission: null }
+                                | { userAccess: true; formSchema: { url: string; json: object }; submission: FormioSubmission } // prettier-ignore
+                              >(
                                 `${serverUrl}/help/formio-submission/${formType}/${searchId}`,
                                 {}
                               )
-                                .then((res: FormioFetchedResponse) => {
+                                .then((res) => {
                                   formioFormDispatch({
                                     type: "FETCH_FORMIO_DATA_SUCCESS",
                                     payload: { data: res },

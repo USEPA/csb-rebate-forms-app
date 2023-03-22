@@ -10,7 +10,7 @@ type Props = {
   children: ReactNode;
 };
 
-type CsbData = {
+export type CsbData = {
   submissionPeriodOpen: {
     application: boolean;
     paymentRequest: boolean;

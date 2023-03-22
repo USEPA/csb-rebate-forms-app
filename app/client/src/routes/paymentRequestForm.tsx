@@ -20,13 +20,17 @@ import { useUserState } from "contexts/user";
 import { useCsbState } from "contexts/csb";
 import { useBapState } from "contexts/bap";
 import { useFormioSubmissionsState } from "contexts/formioSubmissions";
-import {
-  FormioSubmissionData,
-  FormioFetchedResponse,
-  useFormioFormState,
-  useFormioFormDispatch,
-} from "contexts/formioForm";
+import { useFormioFormState, useFormioFormDispatch } from "contexts/formioForm";
 import { useNotificationsDispatch } from "contexts/notifications";
+
+type FormioSubmission = {
+  [field: string]: unknown;
+  _id: string; // MongoDB ObjectId string
+  state: "submitted" | "draft";
+  modified: string; // ISO 8601 date string
+  data: { [field: string]: unknown };
+  metadata: { [field: string]: unknown };
+};
 
 export function PaymentRequestForm() {
   const { epaUserData } = useUserState();
@@ -84,25 +88,32 @@ function PaymentRequestFormContent({ email }: { email: string }) {
 
   // set when form submission data is initially fetched, and then re-set each
   // time a successful update of the submission data is posted to forms.gov
-  const [storedSubmissionData, setStoredSubmissionData] =
-    useState<FormioSubmissionData>({});
+  const [storedSubmissionData, setStoredSubmissionData] = useState<{
+    [field: string]: unknown;
+  }>({});
 
   // create ref to storedSubmissionData, so the latest value can be referenced
   // in the Form component's `onNextPage` event prop
-  const storedSubmissionDataRef = useRef<FormioSubmissionData>({});
+  const storedSubmissionDataRef = useRef<{
+    [field: string]: unknown;
+  }>({});
 
   // initially empty, but will be set once the user attemts to submit the form
   // (both successfully and unsuccessfully). passed to the to the <Form />
   // component's submission prop, so the fields the user filled out will not be
   // lost if a submission update fails, so the user can attempt submitting again
-  const [pendingSubmissionData, setPendingSubmissionData] =
-    useState<FormioSubmissionData>({});
+  const [pendingSubmissionData, setPendingSubmissionData] = useState<{
+    [field: string]: unknown;
+  }>({});
 
   useEffect(() => {
     formioFormDispatch({ type: "FETCH_FORMIO_DATA_REQUEST" });
 
-    getData(`${serverUrl}/api/formio-payment-request-submission/${rebateId}`)
-      .then((res: FormioFetchedResponse) => {
+    getData<
+      | { userAccess: false; formSchema: null; submission: null }
+      | { userAccess: true; formSchema: { url: string; json: object }; submission: FormioSubmission } // prettier-ignore
+    >(`${serverUrl}/api/formio-payment-request-submission/${rebateId}`)
+      .then((res) => {
         // set up s3 re-route to wrapper app
         const s3Provider = Formio.Providers.providers.storage.s3;
         Formio.Providers.providers.storage.s3 = function (formio: any) {
@@ -284,8 +295,8 @@ function PaymentRequestFormContent({ email }: { email: string }) {
           }}
           onSubmit={(onSubmitSubmission: {
             state: "submitted" | "draft";
-            data: FormioSubmissionData;
-            metadata: unknown;
+            data: { [field: string]: unknown };
+            metadata: { [field: string]: unknown };
           }) => {
             if (formIsReadOnly) return;
 
@@ -327,7 +338,7 @@ function PaymentRequestFormContent({ email }: { email: string }) {
 
             setPendingSubmissionData(data);
 
-            postData(
+            postData<FormioSubmission>(
               `${serverUrl}/api/formio-payment-request-submission/${rebateId}`,
               {
                 mongoId: formio.data.submission?._id,
@@ -398,8 +409,8 @@ function PaymentRequestFormContent({ email }: { email: string }) {
           onNextPage={(onNextPageParam: {
             page: number;
             submission: {
-              data: FormioSubmissionData;
-              metadata: unknown;
+              data: { [field: string]: unknown };
+              metadata: { [field: string]: unknown };
             };
           }) => {
             if (formIsReadOnly) return;
@@ -432,7 +443,7 @@ function PaymentRequestFormContent({ email }: { email: string }) {
 
             setPendingSubmissionData(data);
 
-            postData(
+            postData<FormioSubmission>(
               `${serverUrl}/api/formio-payment-request-submission/${rebateId}`,
               {
                 mongoId: formio.data.submission?._id,
