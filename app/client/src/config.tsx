@@ -72,14 +72,14 @@ export const messages = {
     "A request to edit the Application form associated with this draft or submitted Payment Request form has been made, so this form has been set to read-only mode. Visit your dashboard to make edits to the associated Application form submission.",
 };
 
-async function fetchData(url: string, options: RequestInit) {
+async function fetchData<T>(url: string, options: RequestInit) {
   try {
     const response = await fetch(url, options);
     if (!response.ok) throw new Error(response.statusText);
     const contentType = response.headers.get("content-type");
     return contentType?.includes("application/json")
-      ? await response.json()
-      : Promise.resolve();
+      ? ((await response.json()) as Promise<T>)
+      : (Promise.resolve() as Promise<T>); // NOTE: the server app always returns JSON
   } catch (error) {
     return await Promise.reject(error);
   }
@@ -89,8 +89,8 @@ async function fetchData(url: string, options: RequestInit) {
  * Fetches data and returns a promise containing JSON fetched from a provided
  * web service URL or handles any other OK response returned from the server
  */
-export function getData(url: string) {
-  return fetchData(url, {
+export function getData<T>(url: string) {
+  return fetchData<T>(url, {
     method: "GET",
     credentials: "include" as const,
   });
@@ -100,8 +100,8 @@ export function getData(url: string) {
  * Posts JSON data and returns a promise containing JSON fetched from a provided
  * web service URL or handles any other OK response returned from the server
  */
-export function postData(url: string, data: object) {
-  return fetchData(url, {
+export function postData<T>(url: string, data: object) {
+  return fetchData<T>(url, {
     method: "POST",
     credentials: "include" as const,
     headers: { "Content-Type": "application/json" },
