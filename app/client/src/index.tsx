@@ -1,5 +1,7 @@
 import { StrictMode } from "react";
 import { render } from "react-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import reportWebVitals from "./reportWebVitals";
 // ---
 import { ContentProvider } from "contexts/content";
@@ -15,29 +17,34 @@ import { App } from "components/app";
 import "./tailwind-preflight.css";
 import "./styles.css";
 
+const queryClient = new QueryClient();
 const container = document.getElementById("root") as HTMLElement;
 
 render(
   <StrictMode>
-    <ErrorBoundary>
-      <ContentProvider>
-        <DialogProvider>
-          <UserProvider>
-            <CsbProvider>
-              <BapProvider>
-                <FormioSubmissionsProvider>
-                  <FormioFormProvider>
-                    <NotificationsProvider>
-                      <App />
-                    </NotificationsProvider>
-                  </FormioFormProvider>
-                </FormioSubmissionsProvider>
-              </BapProvider>
-            </CsbProvider>
-          </UserProvider>
-        </DialogProvider>
-      </ContentProvider>
-    </ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <ErrorBoundary>
+        <ContentProvider>
+          <DialogProvider>
+            <UserProvider>
+              <CsbProvider>
+                <BapProvider>
+                  <FormioSubmissionsProvider>
+                    <FormioFormProvider>
+                      <NotificationsProvider>
+                        <App />
+                      </NotificationsProvider>
+                    </FormioFormProvider>
+                  </FormioSubmissionsProvider>
+                </BapProvider>
+              </CsbProvider>
+            </UserProvider>
+          </DialogProvider>
+        </ContentProvider>
+      </ErrorBoundary>
+
+      <ReactQueryDevtools />
+    </QueryClientProvider>
   </StrictMode>,
   container
 );

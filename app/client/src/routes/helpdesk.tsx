@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import { Form } from "@formio/react";
 import icon from "uswds/img/usa-icons-bg/search--white.svg";
 import icons from "uswds/img/sprite.svg";
@@ -14,7 +15,6 @@ import { useContentState } from "contexts/content";
 import { useDialogDispatch } from "contexts/dialog";
 import { useUserState } from "contexts/user";
 import { useCsbState } from "contexts/csb";
-import { useFormioFormState, useFormioFormDispatch } from "contexts/formioForm";
 
 type FormType = "application" | "payment-request" | "close-out";
 
@@ -27,25 +27,40 @@ type FormioSubmission = {
   metadata: { [field: string]: unknown };
 };
 
+type FormioApiResponse =
+  | { userAccess: false; formSchema: null; submission: null; }
+  | { userAccess: true; formSchema: { url: string; json: object }; submission: FormioSubmission; }; // prettier-ignore
+
 export function Helpdesk() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const { content } = useContentState();
   const dialogDispatch = useDialogDispatch();
   const { epaUserData } = useUserState();
   const { csbData } = useCsbState();
-  const { formio } = useFormioFormState();
-  const formioFormDispatch = useFormioFormDispatch();
   const helpdeskAccess = useHelpdeskAccess();
-
-  // reset formio form state since it's used across pages
-  useEffect(() => {
-    formioFormDispatch({ type: "RESET_FORMIO_DATA" });
-  }, [formioFormDispatch]);
 
   const [formType, setFormType] = useState<FormType>("application");
   const [searchId, setSearchId] = useState("");
   const [formDisplayed, setFormDisplayed] = useState(false);
+
+  const url = `${serverUrl}/help/formio-submission/${formType}/${searchId}`;
+
+  const query = useQuery({
+    queryKey: ["helpdesk"],
+    queryFn: () => getData<FormioApiResponse>(url),
+    enabled: false,
+  });
+
+  const mutation = useMutation({
+    mutationFn: () => postData<FormioApiResponse>(url, {}),
+    onSuccess: (data) => queryClient.setQueryData(["helpdesk"], data),
+  });
+
+  useEffect(() => {
+    queryClient.resetQueries({ queryKey: ["helpdesk"] });
+  }, [queryClient]);
 
   if (
     csbData.status !== "success" ||
@@ -60,13 +75,11 @@ export function Helpdesk() {
     navigate("/", { replace: true });
   }
 
-  const { submissionPeriodOpen } = csbData.data;
-
-  const applicationFormOpen = submissionPeriodOpen.application;
-  const paymentRequestFormOpen = submissionPeriodOpen.paymentRequest;
-  const closeOutFormOpen = submissionPeriodOpen.closeOut;
-
-  const { formSchema, submission } = formio.data;
+  const {
+    application: applicationFormOpen,
+    paymentRequest: paymentRequestFormOpen,
+    closeOut: closeOutFormOpen,
+  } = csbData.data.submissionPeriodOpen;
 
   return (
     <>
@@ -89,7 +102,7 @@ export function Helpdesk() {
               checked={formType === "application"}
               onChange={(ev) => {
                 setFormType(ev.target.value as FormType);
-                formioFormDispatch({ type: "RESET_FORMIO_DATA" });
+                queryClient.resetQueries({ queryKey: ["helpdesk"] });
               }}
             />
             <label
@@ -110,7 +123,7 @@ export function Helpdesk() {
               checked={formType === "payment-request"}
               onChange={(ev) => {
                 setFormType(ev.target.value as FormType);
-                formioFormDispatch({ type: "RESET_FORMIO_DATA" });
+                queryClient.resetQueries({ queryKey: ["helpdesk"] });
               }}
             />
             <label
@@ -131,7 +144,7 @@ export function Helpdesk() {
               checked={formType === "close-out"}
               onChange={(ev) => {
                 setFormType(ev.target.value as FormType);
-                formioFormDispatch({ type: "RESET_FORMIO_DATA" });
+                queryClient.resetQueries({ queryKey: ["helpdesk"] });
               }}
               disabled={true} // NOTE: disabled until the close-out form is created
             />
@@ -150,21 +163,7 @@ export function Helpdesk() {
           onSubmit={(ev) => {
             ev.preventDefault();
             setFormDisplayed(false);
-            formioFormDispatch({ type: "FETCH_FORMIO_DATA_REQUEST" });
-            getData<
-              | { userAccess: false; formSchema: null; submission: null }
-              | { userAccess: true; formSchema: { url: string; json: object }; submission: FormioSubmission } // prettier-ignore
-            >(`${serverUrl}/help/formio-submission/${formType}/${searchId}`)
-              .then((res) => {
-                if (!res.submission) return;
-                formioFormDispatch({
-                  type: "FETCH_FORMIO_DATA_SUCCESS",
-                  payload: { data: res },
-                });
-              })
-              .catch((err) => {
-                formioFormDispatch({ type: "FETCH_FORMIO_DATA_FAILURE" });
-              });
+            query.refetch();
           }}
         >
           <label className="usa-sr-only" htmlFor="search-submissions-by-id">
@@ -185,23 +184,11 @@ export function Helpdesk() {
         </form>
       </div>
 
-      {formio.status === "pending" && <Loading />}
-
-      {formio.status === "failure" && (
+      {query.isFetching || mutation.isLoading ? (
+        <Loading />
+      ) : query.isError || mutation.isError ? (
         <Message type="error" text={messages.helpdeskSubmissionSearchError} />
-      )}
-
-      {/*
-        NOTE: when the application form submission data is successfully fetched,
-        the response should contain the submission data, but since it's coming
-        from an external server, we should check that it exists first before
-        using it
-      */}
-      {formio.status === "success" && !formio.data && (
-        <Message type="error" text={messages.helpdeskSubmissionSearchError} />
-      )}
-
-      {formio.status === "success" && formSchema && submission && (
+      ) : query.isSuccess && query.data.formSchema && query.data.submission ? (
         <>
           <div className="usa-table-container--scrollable" tabIndex={0}>
             <table
@@ -288,38 +275,56 @@ export function Helpdesk() {
                   </th>
 
                   {formType === "application" ? (
-                    <td>{submission._id}</td>
+                    <td>{query.data.submission._id}</td>
                   ) : formType === "payment-request" ? (
-                    <td>{submission.data.hidden_bap_rebate_id as string}</td>
+                    <td>
+                      {
+                        query.data.submission.data.hidden_bap_rebate_id as string // prettier-ignore
+                      }
+                    </td>
                   ) : (
                     <td>&nbsp;</td>
                   )}
 
                   {formType === "application" ? (
                     <td>
-                      {submission.data.sam_hidden_applicant_name as string}
+                      {
+                        query.data.submission.data.sam_hidden_applicant_name as string // prettier-ignore
+                      }
                     </td>
                   ) : formType === "payment-request" ? (
-                    <td>{submission.data.applicantName as string}</td>
+                    <td>
+                      {query.data.submission.data.applicantName as string}
+                    </td>
                   ) : (
                     <td>&nbsp;</td>
                   )}
 
                   {formType === "application" ? (
-                    <td>{submission.data.last_updated_by as string}</td>
+                    <td>
+                      {query.data.submission.data.last_updated_by as string}
+                    </td>
                   ) : formType === "payment-request" ? (
-                    <td>{submission.data.hidden_current_user_email}</td>
+                    <td>
+                      {
+                        query.data.submission.data.hidden_current_user_email as string // prettier-ignore
+                      }
+                    </td>
                   ) : (
                     <td>&nbsp;</td>
                   )}
 
-                  <td>{new Date(submission.modified).toLocaleDateString()}</td>
+                  <td>
+                    {
+                      new Date(query.data.submission.modified).toLocaleDateString() // prettier-ignore
+                    }
+                  </td>
 
                   <td>
                     {
-                      submission.state === "draft"
+                      query.data.submission.state === "draft"
                         ? "Draft"
-                        : submission.state === "submitted"
+                        : query.data.submission.state === "submitted"
                         ? "Submitted"
                         : "" // fallback, not used
                     }
@@ -329,11 +334,11 @@ export function Helpdesk() {
                     <button
                       className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
                       disabled={
-                        submission.state === "draft" ||
-                        (formType === "application" && !applicationFormOpen) ||
-                        (formType === "payment-request" &&
-                          !paymentRequestFormOpen) ||
-                        (formType === "close-out" && !closeOutFormOpen)
+                        // prettier-ignore
+                        query.data.submission.state === "draft" ||
+                          (formType === "application" && !applicationFormOpen) ||
+                          (formType === "payment-request" && !paymentRequestFormOpen) ||
+                          (formType === "close-out" && !closeOutFormOpen)
                       }
                       onClick={(_ev) => {
                         dialogDispatch({
@@ -353,27 +358,7 @@ export function Helpdesk() {
                             dismissText: "Cancel",
                             confirmedAction: () => {
                               setFormDisplayed(false);
-                              formioFormDispatch({
-                                type: "FETCH_FORMIO_DATA_REQUEST",
-                              });
-                              postData<
-                                | { userAccess: false; formSchema: null; submission: null }
-                                | { userAccess: true; formSchema: { url: string; json: object }; submission: FormioSubmission } // prettier-ignore
-                              >(
-                                `${serverUrl}/help/formio-submission/${formType}/${searchId}`,
-                                {}
-                              )
-                                .then((res) => {
-                                  formioFormDispatch({
-                                    type: "FETCH_FORMIO_DATA_SUCCESS",
-                                    payload: { data: res },
-                                  });
-                                })
-                                .catch((err) => {
-                                  formioFormDispatch({
-                                    type: "FETCH_FORMIO_DATA_FAILURE",
-                                  });
-                                });
+                              mutation.mutate();
                             },
                           },
                         });
@@ -409,12 +394,13 @@ export function Helpdesk() {
                   <div className="usa-icon-list__content">
                     {formType === "application" ? (
                       <>
-                        <strong>Application ID:</strong> {submission._id}
+                        <strong>Application ID:</strong>{" "}
+                        {query.data.submission._id}
                       </>
                     ) : formType === "payment-request" ? (
                       <>
                         <strong>Rebate ID:</strong>{" "}
-                        {submission.data.hidden_bap_rebate_id}
+                        {query.data.submission.data.hidden_bap_rebate_id}
                       </>
                     ) : (
                       <>&nbsp;</>
@@ -424,15 +410,15 @@ export function Helpdesk() {
               </ul>
 
               <Form
-                form={formSchema.json}
-                url={formSchema.url} // NOTE: used for file uploads
-                submission={{ data: submission.data }}
+                form={query.data.formSchema.json}
+                url={query.data.formSchema.url} // NOTE: used for file uploads
+                submission={{ data: query.data.submission.data }}
                 options={{ readOnly: true }}
               />
             </>
           )}
         </>
-      )}
+      ) : null}
     </>
   );
 }
