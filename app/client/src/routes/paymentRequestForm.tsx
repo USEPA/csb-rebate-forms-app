@@ -32,6 +32,10 @@ type FormioSubmission = {
   metadata: { [field: string]: unknown };
 };
 
+type ServerResponse =
+  | { userAccess: false; formSchema: null; submission: null }
+  | { userAccess: true; formSchema: { url: string; json: object }; submission: FormioSubmission }; // prettier-ignore
+
 export function PaymentRequestForm() {
   const { epaUserData } = useUserState();
   const email = epaUserData.status !== "success" ? "" : epaUserData.data.mail;
@@ -109,10 +113,9 @@ function PaymentRequestFormContent({ email }: { email: string }) {
   useEffect(() => {
     formioFormDispatch({ type: "FETCH_FORMIO_DATA_REQUEST" });
 
-    getData<
-      | { userAccess: false; formSchema: null; submission: null }
-      | { userAccess: true; formSchema: { url: string; json: object }; submission: FormioSubmission } // prettier-ignore
-    >(`${serverUrl}/api/formio-payment-request-submission/${rebateId}`)
+    const url = `${serverUrl}/api/formio-payment-request-submission/${rebateId}`;
+
+    getData<ServerResponse>(url)
       .then((res) => {
         // set up s3 re-route to wrapper app
         const s3Provider = Formio.Providers.providers.storage.s3;
@@ -338,13 +341,15 @@ function PaymentRequestFormContent({ email }: { email: string }) {
 
             setPendingSubmissionData(data);
 
-            postData<FormioSubmission>(
-              `${serverUrl}/api/formio-payment-request-submission/${rebateId}`,
-              {
-                mongoId: formio.data.submission?._id,
-                submission: { ...onSubmitSubmission, data },
-              }
-            )
+            const url = `${serverUrl}/api/formio-payment-request-submission/${rebateId}`;
+
+            postData<FormioSubmission>(url, {
+              mongoId: formio.data.submission?._id,
+              submission: {
+                ...onSubmitSubmission,
+                data,
+              },
+            })
               .then((res) => {
                 setStoredSubmissionData((_prevData) => {
                   storedSubmissionDataRef.current = cloneDeep(res.data);
@@ -443,17 +448,16 @@ function PaymentRequestFormContent({ email }: { email: string }) {
 
             setPendingSubmissionData(data);
 
-            postData<FormioSubmission>(
-              `${serverUrl}/api/formio-payment-request-submission/${rebateId}`,
-              {
-                mongoId: formio.data.submission?._id,
-                submission: {
-                  ...onNextPageParam.submission,
-                  data,
-                  state: "draft",
-                },
-              }
-            )
+            const url = `${serverUrl}/api/formio-payment-request-submission/${rebateId}`;
+
+            postData<FormioSubmission>(url, {
+              mongoId: formio.data.submission?._id,
+              submission: {
+                ...onNextPageParam.submission,
+                data,
+                state: "draft",
+              },
+            })
               .then((res) => {
                 setStoredSubmissionData((_prevData) => {
                   storedSubmissionDataRef.current = cloneDeep(res.data);

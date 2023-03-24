@@ -27,9 +27,9 @@ type FormioSubmission = {
   metadata: { [field: string]: unknown };
 };
 
-type FormioApiResponse =
-  | { userAccess: false; formSchema: null; submission: null; }
-  | { userAccess: true; formSchema: { url: string; json: object }; submission: FormioSubmission; }; // prettier-ignore
+type ServerResponse =
+  | { formSchema: null; submission: null }
+  | { formSchema: { url: string; json: object }; submission: FormioSubmission };
 
 export function Helpdesk() {
   const navigate = useNavigate();
@@ -49,12 +49,12 @@ export function Helpdesk() {
 
   const query = useQuery({
     queryKey: ["helpdesk"],
-    queryFn: () => getData<FormioApiResponse>(url),
+    queryFn: () => getData<ServerResponse>(url),
     enabled: false,
   });
 
   const mutation = useMutation({
-    mutationFn: () => postData<FormioApiResponse>(url, {}),
+    mutationFn: () => postData<ServerResponse>(url, {}),
     onSuccess: (data) => queryClient.setQueryData(["helpdesk"], data),
   });
 

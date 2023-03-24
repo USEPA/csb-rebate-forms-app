@@ -33,6 +33,10 @@ type FormioSubmission = {
   metadata: { [field: string]: unknown };
 };
 
+type ServerResponse =
+  | { userAccess: false; formSchema: null; submission: null }
+  | { userAccess: true; formSchema: { url: string; json: object }; submission: FormioSubmission }; // prettier-ignore
+
 export function ApplicationForm() {
   const { epaUserData } = useUserState();
   const email = epaUserData.status !== "success" ? "" : epaUserData.data.mail;
@@ -111,10 +115,9 @@ function ApplicationFormContent({ email }: { email: string }) {
   useEffect(() => {
     formioFormDispatch({ type: "FETCH_FORMIO_DATA_REQUEST" });
 
-    getData<
-      | { userAccess: false; formSchema: null; submission: null }
-      | { userAccess: true; formSchema: { url: string; json: object }; submission: FormioSubmission } // prettier-ignore
-    >(`${serverUrl}/api/formio-application-submission/${mongoId}`)
+    const url = `${serverUrl}/api/formio-application-submission/${mongoId}`;
+
+    getData<ServerResponse>(url)
       .then((res) => {
         // set up s3 re-route to wrapper app
         const s3Provider = Formio.Providers.providers.storage.s3;
@@ -296,14 +299,13 @@ function ApplicationFormContent({ email }: { email: string }) {
             },
           });
 
-          postData(
-            `${serverUrl}/api/delete-formio-payment-request-submission`,
-            {
-              mongoId: paymentRequest._id,
-              rebateId: paymentRequest.data.hidden_bap_rebate_id,
-              comboKey: paymentRequest.data.bap_hidden_entity_combo_key,
-            }
-          )
+          const url = `${serverUrl}/api/delete-formio-payment-request-submission`;
+
+          postData(url, {
+            mongoId: paymentRequest._id,
+            rebateId: paymentRequest.data.hidden_bap_rebate_id,
+            comboKey: paymentRequest.data.bap_hidden_entity_combo_key,
+          })
             .then((res) => {
               window.location.reload();
             })
@@ -464,10 +466,12 @@ function ApplicationFormContent({ email }: { email: string }) {
 
             setPendingSubmissionData(data);
 
-            postData<FormioSubmission>(
-              `${serverUrl}/api/formio-application-submission/${submission._id}`,
-              { ...onSubmitSubmission, data }
-            )
+            const url = `${serverUrl}/api/formio-application-submission/${submission._id}`;
+
+            postData<FormioSubmission>(url, {
+              ...onSubmitSubmission,
+              data,
+            })
               .then((res) => {
                 setStoredSubmissionData((_prevData) => {
                   storedSubmissionDataRef.current = cloneDeep(res.data);
@@ -574,10 +578,13 @@ function ApplicationFormContent({ email }: { email: string }) {
 
             setPendingSubmissionData(data);
 
-            postData<FormioSubmission>(
-              `${serverUrl}/api/formio-application-submission/${submission._id}`,
-              { ...onNextPageParam.submission, data, state: "draft" }
-            )
+            const url = `${serverUrl}/api/formio-application-submission/${submission._id}`;
+
+            postData<FormioSubmission>(url, {
+              ...onNextPageParam.submission,
+              data,
+              state: "draft",
+            })
               .then((res) => {
                 setStoredSubmissionData((_prevData) => {
                   storedSubmissionDataRef.current = cloneDeep(res.data);
