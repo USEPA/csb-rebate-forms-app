@@ -65,8 +65,11 @@ function ApplicationFormContent({ email }: { email: string }) {
   const dialogDispatch = useDialogDispatch();
   const notificationsDispatch = useNotificationsDispatch();
 
-  const { bapQuery, formioApplicationsQuery, formioPaymentRequestsQuery } =
-    useFetchedFormSubmissions();
+  const {
+    bapFormSubmissionsQuery,
+    formioApplicationSubmissionsQuery,
+    formioPaymentRequestSubmissionsQuery,
+  } = useFetchedFormSubmissions();
 
   const combinedRebates = useCombinedSubmissions();
   const sortedRebates = useSortedRebates(combinedRebates);
@@ -146,17 +149,17 @@ function ApplicationFormContent({ email }: { email: string }) {
   }
 
   if (
-    bapQuery.isInitialLoading ||
-    formioApplicationsQuery.isInitialLoading ||
-    formioPaymentRequestsQuery.isInitialLoading
+    bapFormSubmissionsQuery.isInitialLoading ||
+    formioApplicationSubmissionsQuery.isInitialLoading ||
+    formioPaymentRequestSubmissionsQuery.isInitialLoading
   ) {
     return <Loading />;
   }
 
   if (
-    bapQuery.isError ||
-    formioApplicationsQuery.isError ||
-    formioPaymentRequestsQuery.isError
+    bapFormSubmissionsQuery.isError ||
+    formioApplicationSubmissionsQuery.isError ||
+    formioPaymentRequestSubmissionsQuery.isError
   ) {
     return <Message type="error" text={messages.formSubmissionsError} />;
   }

@@ -157,7 +157,7 @@ export function submissionNeedsEdits(options: {
 
 /** Custom hook to fetch submissions from the BAP and CDX */
 export function useFetchedFormSubmissions() {
-  const bapQuery = useQuery({
+  const bapFormSubmissionsQuery = useQuery({
     queryKey: ["bap-form-submissions"],
     queryFn: () => {
       const url = `${serverUrl}/api/bap-form-submissions`;
@@ -190,7 +190,7 @@ export function useFetchedFormSubmissions() {
     refetchOnWindowFocus: false,
   });
 
-  const formioApplicationsQuery = useQuery({
+  const formioApplicationSubmissionsQuery = useQuery({
     queryKey: ["formio-application-submissions"],
     queryFn: () => {
       const url = `${serverUrl}/api/formio-application-submissions`;
@@ -199,7 +199,7 @@ export function useFetchedFormSubmissions() {
     refetchOnWindowFocus: false,
   });
 
-  const formioPaymentRequestsQuery = useQuery({
+  const formioPaymentRequestSubmissionsQuery = useQuery({
     queryKey: ["formio-payment-request-submissions"],
     queryFn: () => {
       const url = `${serverUrl}/api/formio-payment-request-submissions`;
@@ -209,9 +209,9 @@ export function useFetchedFormSubmissions() {
   });
 
   return {
-    bapQuery,
-    formioApplicationsQuery,
-    formioPaymentRequestsQuery,
+    bapFormSubmissionsQuery,
+    formioApplicationSubmissionsQuery,
+    formioPaymentRequestSubmissionsQuery,
   };
 }
 
@@ -892,8 +892,11 @@ export function AllRebates() {
   const [searchParams] = useSearchParams();
 
   const content = useContentData();
-  const { bapQuery, formioApplicationsQuery, formioPaymentRequestsQuery } =
-    useFetchedFormSubmissions();
+  const {
+    bapFormSubmissionsQuery,
+    formioApplicationSubmissionsQuery,
+    formioPaymentRequestSubmissionsQuery,
+  } = useFetchedFormSubmissions();
 
   const combinedRebates = useCombinedSubmissions();
   const sortedRebates = useSortedRebates(combinedRebates);
@@ -906,17 +909,17 @@ export function AllRebates() {
   }, [searchParams, sortedRebates]);
 
   if (
-    bapQuery.isInitialLoading ||
-    formioApplicationsQuery.isInitialLoading ||
-    formioPaymentRequestsQuery.isInitialLoading
+    bapFormSubmissionsQuery.isInitialLoading ||
+    formioApplicationSubmissionsQuery.isInitialLoading ||
+    formioPaymentRequestSubmissionsQuery.isInitialLoading
   ) {
     return <Loading />;
   }
 
   if (
-    bapQuery.isError ||
-    formioApplicationsQuery.isError ||
-    formioPaymentRequestsQuery.isError
+    bapFormSubmissionsQuery.isError ||
+    formioApplicationSubmissionsQuery.isError ||
+    formioPaymentRequestSubmissionsQuery.isError
   ) {
     return <Message type="error" text={messages.formSubmissionsError} />;
   }
