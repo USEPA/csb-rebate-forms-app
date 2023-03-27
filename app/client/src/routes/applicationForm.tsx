@@ -82,13 +82,17 @@ function ApplicationFormContent({ email }: { email: string }) {
     }
   }, [searchParams, sortedRebates]);
 
-  // create ref to store when form is being submitted, so it can be referenced
-  // in the Form component's `onSubmit` event prop, to prevent double submits
+  // ref to store when form is being submitted, so it can be referenced in the
+  // Form component's `onSubmit` event prop to prevent double submits
   const formIsBeingSubmitted = useRef(false);
 
-  // create ref to hold submission data, so the latest value can be referenced
-  // in the Form component's `onNextPage` event prop
+  // ref to store submission data, so the latest value can be referenced in the
+  // Form component's `onNextPage` event prop
   const storedSubmissionData = useRef<{ [field: string]: unknown }>({});
+
+  useEffect(() => {
+    queryClient.resetQueries({ queryKey: ["application"] });
+  }, [queryClient]);
 
   const url = `${serverUrl}/api/formio-application-submission/${mongoId}`;
 
