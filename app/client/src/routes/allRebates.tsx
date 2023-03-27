@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useState } from "react";
 import type { LinkProps } from "react-router-dom";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages, getData, postData } from "../config";
@@ -12,20 +13,87 @@ import { TextWithTooltip } from "components/tooltip";
 import { useContentData } from "components/app";
 import { useCsbData } from "components/dashboard";
 import { useUserState } from "contexts/user";
-import { BapFormSubmission, useBapState, useBapDispatch } from "contexts/bap";
-import {
-  FormioApplicationSubmission,
-  FormioPaymentRequestSubmission,
-  FormioCloseOutSubmission,
-  useFormioSubmissionsState,
-  useFormioSubmissionsDispatch,
-} from "contexts/formioSubmissions";
+import { useBapState } from "contexts/bap";
 import { useNotificationsDispatch } from "contexts/notifications";
 
-type FormioSubmission =
-  | FormioApplicationSubmission
-  | FormioPaymentRequestSubmission
-  | FormioCloseOutSubmission;
+type BapFormSubmission = {
+  UEI_EFTI_Combo_Key__c: string; // UEI + EFTI combo key
+  CSB_Form_ID__c: string; // MongoDB ObjectId string
+  CSB_Modified_Full_String__c: string; // ISO 8601 date string
+  CSB_Review_Item_ID__c: string; // CSB Rebate ID with form/version ID (9 digits)
+  Parent_Rebate_ID__c: string; // CSB Rebate ID (6 digits)
+  Record_Type_Name__c:
+    | "CSB Funding Request"
+    | "CSB Payment Request"
+    | "CSB Closeout Request";
+  Parent_CSB_Rebate__r: {
+    CSB_Funding_Request_Status__c: string;
+    CSB_Payment_Request_Status__c: string;
+    CSB_Closeout_Request_Status__c: string;
+    attributes: { type: string; url: string };
+  };
+  attributes: { type: string; url: string };
+};
+
+type FormioApplicationSubmission = {
+  [field: string]: unknown;
+  _id: string; // MongoDB ObjectId string
+  state: "submitted" | "draft";
+  modified: string; // ISO 8601 date string
+  data: {
+    [field: string]: unknown;
+    // fields injected upon new draft Application submission creation:
+    last_updated_by: string;
+    hidden_current_user_email: string;
+    hidden_current_user_title: string;
+    hidden_current_user_name: string;
+    bap_hidden_entity_combo_key: string;
+    sam_hidden_applicant_email: string;
+    sam_hidden_applicant_title: string;
+    sam_hidden_applicant_name: string;
+    sam_hidden_applicant_efti: string;
+    sam_hidden_applicant_uei: string;
+    sam_hidden_applicant_organization_name: string;
+    sam_hidden_applicant_street_address_1: string;
+    sam_hidden_applicant_street_address_2: string;
+    sam_hidden_applicant_city: string;
+    sam_hidden_applicant_state: string;
+    sam_hidden_applicant_zip_code: string;
+    // fields set by form definition (among others):
+    applicantUEI: string;
+    applicantEfti: string;
+    applicantEfti_display: string;
+    applicantOrganizationName: string;
+    schoolDistrictName: string;
+  };
+};
+
+type FormioPaymentRequestSubmission = {
+  [field: string]: unknown;
+  _id: string; // MongoDB ObjectId string
+  state: "submitted" | "draft";
+  modified: string; // ISO 8601 date string
+  data: {
+    [field: string]: unknown;
+    // fields injected upon new draft Payment Request submission creation:
+    bap_hidden_entity_combo_key: string;
+    hidden_application_form_modified: string; // ISO 8601 date string
+    hidden_current_user_email: string;
+    hidden_current_user_title: string;
+    hidden_current_user_name: string;
+    hidden_bap_rebate_id: string;
+  };
+};
+
+type FormioCloseOutSubmission = {
+  [field: string]: unknown;
+  _id: string; // MongoDB ObjectId string
+  state: "submitted" | "draft";
+  modified: string; // ISO 8601 date string
+  data: {
+    [field: string]: unknown;
+  };
+};
 
 type BapSubmission = {
   modified: string | null; // ISO 8601 date string
@@ -61,7 +129,11 @@ const highlightedTableRowClassNames = "bg-primary-lighter";
  * change, we need to ensure we properly display the 'submitted' formio status.
  */
 export function submissionNeedsEdits(options: {
-  formio: FormioSubmission | null;
+  formio:
+    | FormioApplicationSubmission
+    | FormioPaymentRequestSubmission
+    | FormioCloseOutSubmission
+    | null;
   bap: BapSubmission | null;
 }) {
   const { formio, bap } = options;
@@ -83,38 +155,15 @@ export function submissionNeedsEdits(options: {
   );
 }
 
-/** Custom hook to fetch submissions from the BAP and Forms.gov */
+/** Custom hook to fetch submissions from the BAP and CDX */
 export function useFetchedFormSubmissions() {
-  const bapDispatch = useBapDispatch();
-  const formioSubmissionsDispatch = useFormioSubmissionsDispatch();
-
-  useEffect(() => {
-    bapDispatch({
-      type: "FETCH_BAP_FORM_SUBMISSIONS_REQUEST",
-    });
-
-    formioSubmissionsDispatch({
-      type: "FETCH_FORMIO_APPLICATION_SUBMISSIONS_REQUEST",
-    });
-
-    formioSubmissionsDispatch({
-      type: "FETCH_FORMIO_PAYMENT_REQUEST_SUBMISSIONS_REQUEST",
-    });
-
-    Promise.all([
-      getData<BapFormSubmission[]>(`${serverUrl}/api/bap-form-submissions`),
-      getData<FormioApplicationSubmission[]>(`${serverUrl}/api/formio-application-submissions`), // prettier-ignore
-      getData<FormioPaymentRequestSubmission[]>(`${serverUrl}/api/formio-payment-request-submissions`), // prettier-ignore
-    ])
-      .then((responses) => {
-        const [
-          bapFormSubmissions,
-          formioApplicationSubmissions,
-          formioPaymentRequestSubmissions,
-        ] = responses;
-
-        const bapFormSubmissionsSorted = bapFormSubmissions.reduce(
-          (submissions, submission) => {
+  const bapQuery = useQuery({
+    queryKey: ["bap-form-submissions"],
+    queryFn: () => {
+      const url = `${serverUrl}/api/bap-form-submissions`;
+      return getData<BapFormSubmission[]>(url).then((res) => {
+        const sortedSubmissions = res.reduce(
+          (object, submission) => {
             const formType =
               submission.Record_Type_Name__c === "CSB Funding Request"
                 ? "applications"
@@ -124,9 +173,9 @@ export function useFetchedFormSubmissions() {
                 ? "closeOuts"
                 : null;
 
-            if (formType) submissions[formType].push(submission);
+            if (formType) object[formType].push(submission);
 
-            return submissions;
+            return object;
           },
           {
             applications: [] as BapFormSubmission[],
@@ -135,41 +184,35 @@ export function useFetchedFormSubmissions() {
           }
         );
 
-        bapDispatch({
-          type: "FETCH_BAP_FORM_SUBMISSIONS_SUCCESS",
-          payload: {
-            formSubmissions: bapFormSubmissionsSorted,
-          },
-        });
-
-        formioSubmissionsDispatch({
-          type: "FETCH_FORMIO_APPLICATION_SUBMISSIONS_SUCCESS",
-          payload: {
-            applicationSubmissions: formioApplicationSubmissions,
-          },
-        });
-
-        formioSubmissionsDispatch({
-          type: "FETCH_FORMIO_PAYMENT_REQUEST_SUBMISSIONS_SUCCESS",
-          payload: {
-            paymentRequestSubmissions: formioPaymentRequestSubmissions,
-          },
-        });
-      })
-      .catch((err) => {
-        bapDispatch({
-          type: "FETCH_BAP_FORM_SUBMISSIONS_FAILURE",
-        });
-
-        formioSubmissionsDispatch({
-          type: "FETCH_FORMIO_APPLICATION_SUBMISSIONS_FAILURE",
-        });
-
-        formioSubmissionsDispatch({
-          type: "FETCH_FORMIO_PAYMENT_REQUEST_SUBMISSIONS_FAILURE",
-        });
+        return Promise.resolve(sortedSubmissions);
       });
-  }, [bapDispatch, formioSubmissionsDispatch]);
+    },
+    refetchOnWindowFocus: false,
+  });
+
+  const formioApplicationsQuery = useQuery({
+    queryKey: ["formio-application-submissions"],
+    queryFn: () => {
+      const url = `${serverUrl}/api/formio-application-submissions`;
+      return getData<FormioApplicationSubmission[]>(url);
+    },
+    refetchOnWindowFocus: false,
+  });
+
+  const formioPaymentRequestsQuery = useQuery({
+    queryKey: ["formio-payment-request-submissions"],
+    queryFn: () => {
+      const url = `${serverUrl}/api/formio-payment-request-submissions`;
+      return getData<FormioPaymentRequestSubmission[]>(url);
+    },
+    refetchOnWindowFocus: false,
+  });
+
+  return {
+    bapQuery,
+    formioApplicationsQuery,
+    formioPaymentRequestsQuery,
+  };
 }
 
 /**
@@ -179,17 +222,27 @@ export function useFetchedFormSubmissions() {
  * `rebateId` as the keys.
  **/
 export function useCombinedSubmissions() {
-  const { formSubmissions: bapFormSubmissions } = useBapState();
-  const {
-    applicationSubmissions: formioApplicationSubmissions,
-    paymentRequestSubmissions: formioPaymentRequestSubmissions,
-  } = useFormioSubmissionsState();
+  const queryClient = useQueryClient();
+
+  const bapFormSubmissions = queryClient.getQueryData<{
+    applications: BapFormSubmission[];
+    paymentRequests: BapFormSubmission[];
+    closeOuts: BapFormSubmission[];
+  }>(["bap-form-submissions"]);
+
+  const formioApplicationSubmissions = queryClient.getQueryData<
+    FormioApplicationSubmission[]
+  >(["formio-application-submissions"]);
+
+  const formioPaymentRequestSubmissions = queryClient.getQueryData<
+    FormioPaymentRequestSubmission[]
+  >(["formio-payment-request-submissions"]);
 
   // ensure form submissions data has been fetched from both the BAP and Formio
   if (
-    bapFormSubmissions.status !== "success" ||
-    formioApplicationSubmissions.status !== "success" ||
-    formioPaymentRequestSubmissions.status !== "success"
+    !bapFormSubmissions ||
+    !formioApplicationSubmissions ||
+    !formioPaymentRequestSubmissions
   ) {
     return {};
   }
@@ -202,8 +255,8 @@ export function useCombinedSubmissions() {
    * with the Application form submission data and initialize Payment Request
    * form and Close-out Form submission data structure (both to be updated).
    */
-  for (const formioSubmission of formioApplicationSubmissions.data) {
-    const bapMatch = bapFormSubmissions.data.applications.find((bapSub) => {
+  for (const formioSubmission of formioApplicationSubmissions) {
+    const bapMatch = bapFormSubmissions.applications.find((bapSub) => {
       return bapSub.CSB_Form_ID__c === formioSubmission._id;
     });
 
@@ -247,10 +300,10 @@ export function useCombinedSubmissions() {
    * That said, if the BAP ETL isn't returning data, we should make sure we
    * handle that situation gracefully (see NOTE below).
    */
-  for (const formioSubmission of formioPaymentRequestSubmissions.data) {
+  for (const formioSubmission of formioPaymentRequestSubmissions) {
     const formioBapRebateId = formioSubmission.data.hidden_bap_rebate_id;
 
-    const bapMatch = bapFormSubmissions.data.paymentRequests.find((bapSub) => {
+    const bapMatch = bapFormSubmissions.paymentRequests.find((bapSub) => {
       return bapSub.Parent_Rebate_ID__c === formioBapRebateId;
     });
 
@@ -264,10 +317,10 @@ export function useCombinedSubmissions() {
     /**
      * NOTE: If the BAP ETL is running, there should be a submission with a
      * `formioBapRebateId` key for each Formio Payment Request form submission
-     * (as it would have been set in the `formioApplicationSubmissions.data`
-     * loop above). That said, we should first check that it exists before
-     * assigning the Payment Request data to it, so if the BAP ETL process isn't
-     * returning data, it won't break our app.
+     * (as it would have been set in the `formioApplicationSubmissions` loop
+     * above). That said, we should first check that it exists before assigning
+     * the Payment Request data to it, so if the BAP ETL process isn't returning
+     * data, it won't break our app.
      */
     if (rebates[formioBapRebateId]) {
       rebates[formioBapRebateId].paymentRequest = {
@@ -839,12 +892,8 @@ export function AllRebates() {
   const [searchParams] = useSearchParams();
 
   const content = useContentData();
-  const { formSubmissions: bapFormSubmissions } = useBapState();
-  const {
-    applicationSubmissions: formioApplicationSubmissions,
-    paymentRequestSubmissions: formioPaymentRequestSubmissions,
-  } = useFormioSubmissionsState();
-  useFetchedFormSubmissions();
+  const { bapQuery, formioApplicationsQuery, formioPaymentRequestsQuery } =
+    useFetchedFormSubmissions();
 
   const combinedRebates = useCombinedSubmissions();
   const sortedRebates = useSortedRebates(combinedRebates);
@@ -857,20 +906,17 @@ export function AllRebates() {
   }, [searchParams, sortedRebates]);
 
   if (
-    bapFormSubmissions.status === "idle" ||
-    bapFormSubmissions.status === "pending" ||
-    formioApplicationSubmissions.status === "idle" ||
-    formioApplicationSubmissions.status === "pending" ||
-    formioPaymentRequestSubmissions.status === "idle" ||
-    formioPaymentRequestSubmissions.status === "pending"
+    bapQuery.isInitialLoading ||
+    formioApplicationsQuery.isInitialLoading ||
+    formioPaymentRequestsQuery.isInitialLoading
   ) {
     return <Loading />;
   }
 
   if (
-    bapFormSubmissions.status === "failure" ||
-    formioApplicationSubmissions.status === "failure" ||
-    formioPaymentRequestSubmissions.status === "failure"
+    bapQuery.isError ||
+    formioApplicationsQuery.isError ||
+    formioPaymentRequestsQuery.isError
   ) {
     return <Message type="error" text={messages.formSubmissionsError} />;
   }
