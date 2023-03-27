@@ -10,7 +10,7 @@ import { Loading } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/tooltip";
-import { useContentState } from "contexts/content";
+import { useContentData } from "components/app";
 import { useUserState } from "contexts/user";
 import { useCsbState } from "contexts/csb";
 import { BapSamEntity, useBapState } from "contexts/bap";
@@ -55,7 +55,8 @@ function createNewApplication(email: string, entity: BapSamEntity) {
 
 export function NewApplicationForm() {
   const navigate = useNavigate();
-  const { content } = useContentState();
+
+  const content = useContentData();
   const { epaUserData } = useUserState();
   const { csbData } = useCsbState();
   const { samEntities } = useBapState();
@@ -145,10 +146,10 @@ export function NewApplicationForm() {
                     </div>
                   ) : (
                     <>
-                      {content.status === "success" && (
+                      {content && (
                         <MarkdownContent
                           className="tw-mt-4 tw-text-center"
-                          children={content.data?.newApplicationDialog || ""}
+                          children={content.newApplicationDialog}
                           components={{
                             h2: (props) => (
                               <h2 className="tw-text-xl sm:tw-text-2xl md:tw-text-3xl">

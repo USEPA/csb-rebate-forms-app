@@ -4,7 +4,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import reportWebVitals from "./reportWebVitals";
 // ---
-import { ContentProvider } from "contexts/content";
 import { DialogProvider } from "contexts/dialog";
 import { UserProvider } from "contexts/user";
 import { CsbProvider } from "contexts/csb";
@@ -23,21 +22,19 @@ render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <ErrorBoundary>
-        <ContentProvider>
-          <DialogProvider>
-            <UserProvider>
-              <CsbProvider>
-                <BapProvider>
-                  <FormioSubmissionsProvider>
-                    <NotificationsProvider>
-                      <App />
-                    </NotificationsProvider>
-                  </FormioSubmissionsProvider>
-                </BapProvider>
-              </CsbProvider>
-            </UserProvider>
-          </DialogProvider>
-        </ContentProvider>
+        <DialogProvider>
+          <UserProvider>
+            <CsbProvider>
+              <BapProvider>
+                <FormioSubmissionsProvider>
+                  <NotificationsProvider>
+                    <App />
+                  </NotificationsProvider>
+                </FormioSubmissionsProvider>
+              </BapProvider>
+            </CsbProvider>
+          </UserProvider>
+        </DialogProvider>
       </ErrorBoundary>
 
       <ReactQueryDevtools />

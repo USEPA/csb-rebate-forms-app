@@ -16,7 +16,7 @@ import {
 import { Loading } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
-import { useContentState } from "contexts/content";
+import { useContentData } from "components/app";
 import { useDialogDispatch } from "contexts/dialog";
 import { useUserState } from "contexts/user";
 import { useCsbState } from "contexts/csb";
@@ -60,7 +60,7 @@ function ApplicationFormContent({ email }: { email: string }) {
   const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
 
-  const { content } = useContentState();
+  const content = useContentData();
   const { csbData } = useCsbState();
   const { samEntities, formSubmissions: bapFormSubmissions } = useBapState();
   const {
@@ -344,14 +344,14 @@ function ApplicationFormContent({ email }: { email: string }) {
 
   return (
     <div className="margin-top-2">
-      {content.status === "success" && (
+      {content && (
         <MarkdownContent
           className="margin-top-4"
           children={
             submission.state === "draft"
-              ? content.data?.draftApplicationIntro || ""
+              ? content.draftApplicationIntro
               : submission.state === "submitted"
-              ? content.data?.submittedApplicationIntro || ""
+              ? content.submittedApplicationIntro
               : ""
           }
         />

@@ -9,7 +9,7 @@ import { Loading, LoadingButtonIcon } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/tooltip";
-import { useContentState } from "contexts/content";
+import { useContentData } from "components/app";
 import { useUserState } from "contexts/user";
 import { useCsbState } from "contexts/csb";
 import { BapFormSubmission, useBapState, useBapDispatch } from "contexts/bap";
@@ -839,7 +839,7 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
 export function AllRebates() {
   const [searchParams] = useSearchParams();
 
-  const { content } = useContentState();
+  const content = useContentData();
   const { formSubmissions: bapFormSubmissions } = useBapState();
   const {
     applicationSubmissions: formioApplicationSubmissions,
@@ -884,10 +884,10 @@ export function AllRebates() {
         </div>
       ) : (
         <>
-          {content.status === "success" && (
+          {content && (
             <MarkdownContent
               className="margin-top-4"
-              children={content.data?.allRebatesIntro || ""}
+              children={content.allRebatesIntro}
             />
           )}
 
@@ -982,10 +982,11 @@ export function AllRebates() {
         </>
       )}
 
-      {content.status === "success" && (
-        <div className="margin-top-4 padding-2 padding-bottom-0 border-1px border-base-lighter bg-base-lightest">
-          <MarkdownContent children={content.data?.allRebatesOutro || ""} />
-        </div>
+      {content && (
+        <MarkdownContent
+          className="margin-top-4 padding-2 padding-bottom-0 border-1px border-base-lighter bg-base-lightest"
+          children={content.allRebatesOutro}
+        />
       )}
     </>
   );
