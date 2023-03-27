@@ -100,22 +100,24 @@ function ApplicationFormContent({ email }: { email: string }) {
     queryKey: ["application", { id: mongoId }],
     queryFn: () => {
       return getData<ServerResponse>(url).then((res) => {
-        const data = { ...res.submission?.data };
-
         // set up s3 re-route to wrapper app
         const s3Provider = Formio.Providers.providers.storage.s3;
         Formio.Providers.providers.storage.s3 = function (formio: any) {
           const s3Formio = cloneDeep(formio);
-          const comboKey = data.bap_hidden_entity_combo_key;
+          const comboKey = res.submission?.data.bap_hidden_entity_combo_key;
           s3Formio.formUrl = `${serverUrl}/api/s3/application/${mongoId}/${comboKey}`;
           return s3Provider(s3Formio);
         };
 
         // remove `ncesDataSource` and `ncesDataLookup` fields
+        const data = { ...res.submission?.data };
         if (data.hasOwnProperty("ncesDataSource")) delete data.ncesDataSource;
         if (data.hasOwnProperty("ncesDataLookup")) delete data.ncesDataLookup;
 
-        return Promise.resolve(res);
+        return Promise.resolve({
+          ...res,
+          submission: { ...res.submission, data },
+        });
       });
     },
     refetchOnWindowFocus: false,
