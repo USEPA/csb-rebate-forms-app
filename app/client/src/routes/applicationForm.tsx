@@ -21,7 +21,6 @@ import { useCsbData } from "components/dashboard";
 import { useDialogDispatch } from "contexts/dialog";
 import { useUserState } from "contexts/user";
 import { useBapState } from "contexts/bap";
-import { useFormioSubmissionsState } from "contexts/formioSubmissions";
 import { useNotificationsDispatch } from "contexts/notifications";
 
 type FormioSubmission = {
@@ -62,15 +61,12 @@ function ApplicationFormContent({ email }: { email: string }) {
 
   const content = useContentData();
   const csbData = useCsbData();
-  const { samEntities, formSubmissions: bapFormSubmissions } = useBapState();
-  const {
-    applicationSubmissions: formioApplicationSubmissions,
-    paymentRequestSubmissions: formioPaymentRequestSubmissions,
-  } = useFormioSubmissionsState();
+  const { samEntities } = useBapState();
   const dialogDispatch = useDialogDispatch();
   const notificationsDispatch = useNotificationsDispatch();
 
-  useFetchedFormSubmissions();
+  const { bapQuery, formioApplicationsQuery, formioPaymentRequestsQuery } =
+    useFetchedFormSubmissions();
 
   const combinedRebates = useCombinedSubmissions();
   const sortedRebates = useSortedRebates(combinedRebates);
@@ -150,20 +146,17 @@ function ApplicationFormContent({ email }: { email: string }) {
   }
 
   if (
-    bapFormSubmissions.status === "idle" ||
-    bapFormSubmissions.status === "pending" ||
-    formioApplicationSubmissions.status === "idle" ||
-    formioApplicationSubmissions.status === "pending" ||
-    formioPaymentRequestSubmissions.status === "idle" ||
-    formioPaymentRequestSubmissions.status === "pending"
+    bapQuery.isInitialLoading ||
+    formioApplicationsQuery.isInitialLoading ||
+    formioPaymentRequestsQuery.isInitialLoading
   ) {
     return <Loading />;
   }
 
   if (
-    bapFormSubmissions.status === "failure" ||
-    formioApplicationSubmissions.status === "failure" ||
-    formioPaymentRequestSubmissions.status === "failure"
+    bapQuery.isError ||
+    formioApplicationsQuery.isError ||
+    formioPaymentRequestsQuery.isError
   ) {
     return <Message type="error" text={messages.formSubmissionsError} />;
   }
