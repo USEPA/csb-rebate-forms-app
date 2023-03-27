@@ -21,10 +21,10 @@ type FormType = "application" | "payment-request" | "close-out";
 type FormioSubmission = {
   [field: string]: unknown;
   _id: string; // MongoDB ObjectId string
-  state: "submitted" | "draft";
   modified: string; // ISO 8601 date string
-  data: { [field: string]: unknown };
   metadata: { [field: string]: unknown };
+  data: { [field: string]: unknown };
+  state: "submitted" | "draft";
 };
 
 type ServerResponse =
@@ -45,6 +45,10 @@ export function Helpdesk() {
   const [searchId, setSearchId] = useState("");
   const [formDisplayed, setFormDisplayed] = useState(false);
 
+  useEffect(() => {
+    queryClient.resetQueries({ queryKey: ["helpdesk"] });
+  }, [queryClient]);
+
   const url = `${serverUrl}/help/formio-submission/${formType}/${searchId}`;
 
   const query = useQuery({
@@ -58,9 +62,7 @@ export function Helpdesk() {
     onSuccess: (data) => queryClient.setQueryData(["helpdesk"], data),
   });
 
-  useEffect(() => {
-    queryClient.resetQueries({ queryKey: ["helpdesk"] });
-  }, [queryClient]);
+  const { formSchema, submission } = query.data ?? {};
 
   if (
     csbData.status !== "success" ||
@@ -188,7 +190,7 @@ export function Helpdesk() {
         <Loading />
       ) : query.isError || mutation.isError ? (
         <Message type="error" text={messages.helpdeskSubmissionSearchError} />
-      ) : query.isSuccess && query.data.formSchema && query.data.submission ? (
+      ) : query.isSuccess && !!formSchema && !!submission ? (
         <>
           <div className="usa-table-container--scrollable" tabIndex={0}>
             <table
@@ -275,56 +277,40 @@ export function Helpdesk() {
                   </th>
 
                   {formType === "application" ? (
-                    <td>{query.data.submission._id}</td>
+                    <td>{submission._id}</td>
                   ) : formType === "payment-request" ? (
-                    <td>
-                      {
-                        query.data.submission.data.hidden_bap_rebate_id as string // prettier-ignore
-                      }
-                    </td>
+                    <td>{submission.data.hidden_bap_rebate_id as string}</td>
                   ) : (
                     <td>&nbsp;</td>
                   )}
 
                   {formType === "application" ? (
                     <td>
-                      {
-                        query.data.submission.data.sam_hidden_applicant_name as string // prettier-ignore
-                      }
+                      {submission.data.sam_hidden_applicant_name as string}
                     </td>
                   ) : formType === "payment-request" ? (
-                    <td>
-                      {query.data.submission.data.applicantName as string}
-                    </td>
+                    <td>{submission.data.applicantName as string}</td>
                   ) : (
                     <td>&nbsp;</td>
                   )}
 
                   {formType === "application" ? (
-                    <td>
-                      {query.data.submission.data.last_updated_by as string}
-                    </td>
+                    <td>{submission.data.last_updated_by as string}</td>
                   ) : formType === "payment-request" ? (
                     <td>
-                      {
-                        query.data.submission.data.hidden_current_user_email as string // prettier-ignore
-                      }
+                      {submission.data.hidden_current_user_email as string}
                     </td>
                   ) : (
                     <td>&nbsp;</td>
                   )}
 
-                  <td>
-                    {
-                      new Date(query.data.submission.modified).toLocaleDateString() // prettier-ignore
-                    }
-                  </td>
+                  <td>{new Date(submission.modified).toLocaleDateString()}</td>
 
                   <td>
                     {
-                      query.data.submission.state === "draft"
+                      submission.state === "draft"
                         ? "Draft"
-                        : query.data.submission.state === "submitted"
+                        : submission.state === "submitted"
                         ? "Submitted"
                         : "" // fallback, not used
                     }
@@ -335,7 +321,7 @@ export function Helpdesk() {
                       className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
                       disabled={
                         // prettier-ignore
-                        query.data.submission.state === "draft" ||
+                        submission.state === "draft" ||
                           (formType === "application" && !applicationFormOpen) ||
                           (formType === "payment-request" && !paymentRequestFormOpen) ||
                           (formType === "close-out" && !closeOutFormOpen)
@@ -394,13 +380,12 @@ export function Helpdesk() {
                   <div className="usa-icon-list__content">
                     {formType === "application" ? (
                       <>
-                        <strong>Application ID:</strong>{" "}
-                        {query.data.submission._id}
+                        <strong>Application ID:</strong> {submission._id}
                       </>
                     ) : formType === "payment-request" ? (
                       <>
                         <strong>Rebate ID:</strong>{" "}
-                        {query.data.submission.data.hidden_bap_rebate_id}
+                        {submission.data.hidden_bap_rebate_id}
                       </>
                     ) : (
                       <>&nbsp;</>
@@ -410,9 +395,9 @@ export function Helpdesk() {
               </ul>
 
               <Form
-                form={query.data.formSchema.json}
-                url={query.data.formSchema.url} // NOTE: used for file uploads
-                submission={{ data: query.data.submission.data }}
+                form={formSchema.json}
+                url={formSchema.url} // NOTE: used for file uploads
+                submission={{ data: submission.data }}
                 options={{ readOnly: true }}
               />
             </>
