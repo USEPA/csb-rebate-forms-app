@@ -7,7 +7,6 @@ import reportWebVitals from "./reportWebVitals";
 import { DialogProvider } from "contexts/dialog";
 import { UserProvider } from "contexts/user";
 import { BapProvider } from "contexts/bap";
-import { FormioSubmissionsProvider } from "contexts/formioSubmissions";
 import { NotificationsProvider } from "contexts/notifications";
 import { ErrorBoundary } from "components/errorBoundary";
 import { App } from "components/app";
@@ -24,11 +23,9 @@ render(
         <DialogProvider>
           <UserProvider>
             <BapProvider>
-              <FormioSubmissionsProvider>
-                <NotificationsProvider>
-                  <App />
-                </NotificationsProvider>
-              </FormioSubmissionsProvider>
+              <NotificationsProvider>
+                <App />
+              </NotificationsProvider>
             </BapProvider>
           </UserProvider>
         </DialogProvider>
