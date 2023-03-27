@@ -15,30 +15,42 @@ import { useUserState } from "contexts/user";
 import { useCsbState } from "contexts/csb";
 import { BapSamEntity, useBapState } from "contexts/bap";
 
+type FormioSubmission = {
+  [field: string]: unknown;
+  _id: string; // MongoDB ObjectId string
+  state: "submitted" | "draft";
+  modified: string; // ISO 8601 date string
+  data: { [field: string]: unknown };
+  metadata: { [field: string]: unknown };
+};
+
 function createNewApplication(email: string, entity: BapSamEntity) {
   const { title, name } = getUserInfo(email, entity);
 
-  return postData(`${serverUrl}/api/formio-application-submission/`, {
-    data: {
-      last_updated_by: email,
-      hidden_current_user_email: email,
-      hidden_current_user_title: title,
-      hidden_current_user_name: name,
-      bap_hidden_entity_combo_key: entity.ENTITY_COMBO_KEY__c,
-      sam_hidden_applicant_email: email,
-      sam_hidden_applicant_title: title,
-      sam_hidden_applicant_name: name,
-      sam_hidden_applicant_efti: entity.ENTITY_EFT_INDICATOR__c,
-      sam_hidden_applicant_uei: entity.UNIQUE_ENTITY_ID__c,
-      sam_hidden_applicant_organization_name: entity.LEGAL_BUSINESS_NAME__c,
-      sam_hidden_applicant_street_address_1: entity.PHYSICAL_ADDRESS_LINE_1__c,
-      sam_hidden_applicant_street_address_2: entity.PHYSICAL_ADDRESS_LINE_2__c,
-      sam_hidden_applicant_city: entity.PHYSICAL_ADDRESS_CITY__c,
-      sam_hidden_applicant_state: entity.PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
-      sam_hidden_applicant_zip_code: entity.PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
-    },
-    state: "draft",
-  });
+  return postData<FormioSubmission>(
+    `${serverUrl}/api/formio-application-submission/`,
+    {
+      data: {
+        last_updated_by: email,
+        hidden_current_user_email: email,
+        hidden_current_user_title: title,
+        hidden_current_user_name: name,
+        bap_hidden_entity_combo_key: entity.ENTITY_COMBO_KEY__c,
+        sam_hidden_applicant_email: email,
+        sam_hidden_applicant_title: title,
+        sam_hidden_applicant_name: name,
+        sam_hidden_applicant_efti: entity.ENTITY_EFT_INDICATOR__c,
+        sam_hidden_applicant_uei: entity.UNIQUE_ENTITY_ID__c,
+        sam_hidden_applicant_organization_name: entity.LEGAL_BUSINESS_NAME__c,
+        sam_hidden_applicant_street_address_1: entity.PHYSICAL_ADDRESS_LINE_1__c, // prettier-ignore
+        sam_hidden_applicant_street_address_2: entity.PHYSICAL_ADDRESS_LINE_2__c, // prettier-ignore
+        sam_hidden_applicant_city: entity.PHYSICAL_ADDRESS_CITY__c,
+        sam_hidden_applicant_state: entity.PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c, // prettier-ignore
+        sam_hidden_applicant_zip_code: entity.PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c, // prettier-ignore
+      },
+      state: "draft",
+    }
+  );
 }
 
 export function NewApplicationForm() {

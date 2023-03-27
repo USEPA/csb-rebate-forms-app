@@ -17,8 +17,8 @@ import { Loading } from "components/loading";
 import { Notifications } from "components/notifications";
 import { Action, useDialogDispatch } from "contexts/dialog";
 import { useUserState } from "contexts/user";
-import { useCsbState, useCsbDispatch } from "contexts/csb";
-import { useBapState, useBapDispatch } from "contexts/bap";
+import { CsbData, useCsbState, useCsbDispatch } from "contexts/csb";
+import { BapSamEntity, useBapState, useBapDispatch } from "contexts/bap";
 
 Formio.setBaseUrl(formioBaseUrl);
 Formio.setProjectUrl(formioProjectUrl);
@@ -31,7 +31,7 @@ function useFetchedCsbData() {
 
   useEffect(() => {
     csbDispatch({ type: "FETCH_CSB_DATA_REQUEST" });
-    getData(`${serverUrl}/api/csb-data`)
+    getData<CsbData>(`${serverUrl}/api/csb-data`)
       .then((res) => {
         csbDispatch({
           type: "FETCH_CSB_DATA_SUCCESS",
@@ -50,7 +50,10 @@ function useFetchedSamData() {
 
   useEffect(() => {
     bapDispatch({ type: "FETCH_BAP_SAM_DATA_REQUEST" });
-    getData(`${serverUrl}/api/bap-sam-data`)
+    getData<
+      | { results: false; entities: [] }
+      | { results: true; entities: BapSamEntity[] }
+    >(`${serverUrl}/api/bap-sam-data`)
       .then((res) => {
         if (res.results) {
           bapDispatch({
