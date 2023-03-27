@@ -11,8 +11,8 @@ import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/tooltip";
 import { useContentData } from "components/app";
+import { useCsbData } from "components/dashboard";
 import { useUserState } from "contexts/user";
-import { useCsbState } from "contexts/csb";
 import { BapSamEntity, useBapState } from "contexts/bap";
 
 type FormioSubmission = {
@@ -57,8 +57,8 @@ export function NewApplicationForm() {
   const navigate = useNavigate();
 
   const content = useContentData();
+  const csbData = useCsbData();
   const { epaUserData } = useUserState();
-  const { csbData } = useCsbState();
   const { samEntities } = useBapState();
 
   const [message, setMessage] = useState<{
@@ -72,12 +72,14 @@ export function NewApplicationForm() {
   });
 
   if (
-    csbData.status !== "success" ||
+    !csbData ||
     epaUserData.status !== "success" ||
     samEntities.status !== "success"
   ) {
     return <Loading />;
   }
+
+  const applicationFormOpen = csbData.submissionPeriodOpen.application;
 
   const email = epaUserData.data.mail;
 
@@ -133,7 +135,7 @@ export function NewApplicationForm() {
                 </div>
 
                 <div className="tw-m-auto tw-max-w-3xl tw-p-4 sm:tw-p-8">
-                  {!csbData.data.submissionPeriodOpen.application ? (
+                  {!applicationFormOpen ? (
                     <div className="-tw-mb-4">
                       <Message
                         type="info"

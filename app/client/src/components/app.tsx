@@ -275,6 +275,7 @@ export function App() {
   useQuery({
     queryKey: ["content"],
     queryFn: () => getData<Content>(`${serverUrl}/api/content`),
+    refetchOnWindowFocus: false,
   });
 
   return (

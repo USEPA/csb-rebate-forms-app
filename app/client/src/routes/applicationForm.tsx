@@ -17,9 +17,9 @@ import { Loading } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { useContentData } from "components/app";
+import { useCsbData } from "components/dashboard";
 import { useDialogDispatch } from "contexts/dialog";
 import { useUserState } from "contexts/user";
-import { useCsbState } from "contexts/csb";
 import { useBapState } from "contexts/bap";
 import { useFormioSubmissionsState } from "contexts/formioSubmissions";
 import { useNotificationsDispatch } from "contexts/notifications";
@@ -61,7 +61,7 @@ function ApplicationFormContent({ email }: { email: string }) {
   const queryClient = useQueryClient();
 
   const content = useContentData();
-  const { csbData } = useCsbState();
+  const csbData = useCsbData();
   const { samEntities, formSubmissions: bapFormSubmissions } = useBapState();
   const {
     applicationSubmissions: formioApplicationSubmissions,
@@ -145,11 +145,7 @@ function ApplicationFormContent({ email }: { email: string }) {
 
   const { userAccess, formSchema, submission } = query.data ?? {};
 
-  if (
-    email === "" ||
-    csbData.status !== "success" ||
-    samEntities.status !== "success"
-  ) {
+  if (email === "" || !csbData || samEntities.status !== "success") {
     return <Loading />;
   }
 
@@ -180,9 +176,6 @@ function ApplicationFormContent({ email }: { email: string }) {
     const text = `The requested submission does not exist, or you do not have access. Please contact support if you believe this is a mistake.`;
     return <Message type="error" text={text} />;
   }
-
-  const { application: applicationFormOpen } =
-    csbData.data.submissionPeriodOpen;
 
   const rebate = sortedRebates.find((item) => {
     return item.application.formio._id === mongoId;
@@ -324,6 +317,8 @@ function ApplicationFormContent({ email }: { email: string }) {
 
     return null;
   }
+
+  const applicationFormOpen = csbData.submissionPeriodOpen.application;
 
   const formIsReadOnly =
     (submission.state === "submitted" || !applicationFormOpen) &&

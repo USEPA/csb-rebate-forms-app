@@ -10,8 +10,8 @@ import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/tooltip";
 import { useContentData } from "components/app";
+import { useCsbData } from "components/dashboard";
 import { useUserState } from "contexts/user";
-import { useCsbState } from "contexts/csb";
 import { BapFormSubmission, useBapState, useBapDispatch } from "contexts/bap";
 import {
   FormioApplicationSubmission,
@@ -360,11 +360,11 @@ function ButtonLink(props: { type: "edit" | "view"; to: LinkProps["to"] }) {
 }
 
 function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
-  const { csbData } = useCsbState();
+  const csbData = useCsbData();
 
-  if (csbData.status !== "success") return null;
+  if (!csbData) return null;
 
-  const applicationFormOpen = csbData.data.submissionPeriodOpen.application;
+  const applicationFormOpen = csbData.submissionPeriodOpen.application;
 
   const { application, paymentRequest } = rebate;
 
@@ -604,7 +604,7 @@ save the form for the EFT indicator to be displayed. */
 function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
   const navigate = useNavigate();
 
-  const { csbData } = useCsbState();
+  const csbData = useCsbData();
   const { epaUserData } = useUserState();
   const { samEntities } = useBapState();
   const notificationsDispatch = useNotificationsDispatch();
@@ -612,12 +612,11 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
   // NOTE: used to display a loading indicator inside the new Payment Request button
   const [postDataResponsePending, setPostDataResponsePending] = useState(false);
 
-  if (csbData.status !== "success") return null;
+  if (!csbData) return null;
   if (epaUserData.status !== "success") return null;
   if (samEntities.status !== "success") return null;
 
-  const paymentRequestFormOpen =
-    csbData.data.submissionPeriodOpen.paymentRequest;
+  const paymentRequestFormOpen = csbData.submissionPeriodOpen.paymentRequest;
 
   const email = epaUserData.data.mail;
   const { application, paymentRequest } = rebate;

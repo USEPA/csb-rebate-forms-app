@@ -17,8 +17,8 @@ import { Loading } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { useContentData } from "components/app";
+import { useCsbData } from "components/dashboard";
 import { useUserState } from "contexts/user";
-import { useCsbState } from "contexts/csb";
 import { useBapState } from "contexts/bap";
 import { useFormioSubmissionsState } from "contexts/formioSubmissions";
 import { useNotificationsDispatch } from "contexts/notifications";
@@ -60,7 +60,7 @@ function PaymentRequestFormContent({ email }: { email: string }) {
   const queryClient = useQueryClient();
 
   const content = useContentData();
-  const { csbData } = useCsbState();
+  const csbData = useCsbData();
   const { samEntities, formSubmissions: bapFormSubmissions } = useBapState();
   const {
     applicationSubmissions: formioApplicationSubmissions,
@@ -139,11 +139,7 @@ function PaymentRequestFormContent({ email }: { email: string }) {
 
   const { userAccess, formSchema, submission } = query.data ?? {};
 
-  if (
-    email === "" ||
-    csbData.status !== "success" ||
-    samEntities.status !== "success"
-  ) {
+  if (email === "" || !csbData || samEntities.status !== "success") {
     return <Loading />;
   }
 
@@ -175,9 +171,6 @@ function PaymentRequestFormContent({ email }: { email: string }) {
     return <Message type="error" text={text} />;
   }
 
-  const { paymentRequest: paymentRequestFormOpen } =
-    csbData.data.submissionPeriodOpen;
-
   const rebate = sortedRebates.find((item) => item.rebateId === rebateId);
 
   const applicationNeedsEdits = !rebate
@@ -193,6 +186,8 @@ function PaymentRequestFormContent({ email }: { email: string }) {
         formio: rebate.paymentRequest.formio,
         bap: rebate.paymentRequest.bap,
       });
+
+  const paymentRequestFormOpen = csbData.submissionPeriodOpen.paymentRequest;
 
   const formIsReadOnly =
     applicationNeedsEdits ||

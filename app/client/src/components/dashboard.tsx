@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { Formio } from "@formio/react";
 import premium from "@formio/premium";
 import uswds from "@formio/uswds";
@@ -17,31 +18,25 @@ import { Loading } from "components/loading";
 import { Notifications } from "components/notifications";
 import { Action, useDialogDispatch } from "contexts/dialog";
 import { useUserState } from "contexts/user";
-import { CsbData, useCsbState, useCsbDispatch } from "contexts/csb";
 import { BapSamEntity, useBapState, useBapDispatch } from "contexts/bap";
+
+type CsbData = {
+  submissionPeriodOpen: {
+    application: boolean;
+    paymentRequest: boolean;
+    closeOut: boolean;
+  };
+};
 
 Formio.setBaseUrl(formioBaseUrl);
 Formio.setProjectUrl(formioProjectUrl);
 Formio.use(premium);
 Formio.use(uswds);
 
-/** Custom hook to fetch CSP app specific data */
-function useFetchedCsbData() {
-  const csbDispatch = useCsbDispatch();
-
-  useEffect(() => {
-    csbDispatch({ type: "FETCH_CSB_DATA_REQUEST" });
-    getData<CsbData>(`${serverUrl}/api/csb-data`)
-      .then((res) => {
-        csbDispatch({
-          type: "FETCH_CSB_DATA_SUCCESS",
-          payload: { csbData: res },
-        });
-      })
-      .catch((err) => {
-        csbDispatch({ type: "FETCH_CSB_DATA_FAILURE" });
-      });
-  }, [csbDispatch]);
+/** Custom hook that returns cached fetched csb data */
+export function useCsbData() {
+  const queryClient = useQueryClient();
+  return queryClient.getQueryData<CsbData>(["csb"]);
 }
 
 /** Custom hook to fetch SAM.gov data */
@@ -111,12 +106,18 @@ export function Dashboard() {
   const navigate = useNavigate();
 
   const { epaUserData } = useUserState();
-  const { csbData } = useCsbState();
+  const csbData = useCsbData();
+
   const { samEntities } = useBapState();
   const dialogDispatch = useDialogDispatch();
   const helpdeskAccess = useHelpdeskAccess();
 
-  useFetchedCsbData();
+  useQuery({
+    queryKey: ["csb"],
+    queryFn: () => getData<CsbData>(`${serverUrl}/api/csb-data`),
+    refetchOnWindowFocus: false,
+  });
+
   useFetchedSamData();
 
   const onAllRebatesPage = pathname === "/";
@@ -124,9 +125,9 @@ export function Dashboard() {
   const onApplicationFormPage = pathname.startsWith("/rebate");
   const onPaymentRequestFormPage = pathname.startsWith("/payment-request");
 
-  const applicationFormOpen =
-    csbData.status === "success" &&
-    csbData.data.submissionPeriodOpen.application;
+  const applicationFormOpen = csbData
+    ? csbData.submissionPeriodOpen.application
+    : false;
 
   /**
    * When provided a destination location to navigate to, creates an action
@@ -153,7 +154,7 @@ export function Dashboard() {
     };
   }
 
-  if (csbData.status !== "success" || samEntities.status !== "success") {
+  if (!csbData || samEntities.status !== "success") {
     return <Loading />;
   }
 
