@@ -1,5 +1,6 @@
-import { useMemo, useEffect, useState, useRef } from "react";
+import { useMemo, useEffect, useRef } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import { Formio, Form } from "@formio/react";
 import { cloneDeep, isEqual } from "lodash";
 import icons from "uswds/img/sprite.svg";
@@ -20,16 +21,15 @@ import { useUserState } from "contexts/user";
 import { useCsbState } from "contexts/csb";
 import { useBapState } from "contexts/bap";
 import { useFormioSubmissionsState } from "contexts/formioSubmissions";
-import { useFormioFormState, useFormioFormDispatch } from "contexts/formioForm";
 import { useNotificationsDispatch } from "contexts/notifications";
 
 type FormioSubmission = {
   [field: string]: unknown;
   _id: string; // MongoDB ObjectId string
-  state: "submitted" | "draft";
   modified: string; // ISO 8601 date string
-  data: { [field: string]: unknown };
   metadata: { [field: string]: unknown };
+  data: { [field: string]: unknown };
+  state: "submitted" | "draft";
 };
 
 type ServerResponse =
@@ -57,6 +57,7 @@ function PaymentRequestFormContent({ email }: { email: string }) {
   const navigate = useNavigate();
   const { rebateId } = useParams<"rebateId">(); // CSB Rebate ID (6 digits)
   const [searchParams] = useSearchParams();
+  const queryClient = useQueryClient();
 
   const { content } = useContentState();
   const { csbData } = useCsbState();
@@ -65,14 +66,7 @@ function PaymentRequestFormContent({ email }: { email: string }) {
     applicationSubmissions: formioApplicationSubmissions,
     paymentRequestSubmissions: formioPaymentRequestSubmissions,
   } = useFormioSubmissionsState();
-  const { formio } = useFormioFormState();
-  const formioFormDispatch = useFormioFormDispatch();
   const notificationsDispatch = useNotificationsDispatch();
-
-  // reset formio form state since it's used across pages
-  useEffect(() => {
-    formioFormDispatch({ type: "RESET_FORMIO_DATA" });
-  }, [formioFormDispatch]);
 
   useFetchedFormSubmissions();
 
@@ -86,37 +80,24 @@ function PaymentRequestFormContent({ email }: { email: string }) {
     }
   }, [searchParams, sortedRebates]);
 
-  // create ref to store when form is being submitted, so it can be referenced
-  // in the Form component's `onSubmit` event prop, to prevent double submits
+  // ref to store when form is being submitted, so it can be referenced in the
+  // Form component's `onSubmit` event prop to prevent double submits
   const formIsBeingSubmitted = useRef(false);
 
-  // set when form submission data is initially fetched, and then re-set each
-  // time a successful update of the submission data is posted to forms.gov
-  const [storedSubmissionData, setStoredSubmissionData] = useState<{
-    [field: string]: unknown;
-  }>({});
-
-  // create ref to storedSubmissionData, so the latest value can be referenced
-  // in the Form component's `onNextPage` event prop
-  const storedSubmissionDataRef = useRef<{
-    [field: string]: unknown;
-  }>({});
-
-  // initially empty, but will be set once the user attemts to submit the form
-  // (both successfully and unsuccessfully). passed to the to the <Form />
-  // component's submission prop, so the fields the user filled out will not be
-  // lost if a submission update fails, so the user can attempt submitting again
-  const [pendingSubmissionData, setPendingSubmissionData] = useState<{
-    [field: string]: unknown;
-  }>({});
+  // ref to store submission data, so the latest value can be referenced in the
+  // Form component's `onNextPage` event prop
+  const storedSubmissionData = useRef<{ [field: string]: unknown }>({});
 
   useEffect(() => {
-    formioFormDispatch({ type: "FETCH_FORMIO_DATA_REQUEST" });
+    queryClient.resetQueries({ queryKey: ["payment-request"] });
+  }, [queryClient]);
 
-    const url = `${serverUrl}/api/formio-payment-request-submission/${rebateId}`;
+  const url = `${serverUrl}/api/formio-payment-request-submission/${rebateId}`;
 
-    getData<ServerResponse>(url)
-      .then((res) => {
+  const query = useQuery({
+    queryKey: ["payment-request", { id: rebateId }],
+    queryFn: () => {
+      return getData<ServerResponse>(url).then((res) => {
         // set up s3 re-route to wrapper app
         const s3Provider = Formio.Providers.providers.storage.s3;
         Formio.Providers.providers.storage.s3 = function (formio: any) {
@@ -127,42 +108,36 @@ function PaymentRequestFormContent({ email }: { email: string }) {
           return s3Provider(s3Formio);
         };
 
-        const data = { ...res.submission?.data };
-
-        setStoredSubmissionData((_prevData) => {
-          storedSubmissionDataRef.current = cloneDeep(data);
-          return data;
-        });
-
-        formioFormDispatch({
-          type: "FETCH_FORMIO_DATA_SUCCESS",
-          payload: { data: res },
-        });
-      })
-      .catch((err) => {
-        formioFormDispatch({ type: "FETCH_FORMIO_DATA_FAILURE" });
+        return Promise.resolve(res);
       });
-  }, [rebateId, formioFormDispatch]);
+    },
+    refetchOnWindowFocus: false,
+  });
 
-  if (formio.status === "idle") {
-    return null;
-  }
+  const mutation = useMutation({
+    mutationFn: (updatedSubmission: {
+      mongoId: string;
+      submission: {
+        data: { [field: string]: unknown };
+        metadata: { [field: string]: unknown };
+        state: "submitted" | "draft";
+      };
+    }) => {
+      return postData<FormioSubmission>(url, updatedSubmission);
+    },
+    onSuccess: (data) => {
+      return queryClient.setQueryData<ServerResponse>(
+        ["application", { id: rebateId }],
+        (prevData) => {
+          return prevData?.submission
+            ? { ...prevData, submission: data }
+            : prevData;
+        }
+      );
+    },
+  });
 
-  if (formio.status === "pending") {
-    return <Loading />;
-  }
-
-  const { userAccess, formSchema, submission } = formio.data;
-
-  if (
-    formio.status === "failure" ||
-    !userAccess ||
-    !formSchema ||
-    !submission
-  ) {
-    const text = `The requested submission does not exist, or you do not have access. Please contact support if you believe this is a mistake.`;
-    return <Message type="error" text={text} />;
-  }
+  const { userAccess, formSchema, submission } = query.data ?? {};
 
   if (
     email === "" ||
@@ -191,8 +166,17 @@ function PaymentRequestFormContent({ email }: { email: string }) {
     return <Message type="error" text={messages.formSubmissionsError} />;
   }
 
-  const paymentRequestFormOpen =
-    csbData.data.submissionPeriodOpen.paymentRequest;
+  if (query.isInitialLoading) {
+    return <Loading />;
+  }
+
+  if (query.isError || !userAccess || !formSchema || !submission) {
+    const text = `The requested submission does not exist, or you do not have access. Please contact support if you believe this is a mistake.`;
+    return <Message type="error" text={text} />;
+  }
+
+  const { paymentRequest: paymentRequestFormOpen } =
+    csbData.data.submissionPeriodOpen;
 
   const rebate = sortedRebates.find((item) => item.rebateId === rebateId);
 
@@ -215,7 +199,7 @@ function PaymentRequestFormContent({ email }: { email: string }) {
     ((submission.state === "submitted" || !paymentRequestFormOpen) &&
       !paymentRequestNeedsEdits);
 
-  const entityComboKey = storedSubmissionData.bap_hidden_entity_combo_key;
+  const entityComboKey = submission.data.bap_hidden_entity_combo_key;
   const entity = samEntities.data.entities.find((entity) => {
     return (
       entity.ENTITY_STATUS__c === "Active" &&
@@ -278,7 +262,7 @@ function PaymentRequestFormContent({ email }: { email: string }) {
           url={formSchema.url} // NOTE: used for file uploads
           submission={{
             data: {
-              ...storedSubmissionData,
+              ...submission.data,
               last_updated_by: email,
               hidden_current_user_email: email,
               hidden_current_user_title: title,
@@ -289,7 +273,6 @@ function PaymentRequestFormContent({ email }: { email: string }) {
               hidden_sam_alt_elec_bus_poc_email: ALT_ELEC_BUS_POC_EMAIL__c,
               hidden_sam_govt_bus_poc_email: GOVT_BUS_POC_EMAIL__c,
               hidden_sam_alt_govt_bus_poc_email: ALT_GOVT_BUS_POC_EMAIL__c,
-              ...pendingSubmissionData,
             },
           }}
           options={{
@@ -297,9 +280,9 @@ function PaymentRequestFormContent({ email }: { email: string }) {
             noAlerts: true,
           }}
           onSubmit={(onSubmitSubmission: {
-            state: "submitted" | "draft";
             data: { [field: string]: unknown };
             metadata: { [field: string]: unknown };
+            state: "submitted" | "draft";
           }) => {
             if (formIsReadOnly) return;
 
@@ -311,89 +294,64 @@ function PaymentRequestFormContent({ email }: { email: string }) {
 
             const data = { ...onSubmitSubmission.data };
 
-            if (onSubmitSubmission.state === "submitted") {
-              notificationsDispatch({
-                type: "DISPLAY_NOTIFICATION",
-                payload: {
-                  type: "info",
-                  body: (
-                    <p className="tw-text-sm tw-font-medium tw-text-gray-900">
-                      Submitting...
-                    </p>
-                  ),
-                },
-              });
-            }
+            notificationsDispatch({
+              type: "DISPLAY_NOTIFICATION",
+              payload: {
+                type: "info",
+                body: (
+                  <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                    {onSubmitSubmission.state === "submitted" ? (
+                      <>Submitting...</>
+                    ) : (
+                      <>Saving draft...</>
+                    )}
+                  </p>
+                ),
+              },
+            });
 
-            if (onSubmitSubmission.state === "draft") {
-              notificationsDispatch({
-                type: "DISPLAY_NOTIFICATION",
-                payload: {
-                  type: "info",
-                  body: (
-                    <p className="tw-text-sm tw-font-medium tw-text-gray-900">
-                      Saving draft...
-                    </p>
-                  ),
-                },
-              });
-            }
-
-            setPendingSubmissionData(data);
-
-            const url = `${serverUrl}/api/formio-payment-request-submission/${rebateId}`;
-
-            postData<FormioSubmission>(url, {
-              mongoId: formio.data.submission?._id,
+            const updatedSubmission = {
+              mongoId: submission._id,
               submission: {
                 ...onSubmitSubmission,
                 data,
               },
-            })
-              .then((res) => {
-                setStoredSubmissionData((_prevData) => {
-                  storedSubmissionDataRef.current = cloneDeep(res.data);
-                  return res.data;
+            };
+
+            mutation.mutate(updatedSubmission, {
+              onSuccess: (res, payload, context) => {
+                storedSubmissionData.current = cloneDeep(res.data);
+
+                notificationsDispatch({
+                  type: "DISPLAY_NOTIFICATION",
+                  payload: {
+                    type: "success",
+                    body: (
+                      <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                        {onSubmitSubmission.state === "submitted" ? (
+                          <>
+                            Payment Request Form <em>{rebateId}</em> submitted
+                            successfully.
+                          </>
+                        ) : (
+                          <>Draft saved successfully.</>
+                        )}
+                      </p>
+                    ),
+                  },
                 });
 
-                setPendingSubmissionData({});
-
                 if (onSubmitSubmission.state === "submitted") {
-                  notificationsDispatch({
-                    type: "DISPLAY_NOTIFICATION",
-                    payload: {
-                      type: "success",
-                      body: (
-                        <p className="tw-text-sm tw-font-medium tw-text-gray-900">
-                          Payment Request Form <em>{rebateId}</em> submitted
-                          successfully.
-                        </p>
-                      ),
-                    },
-                  });
-
                   navigate("/");
                 }
 
                 if (onSubmitSubmission.state === "draft") {
-                  notificationsDispatch({
-                    type: "DISPLAY_NOTIFICATION",
-                    payload: {
-                      type: "success",
-                      body: (
-                        <p className="tw-text-sm tw-font-medium tw-text-gray-900">
-                          Draft saved successfully.
-                        </p>
-                      ),
-                    },
-                  });
-
                   setTimeout(() => {
                     notificationsDispatch({ type: "DISMISS_NOTIFICATION" });
                   }, 5000);
                 }
-              })
-              .catch((err) => {
+              },
+              onError: (error, payload, context) => {
                 formIsBeingSubmitted.current = false;
 
                 notificationsDispatch({
@@ -402,14 +360,17 @@ function PaymentRequestFormContent({ email }: { email: string }) {
                     type: "error",
                     body: (
                       <p className="tw-text-sm tw-font-medium tw-text-gray-900">
-                        {onSubmitSubmission.state === "submitted"
-                          ? "Error submitting Payment Request form."
-                          : "Error saving draft."}
+                        {onSubmitSubmission.state === "submitted" ? (
+                          <>Error submitting Payment Request form.</>
+                        ) : (
+                          <>Error saving draft.</>
+                        )}
                       </p>
                     ),
                   },
                 });
-              });
+              },
+            });
           }}
           onNextPage={(onNextPageParam: {
             page: number;
@@ -428,7 +389,7 @@ function PaymentRequestFormContent({ email }: { email: string }) {
             delete dataToCheck.hidden_current_user_email;
             delete dataToCheck.hidden_current_user_title;
             delete dataToCheck.hidden_current_user_name;
-            const storedDataToCheck = { ...storedSubmissionDataRef.current };
+            const storedDataToCheck = { ...storedSubmissionData.current };
             delete storedDataToCheck.hidden_current_user_email;
             delete storedDataToCheck.hidden_current_user_title;
             delete storedDataToCheck.hidden_current_user_name;
@@ -446,25 +407,18 @@ function PaymentRequestFormContent({ email }: { email: string }) {
               },
             });
 
-            setPendingSubmissionData(data);
-
-            const url = `${serverUrl}/api/formio-payment-request-submission/${rebateId}`;
-
-            postData<FormioSubmission>(url, {
-              mongoId: formio.data.submission?._id,
+            const updatedSubmission = {
+              mongoId: submission._id,
               submission: {
                 ...onNextPageParam.submission,
                 data,
-                state: "draft",
+                state: "draft" as const,
               },
-            })
-              .then((res) => {
-                setStoredSubmissionData((_prevData) => {
-                  storedSubmissionDataRef.current = cloneDeep(res.data);
-                  return res.data;
-                });
+            };
 
-                setPendingSubmissionData({});
+            mutation.mutate(updatedSubmission, {
+              onSuccess: (res, payload, context) => {
+                storedSubmissionData.current = cloneDeep(res.data);
 
                 notificationsDispatch({
                   type: "DISPLAY_NOTIFICATION",
@@ -481,8 +435,8 @@ function PaymentRequestFormContent({ email }: { email: string }) {
                 setTimeout(() => {
                   notificationsDispatch({ type: "DISMISS_NOTIFICATION" });
                 }, 5000);
-              })
-              .catch((err) => {
+              },
+              onError: (error, payload, context) => {
                 notificationsDispatch({
                   type: "DISPLAY_NOTIFICATION",
                   payload: {
@@ -494,7 +448,8 @@ function PaymentRequestFormContent({ email }: { email: string }) {
                     ),
                   },
                 });
-              });
+              },
+            });
           }}
         />
       </div>
