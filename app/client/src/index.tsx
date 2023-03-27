@@ -10,7 +10,6 @@ import { UserProvider } from "contexts/user";
 import { CsbProvider } from "contexts/csb";
 import { BapProvider } from "contexts/bap";
 import { FormioSubmissionsProvider } from "contexts/formioSubmissions";
-import { FormioFormProvider } from "contexts/formioForm";
 import { NotificationsProvider } from "contexts/notifications";
 import { ErrorBoundary } from "components/errorBoundary";
 import { App } from "components/app";
@@ -30,11 +29,9 @@ render(
               <CsbProvider>
                 <BapProvider>
                   <FormioSubmissionsProvider>
-                    <FormioFormProvider>
-                      <NotificationsProvider>
-                        <App />
-                      </NotificationsProvider>
-                    </FormioFormProvider>
+                    <NotificationsProvider>
+                      <App />
+                    </NotificationsProvider>
                   </FormioSubmissionsProvider>
                 </BapProvider>
               </CsbProvider>
