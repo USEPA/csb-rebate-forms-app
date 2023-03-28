@@ -6,7 +6,6 @@ import reportWebVitals from "./reportWebVitals";
 // ---
 import { DialogProvider } from "contexts/dialog";
 import { UserProvider } from "contexts/user";
-import { BapProvider } from "contexts/bap";
 import { NotificationsProvider } from "contexts/notifications";
 import { ErrorBoundary } from "components/errorBoundary";
 import { App } from "components/app";
@@ -22,11 +21,9 @@ render(
       <ErrorBoundary>
         <DialogProvider>
           <UserProvider>
-            <BapProvider>
-              <NotificationsProvider>
-                <App />
-              </NotificationsProvider>
-            </BapProvider>
+            <NotificationsProvider>
+              <App />
+            </NotificationsProvider>
           </UserProvider>
         </DialogProvider>
       </ErrorBoundary>
