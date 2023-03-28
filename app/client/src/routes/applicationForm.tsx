@@ -148,9 +148,9 @@ function ApplicationFormContent({ email }: { email: string }) {
   }
 
   if (
-    bapFormSubmissionsQuery.isInitialLoading ||
-    formioApplicationSubmissionsQuery.isInitialLoading ||
-    formioPaymentRequestSubmissionsQuery.isInitialLoading
+    bapFormSubmissionsQuery.isFetching ||
+    formioApplicationSubmissionsQuery.isFetching ||
+    formioPaymentRequestSubmissionsQuery.isFetching
   ) {
     return <Loading />;
   }

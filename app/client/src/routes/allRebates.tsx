@@ -907,9 +907,9 @@ export function AllRebates() {
   }, [searchParams, sortedRebates]);
 
   if (
-    bapFormSubmissionsQuery.isInitialLoading ||
-    formioApplicationSubmissionsQuery.isInitialLoading ||
-    formioPaymentRequestSubmissionsQuery.isInitialLoading
+    bapFormSubmissionsQuery.isFetching ||
+    formioApplicationSubmissionsQuery.isFetching ||
+    formioPaymentRequestSubmissionsQuery.isFetching
   ) {
     return <Loading />;
   }
