@@ -11,9 +11,8 @@ import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/tooltip";
 import { useContentData } from "components/app";
-import { useCsbData } from "components/dashboard";
+import { BapSamEntity, useCsbData, useBapSamData } from "components/dashboard";
 import { useUserState } from "contexts/user";
-import { BapSamEntity, useBapState } from "contexts/bap";
 
 type FormioSubmission = {
   [field: string]: unknown;
@@ -58,8 +57,8 @@ export function NewApplicationForm() {
 
   const content = useContentData();
   const csbData = useCsbData();
+  const bapSamData = useBapSamData();
   const { epaUserData } = useUserState();
-  const { samEntities } = useBapState();
 
   const [message, setMessage] = useState<{
     displayed: boolean;
@@ -71,11 +70,7 @@ export function NewApplicationForm() {
     text: "",
   });
 
-  if (
-    !csbData ||
-    epaUserData.status !== "success" ||
-    samEntities.status !== "success"
-  ) {
+  if (!csbData || !bapSamData || epaUserData.status !== "success") {
     return <Loading />;
   }
 
@@ -83,7 +78,7 @@ export function NewApplicationForm() {
 
   const email = epaUserData.data.mail;
 
-  const activeSamEntities = samEntities.data.entities.filter((entity) => {
+  const activeSamEntities = bapSamData.entities.filter((entity) => {
     return entity.ENTITY_STATUS__c === "Active";
   });
 

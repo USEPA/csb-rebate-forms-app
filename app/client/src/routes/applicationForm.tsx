@@ -17,10 +17,9 @@ import { Loading } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { useContentData } from "components/app";
-import { useCsbData } from "components/dashboard";
+import { useCsbData, useBapSamData } from "components/dashboard";
 import { useDialogDispatch } from "contexts/dialog";
 import { useUserState } from "contexts/user";
-import { useBapState } from "contexts/bap";
 import { useNotificationsDispatch } from "contexts/notifications";
 
 type FormioSubmission = {
@@ -61,7 +60,7 @@ function ApplicationFormContent({ email }: { email: string }) {
 
   const content = useContentData();
   const csbData = useCsbData();
-  const { samEntities } = useBapState();
+  const bapSamData = useBapSamData();
   const dialogDispatch = useDialogDispatch();
   const notificationsDispatch = useNotificationsDispatch();
 
@@ -144,7 +143,7 @@ function ApplicationFormContent({ email }: { email: string }) {
 
   const { userAccess, formSchema, submission } = query.data ?? {};
 
-  if (email === "" || !csbData || samEntities.status !== "success") {
+  if (email === "" || !csbData || !bapSamData) {
     return <Loading />;
   }
 
@@ -321,7 +320,7 @@ function ApplicationFormContent({ email }: { email: string }) {
     !applicationNeedsEdits;
 
   const entityComboKey = submission.data.bap_hidden_entity_combo_key;
-  const entity = samEntities.data.entities.find((entity) => {
+  const entity = bapSamData.entities.find((entity) => {
     return (
       entity.ENTITY_STATUS__c === "Active" &&
       entity.ENTITY_COMBO_KEY__c === entityComboKey
