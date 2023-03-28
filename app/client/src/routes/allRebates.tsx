@@ -11,9 +11,8 @@ import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/tooltip";
 import { useContentData } from "components/app";
-import { useCsbData } from "components/dashboard";
+import { useCsbData, useBapSamData } from "components/dashboard";
 import { useUserState } from "contexts/user";
-import { useBapState } from "contexts/bap";
 import { useNotificationsDispatch } from "contexts/notifications";
 
 type BapFormSubmission = {
@@ -155,7 +154,7 @@ export function submissionNeedsEdits(options: {
   );
 }
 
-/** Custom hook to fetch submissions from the BAP and CDX */
+/** Custom hook to fetch submissions from the BAP and Formio */
 export function useFetchedFormSubmissions() {
   const bapFormSubmissionsQuery = useQuery({
     queryKey: ["bap-form-submissions"],
@@ -574,10 +573,10 @@ function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
           {
             /* NOTE:
 Initial version of the application form definition included the `applicantEfti`
-field, which is configured via the form definition (in Formio/Forms.gov) to set
-its value based on the value of the `sam_hidden_applicant_efti` field, which we
-inject on initial form submission. That value comes from the BAP (SAM.gov data),
-which could be an empty string.
+field, which is configured via the form definition (in Formio) to set its value
+based on the value of the `sam_hidden_applicant_efti` field, which we inject on
+initial form submission. That value comes from the BAP (SAM.gov data), which
+could be an empty string.
 
 To handle the potentially empty string, the Formio form definition was updated
 to include a new `applicantEfti_display` field that's configured in the form
@@ -658,16 +657,15 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
   const navigate = useNavigate();
 
   const csbData = useCsbData();
+  const bapSamData = useBapSamData();
   const { epaUserData } = useUserState();
-  const { samEntities } = useBapState();
   const notificationsDispatch = useNotificationsDispatch();
 
   // NOTE: used to display a loading indicator inside the new Payment Request button
   const [postDataResponsePending, setPostDataResponsePending] = useState(false);
 
-  if (!csbData) return null;
+  if (!csbData || !bapSamData) return null;
   if (epaUserData.status !== "success") return null;
-  if (samEntities.status !== "success") return null;
 
   const paymentRequestFormOpen = csbData.submissionPeriodOpen.paymentRequest;
 
@@ -680,7 +678,7 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
     applicationSelected && !Boolean(paymentRequest.formio);
 
   /** matched SAM.gov entity for the application */
-  const entity = samEntities.data.entities.find((entity) => {
+  const entity = bapSamData.entities.find((entity) => {
     return (
       entity.ENTITY_STATUS__c === "Active" &&
       entity.ENTITY_COMBO_KEY__c ===
