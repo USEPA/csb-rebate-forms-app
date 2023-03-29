@@ -221,14 +221,15 @@ export function useHelpdeskAccess() {
   return helpdeskAccess;
 }
 
-// Wrapper Component for any routes that need authenticated access
-function ProtectedRoute({ children }: { children: JSX.Element }) {
+function ProtectedRoute() {
   const { pathname } = useLocation();
   const { isAuthenticating, isAuthenticated } = useUserState();
   const userDispatch = useUserDispatch();
 
-  // check if user is already logged in or needs to be logged out (which will
-  // redirect them to the "/welcome" route)
+  /**
+   * check if user is already logged in or needs to be logged out (which will
+   * redirect them to the "/welcome" route)
+   */
   const verifyUser = useCallback(() => {
     getData<EpaUserData>(`${serverUrl}/api/epa-user-data`)
       .then((res) => {
@@ -266,7 +267,7 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
     <TooltipProvider>
       <ConfirmationDialog />
       <Notifications />
-      {children}
+      <Dashboard />
     </TooltipProvider>
   );
 }
@@ -285,14 +286,7 @@ export function App() {
     <BrowserRouter basename={serverBasePath}>
       <Routes>
         <Route path="/welcome" element={<Welcome />} />
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        >
+        <Route path="/" element={<ProtectedRoute />}>
           <Route index element={<AllRebates />} />
           <Route path="helpdesk" element={<Helpdesk />} />
           <Route path="rebate/new" element={<NewApplicationForm />} />
