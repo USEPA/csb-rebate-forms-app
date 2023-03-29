@@ -19,7 +19,7 @@ export function Notifications() {
     <div className="twpf">
       <div
         aria-live="assertive"
-        className="tw-pointer-events-none tw-fixed tw-inset-0 tw-flex tw-items-end tw-p-4 sm:tw-items-start"
+        className="tw-pointer-events-none tw-fixed tw-inset-0 tw-z-10 tw-flex tw-items-end tw-p-4 sm:tw-items-start"
       >
         <div className="tw-flex tw-w-full tw-flex-col tw-items-center tw-space-y-4 sm:tw-items-end">
           <Transition

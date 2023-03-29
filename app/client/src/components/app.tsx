@@ -24,6 +24,7 @@ import { MarkdownContent } from "components/markdownContent";
 import { Welcome } from "routes/welcome";
 import { Dashboard } from "components/dashboard";
 import { ConfirmationDialog } from "components/confirmationDialog";
+import { Notifications } from "components/notifications";
 import { Helpdesk } from "routes/helpdesk";
 import { AllRebates } from "routes/allRebates";
 import { NewApplicationForm } from "routes/newApplicationForm";
@@ -264,6 +265,7 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
   return (
     <TooltipProvider>
       <ConfirmationDialog />
+      <Notifications />
       {children}
     </TooltipProvider>
   );
