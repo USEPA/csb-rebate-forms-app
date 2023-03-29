@@ -461,7 +461,7 @@ function ApplicationFormContent({ email }: { email: string }) {
                       <p className="tw-text-sm tw-font-medium tw-text-gray-900">
                         {onSubmitSubmission.state === "submitted" ? (
                           <>
-                            Application Form <em>{mongoId}</em> submitted
+                            Application <em>{mongoId}</em> submitted
                             successfully.
                           </>
                         ) : (
