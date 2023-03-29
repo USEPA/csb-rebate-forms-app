@@ -1,5 +1,5 @@
-import { useEffect } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { Formio } from "@formio/react";
 import premium from "@formio/premium";
 import uswds from "@formio/uswds";
@@ -17,58 +17,66 @@ import { Loading } from "components/loading";
 import { Notifications } from "components/notifications";
 import { Action, useDialogDispatch } from "contexts/dialog";
 import { useUserState } from "contexts/user";
-import { CsbData, useCsbState, useCsbDispatch } from "contexts/csb";
-import { BapSamEntity, useBapState, useBapDispatch } from "contexts/bap";
+
+type CsbData = {
+  submissionPeriodOpen: {
+    application: boolean;
+    paymentRequest: boolean;
+    closeOut: boolean;
+  };
+};
+
+export type BapSamEntity = {
+  ENTITY_COMBO_KEY__c: string;
+  UNIQUE_ENTITY_ID__c: string;
+  ENTITY_EFT_INDICATOR__c: string;
+  ENTITY_STATUS__c: "Active" | string;
+  LEGAL_BUSINESS_NAME__c: string;
+  PHYSICAL_ADDRESS_LINE_1__c: string;
+  PHYSICAL_ADDRESS_LINE_2__c: string | null;
+  PHYSICAL_ADDRESS_CITY__c: string;
+  PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c: string;
+  PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c: string;
+  PHYSICAL_ADDRESS_ZIP_CODE_4__c: string;
+  // contacts
+  ELEC_BUS_POC_EMAIL__c: string | null;
+  ELEC_BUS_POC_NAME__c: string | null;
+  ELEC_BUS_POC_TITLE__c: string | null;
+  //
+  ALT_ELEC_BUS_POC_EMAIL__c: string | null;
+  ALT_ELEC_BUS_POC_NAME__c: string | null;
+  ALT_ELEC_BUS_POC_TITLE__c: string | null;
+  //
+  GOVT_BUS_POC_EMAIL__c: string | null;
+  GOVT_BUS_POC_NAME__c: string | null;
+  GOVT_BUS_POC_TITLE__c: string | null;
+  //
+  ALT_GOVT_BUS_POC_EMAIL__c: string | null;
+  ALT_GOVT_BUS_POC_NAME__c: string | null;
+  ALT_GOVT_BUS_POC_TITLE__c: string | null;
+  //
+  attributes: { type: string; url: string };
+};
+
+type BapSamData =
+  | { results: false; entities: [] }
+  | { results: true; entities: BapSamEntity[] };
 
 Formio.setBaseUrl(formioBaseUrl);
 Formio.setProjectUrl(formioProjectUrl);
 Formio.use(premium);
 Formio.use(uswds);
 
-/** Custom hook to fetch CSP app specific data */
-function useFetchedCsbData() {
-  const csbDispatch = useCsbDispatch();
-
-  useEffect(() => {
-    csbDispatch({ type: "FETCH_CSB_DATA_REQUEST" });
-    getData<CsbData>(`${serverUrl}/api/csb-data`)
-      .then((res) => {
-        csbDispatch({
-          type: "FETCH_CSB_DATA_SUCCESS",
-          payload: { csbData: res },
-        });
-      })
-      .catch((err) => {
-        csbDispatch({ type: "FETCH_CSB_DATA_FAILURE" });
-      });
-  }, [csbDispatch]);
+/** Custom hook that returns cached fetched CSB data */
+export function useCsbData() {
+  const queryClient = useQueryClient();
+  return queryClient.getQueryData<CsbData>(["csb-data"]);
 }
 
-/** Custom hook to fetch SAM.gov data */
-function useFetchedSamData() {
-  const bapDispatch = useBapDispatch();
-
-  useEffect(() => {
-    bapDispatch({ type: "FETCH_BAP_SAM_DATA_REQUEST" });
-    getData<
-      | { results: false; entities: [] }
-      | { results: true; entities: BapSamEntity[] }
-    >(`${serverUrl}/api/bap-sam-data`)
-      .then((res) => {
-        if (res.results) {
-          bapDispatch({
-            type: "FETCH_BAP_SAM_DATA_SUCCESS",
-            payload: { samEntities: res },
-          });
-        } else {
-          window.location.href = `${serverUrlForHrefs}/logout?RelayState=/welcome?info=bap-sam-results`;
-        }
-      })
-      .catch((err) => {
-        bapDispatch({ type: "FETCH_BAP_SAM_DATA_FAILURE" });
-        window.location.href = `${serverUrlForHrefs}/logout?RelayState=/welcome?error=bap-sam-fetch`;
-      });
-  }, [bapDispatch]);
+/** Custom hook that returns cached fetched BAP SAM.gov data */
+export function useBapSamData() {
+  const queryClient = useQueryClient();
+  return queryClient.getQueryData<BapSamData>(["bap-sam-data"]);
 }
 
 function IconText(props: {
@@ -110,23 +118,41 @@ export function Dashboard() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
+  useQuery({
+    queryKey: ["csb-data"],
+    queryFn: () => getData<CsbData>(`${serverUrl}/api/csb-data`),
+    refetchOnWindowFocus: false,
+  });
+
+  useQuery({
+    queryKey: ["bap-sam-data"],
+    queryFn: () => getData<BapSamData>(`${serverUrl}/api/bap-sam-data`),
+    onSuccess: (res) => {
+      if (!res.results) {
+        window.location.href = `${serverUrlForHrefs}/logout?RelayState=/welcome?info=bap-sam-results`;
+      }
+    },
+    onError: (err) => {
+      window.location.href = `${serverUrlForHrefs}/logout?RelayState=/welcome?error=bap-sam-fetch`;
+    },
+    refetchOnWindowFocus: false,
+  });
+
   const { epaUserData } = useUserState();
-  const { csbData } = useCsbState();
-  const { samEntities } = useBapState();
+  const csbData = useCsbData();
+  const bapSamData = useBapSamData();
+
   const dialogDispatch = useDialogDispatch();
   const helpdeskAccess = useHelpdeskAccess();
-
-  useFetchedCsbData();
-  useFetchedSamData();
 
   const onAllRebatesPage = pathname === "/";
   const onHelpdeskPage = pathname === "/helpdesk";
   const onApplicationFormPage = pathname.startsWith("/rebate");
   const onPaymentRequestFormPage = pathname.startsWith("/payment-request");
 
-  const applicationFormOpen =
-    csbData.status === "success" &&
-    csbData.data.submissionPeriodOpen.application;
+  const applicationFormOpen = csbData
+    ? csbData.submissionPeriodOpen.application
+    : false;
 
   /**
    * When provided a destination location to navigate to, creates an action
@@ -153,7 +179,7 @@ export function Dashboard() {
     };
   }
 
-  if (csbData.status !== "success" || samEntities.status !== "success") {
+  if (!csbData || !bapSamData) {
     return <Loading />;
   }
 

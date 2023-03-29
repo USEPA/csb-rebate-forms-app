@@ -10,10 +10,9 @@ import { Loading } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/tooltip";
-import { useContentState } from "contexts/content";
+import { useContentData } from "components/app";
+import { BapSamEntity, useCsbData, useBapSamData } from "components/dashboard";
 import { useUserState } from "contexts/user";
-import { useCsbState } from "contexts/csb";
-import { BapSamEntity, useBapState } from "contexts/bap";
 
 type FormioSubmission = {
   [field: string]: unknown;
@@ -55,10 +54,11 @@ function createNewApplication(email: string, entity: BapSamEntity) {
 
 export function NewApplicationForm() {
   const navigate = useNavigate();
-  const { content } = useContentState();
+
+  const content = useContentData();
+  const csbData = useCsbData();
+  const bapSamData = useBapSamData();
   const { epaUserData } = useUserState();
-  const { csbData } = useCsbState();
-  const { samEntities } = useBapState();
 
   const [message, setMessage] = useState<{
     displayed: boolean;
@@ -70,17 +70,15 @@ export function NewApplicationForm() {
     text: "",
   });
 
-  if (
-    csbData.status !== "success" ||
-    epaUserData.status !== "success" ||
-    samEntities.status !== "success"
-  ) {
+  if (!csbData || !bapSamData || epaUserData.status !== "success") {
     return <Loading />;
   }
 
+  const applicationFormOpen = csbData.submissionPeriodOpen.application;
+
   const email = epaUserData.data.mail;
 
-  const activeSamEntities = samEntities.data.entities.filter((entity) => {
+  const activeSamEntities = bapSamData.entities.filter((entity) => {
     return entity.ENTITY_STATUS__c === "Active";
   });
 
@@ -132,7 +130,7 @@ export function NewApplicationForm() {
                 </div>
 
                 <div className="tw-m-auto tw-max-w-3xl tw-p-4 sm:tw-p-8">
-                  {!csbData.data.submissionPeriodOpen.application ? (
+                  {!applicationFormOpen ? (
                     <div className="-tw-mb-4">
                       <Message
                         type="info"
@@ -145,10 +143,10 @@ export function NewApplicationForm() {
                     </div>
                   ) : (
                     <>
-                      {content.status === "success" && (
+                      {content && (
                         <MarkdownContent
                           className="tw-mt-4 tw-text-center"
-                          children={content.data?.newApplicationDialog || ""}
+                          children={content.newApplicationDialog}
                           components={{
                             h2: (props) => (
                               <h2 className="tw-text-xl sm:tw-text-2xl md:tw-text-3xl">

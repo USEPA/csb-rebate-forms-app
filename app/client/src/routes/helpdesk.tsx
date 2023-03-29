@@ -11,10 +11,10 @@ import { Loading } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/tooltip";
-import { useContentState } from "contexts/content";
+import { useContentData } from "components/app";
+import { useCsbData } from "components/dashboard";
 import { useDialogDispatch } from "contexts/dialog";
 import { useUserState } from "contexts/user";
-import { useCsbState } from "contexts/csb";
 
 type FormType = "application" | "payment-request" | "close-out";
 
@@ -35,10 +35,10 @@ export function Helpdesk() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const { content } = useContentState();
+  const content = useContentData();
+  const csbData = useCsbData();
   const dialogDispatch = useDialogDispatch();
   const { epaUserData } = useUserState();
-  const { csbData } = useCsbState();
   const helpdeskAccess = useHelpdeskAccess();
 
   const [formType, setFormType] = useState<FormType>("application");
@@ -65,7 +65,7 @@ export function Helpdesk() {
   const { formSchema, submission } = query.data ?? {};
 
   if (
-    csbData.status !== "success" ||
+    !csbData ||
     epaUserData.status !== "success" ||
     helpdeskAccess === "idle" ||
     helpdeskAccess === "pending"
@@ -77,18 +77,16 @@ export function Helpdesk() {
     navigate("/", { replace: true });
   }
 
-  const {
-    application: applicationFormOpen,
-    paymentRequest: paymentRequestFormOpen,
-    closeOut: closeOutFormOpen,
-  } = csbData.data.submissionPeriodOpen;
+  const applicationFormOpen = csbData.submissionPeriodOpen.application;
+  const paymentRequestFormOpen = csbData.submissionPeriodOpen.paymentRequest;
+  const closeOutFormOpen = csbData.submissionPeriodOpen.closeOut;
 
   return (
     <>
-      {content.status === "success" && (
+      {content && (
         <MarkdownContent
           className="margin-top-4"
-          children={content.data?.helpdeskIntro || ""}
+          children={content.helpdeskIntro}
         />
       )}
 

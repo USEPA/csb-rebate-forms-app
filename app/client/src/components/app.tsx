@@ -7,6 +7,7 @@ import {
   Route,
   useLocation,
 } from "react-router-dom";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useIdleTimer } from "react-idle-timer";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import "uswds/css/uswds.css";
@@ -28,63 +29,54 @@ import { AllRebates } from "routes/allRebates";
 import { NewApplicationForm } from "routes/newApplicationForm";
 import { ApplicationForm } from "routes/applicationForm";
 import { PaymentRequestForm } from "routes/paymentRequestForm";
-import { Content, useContentState, useContentDispatch } from "contexts/content";
 import { useDialogDispatch, useDialogState } from "contexts/dialog";
 import { EpaUserData, useUserState, useUserDispatch } from "contexts/user";
 
-/** Custom hook to fetch static content */
-function useFetchedContent() {
-  const contentDispatch = useContentDispatch();
+type Content = {
+  siteAlert: string;
+  helpdeskIntro: string;
+  allRebatesIntro: string;
+  allRebatesOutro: string;
+  newApplicationDialog: string;
+  draftApplicationIntro: string;
+  submittedApplicationIntro: string;
+  draftPaymentRequestIntro: string;
+  submittedPaymentRequestIntro: string;
+};
 
-  useEffect(() => {
-    contentDispatch({ type: "FETCH_CONTENT_REQUEST" });
-    getData<Content>(`${serverUrl}/api/content`)
-      .then((res) => {
-        contentDispatch({
-          type: "FETCH_CONTENT_SUCCESS",
-          payload: res,
-        });
-      })
-      .catch((err) => {
-        contentDispatch({ type: "FETCH_CONTENT_FAILURE" });
-      });
-  }, [contentDispatch]);
+/** Custom hook that returns cached fetched content data */
+export function useContentData() {
+  const queryClient = useQueryClient();
+  return queryClient.getQueryData<Content>(["content"]);
 }
 
 /** Custom hook to display a site-wide alert banner */
 function useSiteAlertBanner() {
-  const { content } = useContentState();
+  const content = useContentData();
 
   useEffect(() => {
-    if (content.status !== "success") return;
-    if (content.data?.siteAlert === "") return;
+    if (!content || content.siteAlert === "") return;
 
-    const siteAlert = document.querySelector(".usa-site-alert");
-    if (!siteAlert) return;
+    const container = document.querySelector(".usa-site-alert");
+    if (!container) return;
 
-    siteAlert.setAttribute("aria-label", "Site alert");
-    siteAlert.classList.add("usa-site-alert--emergency");
+    container.setAttribute("aria-label", "Site alert");
+    container.classList.add("usa-site-alert--emergency");
 
     render(
       <div className="usa-alert">
         <MarkdownContent
           className="usa-alert__body"
-          children={content.data?.siteAlert || ""}
+          children={content.siteAlert}
           components={{
-            h1: (props) => (
-              <h3 className="usa-alert__heading">{props.children}</h3>
-            ),
-            h2: (props) => (
-              <h3 className="usa-alert__heading">{props.children}</h3>
-            ),
-            h3: (props) => (
-              <h3 className="usa-alert__heading">{props.children}</h3>
-            ),
+            h1: (props) => <h3 className="usa-alert__heading">{props.children}</h3>, // prettier-ignore
+            h2: (props) => <h3 className="usa-alert__heading">{props.children}</h3>, // prettier-ignore
+            h3: (props) => <h3 className="usa-alert__heading">{props.children}</h3>, // prettier-ignore
             p: (props) => <p className="usa-alert__text">{props.children}</p>,
           }}
         />
       </div>,
-      siteAlert
+      container
     );
   }, [content]);
 }
@@ -277,9 +269,14 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
 }
 
 export function App() {
-  useFetchedContent();
   useSiteAlertBanner();
   useDisclaimerBanner();
+
+  useQuery({
+    queryKey: ["content"],
+    queryFn: () => getData<Content>(`${serverUrl}/api/content`),
+    refetchOnWindowFocus: false,
+  });
 
   return (
     <BrowserRouter basename={serverBasePath}>

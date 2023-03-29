@@ -16,11 +16,9 @@ import {
 import { Loading } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
-import { useContentState } from "contexts/content";
+import { useContentData } from "components/app";
+import { useCsbData, useBapSamData } from "components/dashboard";
 import { useUserState } from "contexts/user";
-import { useCsbState } from "contexts/csb";
-import { useBapState } from "contexts/bap";
-import { useFormioSubmissionsState } from "contexts/formioSubmissions";
 import { useNotificationsDispatch } from "contexts/notifications";
 
 type FormioSubmission = {
@@ -59,16 +57,16 @@ function PaymentRequestFormContent({ email }: { email: string }) {
   const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
 
-  const { content } = useContentState();
-  const { csbData } = useCsbState();
-  const { samEntities, formSubmissions: bapFormSubmissions } = useBapState();
-  const {
-    applicationSubmissions: formioApplicationSubmissions,
-    paymentRequestSubmissions: formioPaymentRequestSubmissions,
-  } = useFormioSubmissionsState();
+  const content = useContentData();
+  const csbData = useCsbData();
+  const bapSamData = useBapSamData();
   const notificationsDispatch = useNotificationsDispatch();
 
-  useFetchedFormSubmissions();
+  const {
+    bapFormSubmissionsQuery,
+    formioApplicationSubmissionsQuery,
+    formioPaymentRequestSubmissionsQuery,
+  } = useFetchedFormSubmissions();
 
   const combinedRebates = useCombinedSubmissions();
   const sortedRebates = useSortedRebates(combinedRebates);
@@ -80,13 +78,28 @@ function PaymentRequestFormContent({ email }: { email: string }) {
     }
   }, [searchParams, sortedRebates]);
 
-  // ref to store when form is being submitted, so it can be referenced in the
-  // Form component's `onSubmit` event prop to prevent double submits
+  /**
+   * Stores when the form is being submitted, so it can be referenced in the
+   * Form component's `onSubmit` event prop to prevent double submits
+   */
   const formIsBeingSubmitted = useRef(false);
 
-  // ref to store submission data, so the latest value can be referenced in the
-  // Form component's `onNextPage` event prop
-  const storedSubmissionData = useRef<{ [field: string]: unknown }>({});
+  /**
+   * Stores the last succesfully submitted data, so it can be used in the Form
+   * component's `onNextPage` event prop's "dirty check" which determines if
+   * posting of updated data is needed (so we don't make needless requests if no
+   * field data in the form has changed).
+   */
+  const lastSuccesfullySubmittedData = useRef<{ [field: string]: unknown }>({});
+
+  /**
+   * Stores the form data's state right after the user clicks the Save, Submit,
+   * or Next button. As soon as a post request to update the data succeeds, this
+   * pending submission data is reset to an empty object. This pending data,
+   * along with the submission data returned from the server is passed into the
+   * Form component's `submission` prop.
+   */
+  const pendingSubmissionData = useRef<{ [field: string]: unknown }>({});
 
   useEffect(() => {
     queryClient.resetQueries({ queryKey: ["payment-request"] });
@@ -125,12 +138,12 @@ function PaymentRequestFormContent({ email }: { email: string }) {
     }) => {
       return postData<FormioSubmission>(url, updatedSubmission);
     },
-    onSuccess: (data) => {
+    onSuccess: (res) => {
       return queryClient.setQueryData<ServerResponse>(
         ["application", { id: rebateId }],
         (prevData) => {
           return prevData?.submission
-            ? { ...prevData, submission: data }
+            ? { ...prevData, submission: res }
             : prevData;
         }
       );
@@ -139,29 +152,22 @@ function PaymentRequestFormContent({ email }: { email: string }) {
 
   const { userAccess, formSchema, submission } = query.data ?? {};
 
+  if (email === "" || !csbData || !bapSamData) {
+    return <Loading />;
+  }
+
   if (
-    email === "" ||
-    csbData.status !== "success" ||
-    samEntities.status !== "success"
+    bapFormSubmissionsQuery.isFetching ||
+    formioApplicationSubmissionsQuery.isFetching ||
+    formioPaymentRequestSubmissionsQuery.isFetching
   ) {
     return <Loading />;
   }
 
   if (
-    bapFormSubmissions.status === "idle" ||
-    bapFormSubmissions.status === "pending" ||
-    formioApplicationSubmissions.status === "idle" ||
-    formioApplicationSubmissions.status === "pending" ||
-    formioPaymentRequestSubmissions.status === "idle" ||
-    formioPaymentRequestSubmissions.status === "pending"
-  ) {
-    return <Loading />;
-  }
-
-  if (
-    bapFormSubmissions.status === "failure" ||
-    formioApplicationSubmissions.status === "failure" ||
-    formioPaymentRequestSubmissions.status === "failure"
+    bapFormSubmissionsQuery.isError ||
+    formioApplicationSubmissionsQuery.isError ||
+    formioPaymentRequestSubmissionsQuery.isError
   ) {
     return <Message type="error" text={messages.formSubmissionsError} />;
   }
@@ -174,9 +180,6 @@ function PaymentRequestFormContent({ email }: { email: string }) {
     const text = `The requested submission does not exist, or you do not have access. Please contact support if you believe this is a mistake.`;
     return <Message type="error" text={text} />;
   }
-
-  const { paymentRequest: paymentRequestFormOpen } =
-    csbData.data.submissionPeriodOpen;
 
   const rebate = sortedRebates.find((item) => item.rebateId === rebateId);
 
@@ -194,13 +197,15 @@ function PaymentRequestFormContent({ email }: { email: string }) {
         bap: rebate.paymentRequest.bap,
       });
 
+  const paymentRequestFormOpen = csbData.submissionPeriodOpen.paymentRequest;
+
   const formIsReadOnly =
     applicationNeedsEdits ||
     ((submission.state === "submitted" || !paymentRequestFormOpen) &&
       !paymentRequestNeedsEdits);
 
   const entityComboKey = submission.data.bap_hidden_entity_combo_key;
-  const entity = samEntities.data.entities.find((entity) => {
+  const entity = bapSamData.entities.find((entity) => {
     return (
       entity.ENTITY_STATUS__c === "Active" &&
       entity.ENTITY_COMBO_KEY__c === entityComboKey
@@ -223,14 +228,14 @@ function PaymentRequestFormContent({ email }: { email: string }) {
 
   return (
     <div className="margin-top-2">
-      {content.status === "success" && (
+      {content && (
         <MarkdownContent
           className="margin-top-4"
           children={
             submission.state === "draft"
-              ? content.data?.draftPaymentRequestIntro || ""
+              ? content.draftPaymentRequestIntro
               : submission.state === "submitted"
-              ? content.data?.submittedPaymentRequestIntro || ""
+              ? content.submittedPaymentRequestIntro
               : ""
           }
         />
@@ -273,6 +278,7 @@ function PaymentRequestFormContent({ email }: { email: string }) {
               hidden_sam_alt_elec_bus_poc_email: ALT_ELEC_BUS_POC_EMAIL__c,
               hidden_sam_govt_bus_poc_email: GOVT_BUS_POC_EMAIL__c,
               hidden_sam_alt_govt_bus_poc_email: ALT_GOVT_BUS_POC_EMAIL__c,
+              ...pendingSubmissionData.current,
             },
           }}
           options={{
@@ -310,6 +316,8 @@ function PaymentRequestFormContent({ email }: { email: string }) {
               },
             });
 
+            pendingSubmissionData.current = data;
+
             const updatedSubmission = {
               mongoId: submission._id,
               submission: {
@@ -320,7 +328,8 @@ function PaymentRequestFormContent({ email }: { email: string }) {
 
             mutation.mutate(updatedSubmission, {
               onSuccess: (res, payload, context) => {
-                storedSubmissionData.current = cloneDeep(res.data);
+                lastSuccesfullySubmittedData.current = cloneDeep(res.data);
+                pendingSubmissionData.current = {};
 
                 notificationsDispatch({
                   type: "DISPLAY_NOTIFICATION",
@@ -383,17 +392,17 @@ function PaymentRequestFormContent({ email }: { email: string }) {
 
             const data = { ...onNextPageParam.submission.data };
 
-            // don't post an update if no changes have been made to the form
-            // (ignoring current user fields)
-            const dataToCheck = { ...data };
-            delete dataToCheck.hidden_current_user_email;
-            delete dataToCheck.hidden_current_user_title;
-            delete dataToCheck.hidden_current_user_name;
-            const storedDataToCheck = { ...storedSubmissionData.current };
-            delete storedDataToCheck.hidden_current_user_email;
-            delete storedDataToCheck.hidden_current_user_title;
-            delete storedDataToCheck.hidden_current_user_name;
-            if (isEqual(dataToCheck, storedDataToCheck)) return;
+            // "dirty check" – don't post an update if no changes have been made
+            // to the form (ignoring current user fields)
+            const currentData = { ...data };
+            const submittedData = { ...lastSuccesfullySubmittedData.current };
+            delete currentData.hidden_current_user_email;
+            delete currentData.hidden_current_user_title;
+            delete currentData.hidden_current_user_name;
+            delete submittedData.hidden_current_user_email;
+            delete submittedData.hidden_current_user_title;
+            delete submittedData.hidden_current_user_name;
+            if (isEqual(currentData, submittedData)) return;
 
             notificationsDispatch({
               type: "DISPLAY_NOTIFICATION",
@@ -407,6 +416,8 @@ function PaymentRequestFormContent({ email }: { email: string }) {
               },
             });
 
+            pendingSubmissionData.current = data;
+
             const updatedSubmission = {
               mongoId: submission._id,
               submission: {
@@ -418,7 +429,8 @@ function PaymentRequestFormContent({ email }: { email: string }) {
 
             mutation.mutate(updatedSubmission, {
               onSuccess: (res, payload, context) => {
-                storedSubmissionData.current = cloneDeep(res.data);
+                lastSuccesfullySubmittedData.current = cloneDeep(res.data);
+                pendingSubmissionData.current = {};
 
                 notificationsDispatch({
                   type: "DISPLAY_NOTIFICATION",

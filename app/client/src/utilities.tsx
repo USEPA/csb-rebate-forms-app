@@ -1,4 +1,4 @@
-import { BapSamEntity } from "contexts/bap";
+import { BapSamEntity } from "components/dashboard";
 
 /**
  * Returns a user’s title and name when provided an email address and a SAM.gov
