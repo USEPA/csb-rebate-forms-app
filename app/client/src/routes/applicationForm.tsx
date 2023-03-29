@@ -80,13 +80,28 @@ function ApplicationFormContent({ email }: { email: string }) {
     }
   }, [searchParams, sortedRebates]);
 
-  // ref to store when form is being submitted, so it can be referenced in the
-  // Form component's `onSubmit` event prop to prevent double submits
+  /**
+   * Stores when the form is being submitted, so it can be referenced in the
+   * Form component's `onSubmit` event prop to prevent double submits
+   */
   const formIsBeingSubmitted = useRef(false);
 
-  // ref to store submission data, so the latest value can be referenced in the
-  // Form component's `onNextPage` event prop
-  const storedSubmissionData = useRef<{ [field: string]: unknown }>({});
+  /**
+   * Stores the last succesfully submitted data, so it can be used in the Form
+   * component's `onNextPage` event prop's "dirty check" which determines if
+   * posting of updated data is needed (so we don't make needless requests if no
+   * field data in the form has changed).
+   */
+  const lastSuccesfullySubmittedData = useRef<{ [field: string]: unknown }>({});
+
+  /**
+   * Stores the form data's state right after the user clicks the Save, Submit,
+   * or Next button. As soon as a post request to update the data succeeds, this
+   * pending submission data is reset to an empty object. This pending data,
+   * along with the submission data returned from the server is passed into the
+   * Form component's `submission` prop.
+   */
+  const pendingSubmissionData = useRef<{ [field: string]: unknown }>({});
 
   useEffect(() => {
     queryClient.resetQueries({ queryKey: ["application"] });
@@ -129,12 +144,12 @@ function ApplicationFormContent({ email }: { email: string }) {
     }) => {
       return postData<FormioSubmission>(url, updatedSubmission);
     },
-    onSuccess: (data) => {
+    onSuccess: (res) => {
       return queryClient.setQueryData<ServerResponse>(
         ["application", { id: mongoId }],
         (prevData) => {
           return prevData?.submission
-            ? { ...prevData, submission: data }
+            ? { ...prevData, submission: res }
             : prevData;
         }
       );
@@ -384,6 +399,7 @@ function ApplicationFormContent({ email }: { email: string }) {
               hidden_current_user_email: email,
               hidden_current_user_title: title,
               hidden_current_user_name: name,
+              ...pendingSubmissionData.current,
             },
           }}
           options={{
@@ -425,6 +441,8 @@ function ApplicationFormContent({ email }: { email: string }) {
               },
             });
 
+            pendingSubmissionData.current = data;
+
             const updatedSubmission = {
               ...onSubmitSubmission,
               data,
@@ -432,7 +450,8 @@ function ApplicationFormContent({ email }: { email: string }) {
 
             mutation.mutate(updatedSubmission, {
               onSuccess: (res, payload, context) => {
-                storedSubmissionData.current = cloneDeep(res.data);
+                lastSuccesfullySubmittedData.current = cloneDeep(res.data);
+                pendingSubmissionData.current = {};
 
                 notificationsDispatch({
                   type: "DISPLAY_NOTIFICATION",
@@ -499,17 +518,17 @@ function ApplicationFormContent({ email }: { email: string }) {
             if (data.hasOwnProperty("ncesDataSource")) delete data.ncesDataSource; // prettier-ignore
             if (data.hasOwnProperty("ncesDataLookup")) delete data.ncesDataLookup; // prettier-ignore
 
-            // don't post an update if no changes have been made to the form
-            // (ignoring current user fields)
-            const dataToCheck = { ...data };
-            delete dataToCheck.hidden_current_user_email;
-            delete dataToCheck.hidden_current_user_title;
-            delete dataToCheck.hidden_current_user_name;
-            const storedDataToCheck = { ...storedSubmissionData.current };
-            delete storedDataToCheck.hidden_current_user_email;
-            delete storedDataToCheck.hidden_current_user_title;
-            delete storedDataToCheck.hidden_current_user_name;
-            if (isEqual(dataToCheck, storedDataToCheck)) return;
+            // "dirty check" – don't post an update if no changes have been made
+            // to the form (ignoring current user fields)
+            const currentData = { ...data };
+            const submittedData = { ...lastSuccesfullySubmittedData.current };
+            delete currentData.hidden_current_user_email;
+            delete currentData.hidden_current_user_title;
+            delete currentData.hidden_current_user_name;
+            delete submittedData.hidden_current_user_email;
+            delete submittedData.hidden_current_user_title;
+            delete submittedData.hidden_current_user_name;
+            if (isEqual(currentData, submittedData)) return;
 
             notificationsDispatch({
               type: "DISPLAY_NOTIFICATION",
@@ -523,6 +542,8 @@ function ApplicationFormContent({ email }: { email: string }) {
               },
             });
 
+            pendingSubmissionData.current = data;
+
             const updatedSubmission = {
               ...onNextPageParam.submission,
               data,
@@ -531,7 +552,8 @@ function ApplicationFormContent({ email }: { email: string }) {
 
             mutation.mutate(updatedSubmission, {
               onSuccess: (res, payload, context) => {
-                storedSubmissionData.current = cloneDeep(res.data);
+                lastSuccesfullySubmittedData.current = cloneDeep(res.data);
+                pendingSubmissionData.current = {};
 
                 notificationsDispatch({
                   type: "DISPLAY_NOTIFICATION",
