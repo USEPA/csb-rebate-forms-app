@@ -53,7 +53,7 @@ export function PaymentRequestForm() {
 
 function PaymentRequestFormContent({ email }: { email: string }) {
   const navigate = useNavigate();
-  const { rebateId } = useParams<"rebateId">(); // CSB Rebate ID (6 digits)
+  const { id: rebateId } = useParams<"id">(); // CSB Rebate ID (6 digits)
   const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
 

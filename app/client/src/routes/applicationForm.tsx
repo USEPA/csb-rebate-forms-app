@@ -54,7 +54,7 @@ export function ApplicationForm() {
 
 function ApplicationFormContent({ email }: { email: string }) {
   const navigate = useNavigate();
-  const { mongoId } = useParams<"mongoId">(); // MongoDB ObjectId string
+  const { id: mongoId } = useParams<"id">(); // MongoDB ObjectId string
   const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
 

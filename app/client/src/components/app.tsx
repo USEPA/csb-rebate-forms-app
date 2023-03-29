@@ -290,12 +290,9 @@ export function App() {
           <Route index element={<AllRebates />} />
           <Route path="helpdesk" element={<Helpdesk />} />
           <Route path="rebate/new" element={<NewApplicationForm />} />
-          <Route path="rebate/:mongoId" element={<ApplicationForm />} />
-          <Route
-            path="payment-request/:rebateId"
-            element={<PaymentRequestForm />}
-          />
-          <Route path="close-out/:rebateId" element={<CloseOutForm />} />
+          <Route path="rebate/:id" element={<ApplicationForm />} />
+          <Route path="payment-request/:id" element={<PaymentRequestForm />} />
+          <Route path="close-out/:id" element={<CloseOutForm />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
