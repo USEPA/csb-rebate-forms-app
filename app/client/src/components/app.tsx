@@ -22,7 +22,7 @@ import { serverBasePath, serverUrl, cloudSpace, getData } from "../config";
 import { Loading } from "components/loading";
 import { MarkdownContent } from "components/markdownContent";
 import { Welcome } from "routes/welcome";
-import { Dashboard } from "components/dashboard";
+import { UserDashboard } from "components/userDashboard";
 import { ConfirmationDialog } from "components/confirmationDialog";
 import { Notifications } from "components/notifications";
 import { Helpdesk } from "routes/helpdesk";
@@ -267,7 +267,7 @@ function ProtectedRoute() {
     <TooltipProvider>
       <ConfirmationDialog />
       <Notifications />
-      <Dashboard />
+      <UserDashboard />
     </TooltipProvider>
   );
 }

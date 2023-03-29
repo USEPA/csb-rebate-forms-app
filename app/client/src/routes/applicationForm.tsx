@@ -17,7 +17,7 @@ import { Loading } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { useContentData } from "components/app";
-import { useCsbData, useBapSamData } from "components/dashboard";
+import { useCsbData, useBapSamData } from "components/userDashboard";
 import { useDialogDispatch } from "contexts/dialog";
 import { useUserState } from "contexts/user";
 import { useNotificationsDispatch } from "contexts/notifications";

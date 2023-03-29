@@ -11,7 +11,11 @@ import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/tooltip";
 import { useContentData } from "components/app";
-import { BapSamEntity, useCsbData, useBapSamData } from "components/dashboard";
+import {
+  BapSamEntity,
+  useCsbData,
+  useBapSamData,
+} from "components/userDashboard";
 import { useUserState } from "contexts/user";
 
 type FormioSubmission = {

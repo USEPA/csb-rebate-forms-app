@@ -113,7 +113,7 @@ function IconText(props: {
   );
 }
 
-export function Dashboard() {
+export function UserDashboard() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
 

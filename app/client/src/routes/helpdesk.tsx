@@ -12,7 +12,7 @@ import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/tooltip";
 import { useContentData } from "components/app";
-import { useCsbData } from "components/dashboard";
+import { useCsbData } from "components/userDashboard";
 import { useDialogDispatch } from "contexts/dialog";
 import { useUserState } from "contexts/user";
 
