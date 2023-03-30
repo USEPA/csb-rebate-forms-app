@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useState } from "react";
 import type { LinkProps } from "react-router-dom";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { useQueryClient, useQuery } from "@tanstack/react-query";
+import { useQueryClient, useQueries } from "@tanstack/react-query";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages, getData, postData } from "../config";
@@ -156,62 +156,58 @@ export function submissionNeedsEdits(options: {
 
 /** Custom hook to fetch submissions from the BAP and Formio */
 export function useFetchedFormSubmissions() {
-  const bapFormSubmissionsQuery = useQuery({
-    queryKey: ["bap-form-submissions"],
-    queryFn: () => {
-      const url = `${serverUrl}/api/bap-form-submissions`;
-      return getData<BapFormSubmission[]>(url).then((res) => {
-        const sortedSubmissions = res.reduce(
-          (object, submission) => {
-            const formType =
-              submission.Record_Type_Name__c === "CSB Funding Request"
-                ? "applications"
-                : submission.Record_Type_Name__c === "CSB Payment Request"
-                ? "paymentRequests"
-                : submission.Record_Type_Name__c === "CSB Closeout Request"
-                ? "closeOuts"
-                : null;
+  return useQueries({
+    queries: [
+      {
+        queryKey: ["bap-form-submissions"],
+        queryFn: () => {
+          const url = `${serverUrl}/api/bap-form-submissions`;
+          return getData<BapFormSubmission[]>(url).then((res) => {
+            const sortedSubmissions = res.reduce(
+              (object, submission) => {
+                const formType =
+                  submission.Record_Type_Name__c === "CSB Funding Request"
+                    ? "applications"
+                    : submission.Record_Type_Name__c === "CSB Payment Request"
+                    ? "paymentRequests"
+                    : submission.Record_Type_Name__c === "CSB Closeout Request"
+                    ? "closeOuts"
+                    : null;
 
-            if (formType) object[formType].push(submission);
+                if (formType) object[formType].push(submission);
 
-            return object;
-          },
-          {
-            applications: [] as BapFormSubmission[],
-            paymentRequests: [] as BapFormSubmission[],
-            closeOuts: [] as BapFormSubmission[],
-          }
-        );
+                return object;
+              },
+              {
+                applications: [] as BapFormSubmission[],
+                paymentRequests: [] as BapFormSubmission[],
+                closeOuts: [] as BapFormSubmission[],
+              }
+            );
 
-        return Promise.resolve(sortedSubmissions);
-      });
-    },
-    refetchOnWindowFocus: false,
+            return Promise.resolve(sortedSubmissions);
+          });
+        },
+        refetchOnWindowFocus: false,
+      },
+      {
+        queryKey: ["formio-application-submissions"],
+        queryFn: () => {
+          const url = `${serverUrl}/api/formio-application-submissions`;
+          return getData<FormioApplicationSubmission[]>(url);
+        },
+        refetchOnWindowFocus: false,
+      },
+      {
+        queryKey: ["formio-payment-request-submissions"],
+        queryFn: () => {
+          const url = `${serverUrl}/api/formio-payment-request-submissions`;
+          return getData<FormioPaymentRequestSubmission[]>(url);
+        },
+        refetchOnWindowFocus: false,
+      },
+    ],
   });
-
-  const formioApplicationSubmissionsQuery = useQuery({
-    queryKey: ["formio-application-submissions"],
-    queryFn: () => {
-      const url = `${serverUrl}/api/formio-application-submissions`;
-      return getData<FormioApplicationSubmission[]>(url);
-    },
-    refetchOnWindowFocus: false,
-  });
-
-  const formioPaymentRequestSubmissionsQuery = useQuery({
-    queryKey: ["formio-payment-request-submissions"],
-    queryFn: () => {
-      const url = `${serverUrl}/api/formio-payment-request-submissions`;
-      return getData<FormioPaymentRequestSubmission[]>(url);
-    },
-    refetchOnWindowFocus: false,
-  });
-
-  return {
-    bapFormSubmissionsQuery,
-    formioApplicationSubmissionsQuery,
-    formioPaymentRequestSubmissionsQuery,
-  };
 }
 
 /**
@@ -890,11 +886,7 @@ export function AllRebates() {
   const [searchParams] = useSearchParams();
 
   const content = useContentData();
-  const {
-    bapFormSubmissionsQuery,
-    formioApplicationSubmissionsQuery,
-    formioPaymentRequestSubmissionsQuery,
-  } = useFetchedFormSubmissions();
+  const formSubmissionsQueries = useFetchedFormSubmissions();
 
   const combinedRebates = useCombinedSubmissions();
   const sortedRebates = useSortedRebates(combinedRebates);
@@ -906,19 +898,11 @@ export function AllRebates() {
     }
   }, [searchParams, sortedRebates]);
 
-  if (
-    bapFormSubmissionsQuery.isFetching ||
-    formioApplicationSubmissionsQuery.isFetching ||
-    formioPaymentRequestSubmissionsQuery.isFetching
-  ) {
+  if (formSubmissionsQueries.some((query) => query.isFetching)) {
     return <Loading />;
   }
 
-  if (
-    bapFormSubmissionsQuery.isError ||
-    formioApplicationSubmissionsQuery.isError ||
-    formioPaymentRequestSubmissionsQuery.isError
-  ) {
+  if (formSubmissionsQueries.some((query) => query.isError)) {
     return <Message type="error" text={messages.formSubmissionsError} />;
   }
 

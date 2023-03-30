@@ -64,11 +64,7 @@ function ApplicationFormContent({ email }: { email: string }) {
   const dialogDispatch = useDialogDispatch();
   const notificationsDispatch = useNotificationsDispatch();
 
-  const {
-    bapFormSubmissionsQuery,
-    formioApplicationSubmissionsQuery,
-    formioPaymentRequestSubmissionsQuery,
-  } = useFetchedFormSubmissions();
+  const formSubmissionsQueries = useFetchedFormSubmissions();
 
   const combinedRebates = useCombinedSubmissions();
   const sortedRebates = useSortedRebates(combinedRebates);
@@ -162,19 +158,11 @@ function ApplicationFormContent({ email }: { email: string }) {
     return <Loading />;
   }
 
-  if (
-    bapFormSubmissionsQuery.isFetching ||
-    formioApplicationSubmissionsQuery.isFetching ||
-    formioPaymentRequestSubmissionsQuery.isFetching
-  ) {
+  if (formSubmissionsQueries.some((query) => query.isFetching)) {
     return <Loading />;
   }
 
-  if (
-    bapFormSubmissionsQuery.isError ||
-    formioApplicationSubmissionsQuery.isError ||
-    formioPaymentRequestSubmissionsQuery.isError
-  ) {
+  if (formSubmissionsQueries.some((query) => query.isError)) {
     return <Message type="error" text={messages.formSubmissionsError} />;
   }
 
