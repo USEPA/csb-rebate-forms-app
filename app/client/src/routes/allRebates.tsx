@@ -163,7 +163,7 @@ export function useFetchedFormSubmissions() {
         queryFn: () => {
           const url = `${serverUrl}/api/bap-form-submissions`;
           return getData<BapFormSubmission[]>(url).then((res) => {
-            const sortedSubmissions = res.reduce(
+            const submissions = res.reduce(
               (object, submission) => {
                 const formType =
                   submission.Record_Type_Name__c === "CSB Funding Request"
@@ -185,7 +185,7 @@ export function useFetchedFormSubmissions() {
               }
             );
 
-            return Promise.resolve(sortedSubmissions);
+            return Promise.resolve(submissions);
           });
         },
         refetchOnWindowFocus: false,
@@ -380,6 +380,26 @@ export function useSortedRebates(rebates: { [rebateId: string]: Rebate }) {
         ? -1
         : 0;
     });
+}
+
+/**
+ * Custom hook that returns sorted rebates, and logs them if 'debug' search
+ * parameter exists.
+ */
+function useRebates() {
+  const [searchParams] = useSearchParams();
+
+  const combinedRebates = useCombinedSubmissions();
+  const sortedRebates = useSortedRebates(combinedRebates);
+
+  // log combined 'sortedRebates' array if 'debug' search parameter exists
+  useEffect(() => {
+    if (searchParams.has("debug") && sortedRebates.length > 0) {
+      console.log(sortedRebates);
+    }
+  }, [searchParams, sortedRebates]);
+
+  return sortedRebates;
 }
 
 function ButtonLink(props: { type: "edit" | "view"; to: LinkProps["to"] }) {
@@ -883,20 +903,9 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
 }
 
 export function AllRebates() {
-  const [searchParams] = useSearchParams();
-
   const content = useContentData();
   const formSubmissionsQueries = useFetchedFormSubmissions();
-
-  const combinedRebates = useCombinedSubmissions();
-  const sortedRebates = useSortedRebates(combinedRebates);
-
-  // log combined 'sortedRebates' array if 'debug' search parameter exists
-  useEffect(() => {
-    if (searchParams.has("debug") && sortedRebates.length > 0) {
-      console.log(sortedRebates);
-    }
-  }, [searchParams, sortedRebates]);
+  const rebates = useRebates();
 
   if (formSubmissionsQueries.some((query) => query.isFetching)) {
     return <Loading />;
@@ -908,7 +917,7 @@ export function AllRebates() {
 
   return (
     <>
-      {sortedRebates.length === 0 ? (
+      {rebates.length === 0 ? (
         <div className="margin-top-4">
           <Message type="info" text={messages.newApplication} />
         </div>
@@ -990,14 +999,14 @@ export function AllRebates() {
               </thead>
 
               <tbody>
-                {sortedRebates.map((rebate, index) => (
+                {rebates.map((rebate, index) => (
                   <Fragment key={rebate.rebateId}>
                     <ApplicationSubmission rebate={rebate} />
 
                     <PaymentRequestSubmission rebate={rebate} />
 
                     {/* blank row after all rebates but the last one */}
-                    {index !== sortedRebates.length - 1 && (
+                    {index !== rebates.length - 1 && (
                       <tr className="bg-white">
                         <th className="p-0" scope="row" colSpan={6}>
                           &nbsp;
