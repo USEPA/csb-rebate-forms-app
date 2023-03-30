@@ -1,5 +1,5 @@
 import { useMemo, useEffect, useRef } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import { Formio, Form } from "@formio/react";
 import { cloneDeep, isEqual } from "lodash";
@@ -10,8 +10,7 @@ import { getUserInfo } from "../utilities";
 import {
   submissionNeedsEdits,
   useFetchedFormSubmissions,
-  useCombinedSubmissions,
-  useSortedRebates,
+  useRebates,
 } from "routes/allRebates";
 import { Loading } from "components/loading";
 import { Message } from "components/message";
@@ -55,7 +54,6 @@ export function ApplicationForm() {
 function ApplicationFormContent({ email }: { email: string }) {
   const navigate = useNavigate();
   const { id: mongoId } = useParams<"id">(); // MongoDB ObjectId string
-  const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
 
   const content = useContentData();
@@ -65,16 +63,7 @@ function ApplicationFormContent({ email }: { email: string }) {
   const notificationsDispatch = useNotificationsDispatch();
 
   const formSubmissionsQueries = useFetchedFormSubmissions();
-
-  const combinedRebates = useCombinedSubmissions();
-  const sortedRebates = useSortedRebates(combinedRebates);
-
-  // log combined 'sortedRebates' array if 'debug' search parameter exists
-  useEffect(() => {
-    if (searchParams.has("debug") && sortedRebates.length > 0) {
-      console.log(sortedRebates);
-    }
-  }, [searchParams, sortedRebates]);
+  const rebates = useRebates();
 
   /**
    * Stores when the form is being submitted, so it can be referenced in the
@@ -175,9 +164,7 @@ function ApplicationFormContent({ email }: { email: string }) {
     return <Message type="error" text={text} />;
   }
 
-  const rebate = sortedRebates.find((item) => {
-    return item.application.formio._id === mongoId;
-  });
+  const rebate = rebates.find((r) => r.application.formio._id === mongoId);
 
   const applicationNeedsEdits = !rebate
     ? false

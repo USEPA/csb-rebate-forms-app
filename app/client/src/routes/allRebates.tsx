@@ -216,7 +216,7 @@ export function useFetchedFormSubmissions() {
  * and Formio into a single `submissions` object, with the BAP assigned
  * `rebateId` as the keys.
  **/
-export function useCombinedSubmissions() {
+function useCombinedRebates() {
   const queryClient = useQueryClient();
 
   const bapFormSubmissions = queryClient.getQueryData<{
@@ -336,7 +336,7 @@ export function useCombinedSubmissions() {
  * - selected Applications submissions without a corresponding Payment Request
  *   submission
  **/
-export function useSortedRebates(rebates: { [rebateId: string]: Rebate }) {
+function useSortedRebates(rebates: { [rebateId: string]: Rebate }) {
   return Object.entries(rebates)
     .map(([rebateId, rebate]) => ({ rebateId, ...rebate }))
     .sort((r1, r2) => {
@@ -386,10 +386,10 @@ export function useSortedRebates(rebates: { [rebateId: string]: Rebate }) {
  * Custom hook that returns sorted rebates, and logs them if 'debug' search
  * parameter exists.
  */
-function useRebates() {
+export function useRebates() {
   const [searchParams] = useSearchParams();
 
-  const combinedRebates = useCombinedSubmissions();
+  const combinedRebates = useCombinedRebates();
   const sortedRebates = useSortedRebates(combinedRebates);
 
   // log combined 'sortedRebates' array if 'debug' search parameter exists

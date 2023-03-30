@@ -1,5 +1,5 @@
 import { useMemo, useEffect, useRef } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import { Formio, Form } from "@formio/react";
 import { cloneDeep, isEqual } from "lodash";
@@ -10,8 +10,7 @@ import { getUserInfo } from "../utilities";
 import {
   submissionNeedsEdits,
   useFetchedFormSubmissions,
-  useCombinedSubmissions,
-  useSortedRebates,
+  useRebates,
 } from "routes/allRebates";
 import { Loading } from "components/loading";
 import { Message } from "components/message";
@@ -54,7 +53,6 @@ export function PaymentRequestForm() {
 function PaymentRequestFormContent({ email }: { email: string }) {
   const navigate = useNavigate();
   const { id: rebateId } = useParams<"id">(); // CSB Rebate ID (6 digits)
-  const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
 
   const content = useContentData();
@@ -63,16 +61,7 @@ function PaymentRequestFormContent({ email }: { email: string }) {
   const notificationsDispatch = useNotificationsDispatch();
 
   const formSubmissionsQueries = useFetchedFormSubmissions();
-
-  const combinedRebates = useCombinedSubmissions();
-  const sortedRebates = useSortedRebates(combinedRebates);
-
-  // log combined 'sortedRebates' array if 'debug' search parameter exists
-  useEffect(() => {
-    if (searchParams.has("debug") && sortedRebates.length > 0) {
-      console.log(sortedRebates);
-    }
-  }, [searchParams, sortedRebates]);
+  const rebates = useRebates();
 
   /**
    * Stores when the form is being submitted, so it can be referenced in the
@@ -169,7 +158,7 @@ function PaymentRequestFormContent({ email }: { email: string }) {
     return <Message type="error" text={text} />;
   }
 
-  const rebate = sortedRebates.find((item) => item.rebateId === rebateId);
+  const rebate = rebates.find((r) => r.rebateId === rebateId);
 
   const applicationNeedsEdits = !rebate
     ? false
