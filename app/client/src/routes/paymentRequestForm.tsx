@@ -17,7 +17,7 @@ import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { useContentData } from "components/app";
 import { useCsbData, useBapSamData } from "components/userDashboard";
-import { useNotificationsDispatch } from "contexts/notifications";
+import { useNotificationsActions } from "contexts/notifications";
 
 type FormioSubmission = {
   [field: string]: unknown;
@@ -104,7 +104,13 @@ export function PaymentRequestForm() {
   const content = useContentData();
   const csbData = useCsbData();
   const bapSamData = useBapSamData();
-  const notificationsDispatch = useNotificationsDispatch();
+  const {
+    displayInfoNotification,
+    displaySuccessNotification,
+    // displayWarningNotification,
+    displayErrorNotification,
+    dismissNotification,
+  } = useNotificationsActions();
 
   const submissionsQueries = useSubmissionsQueries();
   const rebates = useRebates();
@@ -274,21 +280,15 @@ export function PaymentRequestForm() {
 
             const data = { ...onSubmitSubmission.data };
 
-            notificationsDispatch({
-              type: "DISPLAY_NOTIFICATION",
-              payload: {
-                type: "info",
-                body: (
-                  <p className="tw-text-sm tw-font-medium tw-text-gray-900">
-                    {onSubmitSubmission.state === "submitted" ? (
-                      <>Submitting...</>
-                    ) : (
-                      <>Saving draft...</>
-                    )}
-                  </p>
-                ),
-              },
-            });
+            displayInfoNotification(
+              <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                {onSubmitSubmission.state === "submitted" ? (
+                  <>Submitting...</>
+                ) : (
+                  <>Saving draft...</>
+                )}
+              </p>
+            );
 
             pendingSubmissionData.current = data;
 
@@ -305,24 +305,18 @@ export function PaymentRequestForm() {
                 lastSuccesfullySubmittedData.current = cloneDeep(res.data);
                 pendingSubmissionData.current = {};
 
-                notificationsDispatch({
-                  type: "DISPLAY_NOTIFICATION",
-                  payload: {
-                    type: "success",
-                    body: (
-                      <p className="tw-text-sm tw-font-medium tw-text-gray-900">
-                        {onSubmitSubmission.state === "submitted" ? (
-                          <>
-                            Payment Request <em>{rebateId}</em> submitted
-                            successfully.
-                          </>
-                        ) : (
-                          <>Draft saved successfully.</>
-                        )}
-                      </p>
-                    ),
-                  },
-                });
+                displaySuccessNotification(
+                  <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                    {onSubmitSubmission.state === "submitted" ? (
+                      <>
+                        Payment Request <em>{rebateId}</em> submitted
+                        successfully.
+                      </>
+                    ) : (
+                      <>Draft saved successfully.</>
+                    )}
+                  </p>
+                );
 
                 if (onSubmitSubmission.state === "submitted") {
                   navigate("/");
@@ -330,28 +324,22 @@ export function PaymentRequestForm() {
 
                 if (onSubmitSubmission.state === "draft") {
                   setTimeout(() => {
-                    notificationsDispatch({ type: "DISMISS_NOTIFICATION" });
+                    dismissNotification();
                   }, 5000);
                 }
               },
               onError: (error, payload, context) => {
                 formIsBeingSubmitted.current = false;
 
-                notificationsDispatch({
-                  type: "DISPLAY_NOTIFICATION",
-                  payload: {
-                    type: "error",
-                    body: (
-                      <p className="tw-text-sm tw-font-medium tw-text-gray-900">
-                        {onSubmitSubmission.state === "submitted" ? (
-                          <>Error submitting Payment Request form.</>
-                        ) : (
-                          <>Error saving draft.</>
-                        )}
-                      </p>
-                    ),
-                  },
-                });
+                displayErrorNotification(
+                  <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                    {onSubmitSubmission.state === "submitted" ? (
+                      <>Error submitting Payment Request form.</>
+                    ) : (
+                      <>Error saving draft.</>
+                    )}
+                  </p>
+                );
               },
             });
           }}
@@ -378,17 +366,11 @@ export function PaymentRequestForm() {
             delete submittedData.hidden_current_user_name;
             if (isEqual(currentData, submittedData)) return;
 
-            notificationsDispatch({
-              type: "DISPLAY_NOTIFICATION",
-              payload: {
-                type: "info",
-                body: (
-                  <p className="tw-text-sm tw-font-medium tw-text-gray-900">
-                    Saving draft...
-                  </p>
-                ),
-              },
-            });
+            displayInfoNotification(
+              <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                Saving draft...
+              </p>
+            );
 
             pendingSubmissionData.current = data;
 
@@ -406,34 +388,22 @@ export function PaymentRequestForm() {
                 lastSuccesfullySubmittedData.current = cloneDeep(res.data);
                 pendingSubmissionData.current = {};
 
-                notificationsDispatch({
-                  type: "DISPLAY_NOTIFICATION",
-                  payload: {
-                    type: "success",
-                    body: (
-                      <p className="tw-text-sm tw-font-medium tw-text-gray-900">
-                        Draft saved successfully.
-                      </p>
-                    ),
-                  },
-                });
+                displaySuccessNotification(
+                  <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                    Draft saved successfully.
+                  </p>
+                );
 
                 setTimeout(() => {
-                  notificationsDispatch({ type: "DISMISS_NOTIFICATION" });
+                  dismissNotification();
                 }, 5000);
               },
               onError: (error, payload, context) => {
-                notificationsDispatch({
-                  type: "DISPLAY_NOTIFICATION",
-                  payload: {
-                    type: "error",
-                    body: (
-                      <p className="tw-text-sm tw-font-medium tw-text-gray-900">
-                        Error saving draft.
-                      </p>
-                    ),
-                  },
-                });
+                displayErrorNotification(
+                  <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                    Error saving draft.
+                  </p>
+                );
               },
             });
           }}

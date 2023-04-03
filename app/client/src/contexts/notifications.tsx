@@ -104,7 +104,7 @@ export function useNotificationsDispatch() {
  * success, warning, or error) and a function to dismisses a currently displayed
  * notification.
  */
-export function useNotifications() {
+export function useNotificationsActions() {
   const dispatch = useNotificationsDispatch();
 
   return {
