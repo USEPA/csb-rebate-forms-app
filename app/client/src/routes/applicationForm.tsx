@@ -41,43 +41,9 @@ type ServerResponse =
       submission: FormioSubmission;
     };
 
-export function ApplicationForm() {
-  const navigate = useNavigate();
-  const { email } = useOutletContext<{ email: string }>();
-  const { id: mongoId } = useParams<"id">(); // MongoDB ObjectId string
-
+/** Custom hook to fetch Formio submission data */
+function useFormioSubmissionQueryAndMutation(mongoId: string | undefined) {
   const queryClient = useQueryClient();
-  const content = useContentData();
-  const csbData = useCsbData();
-  const bapSamData = useBapSamData();
-  const dialogDispatch = useDialogDispatch();
-  const notificationsDispatch = useNotificationsDispatch();
-
-  const submissionsQueries = useSubmissionsQueries();
-  const rebates = useRebates();
-
-  /**
-   * Stores when the form is being submitted, so it can be referenced in the
-   * Form component's `onSubmit` event prop to prevent double submits
-   */
-  const formIsBeingSubmitted = useRef(false);
-
-  /**
-   * Stores the last succesfully submitted data, so it can be used in the Form
-   * component's `onNextPage` event prop's "dirty check" which determines if
-   * posting of updated data is needed (so we don't make needless requests if no
-   * field data in the form has changed).
-   */
-  const lastSuccesfullySubmittedData = useRef<{ [field: string]: unknown }>({});
-
-  /**
-   * Stores the form data's state right after the user clicks the Save, Submit,
-   * or Next button. As soon as a post request to update the data succeeds, this
-   * pending submission data is reset to an empty object. This pending data,
-   * along with the submission data returned from the server is passed into the
-   * Form component's `submission` prop.
-   */
-  const pendingSubmissionData = useRef<{ [field: string]: unknown }>({});
 
   useEffect(() => {
     queryClient.resetQueries({ queryKey: ["application"] });
@@ -132,7 +98,48 @@ export function ApplicationForm() {
     },
   });
 
+  return { query, mutation };
+}
+
+export function ApplicationForm() {
+  const navigate = useNavigate();
+  const { email } = useOutletContext<{ email: string }>();
+  const { id: mongoId } = useParams<"id">(); // MongoDB ObjectId string
+
+  const content = useContentData();
+  const csbData = useCsbData();
+  const bapSamData = useBapSamData();
+  const dialogDispatch = useDialogDispatch();
+  const notificationsDispatch = useNotificationsDispatch();
+
+  const submissionsQueries = useSubmissionsQueries();
+  const rebates = useRebates();
+
+  const { query, mutation } = useFormioSubmissionQueryAndMutation(mongoId);
   const { userAccess, formSchema, submission } = query.data ?? {};
+
+  /**
+   * Stores when the form is being submitted, so it can be referenced in the
+   * Form component's `onSubmit` event prop to prevent double submits
+   */
+  const formIsBeingSubmitted = useRef(false);
+
+  /**
+   * Stores the last succesfully submitted data, so it can be used in the Form
+   * component's `onNextPage` event prop's "dirty check" which determines if
+   * posting of updated data is needed (so we don't make needless requests if no
+   * field data in the form has changed).
+   */
+  const lastSuccesfullySubmittedData = useRef<{ [field: string]: unknown }>({});
+
+  /**
+   * Stores the form data's state right after the user clicks the Save, Submit,
+   * or Next button. As soon as a post request to update the data succeeds, this
+   * pending submission data is reset to an empty object. This pending data,
+   * along with the submission data returned from the server is passed into the
+   * Form component's `submission` prop.
+   */
+  const pendingSubmissionData = useRef<{ [field: string]: unknown }>({});
 
   if (!csbData || !bapSamData) {
     return <Loading />;
@@ -167,11 +174,13 @@ export function ApplicationForm() {
   const applicationNeedsEditsAndPaymentRequestExists =
     applicationNeedsEdits && !!rebate?.paymentRequest.formio;
 
-  // NOTE: If the Application form submission needs edits and there's a
-  // corresponding Payment Request form submission, display a confirmation
-  // dialog prompting the user to delete the Payment Request form submission,
-  // as it's data will no longer valid when the Application form submission's
-  // data is changed.
+  /**
+   * NOTE: If the Application form submission needs edits and there's a
+   * corresponding Payment Request form submission, display a confirmation
+   * dialog prompting the user to delete the Payment Request form submission,
+   * as it's data will no longer valid when the Application form submission's
+   * data is changed.
+   */
   if (applicationNeedsEditsAndPaymentRequestExists) {
     dialogDispatch({
       type: "DISPLAY_DIALOG",
@@ -300,11 +309,10 @@ export function ApplicationForm() {
     (submission.state === "submitted" || !applicationFormOpen) &&
     !applicationNeedsEdits;
 
-  const entityComboKey = submission.data.bap_hidden_entity_combo_key;
   const entity = bapSamData.entities.find((entity) => {
     return (
       entity.ENTITY_STATUS__c === "Active" &&
-      entity.ENTITY_COMBO_KEY__c === entityComboKey
+      entity.ENTITY_COMBO_KEY__c === submission.data.bap_hidden_entity_combo_key
     );
   });
 
