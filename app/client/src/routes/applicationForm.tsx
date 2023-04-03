@@ -30,8 +30,16 @@ type FormioSubmission = {
 };
 
 type ServerResponse =
-  | { userAccess: false; formSchema: null; submission: null }
-  | { userAccess: true; formSchema: { url: string; json: object }; submission: FormioSubmission }; // prettier-ignore
+  | {
+      userAccess: false;
+      formSchema: null;
+      submission: null;
+    }
+  | {
+      userAccess: true;
+      formSchema: { url: string; json: object };
+      submission: FormioSubmission;
+    };
 
 export function ApplicationForm() {
   const navigate = useNavigate();

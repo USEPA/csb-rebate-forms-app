@@ -27,8 +27,14 @@ type FormioSubmission = {
 };
 
 type ServerResponse =
-  | { formSchema: null; submission: null }
-  | { formSchema: { url: string; json: object }; submission: FormioSubmission };
+  | {
+      formSchema: null;
+      submission: null;
+    }
+  | {
+      formSchema: { url: string; json: object };
+      submission: FormioSubmission;
+    };
 
 export function Helpdesk() {
   const navigate = useNavigate();
