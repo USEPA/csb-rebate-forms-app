@@ -17,7 +17,7 @@ import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/tooltip";
 import { useContentData } from "components/app";
 import { useCsbData, useBapSamData } from "components/userDashboard";
-import { useNotificationsDispatch } from "contexts/notifications";
+import { useNotificationsActions } from "contexts/notifications";
 
 type BapFormSubmission = {
   UEI_EFTI_Combo_Key__c: string; // UEI + EFTI combo key
@@ -683,7 +683,7 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
 
   const csbData = useCsbData();
   const bapSamData = useBapSamData();
-  const notificationsDispatch = useNotificationsDispatch();
+  const { displayErrorNotification } = useNotificationsActions();
 
   // NOTE: used to display a loading indicator inside the new Payment Request button
   const [postDataResponsePending, setPostDataResponsePending] = useState(false);
@@ -736,23 +736,17 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
                 })
                 .catch((err) => {
                   setPostDataResponsePending(false);
-                  notificationsDispatch({
-                    type: "DISPLAY_NOTIFICATION",
-                    payload: {
-                      type: "error",
-                      body: (
-                        <>
-                          <p className="tw-text-sm tw-font-medium tw-text-gray-900">
-                            Error creating Payment Request{" "}
-                            <em>{application.bap?.rebateId}</em>.
-                          </p>
-                          <p className="tw-mt-1 tw-text-sm tw-text-gray-500">
-                            Please try again.
-                          </p>
-                        </>
-                      ),
-                    },
-                  });
+                  displayErrorNotification(
+                    <>
+                      <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                        Error creating Payment Request{" "}
+                        <em>{application.bap?.rebateId}</em>.
+                      </p>
+                      <p className="tw-mt-1 tw-text-sm tw-text-gray-500">
+                        Please try again.
+                      </p>
+                    </>
+                  );
                 });
             }}
           >

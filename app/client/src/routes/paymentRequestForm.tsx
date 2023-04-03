@@ -107,7 +107,6 @@ export function PaymentRequestForm() {
   const {
     displayInfoNotification,
     displaySuccessNotification,
-    // displayWarningNotification,
     displayErrorNotification,
     dismissNotification,
   } = useNotificationsActions();

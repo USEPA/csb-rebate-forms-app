@@ -113,7 +113,6 @@ export function ApplicationForm() {
   const {
     displayInfoNotification,
     displaySuccessNotification,
-    // displayWarningNotification,
     displayErrorNotification,
     dismissNotification,
   } = useNotificationsActions();
