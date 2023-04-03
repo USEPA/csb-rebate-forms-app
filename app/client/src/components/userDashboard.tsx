@@ -308,7 +308,7 @@ export function UserDashboard(props: { email: string }) {
         </nav>
       </div>
 
-      <Outlet />
+      <Outlet context={{ email }} />
     </div>
   );
 }

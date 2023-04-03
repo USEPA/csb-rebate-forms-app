@@ -1,5 +1,5 @@
-import { useMemo, useEffect, useRef } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useRef } from "react";
+import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import { Formio, Form } from "@formio/react";
 import { cloneDeep, isEqual } from "lodash";
@@ -17,7 +17,6 @@ import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { useContentData } from "components/app";
 import { useCsbData, useBapSamData } from "components/userDashboard";
-import { useUserState } from "contexts/user";
 import { useNotificationsDispatch } from "contexts/notifications";
 
 type FormioSubmission = {
@@ -34,24 +33,8 @@ type ServerResponse =
   | { userAccess: true; formSchema: { url: string; json: object }; submission: FormioSubmission }; // prettier-ignore
 
 export function PaymentRequestForm() {
-  const { epaUserData } = useUserState();
-  const email = epaUserData.status !== "success" ? "" : epaUserData.data.mail;
-
-  /**
-   * NOTE: The child component only uses the email from the `user` context, but
-   * the `epaUserData.data` object includes an `exp` field that changes whenever
-   * the JWT is refreshed. Since the user verification process `verifyUser()`
-   * gets called from the parent `ProtectedRoute` component, we need to memoize
-   * the email address (which won't change) to prevent the child component from
-   * needlessly re-rendering.
-   */
-  return useMemo(() => {
-    return <PaymentRequestFormContent email={email} />;
-  }, [email]);
-}
-
-function PaymentRequestFormContent({ email }: { email: string }) {
   const navigate = useNavigate();
+  const { email } = useOutletContext<{ email: string }>();
   const { id: rebateId } = useParams<"id">(); // CSB Rebate ID (6 digits)
   const queryClient = useQueryClient();
 
@@ -137,7 +120,7 @@ function PaymentRequestFormContent({ email }: { email: string }) {
 
   const { userAccess, formSchema, submission } = query.data ?? {};
 
-  if (email === "" || !csbData || !bapSamData) {
+  if (!csbData || !bapSamData) {
     return <Loading />;
   }
 
