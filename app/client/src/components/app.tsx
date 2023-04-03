@@ -223,8 +223,10 @@ export function useHelpdeskAccess() {
 
 function ProtectedRoute() {
   const { pathname } = useLocation();
-  const { isAuthenticating, isAuthenticated } = useUserState();
+  const { isAuthenticating, isAuthenticated, epaUserData } = useUserState();
   const userDispatch = useUserDispatch();
+
+  const email = epaUserData.status !== "success" ? "" : epaUserData.data.mail;
 
   /**
    * check if user is already logged in or needs to be logged out (which will
@@ -267,7 +269,7 @@ function ProtectedRoute() {
     <TooltipProvider>
       <ConfirmationDialog />
       <Notifications />
-      <UserDashboard />
+      <UserDashboard email={email} />
     </TooltipProvider>
   );
 }
