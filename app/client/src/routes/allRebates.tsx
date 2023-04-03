@@ -159,7 +159,7 @@ export function submissionNeedsEdits(options: {
 }
 
 /** Custom hook to fetch submissions from the BAP and Formio */
-export function useFetchedFormSubmissions() {
+export function useSubmissionsQueries() {
   return useQueries({
     queries: [
       {
@@ -908,14 +908,14 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
 
 export function AllRebates() {
   const content = useContentData();
-  const formSubmissionsQueries = useFetchedFormSubmissions();
+  const submissionsQueries = useSubmissionsQueries();
   const rebates = useRebates();
 
-  if (formSubmissionsQueries.some((query) => query.isFetching)) {
+  if (submissionsQueries.some((query) => query.isFetching)) {
     return <Loading />;
   }
 
-  if (formSubmissionsQueries.some((query) => query.isError)) {
+  if (submissionsQueries.some((query) => query.isError)) {
     return <Message type="error" text={messages.formSubmissionsError} />;
   }
 

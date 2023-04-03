@@ -9,7 +9,7 @@ import { serverUrl, messages, getData, postData } from "../config";
 import { getUserInfo } from "../utilities";
 import {
   submissionNeedsEdits,
-  useFetchedFormSubmissions,
+  useSubmissionsQueries,
   useRebates,
 } from "routes/allRebates";
 import { Loading } from "components/loading";
@@ -44,14 +44,14 @@ export function PaymentRequestForm() {
   const navigate = useNavigate();
   const { email } = useOutletContext<{ email: string }>();
   const { id: rebateId } = useParams<"id">(); // CSB Rebate ID (6 digits)
-  const queryClient = useQueryClient();
 
+  const queryClient = useQueryClient();
   const content = useContentData();
   const csbData = useCsbData();
   const bapSamData = useBapSamData();
   const notificationsDispatch = useNotificationsDispatch();
 
-  const formSubmissionsQueries = useFetchedFormSubmissions();
+  const submissionsQueries = useSubmissionsQueries();
   const rebates = useRebates();
 
   /**
@@ -132,11 +132,11 @@ export function PaymentRequestForm() {
     return <Loading />;
   }
 
-  if (formSubmissionsQueries.some((query) => query.isFetching)) {
+  if (submissionsQueries.some((query) => query.isFetching)) {
     return <Loading />;
   }
 
-  if (formSubmissionsQueries.some((query) => query.isError)) {
+  if (submissionsQueries.some((query) => query.isError)) {
     return <Message type="error" text={messages.formSubmissionsError} />;
   }
 
