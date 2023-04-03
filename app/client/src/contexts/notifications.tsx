@@ -98,3 +98,44 @@ export function useNotificationsDispatch() {
   }
   return context;
 }
+
+/**
+ * Custom hook that returns functions to display each notification type (info,
+ * success, warning, or error) and a function to dismisses a currently displayed
+ * notification.
+ */
+export function useNotifications() {
+  const dispatch = useNotificationsDispatch();
+
+  return {
+    displayInfoNotification: (body: ReactNode) => {
+      return dispatch({
+        type: "DISPLAY_NOTIFICATION",
+        payload: { type: "info" as const, body },
+      });
+    },
+    displaySuccessNotification(body: ReactNode) {
+      return dispatch({
+        type: "DISPLAY_NOTIFICATION",
+        payload: { type: "success" as const, body },
+      });
+    },
+    displayWarningNotification(body: ReactNode) {
+      return dispatch({
+        type: "DISPLAY_NOTIFICATION",
+        payload: { type: "warning" as const, body },
+      });
+    },
+    displayErrorNotification(body: ReactNode) {
+      return dispatch({
+        type: "DISPLAY_NOTIFICATION",
+        payload: { type: "error" as const, body },
+      });
+    },
+    dismissNotification() {
+      return dispatch({
+        type: "DISMISS_NOTIFICATION",
+      });
+    },
+  };
+}
