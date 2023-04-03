@@ -14,9 +14,7 @@ import {
 } from "../config";
 import { useHelpdeskAccess } from "components/app";
 import { Loading } from "components/loading";
-import { Notifications } from "components/notifications";
 import { Action, useDialogDispatch } from "contexts/dialog";
-import { useUserState } from "contexts/user";
 
 type CsbData = {
   submissionPeriodOpen: {
@@ -114,7 +112,9 @@ function IconText(props: {
   );
 }
 
-export function Dashboard() {
+export function UserDashboard(props: { email: string }) {
+  const { email } = props;
+
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
@@ -138,7 +138,6 @@ export function Dashboard() {
     refetchOnWindowFocus: false,
   });
 
-  const { epaUserData } = useUserState();
   const csbData = useCsbData();
   const bapSamData = useBapSamData();
 
@@ -211,9 +210,7 @@ export function Dashboard() {
       <div className="desktop:display-flex flex-justify border-bottom">
         <nav className="desktop:order-last mobile-lg:display-flex flex-align-center flex-justify-end">
           <p className="margin-bottom-1 margin-right-1">
-            <span>
-              {epaUserData.status === "success" && epaUserData.data.mail}
-            </span>
+            <span>{email}</span>
           </p>
 
           <a
@@ -311,9 +308,7 @@ export function Dashboard() {
         </nav>
       </div>
 
-      <Outlet />
-
-      <Notifications />
+      <Outlet context={{ email }} />
     </div>
   );
 }

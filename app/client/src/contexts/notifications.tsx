@@ -77,7 +77,7 @@ export function NotificationsProvider({ children }: Props) {
 /**
  * Returns state stored in `NotificationsProvider` context component.
  */
-export function useNotificationsState() {
+function useNotificationsState() {
   const context = useContext(StateContext);
   if (context === undefined) {
     const message = `useNotificationsState must be called within a NotificationsProvider`;
@@ -90,11 +90,54 @@ export function useNotificationsState() {
  * Returns `dispatch` method for dispatching actions to update state stored in
  * `NotificationsProvider` context component.
  */
-export function useNotificationsDispatch() {
+function useNotificationsDispatch() {
   const context = useContext(DispatchContext);
   if (context === undefined) {
     const message = `useNotificationsDispatch must be used within a NotificationsProvider`;
     throw new Error(message);
   }
   return context;
+}
+
+/**
+ * Custom hook that returns notifications current state, functions to display
+ * each notification type (info, success, warning, or error), and a function to
+ * dismiss a currently displayed notification.
+ */
+export function useNotificationsContext() {
+  const state = useNotificationsState();
+  const dispatch = useNotificationsDispatch();
+
+  return {
+    state,
+    displayInfoNotification(body: ReactNode) {
+      return dispatch({
+        type: "DISPLAY_NOTIFICATION",
+        payload: { type: "info" as const, body },
+      });
+    },
+    displaySuccessNotification(body: ReactNode) {
+      return dispatch({
+        type: "DISPLAY_NOTIFICATION",
+        payload: { type: "success" as const, body },
+      });
+    },
+    displayWarningNotification(body: ReactNode) {
+      return dispatch({
+        type: "DISPLAY_NOTIFICATION",
+        payload: { type: "warning" as const, body },
+      });
+    },
+    displayErrorNotification(body: ReactNode) {
+      return dispatch({
+        type: "DISPLAY_NOTIFICATION",
+        payload: { type: "error" as const, body },
+      });
+    },
+    dismissNotification() {
+      return dispatch({
+        type: "DISMISS_NOTIFICATION",
+      });
+    },
+  };
 }

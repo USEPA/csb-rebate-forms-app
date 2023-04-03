@@ -1,7 +1,12 @@
 import { Fragment, useEffect, useState } from "react";
 import type { LinkProps } from "react-router-dom";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { useQueryClient, useQuery } from "@tanstack/react-query";
+import {
+  Link,
+  useNavigate,
+  useOutletContext,
+  useSearchParams,
+} from "react-router-dom";
+import { useQueryClient, useQueries } from "@tanstack/react-query";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages, getData, postData } from "../config";
@@ -11,9 +16,8 @@ import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/tooltip";
 import { useContentData } from "components/app";
-import { useCsbData, useBapSamData } from "components/dashboard";
-import { useUserState } from "contexts/user";
-import { useNotificationsDispatch } from "contexts/notifications";
+import { useCsbData, useBapSamData } from "components/userDashboard";
+import { useNotificationsContext } from "contexts/notifications";
 
 type BapFormSubmission = {
   UEI_EFTI_Combo_Key__c: string; // UEI + EFTI combo key
@@ -155,63 +159,59 @@ export function submissionNeedsEdits(options: {
 }
 
 /** Custom hook to fetch submissions from the BAP and Formio */
-export function useFetchedFormSubmissions() {
-  const bapFormSubmissionsQuery = useQuery({
-    queryKey: ["bap-form-submissions"],
-    queryFn: () => {
-      const url = `${serverUrl}/api/bap-form-submissions`;
-      return getData<BapFormSubmission[]>(url).then((res) => {
-        const sortedSubmissions = res.reduce(
-          (object, submission) => {
-            const formType =
-              submission.Record_Type_Name__c === "CSB Funding Request"
-                ? "applications"
-                : submission.Record_Type_Name__c === "CSB Payment Request"
-                ? "paymentRequests"
-                : submission.Record_Type_Name__c === "CSB Closeout Request"
-                ? "closeOuts"
-                : null;
+export function useSubmissionsQueries() {
+  return useQueries({
+    queries: [
+      {
+        queryKey: ["bap-form-submissions"],
+        queryFn: () => {
+          const url = `${serverUrl}/api/bap-form-submissions`;
+          return getData<BapFormSubmission[]>(url).then((res) => {
+            const submissions = res.reduce(
+              (object, submission) => {
+                const formType =
+                  submission.Record_Type_Name__c === "CSB Funding Request"
+                    ? "applications"
+                    : submission.Record_Type_Name__c === "CSB Payment Request"
+                    ? "paymentRequests"
+                    : submission.Record_Type_Name__c === "CSB Closeout Request"
+                    ? "closeOuts"
+                    : null;
 
-            if (formType) object[formType].push(submission);
+                if (formType) object[formType].push(submission);
 
-            return object;
-          },
-          {
-            applications: [] as BapFormSubmission[],
-            paymentRequests: [] as BapFormSubmission[],
-            closeOuts: [] as BapFormSubmission[],
-          }
-        );
+                return object;
+              },
+              {
+                applications: [] as BapFormSubmission[],
+                paymentRequests: [] as BapFormSubmission[],
+                closeOuts: [] as BapFormSubmission[],
+              }
+            );
 
-        return Promise.resolve(sortedSubmissions);
-      });
-    },
-    refetchOnWindowFocus: false,
+            return Promise.resolve(submissions);
+          });
+        },
+        refetchOnWindowFocus: false,
+      },
+      {
+        queryKey: ["formio-application-submissions"],
+        queryFn: () => {
+          const url = `${serverUrl}/api/formio-application-submissions`;
+          return getData<FormioApplicationSubmission[]>(url);
+        },
+        refetchOnWindowFocus: false,
+      },
+      {
+        queryKey: ["formio-payment-request-submissions"],
+        queryFn: () => {
+          const url = `${serverUrl}/api/formio-payment-request-submissions`;
+          return getData<FormioPaymentRequestSubmission[]>(url);
+        },
+        refetchOnWindowFocus: false,
+      },
+    ],
   });
-
-  const formioApplicationSubmissionsQuery = useQuery({
-    queryKey: ["formio-application-submissions"],
-    queryFn: () => {
-      const url = `${serverUrl}/api/formio-application-submissions`;
-      return getData<FormioApplicationSubmission[]>(url);
-    },
-    refetchOnWindowFocus: false,
-  });
-
-  const formioPaymentRequestSubmissionsQuery = useQuery({
-    queryKey: ["formio-payment-request-submissions"],
-    queryFn: () => {
-      const url = `${serverUrl}/api/formio-payment-request-submissions`;
-      return getData<FormioPaymentRequestSubmission[]>(url);
-    },
-    refetchOnWindowFocus: false,
-  });
-
-  return {
-    bapFormSubmissionsQuery,
-    formioApplicationSubmissionsQuery,
-    formioPaymentRequestSubmissionsQuery,
-  };
 }
 
 /**
@@ -220,7 +220,7 @@ export function useFetchedFormSubmissions() {
  * and Formio into a single `submissions` object, with the BAP assigned
  * `rebateId` as the keys.
  **/
-export function useCombinedSubmissions() {
+function useCombinedRebates() {
   const queryClient = useQueryClient();
 
   const bapFormSubmissions = queryClient.getQueryData<{
@@ -340,7 +340,7 @@ export function useCombinedSubmissions() {
  * - selected Applications submissions without a corresponding Payment Request
  *   submission
  **/
-export function useSortedRebates(rebates: { [rebateId: string]: Rebate }) {
+function useSortedRebates(rebates: { [rebateId: string]: Rebate }) {
   return Object.entries(rebates)
     .map(([rebateId, rebate]) => ({ rebateId, ...rebate }))
     .sort((r1, r2) => {
@@ -386,6 +386,26 @@ export function useSortedRebates(rebates: { [rebateId: string]: Rebate }) {
     });
 }
 
+/**
+ * Custom hook that returns sorted rebates, and logs them if 'debug' search
+ * parameter exists.
+ */
+export function useRebates() {
+  const [searchParams] = useSearchParams();
+
+  const combinedRebates = useCombinedRebates();
+  const sortedRebates = useSortedRebates(combinedRebates);
+
+  // log combined 'sortedRebates' array if 'debug' search parameter exists
+  useEffect(() => {
+    if (searchParams.has("debug") && sortedRebates.length > 0) {
+      console.log(sortedRebates);
+    }
+  }, [searchParams, sortedRebates]);
+
+  return sortedRebates;
+}
+
 function ButtonLink(props: { type: "edit" | "view"; to: LinkProps["to"] }) {
   const icon = props.type === "edit" ? "edit" : "visibility";
   const text = props.type === "edit" ? "Edit" : "View";
@@ -411,14 +431,15 @@ function ButtonLink(props: { type: "edit" | "view"; to: LinkProps["to"] }) {
   );
 }
 
-function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
+function ApplicationSubmission(props: { rebate: Rebate }) {
+  const { rebate } = props;
+  const { application, paymentRequest } = rebate;
+
   const csbData = useCsbData();
 
   if (!csbData) return null;
 
   const applicationFormOpen = csbData.submissionPeriodOpen.application;
-
-  const { application, paymentRequest } = rebate;
 
   const {
     applicantUEI,
@@ -653,24 +674,23 @@ save the form for the EFT indicator to be displayed. */
   );
 }
 
-function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
+function PaymentRequestSubmission(props: { rebate: Rebate }) {
+  const { rebate } = props;
+  const { application, paymentRequest } = rebate;
+
   const navigate = useNavigate();
+  const { email } = useOutletContext<{ email: string }>();
 
   const csbData = useCsbData();
   const bapSamData = useBapSamData();
-  const { epaUserData } = useUserState();
-  const notificationsDispatch = useNotificationsDispatch();
+  const { displayErrorNotification } = useNotificationsContext();
 
   // NOTE: used to display a loading indicator inside the new Payment Request button
   const [postDataResponsePending, setPostDataResponsePending] = useState(false);
 
   if (!csbData || !bapSamData) return null;
-  if (epaUserData.status !== "success") return null;
 
   const paymentRequestFormOpen = csbData.submissionPeriodOpen.paymentRequest;
-
-  const email = epaUserData.data.mail;
-  const { application, paymentRequest } = rebate;
 
   const applicationSelected = application.bap?.status === "Accepted";
 
@@ -716,23 +736,17 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
                 })
                 .catch((err) => {
                   setPostDataResponsePending(false);
-                  notificationsDispatch({
-                    type: "DISPLAY_NOTIFICATION",
-                    payload: {
-                      type: "error",
-                      body: (
-                        <>
-                          <p className="tw-text-sm tw-font-medium tw-text-gray-900">
-                            Error creating Payment Request{" "}
-                            <em>{application.bap?.rebateId}</em>.
-                          </p>
-                          <p className="tw-mt-1 tw-text-sm tw-text-gray-500">
-                            Please try again.
-                          </p>
-                        </>
-                      ),
-                    },
-                  });
+                  displayErrorNotification(
+                    <>
+                      <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                        Error creating Payment Request{" "}
+                        <em>{application.bap?.rebateId}</em>.
+                      </p>
+                      <p className="tw-mt-1 tw-text-sm tw-text-gray-500">
+                        Please try again.
+                      </p>
+                    </>
+                  );
                 });
             }}
           >
@@ -887,44 +901,21 @@ function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
 }
 
 export function AllRebates() {
-  const [searchParams] = useSearchParams();
-
   const content = useContentData();
-  const {
-    bapFormSubmissionsQuery,
-    formioApplicationSubmissionsQuery,
-    formioPaymentRequestSubmissionsQuery,
-  } = useFetchedFormSubmissions();
+  const submissionsQueries = useSubmissionsQueries();
+  const rebates = useRebates();
 
-  const combinedRebates = useCombinedSubmissions();
-  const sortedRebates = useSortedRebates(combinedRebates);
-
-  // log combined 'sortedRebates' array if 'debug' search parameter exists
-  useEffect(() => {
-    if (searchParams.has("debug") && sortedRebates.length > 0) {
-      console.log(sortedRebates);
-    }
-  }, [searchParams, sortedRebates]);
-
-  if (
-    bapFormSubmissionsQuery.isFetching ||
-    formioApplicationSubmissionsQuery.isFetching ||
-    formioPaymentRequestSubmissionsQuery.isFetching
-  ) {
+  if (submissionsQueries.some((query) => query.isFetching)) {
     return <Loading />;
   }
 
-  if (
-    bapFormSubmissionsQuery.isError ||
-    formioApplicationSubmissionsQuery.isError ||
-    formioPaymentRequestSubmissionsQuery.isError
-  ) {
+  if (submissionsQueries.some((query) => query.isError)) {
     return <Message type="error" text={messages.formSubmissionsError} />;
   }
 
   return (
     <>
-      {sortedRebates.length === 0 ? (
+      {rebates.length === 0 ? (
         <div className="margin-top-4">
           <Message type="info" text={messages.newApplication} />
         </div>
@@ -1006,14 +997,14 @@ export function AllRebates() {
               </thead>
 
               <tbody>
-                {sortedRebates.map((rebate, index) => (
+                {rebates.map((rebate, index) => (
                   <Fragment key={rebate.rebateId}>
                     <ApplicationSubmission rebate={rebate} />
 
                     <PaymentRequestSubmission rebate={rebate} />
 
                     {/* blank row after all rebates but the last one */}
-                    {index !== sortedRebates.length - 1 && (
+                    {index !== rebates.length - 1 && (
                       <tr className="bg-white">
                         <th className="p-0" scope="row" colSpan={6}>
                           &nbsp;

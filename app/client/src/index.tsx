@@ -4,11 +4,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import reportWebVitals from "./reportWebVitals";
 // ---
-import { DialogProvider } from "contexts/dialog";
-import { UserProvider } from "contexts/user";
-import { NotificationsProvider } from "contexts/notifications";
 import { ErrorBoundary } from "components/errorBoundary";
 import { App } from "components/app";
+import { DialogProvider } from "contexts/dialog";
+import { NotificationsProvider } from "contexts/notifications";
+import { UserProvider } from "contexts/user";
 import "./tailwind-preflight.css";
 import "./styles.css";
 
@@ -20,11 +20,11 @@ render(
     <QueryClientProvider client={queryClient}>
       <ErrorBoundary>
         <DialogProvider>
-          <UserProvider>
-            <NotificationsProvider>
+          <NotificationsProvider>
+            <UserProvider>
               <App />
-            </NotificationsProvider>
-          </UserProvider>
+            </UserProvider>
+          </NotificationsProvider>
         </DialogProvider>
       </ErrorBoundary>
 

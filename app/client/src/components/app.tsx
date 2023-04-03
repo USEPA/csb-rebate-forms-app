@@ -22,13 +22,15 @@ import { serverBasePath, serverUrl, cloudSpace, getData } from "../config";
 import { Loading } from "components/loading";
 import { MarkdownContent } from "components/markdownContent";
 import { Welcome } from "routes/welcome";
-import { Dashboard } from "components/dashboard";
+import { UserDashboard } from "components/userDashboard";
 import { ConfirmationDialog } from "components/confirmationDialog";
+import { Notifications } from "components/notifications";
 import { Helpdesk } from "routes/helpdesk";
 import { AllRebates } from "routes/allRebates";
 import { NewApplicationForm } from "routes/newApplicationForm";
 import { ApplicationForm } from "routes/applicationForm";
 import { PaymentRequestForm } from "routes/paymentRequestForm";
+import { CloseOutForm } from "routes/closeOutForm";
 import { useDialogDispatch, useDialogState } from "contexts/dialog";
 import { EpaUserData, useUserState, useUserDispatch } from "contexts/user";
 
@@ -219,14 +221,17 @@ export function useHelpdeskAccess() {
   return helpdeskAccess;
 }
 
-// Wrapper Component for any routes that need authenticated access
-function ProtectedRoute({ children }: { children: JSX.Element }) {
+function ProtectedRoute() {
   const { pathname } = useLocation();
-  const { isAuthenticating, isAuthenticated } = useUserState();
+  const { isAuthenticating, isAuthenticated, epaUserData } = useUserState();
   const userDispatch = useUserDispatch();
 
-  // check if user is already logged in or needs to be logged out (which will
-  // redirect them to the "/welcome" route)
+  const email = epaUserData.status !== "success" ? "" : epaUserData.data.mail;
+
+  /**
+   * check if user is already logged in or needs to be logged out (which will
+   * redirect them to the "/welcome" route)
+   */
   const verifyUser = useCallback(() => {
     getData<EpaUserData>(`${serverUrl}/api/epa-user-data`)
       .then((res) => {
@@ -263,53 +268,33 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
   return (
     <TooltipProvider>
       <ConfirmationDialog />
-      {children}
+      <Notifications />
+      <UserDashboard email={email} />
     </TooltipProvider>
   );
 }
 
 export function App() {
-  useSiteAlertBanner();
-  useDisclaimerBanner();
-
   useQuery({
     queryKey: ["content"],
     queryFn: () => getData<Content>(`${serverUrl}/api/content`),
     refetchOnWindowFocus: false,
   });
 
+  useSiteAlertBanner();
+  useDisclaimerBanner();
+
   return (
     <BrowserRouter basename={serverBasePath}>
       <Routes>
         <Route path="/welcome" element={<Welcome />} />
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        >
+        <Route path="/" element={<ProtectedRoute />}>
           <Route index element={<AllRebates />} />
-          {/*
-            NOTE: The helpdesk route is only accessible to users who should have
-            access to it. When a user tries to access the `Helpdesk` route, an
-            API call to the server is made (`/helpdesk-access`). Verification
-            happens on the server via the user's EPA WAA groups stored in the
-            JWT, and server responds appropriately. If user is a member of the
-            appropriate WAA groups, they'll have access to the route, otherwise
-            they'll be redirected to the index route (`AllRebates`). This same
-            API call happens inside the `Dashboard` component as well, to
-            determine whether a button/link to the helpdesk route should be
-            displayed.
-          */}
           <Route path="helpdesk" element={<Helpdesk />} />
           <Route path="rebate/new" element={<NewApplicationForm />} />
-          <Route path="rebate/:mongoId" element={<ApplicationForm />} />
-          <Route
-            path="payment-request/:rebateId"
-            element={<PaymentRequestForm />}
-          />
+          <Route path="rebate/:id" element={<ApplicationForm />} />
+          <Route path="payment-request/:id" element={<PaymentRequestForm />} />
+          <Route path="close-out/:id" element={<CloseOutForm />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

@@ -12,9 +12,8 @@ import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/tooltip";
 import { useContentData } from "components/app";
-import { useCsbData } from "components/dashboard";
+import { useCsbData } from "components/userDashboard";
 import { useDialogDispatch } from "contexts/dialog";
-import { useUserState } from "contexts/user";
 
 type FormType = "application" | "payment-request" | "close-out";
 
@@ -28,8 +27,14 @@ type FormioSubmission = {
 };
 
 type ServerResponse =
-  | { formSchema: null; submission: null }
-  | { formSchema: { url: string; json: object }; submission: FormioSubmission };
+  | {
+      formSchema: null;
+      submission: null;
+    }
+  | {
+      formSchema: { url: string; json: object };
+      submission: FormioSubmission;
+    };
 
 export function Helpdesk() {
   const navigate = useNavigate();
@@ -38,7 +43,6 @@ export function Helpdesk() {
   const content = useContentData();
   const csbData = useCsbData();
   const dialogDispatch = useDialogDispatch();
-  const { epaUserData } = useUserState();
   const helpdeskAccess = useHelpdeskAccess();
 
   const [formType, setFormType] = useState<FormType>("application");
@@ -64,12 +68,7 @@ export function Helpdesk() {
 
   const { formSchema, submission } = query.data ?? {};
 
-  if (
-    !csbData ||
-    epaUserData.status !== "success" ||
-    helpdeskAccess === "idle" ||
-    helpdeskAccess === "pending"
-  ) {
+  if (!csbData || helpdeskAccess === "idle" || helpdeskAccess === "pending") {
     return <Loading />;
   }
 
