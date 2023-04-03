@@ -1,6 +1,11 @@
 import { Fragment, useEffect, useState } from "react";
 import type { LinkProps } from "react-router-dom";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import {
+  Link,
+  useNavigate,
+  useOutletContext,
+  useSearchParams,
+} from "react-router-dom";
 import { useQueryClient, useQueries } from "@tanstack/react-query";
 import icons from "uswds/img/sprite.svg";
 // ---
@@ -12,7 +17,6 @@ import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/tooltip";
 import { useContentData } from "components/app";
 import { useCsbData, useBapSamData } from "components/userDashboard";
-import { useUserState } from "contexts/user";
 import { useNotificationsDispatch } from "contexts/notifications";
 
 type BapFormSubmission = {
@@ -427,14 +431,15 @@ function ButtonLink(props: { type: "edit" | "view"; to: LinkProps["to"] }) {
   );
 }
 
-function ApplicationSubmission({ rebate }: { rebate: Rebate }) {
+function ApplicationSubmission(props: { rebate: Rebate }) {
+  const { rebate } = props;
+  const { application, paymentRequest } = rebate;
+
   const csbData = useCsbData();
 
   if (!csbData) return null;
 
   const applicationFormOpen = csbData.submissionPeriodOpen.application;
-
-  const { application, paymentRequest } = rebate;
 
   const {
     applicantUEI,
@@ -669,24 +674,23 @@ save the form for the EFT indicator to be displayed. */
   );
 }
 
-function PaymentRequestSubmission({ rebate }: { rebate: Rebate }) {
+function PaymentRequestSubmission(props: { rebate: Rebate }) {
+  const { rebate } = props;
+  const { application, paymentRequest } = rebate;
+
   const navigate = useNavigate();
+  const { email } = useOutletContext<{ email: string }>();
 
   const csbData = useCsbData();
   const bapSamData = useBapSamData();
-  const { epaUserData } = useUserState();
   const notificationsDispatch = useNotificationsDispatch();
 
   // NOTE: used to display a loading indicator inside the new Payment Request button
   const [postDataResponsePending, setPostDataResponsePending] = useState(false);
 
   if (!csbData || !bapSamData) return null;
-  if (epaUserData.status !== "success") return null;
 
   const paymentRequestFormOpen = csbData.submissionPeriodOpen.paymentRequest;
-
-  const email = epaUserData.data.mail;
-  const { application, paymentRequest } = rebate;
 
   const applicationSelected = application.bap?.status === "Accepted";
 

@@ -1,5 +1,5 @@
 import { Fragment, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import { Dialog, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import icons from "uswds/img/sprite.svg";
@@ -16,7 +16,6 @@ import {
   useCsbData,
   useBapSamData,
 } from "components/userDashboard";
-import { useUserState } from "contexts/user";
 
 type FormioSubmission = {
   [field: string]: unknown;
@@ -58,11 +57,11 @@ function createNewApplication(email: string, entity: BapSamEntity) {
 
 export function NewApplicationForm() {
   const navigate = useNavigate();
+  const { email } = useOutletContext<{ email: string }>();
 
   const content = useContentData();
   const csbData = useCsbData();
   const bapSamData = useBapSamData();
-  const { epaUserData } = useUserState();
 
   const [message, setMessage] = useState<{
     displayed: boolean;
@@ -74,13 +73,11 @@ export function NewApplicationForm() {
     text: "",
   });
 
-  if (!csbData || !bapSamData || epaUserData.status !== "success") {
+  if (!csbData || !bapSamData) {
     return <Loading />;
   }
 
   const applicationFormOpen = csbData.submissionPeriodOpen.application;
-
-  const email = epaUserData.data.mail;
 
   const activeSamEntities = bapSamData.entities.filter((entity) => {
     return entity.ENTITY_STATUS__c === "Active";
