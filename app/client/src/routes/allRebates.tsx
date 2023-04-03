@@ -17,7 +17,7 @@ import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/tooltip";
 import { useContentData } from "components/app";
 import { useCsbData, useBapSamData } from "components/userDashboard";
-import { useNotificationsActions } from "contexts/notifications";
+import { useNotificationsContext } from "contexts/notifications";
 
 type BapFormSubmission = {
   UEI_EFTI_Combo_Key__c: string; // UEI + EFTI combo key
@@ -683,7 +683,7 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
 
   const csbData = useCsbData();
   const bapSamData = useBapSamData();
-  const { displayErrorNotification } = useNotificationsActions();
+  const { displayErrorNotification } = useNotificationsContext();
 
   // NOTE: used to display a loading indicator inside the new Payment Request button
   const [postDataResponsePending, setPostDataResponsePending] = useState(false);

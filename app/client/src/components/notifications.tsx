@@ -6,14 +6,11 @@ import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { XCircleIcon } from "@heroicons/react/24/outline";
 import { XMarkIcon } from "@heroicons/react/20/solid";
 // ---
-import {
-  useNotificationsState,
-  useNotificationsDispatch,
-} from "contexts/notifications";
+import { useNotificationsContext } from "contexts/notifications";
 
 export function Notifications() {
-  const notificationsDispatch = useNotificationsDispatch();
-  const { displayed, body, type } = useNotificationsState();
+  const { state, dismissNotification } = useNotificationsContext();
+  const { displayed, body, type } = state;
 
   return (
     <div className="twpf">
@@ -67,9 +64,7 @@ export function Notifications() {
                     <button
                       type="button"
                       className="tw-inline-flex tw-rounded-md tw-bg-white tw-text-gray-400 tw-transition-none hover:tw-text-gray-700 focus:tw-text-gray-700"
-                      onClick={() => {
-                        notificationsDispatch({ type: "DISMISS_NOTIFICATION" });
-                      }}
+                      onClick={() => dismissNotification()}
                     >
                       <span className="tw-sr-only">Close</span>
                       <XMarkIcon

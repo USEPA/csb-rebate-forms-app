@@ -18,7 +18,7 @@ import { MarkdownContent } from "components/markdownContent";
 import { useContentData } from "components/app";
 import { useCsbData, useBapSamData } from "components/userDashboard";
 import { useDialogDispatch } from "contexts/dialog";
-import { useNotificationsActions } from "contexts/notifications";
+import { useNotificationsContext } from "contexts/notifications";
 
 type FormioSubmission = {
   [field: string]: unknown;
@@ -115,7 +115,7 @@ export function ApplicationForm() {
     displaySuccessNotification,
     displayErrorNotification,
     dismissNotification,
-  } = useNotificationsActions();
+  } = useNotificationsContext();
 
   const submissionsQueries = useSubmissionsQueries();
   const rebates = useRebates();
