@@ -14,7 +14,6 @@ import { TextWithTooltip } from "components/tooltip";
 import { useContentData } from "components/app";
 import { useCsbData } from "components/userDashboard";
 import { useDialogDispatch } from "contexts/dialog";
-import { useUserState } from "contexts/user";
 
 type FormType = "application" | "payment-request" | "close-out";
 
@@ -38,7 +37,6 @@ export function Helpdesk() {
   const content = useContentData();
   const csbData = useCsbData();
   const dialogDispatch = useDialogDispatch();
-  const { epaUserData } = useUserState();
   const helpdeskAccess = useHelpdeskAccess();
 
   const [formType, setFormType] = useState<FormType>("application");
@@ -64,12 +62,7 @@ export function Helpdesk() {
 
   const { formSchema, submission } = query.data ?? {};
 
-  if (
-    !csbData ||
-    epaUserData.status !== "success" ||
-    helpdeskAccess === "idle" ||
-    helpdeskAccess === "pending"
-  ) {
+  if (!csbData || helpdeskAccess === "idle" || helpdeskAccess === "pending") {
     return <Loading />;
   }
 
