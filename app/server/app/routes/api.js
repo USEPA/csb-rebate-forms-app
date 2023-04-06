@@ -210,7 +210,7 @@ router.get(
       .then((axiosRes) => axiosRes.data)
       .then((fileMetadata) => res.json(fileMetadata))
       .catch((error) => {
-        const message = `Error downloading Forms.gov file`;
+        const message = `Error downloading file from S3`;
         return res.status(error?.response?.status || 500).json({ message });
       });
   }
@@ -236,7 +236,7 @@ router.post(
           .then((axiosRes) => axiosRes.data)
           .then((fileMetadata) => res.json(fileMetadata))
           .catch((error) => {
-            const message = `Error uploading Forms.gov file`;
+            const message = `Error uploading file to S3`;
             return res.status(error?.response?.status || 500).json({ message });
           });
       })
@@ -255,15 +255,15 @@ router.post(
   }
 );
 
-// --- get user's Application form submissions from Forms.gov
+// --- get user's Application form submissions from Formio
 router.get("/formio-application-submissions", storeBapComboKeys, (req, res) => {
   // NOTE: Helpdesk users might not have any SAM.gov records associated with
   // their email address so we should not return any submissions to those users.
   // The only reason we explicitly need to do this is because there could be
   // some submissions without `bap_hidden_entity_combo_key` field values in the
-  // Forms.gov database – that will never be the case for submissions created
-  // from this app, but there could be submissions created externally if someone
-  // is testing posting data (e.g. from a REST client, or the Formio Viewer)
+  // Formio database – that will never be the case for submissions created from
+  // this app, but there could be submissions created externally if someone is
+  // testing posting data (e.g. from a REST client, or the Formio Viewer)
   if (req.bapComboKeys.length === 0) return res.json([]);
 
   const userSubmissionsUrl =
@@ -278,12 +278,12 @@ router.get("/formio-application-submissions", storeBapComboKeys, (req, res) => {
     .then((axiosRes) => axiosRes.data)
     .then((submissions) => res.json(submissions))
     .catch((error) => {
-      const message = `Error getting Forms.gov Application form submissions`;
+      const message = `Error getting Formio Application form submissions`;
       return res.status(error?.response?.status || 500).json({ message });
     });
 });
 
-// --- post a new Application form submission to Forms.gov
+// --- post a new Application form submission to Formio
 router.post("/formio-application-submission", storeBapComboKeys, (req, res) => {
   const comboKey = req.body.data?.bap_hidden_entity_combo_key;
 
@@ -309,12 +309,12 @@ router.post("/formio-application-submission", storeBapComboKeys, (req, res) => {
     .then((axiosRes) => axiosRes.data)
     .then((submission) => res.json(submission))
     .catch((error) => {
-      const message = `Error posting Forms.gov Application form submission`;
+      const message = `Error posting Formio Application form submission`;
       return res.status(error?.response?.status || 500).json({ message });
     });
 });
 
-// --- get an existing Application form's schema and submission data from Forms.gov
+// --- get an existing Application form's schema and submission data from Formio
 router.get(
   "/formio-application-submission/:mongoId",
   verifyMongoObjectId,
@@ -347,13 +347,13 @@ router.get(
         });
       })
       .catch((error) => {
-        const message = `Error getting Forms.gov Application form submission ${mongoId}`;
+        const message = `Error getting Formio Application form submission ${mongoId}`;
         res.status(error?.response?.status || 500).json({ message });
       });
   }
 );
 
-// --- post an update to an existing draft Application form submission to Forms.gov
+// --- post an update to an existing draft Application form submission to Formio
 router.post(
   "/formio-application-submission/:mongoId",
   verifyMongoObjectId,
@@ -384,7 +384,7 @@ router.post(
           .then((axiosRes) => axiosRes.data)
           .then((submission) => res.json(submission))
           .catch((error) => {
-            const message = `Error updating Forms.gov Application form submission ${mongoId}`;
+            const message = `Error updating Formio Application form submission ${mongoId}`;
             return res.status(error?.response?.status || 500).json({ message });
           });
       })
@@ -395,7 +395,7 @@ router.post(
   }
 );
 
-// --- get user's Payment Request form submissions from Forms.gov
+// --- get user's Payment Request form submissions from Formio
 router.get(
   "/formio-payment-request-submissions",
   storeBapComboKeys,
@@ -413,14 +413,14 @@ router.get(
       .then((axiosRes) => axiosRes.data)
       .then((submissions) => res.json(submissions))
       .catch((error) => {
-        const message = `Error getting Forms.gov Payment Request form submissions`;
+        const message = `Error getting Formio Payment Request form submissions`;
         //
         return res.status(error?.response?.status || 500).json({ message });
       });
   }
 );
 
-// --- post a new Payment Request form submission to Forms.gov
+// --- post a new Payment Request form submission to Formio
 router.post(
   "/formio-payment-request-submission",
   storeBapComboKeys,
@@ -522,7 +522,7 @@ router.post(
           .then((axiosRes) => axiosRes.data)
           .then((submission) => res.json(submission))
           .catch((error) => {
-            const message = `Error posting Forms.gov Payment Request form submission`;
+            const message = `Error posting Formio Payment Request form submission`;
             return res.status(error?.response?.status || 500).json({ message });
           });
       })
@@ -533,7 +533,7 @@ router.post(
   }
 );
 
-// --- get an existing Payment Request form's schema and submission data from Forms.gov
+// --- get an existing Payment Request form's schema and submission data from Formio
 router.get(
   "/formio-payment-request-submission/:rebateId",
   storeBapComboKeys,
@@ -589,13 +589,13 @@ router.get(
           });
       })
       .catch((error) => {
-        const message = `Error getting Forms.gov Payment Request form submission ${rebateId}`;
+        const message = `Error getting Formio Payment Request form submission ${rebateId}`;
         res.status(error?.response?.status || 500).json({ message });
       });
   }
 );
 
-// --- post an update to an existing draft Payment Request form submission to Forms.gov
+// --- post an update to an existing draft Payment Request form submission to Formio
 router.post(
   "/formio-payment-request-submission/:rebateId",
   storeBapComboKeys,
@@ -634,7 +634,7 @@ router.post(
           .then((axiosRes) => axiosRes.data)
           .then((submission) => res.json(submission))
           .catch((error) => {
-            const message = `Error updating Forms.gov Payment Request form submission ${rebateId}`;
+            const message = `Error updating Formio Payment Request form submission ${rebateId}`;
             return res.status(error?.response?.status || 500).json({ message });
           });
       })
@@ -645,7 +645,7 @@ router.post(
   }
 );
 
-// --- delete an existing Payment Request form submission from Forms.gov
+// --- delete an existing Payment Request form submission from Formio
 router.post(
   "/delete-formio-payment-request-submission",
   storeBapComboKeys,
@@ -659,9 +659,11 @@ router.post(
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    // ensure the BAP status of the corresponding Application form submission
-    // is "Edits Requested" before deleting the Payment Request form submission
-    // from Forms.gov
+    /**
+     * ensure the BAP status of the corresponding Application form submission
+     * is "Edits Requested" before deleting the Payment Request form submission
+     * from Formio
+     */
     getBapFormSubmissionsStatuses(req, req.bapComboKeys)
       .then((submissions) => {
         const application = submissions.find((submission) => {
@@ -690,7 +692,7 @@ router.post(
             res.json(response);
           })
           .catch((error) => {
-            const message = `Error deleting Forms.gov Payment Request form submission ${rebateId}`;
+            const message = `Error deleting Formio Payment Request form submission ${rebateId}`;
             return res.status(error?.response?.status || 500).json({ message });
           });
       })

@@ -22,7 +22,7 @@ const router = express.Router();
 router.use(ensureAuthenticated);
 router.use(ensureHelpdesk);
 
-// --- get an existing form's submission data from Forms.gov
+// --- get an existing form's submission data from Formio
 router.get("/formio-submission/:formType/:id", (req, res) => {
   const { formType, id } = req.params;
 
@@ -47,7 +47,7 @@ router.get("/formio-submission/:formType/:id", (req, res) => {
         });
       })
       .catch((error) => {
-        const message = `Error getting Forms.gov Application form submission ${mongoId}`;
+        const message = `Error getting Formio Application form submission ${mongoId}`;
         return res.status(error?.response?.status || 500).json({ message });
       });
   }
@@ -91,7 +91,7 @@ router.get("/formio-submission/:formType/:id", (req, res) => {
           });
       })
       .catch((error) => {
-        const message = `Error getting Forms.gov Payment Request form submission ${rebateId}`;
+        const message = `Error getting Formio Payment Request form submission ${rebateId}`;
         res.status(error?.response?.status || 500).json({ message });
       });
   }
@@ -101,7 +101,7 @@ router.get("/formio-submission/:formType/:id", (req, res) => {
   }
 });
 
-// --- change a submitted Forms.gov form's submission state back to draft
+// --- change a submitted Formio form's submission state back to draft
 router.post("/formio-submission/:formType/:id", (req, res) => {
   const { formType, id } = req.params;
   const { mail } = req.user;
@@ -144,7 +144,7 @@ router.post("/formio-submission/:formType/:id", (req, res) => {
           });
       })
       .catch((error) => {
-        const message = `Error updating Forms.gov Application form submission ${mongoId}`;
+        const message = `Error updating Formio Application form submission ${mongoId}`;
         res.status(error?.response?.status || 500).json({ message });
       });
   }
@@ -194,7 +194,7 @@ router.post("/formio-submission/:formType/:id", (req, res) => {
           });
       })
       .catch((error) => {
-        const message = `Error getting Forms.gov Payment Request form submission ${rebateId}`;
+        const message = `Error getting Formio Payment Request form submission ${rebateId}`;
         res.status(error?.response?.status || 500).json({ message });
       });
   }
