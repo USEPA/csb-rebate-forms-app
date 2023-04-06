@@ -703,6 +703,25 @@ router.post(
   }
 );
 
-//
+// --- get user's Close-Out form submissions from Formio
+router.get("/formio-close-out-submissions", storeBapComboKeys, (req, res) => {
+  const userSubmissionsUrl =
+    `${formioCloseOutFormUrl}/submission` +
+    `?sort=-modified` +
+    `&limit=1000000` +
+    `&data.bap_hidden_entity_combo_key=${req.bapComboKeys.join(
+      "&data.bap_hidden_entity_combo_key="
+    )}`;
+
+  axiosFormio(req)
+    .get(userSubmissionsUrl)
+    .then((axiosRes) => axiosRes.data)
+    .then((submissions) => res.json(submissions))
+    .catch((error) => {
+      const message = `Error getting Formio Close-Out form submissions`;
+      //
+      return res.status(error?.response?.status || 500).json({ message });
+    });
+});
 
 module.exports = router;
