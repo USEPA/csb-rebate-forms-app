@@ -740,7 +740,7 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
     comboKey,
     rebateId,
     reviewItemId,
-    paymentRequestFormModified, // TODO: check if this should be added to form definition?
+    paymentRequestFormModified,
   } = req.body;
 
   if (!closeOutFormOpen) {
@@ -787,7 +787,7 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
       const submission = {
         data: {
           bap_hidden_entity_combo_key: comboKey,
-          hidden_application_form_modified: "", // TODO: should this change to 'hidden_payment_request_form_modified"?
+          hidden_prf_modified: paymentRequestFormModified,
           hidden_current_user_email: email,
           hidden_current_user_title: title,
           hidden_current_user_name: name,
