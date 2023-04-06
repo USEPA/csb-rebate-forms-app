@@ -192,6 +192,69 @@ router.get("/bap-form-submissions", storeBapComboKeys, (req, res) => {
     });
 });
 
+// --- download Formio S3 file metadata
+router.get(
+  "/s3/:formType/:mongoId/:comboKey/storage/s3",
+  storeBapComboKeys,
+  (req, res) => {
+    const { comboKey } = req.params;
+
+    if (!req.bapComboKeys.includes(comboKey)) {
+      const message = `User with email ${req.user.mail} attempted to download a file without a matching BAP combo key`;
+      log({ level: "error", message, req });
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    axiosFormio(req)
+      .get(`${formioApplicationFormUrl}/storage/s3`, { params: req.query })
+      .then((axiosRes) => axiosRes.data)
+      .then((fileMetadata) => res.json(fileMetadata))
+      .catch((error) => {
+        const message = `Error downloading Forms.gov file`;
+        return res.status(error?.response?.status || 500).json({ message });
+      });
+  }
+);
+
+// --- upload Formio S3 file metadata
+router.post(
+  "/s3/:formType/:mongoId/:comboKey/storage/s3",
+  storeBapComboKeys,
+  (req, res) => {
+    const { formType, mongoId, comboKey } = req.params;
+
+    checkFormSubmissionPeriodAndBapStatus({ formType, mongoId, comboKey, req })
+      .then(() => {
+        if (!req.bapComboKeys.includes(comboKey)) {
+          const message = `User with email ${req.user.mail} attempted to upload a file without a matching BAP combo key`;
+          log({ level: "error", message, req });
+          return res.status(401).json({ message: "Unauthorized" });
+        }
+
+        axiosFormio(req)
+          .post(`${formioApplicationFormUrl}/storage/s3`, req.body)
+          .then((axiosRes) => axiosRes.data)
+          .then((fileMetadata) => res.json(fileMetadata))
+          .catch((error) => {
+            const message = `Error uploading Forms.gov file`;
+            return res.status(error?.response?.status || 500).json({ message });
+          });
+      })
+      .catch((error) => {
+        const formName =
+          formType === "application"
+            ? "CSB Application"
+              ? formType === "payment-request"
+              : "CSB Payment Request"
+              ? formType === "close-out"
+              : "CSB Close-Out"
+            : "CSB";
+        const message = `${formName} form enrollment period is closed`;
+        return res.status(400).json({ message });
+      });
+  }
+);
+
 // --- get user's Application form submissions from Forms.gov
 router.get("/formio-application-submissions", storeBapComboKeys, (req, res) => {
   // NOTE: Helpdesk users might not have any SAM.gov records associated with
@@ -328,69 +391,6 @@ router.post(
       .catch((error) => {
         const message = `CSB Application form enrollment period is closed`;
         return res.status(400).json({ message });
-      });
-  }
-);
-
-// --- upload s3 file metadata to Forms.gov
-router.post(
-  "/s3/:formType/:mongoId/:comboKey/storage/s3",
-  storeBapComboKeys,
-  (req, res) => {
-    const { formType, mongoId, comboKey } = req.params;
-
-    checkFormSubmissionPeriodAndBapStatus({ formType, mongoId, comboKey, req })
-      .then(() => {
-        if (!req.bapComboKeys.includes(comboKey)) {
-          const message = `User with email ${req.user.mail} attempted to upload a file without a matching BAP combo key`;
-          log({ level: "error", message, req });
-          return res.status(401).json({ message: "Unauthorized" });
-        }
-
-        axiosFormio(req)
-          .post(`${formioApplicationFormUrl}/storage/s3`, req.body)
-          .then((axiosRes) => axiosRes.data)
-          .then((fileMetadata) => res.json(fileMetadata))
-          .catch((error) => {
-            const message = `Error uploading Forms.gov file`;
-            return res.status(error?.response?.status || 500).json({ message });
-          });
-      })
-      .catch((error) => {
-        const formName =
-          formType === "application"
-            ? "CSB Application"
-              ? formType === "payment-request"
-              : "CSB Payment Request"
-              ? formType === "close-out"
-              : "CSB Close-Out"
-            : "CSB";
-        const message = `${formName} form enrollment period is closed`;
-        return res.status(400).json({ message });
-      });
-  }
-);
-
-// --- download s3 file metadata from Forms.gov
-router.get(
-  "/s3/:formType/:mongoId/:comboKey/storage/s3",
-  storeBapComboKeys,
-  (req, res) => {
-    const { comboKey } = req.params;
-
-    if (!req.bapComboKeys.includes(comboKey)) {
-      const message = `User with email ${req.user.mail} attempted to download a file without a matching BAP combo key`;
-      log({ level: "error", message, req });
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
-    axiosFormio(req)
-      .get(`${formioApplicationFormUrl}/storage/s3`, { params: req.query })
-      .then((axiosRes) => axiosRes.data)
-      .then((fileMetadata) => res.json(fileMetadata))
-      .catch((error) => {
-        const message = `Error downloading Forms.gov file`;
-        return res.status(error?.response?.status || 500).json({ message });
       });
   }
 );
@@ -700,5 +700,7 @@ router.post(
       });
   }
 );
+
+//
 
 module.exports = router;
