@@ -3,9 +3,9 @@ const ObjectId = require("mongodb").ObjectId;
 // ---
 const {
   axiosFormio,
-  formioProjectUrl,
-  formioApplicationFormPath,
-  formioPaymentRequestFormPath,
+  formioApplicationFormUrl,
+  formioPaymentRequestFormUrl,
+  formioCloseOutFormUrl,
   formioCsbMetadata,
 } = require("../config/formio");
 const { ensureAuthenticated, ensureHelpdesk } = require("../middleware");
@@ -15,9 +15,6 @@ const applicationFormOpen = process.env.CSB_APPLICATION_FORM_OPEN === "true";
 const paymentRequestFormOpen =
   process.env.CSB_PAYMENT_REQUEST_FORM_OPEN === "true";
 const closeOutFormOpen = process.env.CSB_CLOSE_OUT_FORM_OPEN === "true";
-
-const applicationFormApiPath = `${formioProjectUrl}/${formioApplicationFormPath}`;
-const paymentRequestFormApiPath = `${formioProjectUrl}/${formioPaymentRequestFormPath}`;
 
 const router = express.Router();
 
@@ -39,13 +36,13 @@ router.get("/formio-submission/:formType/:id", (req, res) => {
     }
 
     Promise.all([
-      axiosFormio(req).get(`${applicationFormApiPath}/submission/${mongoId}`),
-      axiosFormio(req).get(applicationFormApiPath),
+      axiosFormio(req).get(`${formioApplicationFormUrl}/submission/${mongoId}`),
+      axiosFormio(req).get(formioApplicationFormUrl),
     ])
       .then((axiosResponses) => axiosResponses.map((axiosRes) => axiosRes.data))
       .then(([submission, schema]) => {
         return res.json({
-          formSchema: { url: applicationFormApiPath, json: schema },
+          formSchema: { url: formioApplicationFormUrl, json: schema },
           submission,
         });
       })
@@ -59,13 +56,13 @@ router.get("/formio-submission/:formType/:id", (req, res) => {
     const rebateId = id;
 
     const matchedPaymentRequestFormSubmissions =
-      `${paymentRequestFormApiPath}/submission` +
+      `${formioPaymentRequestFormUrl}/submission` +
       `?data.hidden_bap_rebate_id=${rebateId}` +
       `&select=_id`;
 
     Promise.all([
       axiosFormio(req).get(matchedPaymentRequestFormSubmissions),
-      axiosFormio(req).get(paymentRequestFormApiPath),
+      axiosFormio(req).get(formioPaymentRequestFormUrl),
     ])
       .then((axiosResponses) => axiosResponses.map((axiosRes) => axiosRes.data))
       .then(([submissions, schema]) => {
@@ -84,11 +81,11 @@ router.get("/formio-submission/:formType/:id", (req, res) => {
         // We need to query for a specific submission (e.g. `/submission/${mongoId}`),
         // to have Formio return the correct signature field data.
         axiosFormio(req)
-          .get(`${paymentRequestFormApiPath}/submission/${mongoId}`)
+          .get(`${formioPaymentRequestFormUrl}/submission/${mongoId}`)
           .then((axiosRes) => axiosRes.data)
           .then((submission) => {
             return res.json({
-              formSchema: { url: paymentRequestFormApiPath, json: schema },
+              formSchema: { url: formioPaymentRequestFormUrl, json: schema },
               submission,
             });
           });
@@ -124,13 +121,13 @@ router.post("/formio-submission/:formType/:id", (req, res) => {
     }
 
     Promise.all([
-      axiosFormio(req).get(`${applicationFormApiPath}/submission/${mongoId}`),
-      axiosFormio(req).get(applicationFormApiPath),
+      axiosFormio(req).get(`${formioApplicationFormUrl}/submission/${mongoId}`),
+      axiosFormio(req).get(formioApplicationFormUrl),
     ])
       .then((axiosResponses) => axiosResponses.map((axiosRes) => axiosRes.data))
       .then(([submission, schema]) => {
         axiosFormio(req)
-          .put(`${applicationFormApiPath}/submission/${mongoId}`, {
+          .put(`${formioApplicationFormUrl}/submission/${mongoId}`, {
             state: "draft",
             data: { ...submission.data, last_updated_by: mail },
             metadata: { ...submission.metadata, ...formioCsbMetadata },
@@ -141,7 +138,7 @@ router.post("/formio-submission/:formType/:id", (req, res) => {
             log({ level: "info", message, req });
 
             return res.json({
-              formSchema: { url: applicationFormApiPath, json: schema },
+              formSchema: { url: formioApplicationFormUrl, json: schema },
               submission: updatedSubmission,
             });
           });
@@ -161,12 +158,12 @@ router.post("/formio-submission/:formType/:id", (req, res) => {
     const rebateId = id;
 
     const matchedPaymentRequestFormSubmissions =
-      `${paymentRequestFormApiPath}/submission` +
+      `${formioPaymentRequestFormUrl}/submission` +
       `?data.hidden_bap_rebate_id=${rebateId}`;
 
     Promise.all([
       axiosFormio(req).get(matchedPaymentRequestFormSubmissions),
-      axiosFormio(req).get(paymentRequestFormApiPath),
+      axiosFormio(req).get(formioPaymentRequestFormUrl),
     ])
       .then((axiosResponses) => axiosResponses.map((axiosRes) => axiosRes.data))
       .then(([submissions, schema]) => {
@@ -180,7 +177,7 @@ router.post("/formio-submission/:formType/:id", (req, res) => {
         }
 
         axiosFormio(req)
-          .put(`${paymentRequestFormApiPath}/submission/${mongoId}`, {
+          .put(`${formioPaymentRequestFormUrl}/submission/${mongoId}`, {
             state: "draft",
             data: { ...submission.data, hidden_current_user_email: mail },
             metadata: { ...submission.metadata, ...formioCsbMetadata },
@@ -191,7 +188,7 @@ router.post("/formio-submission/:formType/:id", (req, res) => {
             log({ level: "info", message, req });
 
             return res.json({
-              formSchema: { url: paymentRequestFormApiPath, json: schema },
+              formSchema: { url: formioPaymentRequestFormUrl, json: schema },
               submission: updatedSubmission,
             });
           });

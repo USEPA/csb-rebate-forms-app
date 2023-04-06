@@ -1,4 +1,4 @@
-const axios = require("axios").default || require("axios"); // TODO: https://github.com/axios/axios/issues/5011
+const axios = require("axios");
 // ---
 const log = require("../utilities/logger");
 
@@ -6,9 +6,13 @@ const formioBaseUrl = process.env.FORMIO_BASE_URL;
 const formioProjectName = process.env.FORMIO_PROJECT_NAME;
 const formioProjectUrl = `${formioBaseUrl}/${formioProjectName}`;
 const formioApplicationFormPath = process.env.FORMIO_APPLICATION_FORM_PATH;
-const formioPaymentRequestFormPath =
-  process.env.FORMIO_PAYMENT_REQUEST_FORM_PATH;
+const formioPaymentRequestFormPath = process.env.FORMIO_PAYMENT_REQUEST_FORM_PATH; // prettier-ignore
+const formioCloseOutFormPath = process.env.FORMIO_CLOSE_OUT_FORM_PATH;
 const formioApiKey = process.env.FORMIO_API_KEY;
+
+const formioApplicationFormUrl = `${formioProjectUrl}/${formioApplicationFormPath}`;
+const formioPaymentRequestFormUrl = `${formioProjectUrl}/${formioPaymentRequestFormPath}`;
+const formioCloseOutFormUrl = `${formioProjectUrl}/${formioCloseOutFormPath}`;
 
 function axiosFormio(req) {
   const instance = axios.create();
@@ -21,8 +25,7 @@ function axiosFormio(req) {
     config.headers["b3"] = req.headers["b3"] || "";
     config.headers["x-b3-traceid"] = req.headers["x-b3-traceid"] || "";
     config.headers["x-b3-spanid"] = req.headers["x-b3-spanid"] || "";
-    config.headers["x-b3-parentspanid"] =
-      req.headers["x-b3-parentspanid"] || "";
+    config.headers["x-b3-parentspanid"] = req.headers["x-b3-parentspanid"] || ""; // prettier-ignore
     return config;
   });
 
@@ -77,8 +80,8 @@ const formioCsbMetadata = {
 
 module.exports = {
   axiosFormio,
-  formioProjectUrl,
-  formioApplicationFormPath,
-  formioPaymentRequestFormPath,
+  formioApplicationFormUrl,
+  formioPaymentRequestFormUrl,
+  formioCloseOutFormUrl,
   formioCsbMetadata,
 };
