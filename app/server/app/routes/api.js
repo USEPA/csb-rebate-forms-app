@@ -571,12 +571,14 @@ router.get(
           return res.status(400).json({ message });
         }
 
-        // NOTE: We can't just use the returned submission data here because
-        // Formio returns the string literal 'YES' instead of a base64 encoded
-        // image string for signature fields when you query for all submissions
-        // matching on a field's value (`/submission?data.hidden_bap_rebate_id=${rebateId}`).
-        // We need to query for a specific submission (e.g. `/submission/${mongoId}`),
-        // to have Formio return the correct signature field data.
+        /**
+         * NOTE: We can't just use the returned submission data here because
+         * Formio returns the string literal 'YES' instead of a base64 encoded
+         * image string for signature fields when you query for all submissions
+         * matching on a field's value (`/submission?data.hidden_bap_rebate_id=${rebateId}`).
+         * We need to query for a specific submission (e.g. `/submission/${mongoId}`),
+         * to have Formio return the correct signature field data.
+         */
         axiosFormio(req)
           .get(`${formioPaymentRequestFormUrl}/submission/${mongoId}`)
           .then((axiosRes) => axiosRes.data)
@@ -833,5 +835,69 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
       return res.status(401).json({ message });
     });
 });
+
+// --- get an existing Close-Out form's schema and submission data from Formio
+router.get(
+  "/formio-close-out-submission/:rebateId",
+  storeBapComboKeys,
+  async (req, res) => {
+    const { rebateId } = req.params; // CSB Rebate ID (6 digits)
+
+    const matchedCloseOutFormSubmissions =
+      `${formioCloseOutFormUrl}/submission` +
+      `?data.hidden_bap_rebate_id=${rebateId}` +
+      `&select=_id,data.bap_hidden_entity_combo_key`;
+
+    Promise.all([
+      axiosFormio(req).get(matchedCloseOutFormSubmissions),
+      axiosFormio(req).get(formioCloseOutFormUrl),
+    ])
+      .then((axiosResponses) => axiosResponses.map((axiosRes) => axiosRes.data))
+      .then(([submissions, schema]) => {
+        const submission = submissions[0];
+        const mongoId = submission._id;
+        const comboKey = submission.data.bap_hidden_entity_combo_key;
+
+        if (!req.bapComboKeys.includes(comboKey)) {
+          const message = `User with email ${req.user.mail} attempted to access Close-Out form submission ${rebateId} that they do not have access to.`;
+          log({ level: "warn", message, req });
+          return res.json({
+            userAccess: false,
+            formSchema: null,
+            submission: null,
+          });
+        }
+
+        // NOTE: verifyMongoObjectId middleware content:
+        if (mongoId && !ObjectId.isValid(mongoId)) {
+          const message = `MongoDB ObjectId validation error for: ${mongoId}`;
+          return res.status(400).json({ message });
+        }
+
+        /**
+         * NOTE: We can't just use the returned submission data here because
+         * Formio returns the string literal 'YES' instead of a base64 encoded
+         * image string for signature fields when you query for all submissions
+         * matching on a field's value (`/submission?data.hidden_bap_rebate_id=${rebateId}`).
+         * We need to query for a specific submission (e.g. `/submission/${mongoId}`),
+         * to have Formio return the correct signature field data.
+         */
+        axiosFormio(req)
+          .get(`${formioCloseOutFormUrl}/submission/${mongoId}`)
+          .then((axiosRes) => axiosRes.data)
+          .then((submission) => {
+            return res.json({
+              userAccess: true,
+              formSchema: { url: formioCloseOutFormUrl, json: schema },
+              submission,
+            });
+          });
+      })
+      .catch((error) => {
+        const message = `Error getting Formio Close-Out form submission ${rebateId}`;
+        res.status(error?.response?.status || 500).json({ message });
+      });
+  }
+);
 
 module.exports = router;
