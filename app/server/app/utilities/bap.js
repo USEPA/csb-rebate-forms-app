@@ -272,10 +272,10 @@ async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
 }
 
 /**
- * Uses cached JSforce connection to query the BAP for a single application form submission.
+ * Uses cached JSforce connection to query the BAP for a single Application form submission.
  * @param {express.Request} req
  * @param {string} reviewItemId CSB Rebate ID with the form/version ID (9 digits)
- * @returns {Promise<Object>} application form submission fields
+ * @returns {Promise<Object>} Application form submission fields
  */
 async function queryForBapApplicationSubmission(req, reviewItemId) {
   const message = `Querying BAP for Application form submission associated with CSB Review Item ID: ${reviewItemId}.`;
@@ -432,6 +432,23 @@ async function queryForBapApplicationSubmission(req, reviewItemId) {
 }
 
 /**
+ * Uses cached JSforce connection to query the BAP for a single Payment Request form submission.
+ * @param {express.Request} req
+ * @param {string} reviewItemId CSB Rebate ID with the form/version ID (9 digits)
+ * @returns {Promise<Object>} Payment Request form submission fields
+ */
+async function queryForBapPaymentRequestSubmission(req, reviewItemId) {
+  const message = `Querying BAP for Payment Request form submission associated with CSB Review Item ID: ${reviewItemId}.`;
+  log({ level: "info", message });
+
+  /** @type {jsforce.Connection} */
+  const bapConnection = req.app.locals.bapConnection;
+
+  // TODO
+  return {};
+}
+
+/**
  * Verifies the BAP connection has been setup, then calls the provided callback function with the provided arguments.
  * @param {express.Request} req
  * @param {Object} callback callback function name and arguments to call after BAP connection has been verified
@@ -505,7 +522,7 @@ function getBapFormSubmissionsStatuses(req, comboKeys) {
 }
 
 /**
- * Fetches an application form submission associated with a CSB Review Item ID.
+ * Fetches an Application form submission associated with a CSB Review Item ID.
  * @param {express.Request} req
  * @param {string} reviewItemId
  */
@@ -516,9 +533,22 @@ function getBapApplicationSubmission(req, reviewItemId) {
   });
 }
 
+/**
+ * Fetches a Payment Request form submission associated with a CSB Review Item ID.
+ * @param {express.Request} req
+ * @param {string} reviewItemId
+ */
+function getBapPaymentRequestSubmission(req, reviewItemId) {
+  return verifyBapConnection(req, {
+    name: queryForBapPaymentRequestSubmission,
+    args: [req, reviewItemId],
+  });
+}
+
 module.exports = {
   getSamEntities,
   getBapComboKeys,
   getBapFormSubmissionsStatuses,
   getBapApplicationSubmission,
+  getBapPaymentRequestSubmission,
 };

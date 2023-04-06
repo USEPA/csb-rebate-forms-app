@@ -20,6 +20,7 @@ const {
   getSamEntities,
   getBapFormSubmissionsStatuses,
   getBapApplicationSubmission,
+  getBapPaymentRequestSubmission,
 } = require("../utilities/bap");
 const log = require("../utilities/logger");
 
@@ -414,7 +415,6 @@ router.get(
       .then((submissions) => res.json(submissions))
       .catch((error) => {
         const message = `Error getting Formio Payment Request form submissions`;
-        //
         return res.status(error?.response?.status || 500).json({ message });
       });
   }
@@ -719,8 +719,118 @@ router.get("/formio-close-out-submissions", storeBapComboKeys, (req, res) => {
     .then((submissions) => res.json(submissions))
     .catch((error) => {
       const message = `Error getting Formio Close-Out form submissions`;
-      //
       return res.status(error?.response?.status || 500).json({ message });
+    });
+});
+
+// --- post a new Close-Out form submission to Formio
+router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
+  const {
+    email,
+    title,
+    name,
+    entity,
+    comboKey,
+    rebateId,
+    reviewItemId,
+    paymentRequestFormModified, // TODO: check if this should be added to form definition?
+  } = req.body;
+
+  // verify post data includes one of user's BAP combo keys
+  if (!req.bapComboKeys.includes(comboKey)) {
+    const message = `User with email ${req.user.mail} attempted to post a new Close-Out form submission without a matching BAP combo key`;
+    log({ level: "error", message, req });
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const {
+    UNIQUE_ENTITY_ID__c,
+    ENTITY_EFT_INDICATOR__c,
+    ELEC_BUS_POC_EMAIL__c,
+    ALT_ELEC_BUS_POC_EMAIL__c,
+    GOVT_BUS_POC_EMAIL__c,
+    ALT_GOVT_BUS_POC_EMAIL__c,
+  } = entity;
+
+  return getBapPaymentRequestSubmission(req, reviewItemId)
+    .then((response) => {
+      const busInfo = [1, 2, 3].map((record) => ({
+        busNum: "",
+        oldBusVin: "",
+        oldBusFuelType: "",
+        oldBusNcesDistrictId: "",
+        oldBusModelYear: "",
+        oldBusEstimatedRemainingLife: "",
+        newBusDealer: "",
+        newBusFuelType: "",
+        newBusManufacturer: "",
+        newBusManufacturerOther: "",
+        newBusModel: "",
+        newBusModelYear: "",
+        newBusGvwr: "",
+        hidden_bap_prf_rebate: "",
+        newBusPurchasePrice: "",
+      }));
+
+      const submission = {
+        data: {
+          bap_hidden_entity_combo_key: comboKey,
+          hidden_application_form_modified: "", // TODO: should this change to 'hidden_payment_request_form_modified"?
+          hidden_current_user_email: email,
+          hidden_current_user_title: title,
+          hidden_current_user_name: name,
+          hidden_bap_rebate_id: rebateId,
+          hidden_sam_uei: UNIQUE_ENTITY_ID__c,
+          hidden_sam_efti: ENTITY_EFT_INDICATOR__c || "0000",
+          hidden_sam_elec_bus_poc_email: ELEC_BUS_POC_EMAIL__c,
+          hidden_sam_alt_elec_bus_poc_email: ALT_ELEC_BUS_POC_EMAIL__c,
+          hidden_sam_govt_bus_poc_email: GOVT_BUS_POC_EMAIL__c,
+          hidden_sam_alt_govt_bus_poc_email: ALT_GOVT_BUS_POC_EMAIL__c,
+          hidden_bap_prioritized: "",
+          hidden_bap_district_id: "",
+          hidden_bap_requested_funds: "",
+          hidden_bap_primary_name: "",
+          hidden_bap_primary_title: "",
+          hidden_bap_primary_phone_number: "",
+          hidden_bap_primary_email: "",
+          hidden_bap_alternate_name: "",
+          hidden_bap_alternate_title: "",
+          hidden_bap_alternate_phone_number: "",
+          hidden_bap_alternate_email: "",
+          hidden_bap_org_name: "",
+          hidden_bap_fleet_name: "",
+          hidden_bap_district_name: "",
+          hidden_bap_prf_infra_max_rebate: "",
+          hidden_bap_received_funds: "",
+          hidden_bap_buses_requested_app: "",
+          hidden_bap_total_bus_costs_prf: "",
+          hidden_bap_total_bus_rebate_received: "",
+          hidden_bap_total_infra_costs_prf: "",
+          hidden_bap_total_infra_rebate_received: "",
+          hidden_bap_total_infra_level2_charger: "",
+          hidden_bap_total_infra_dc_fast_charger: "",
+          hidden_bap_total_infra_other_costs: "",
+          busInfo,
+        },
+        // add custom metadata to track formio submissions from wrapper
+        metadata: {
+          ...formioCsbMetadata,
+        },
+        state: "draft",
+      };
+
+      axiosFormio(req)
+        .post(`${formioCloseOutFormUrl}/submission`, submission)
+        .then((axiosRes) => axiosRes.data)
+        .then((submission) => res.json(submission))
+        .catch((error) => {
+          const message = `Error posting Formio Close-Out form submission`;
+          return res.status(error?.response?.status || 500).json({ message });
+        });
+    })
+    .catch((error) => {
+      const message = `Error getting Payment Request form submission from BAP`;
+      return res.status(401).json({ message });
     });
 });
 
