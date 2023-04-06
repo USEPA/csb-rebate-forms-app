@@ -900,4 +900,51 @@ router.get(
   }
 );
 
+// --- post an update to an existing draft Close-Out form submission to Formio
+router.post(
+  "/formio-close-out-submission/:rebateId",
+  storeBapComboKeys,
+  (req, res) => {
+    const { rebateId } = req.params; // CSB Rebate ID (6 digits)
+    const { mongoId, submission } = req.body;
+    const comboKey = submission.data?.bap_hidden_entity_combo_key;
+    const formType = "close-out";
+
+    checkFormSubmissionPeriodAndBapStatus({ formType, mongoId, comboKey, req })
+      .then(() => {
+        // verify post data includes one of user's BAP combo keys
+        if (!req.bapComboKeys.includes(comboKey)) {
+          const message = `User with email ${req.user.mail} attempted to update Close-Out form submission ${rebateId} without a matching BAP combo key`;
+          log({ level: "error", message, req });
+          return res.status(401).json({ message: "Unauthorized" });
+        }
+
+        // NOTE: verifyMongoObjectId middleware content:
+        if (mongoId && !ObjectId.isValid(mongoId)) {
+          const message = `MongoDB ObjectId validation error for: ${mongoId}`;
+          return res.status(400).json({ message });
+        }
+
+        // add custom metadata to track formio submissions from wrapper
+        submission.metadata = {
+          ...submission.metadata,
+          ...formioCsbMetadata,
+        };
+
+        axiosFormio(req)
+          .put(`${formioCloseOutFormUrl}/submission/${mongoId}`, submission)
+          .then((axiosRes) => axiosRes.data)
+          .then((submission) => res.json(submission))
+          .catch((error) => {
+            const message = `Error updating Formio Close-Out form submission ${rebateId}`;
+            return res.status(error?.response?.status || 500).json({ message });
+          });
+      })
+      .catch((error) => {
+        const message = `CSB Close-Out form enrollment period is closed`;
+        return res.status(400).json({ message });
+      });
+  }
+);
+
 module.exports = router;
