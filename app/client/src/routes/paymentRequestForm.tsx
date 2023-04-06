@@ -83,7 +83,7 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
     },
     onSuccess: (res) => {
       return queryClient.setQueryData<ServerResponse>(
-        ["application", { id: rebateId }],
+        ["payment-request", { id: rebateId }],
         (prevData) => {
           return prevData?.submission
             ? { ...prevData, submission: res }

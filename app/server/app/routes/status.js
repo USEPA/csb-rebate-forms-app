@@ -2,9 +2,9 @@ const express = require("express");
 // ---
 const {
   axiosFormio,
-  formioProjectUrl,
-  formioApplicationFormPath,
-  formioPaymentRequestFormPath,
+  formioApplicationFormUrl,
+  formioPaymentRequestFormUrl,
+  formioCloseOutFormUrl,
 } = require("../config/formio");
 const { getSamEntities } = require("../utilities/bap");
 
@@ -28,12 +28,9 @@ router.get("/bap-sam-data", (req, res) => {
     });
 });
 
-const applicationFormApiPath = `${formioProjectUrl}/${formioApplicationFormPath}`;
-const paymentRequestFormApiPath = `${formioProjectUrl}/${formioPaymentRequestFormPath}`;
-
 router.get("/formio-application-schema", (req, res) => {
   axiosFormio(req)
-    .get(applicationFormApiPath)
+    .get(formioApplicationFormUrl)
     .then((axiosRes) => axiosRes.data)
     .then((schema) => {
       // Verify that schema has type of form and a title exists (confirming formio returned a valid schema)
@@ -46,7 +43,7 @@ router.get("/formio-application-schema", (req, res) => {
 
 router.get("/formio-payment-request-schema", (req, res) => {
   axiosFormio(req)
-    .get(paymentRequestFormApiPath)
+    .get(formioPaymentRequestFormUrl)
     .then((axiosRes) => axiosRes.data)
     .then((schema) => {
       // Verify that schema has type of form and a title exists (confirming formio returned a valid schema)

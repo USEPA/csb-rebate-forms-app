@@ -210,6 +210,14 @@ export function useSubmissionsQueries() {
         },
         refetchOnWindowFocus: false,
       },
+      {
+        queryKey: ["formio-close-out-submissions"],
+        queryFn: () => {
+          const url = `${serverUrl}/api/formio-close-out-submissions`;
+          return getData<FormioCloseOutSubmission[]>(url);
+        },
+        refetchOnWindowFocus: false,
+      },
     ],
   });
 }
@@ -237,11 +245,16 @@ function useCombinedRebates() {
     FormioPaymentRequestSubmission[]
   >(["formio-payment-request-submissions"]);
 
+  const formioCloseOutSubmissions = queryClient.getQueryData<
+    FormioCloseOutSubmission[]
+  >(["formio-close-out-submissions"]);
+
   // ensure form submissions data has been fetched from both the BAP and Formio
   if (
     !bapFormSubmissions ||
     !formioApplicationSubmissions ||
-    !formioPaymentRequestSubmissions
+    !formioPaymentRequestSubmissions ||
+    !formioCloseOutSubmissions
   ) {
     return {};
   }
@@ -327,6 +340,15 @@ function useCombinedRebates() {
         bap: { modified, comboKey, rebateId, reviewItemId, status },
       };
     }
+  }
+
+  /**
+   * Iterate over Formio Close-Out form submissions, matching them with
+   * submissions returned from the BAP, so we can set the Close-Out form
+   * submission data.
+   */
+  for (const formioSubmission of formioCloseOutSubmissions) {
+    console.log(formioSubmission); // TODO
   }
 
   return rebates;
