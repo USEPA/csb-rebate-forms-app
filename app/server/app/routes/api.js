@@ -436,6 +436,11 @@ router.post(
       applicationFormModified,
     } = req.body;
 
+    if (!paymentRequestFormOpen) {
+      const message = `CSB Payment Request form enrollment period is closed`;
+      return res.status(400).json({ message });
+    }
+
     // verify post data includes one of user's BAP combo keys
     if (!req.bapComboKeys.includes(comboKey)) {
       const message = `User with email ${req.user.mail} attempted to post a new Payment Request form submission without a matching BAP combo key`;
@@ -737,6 +742,11 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
     reviewItemId,
     paymentRequestFormModified, // TODO: check if this should be added to form definition?
   } = req.body;
+
+  if (!closeOutFormOpen) {
+    const message = `CSB Close-Out form enrollment period is closed`;
+    return res.status(400).json({ message });
+  }
 
   // verify post data includes one of user's BAP combo keys
   if (!req.bapComboKeys.includes(comboKey)) {
