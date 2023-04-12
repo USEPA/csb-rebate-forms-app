@@ -31,7 +31,7 @@ import { NewApplicationForm } from "routes/newApplicationForm";
 import { ApplicationForm } from "routes/applicationForm";
 import { PaymentRequestForm } from "routes/paymentRequestForm";
 import { CloseOutForm } from "routes/closeOutForm";
-import { useDialogDispatch, useDialogState } from "contexts/dialog";
+import { useDialogState, useDialogActions } from "contexts/dialog";
 import { EpaUserData, useUserState, useUserDispatch } from "contexts/user";
 
 type Content = {
@@ -110,12 +110,12 @@ function useDisclaimerBanner() {
 function useInactivityDialog(callback: () => void) {
   const { epaUserData } = useUserState();
   const { dialogShown, heading } = useDialogState();
-  const dialogDispatch = useDialogDispatch();
+  const { displayDialog, updateDialogDescription } = useDialogActions();
 
   /** Initial time (seconds) used in the logout countdown timer */
-  const initialCountdownSeconds = 60;
+  const oneMinute = 60;
 
-  const [logoutTimer, setLogoutTimer] = useState(initialCountdownSeconds);
+  const [countdownSeconds, setCountdownSeconds] = useState(oneMinute);
 
   /**
    * One minute less than our intended 15 minute timeout, so `onIdle` is called
@@ -127,30 +127,30 @@ function useInactivityDialog(callback: () => void) {
     timeout,
     onIdle: () => {
       // display 60 second countdown dialog after 14 minutes of idle time
-      dialogDispatch({
-        type: "DISPLAY_DIALOG",
-        payload: {
-          dismissable: false,
-          heading: "Inactivity Warning",
-          description: (
-            <p>
-              You will be automatically logged out in {logoutTimer} seconds due
-              to inactivity.
-            </p>
-          ),
-          confirmText: "Stay logged in",
-          confirmedAction: () => {
-            callback();
-            reset();
-          },
+      displayDialog({
+        dismissable: false,
+        heading: "Inactivity Warning",
+        description: (
+          <p>
+            You will be automatically logged out in {countdownSeconds} seconds
+            due to inactivity.
+          </p>
+        ),
+        confirmText: "Stay logged in",
+        confirmedAction: () => {
+          callback();
+          reset();
         },
       });
     },
     onAction: () => {
       if (!dialogShown) {
-        // keep logout timer at initial countdown time if the dialog isn't shown
-        // (so logout timer is ready for the next inactive warning)
-        setLogoutTimer(initialCountdownSeconds);
+        /**
+         * keep logout timer at initial countdown time (60 seconds) if the
+         * dialog isn't shown, so logout timer is ready for the next inactivity
+         * warning
+         */
+        setCountdownSeconds(oneMinute);
       }
 
       if (epaUserData.status !== "success") return;
@@ -173,26 +173,25 @@ function useInactivityDialog(callback: () => void) {
   });
 
   useEffect(() => {
-    // update inactivity warning dialog's time remaining every second
+    /** update inactivity warning dialog's time remaining every second */
     if (dialogShown && heading === "Inactivity Warning") {
-      setTimeout(() => {
-        setLogoutTimer((time: number) => (time > 0 ? time - 1 : time));
-        dialogDispatch({
-          type: "UPDATE_DIALOG_DESCRIPTION",
-          payload: {
-            description:
-              `You will be automatically logged out in ` +
-              `${logoutTimer - 1} seconds due to inactivity.`,
-          },
-        });
+      const timeoutID = setTimeout(() => {
+        setCountdownSeconds((seconds) => (seconds > 0 ? seconds - 1 : seconds));
+        updateDialogDescription(
+          <p>
+            You will be automatically logged out in {countdownSeconds - 1}{" "}
+            seconds due to inactivity.
+          </p>
+        );
       }, 1000);
+      return () => clearTimeout(timeoutID);
     }
 
-    // log user out from server if inactivity countdown reaches 0
-    if (logoutTimer === 0) {
+    /** log user out from server if inactivity countdown reaches 0 */
+    if (countdownSeconds === 0) {
       window.location.href = `${serverUrl}/logout?RelayState=/welcome?info=timeout`;
     }
-  }, [dialogShown, heading, logoutTimer, dialogDispatch]);
+  }, [dialogShown, heading, countdownSeconds, updateDialogDescription]);
 }
 
 /** Custom hook to check if user should have access to the helpdesk page */

@@ -2,7 +2,7 @@ import { Fragment, useRef } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 // ---
-import { useDialogState, useDialogDispatch } from "contexts/dialog";
+import { useDialogState, useDialogActions } from "contexts/dialog";
 
 export function ConfirmationDialog() {
   const {
@@ -15,7 +15,7 @@ export function ConfirmationDialog() {
     confirmedAction,
     dismissedAction,
   } = useDialogState();
-  const dialogDispatch = useDialogDispatch();
+  const { resetDialog } = useDialogActions();
 
   const cancelRef = useRef<HTMLButtonElement>(null);
 
@@ -28,7 +28,7 @@ export function ConfirmationDialog() {
         open={dialogShown}
         onClose={(ev) => {
           dismissable && dismissedAction && dismissedAction();
-          dismissable && dialogDispatch({ type: "RESET_DIALOG" });
+          dismissable && resetDialog();
         }}
       >
         <Transition.Child
@@ -63,7 +63,7 @@ export function ConfirmationDialog() {
                         className="tw-rounded-md tw-bg-white tw-text-gray-400 tw-transition-none hover:tw-text-gray-700 focus:tw-text-gray-700"
                         onClick={(ev) => {
                           dismissedAction && dismissedAction();
-                          dialogDispatch({ type: "RESET_DIALOG" });
+                          resetDialog();
                         }}
                       >
                         <span className="tw-sr-only">Close</span>
@@ -88,7 +88,7 @@ export function ConfirmationDialog() {
                           className="usa-button"
                           onClick={(ev) => {
                             confirmedAction();
-                            dialogDispatch({ type: "RESET_DIALOG" });
+                            resetDialog();
                           }}
                         >
                           {confirmText}
@@ -101,7 +101,7 @@ export function ConfirmationDialog() {
                             className="usa-button"
                             onClick={(ev) => {
                               dismissedAction && dismissedAction();
-                              dialogDispatch({ type: "RESET_DIALOG" });
+                              resetDialog();
                             }}
                             ref={cancelRef}
                           >

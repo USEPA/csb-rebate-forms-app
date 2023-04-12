@@ -17,7 +17,7 @@ import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { useContentData } from "components/app";
 import { useCsbData, useBapSamData } from "components/userDashboard";
-import { useDialogDispatch } from "contexts/dialog";
+import { useDialogActions } from "contexts/dialog";
 import { useNotificationsActions } from "contexts/notifications";
 
 type FormioSubmission = {
@@ -109,7 +109,7 @@ export function ApplicationForm() {
   const content = useContentData();
   const csbData = useCsbData();
   const bapSamData = useBapSamData();
-  const dialogDispatch = useDialogDispatch();
+  const { displayDialog } = useDialogActions();
   const {
     displayInfoNotification,
     displaySuccessNotification,
@@ -187,103 +187,99 @@ export function ApplicationForm() {
    * data is changed.
    */
   if (applicationNeedsEditsAndPaymentRequestExists) {
-    dialogDispatch({
-      type: "DISPLAY_DIALOG",
-      payload: {
-        dismissable: true,
-        heading: "Submission Edits Requested",
-        description: (
-          <>
-            <p>
-              This Application form submission has been opened at the request of
-              the applicant to make edits, but before you can make edits, the
-              associated Payment Request form submission needs to be deleted. If
-              the request to make edits to your Application form submission was
-              made in error, contact the Clean School Bus Program helpline at{" "}
-              <a href="mailto:cleanschoolbus@epa.gov">cleanschoolbus@epa.gov</a>
-              .
-            </p>
+    displayDialog({
+      dismissable: true,
+      heading: "Submission Edits Requested",
+      description: (
+        <>
+          <p>
+            This Application form submission has been opened at the request of
+            the applicant to make edits, but before you can make edits, the
+            associated Payment Request form submission needs to be deleted. If
+            the request to make edits to your Application form submission was
+            made in error, contact the Clean School Bus Program helpline at{" "}
+            <a href="mailto:cleanschoolbus@epa.gov">cleanschoolbus@epa.gov</a>.
+          </p>
 
-            <p>
-              If you’d like to view the Payment Request form submission before
-              deletion, please close this dialog box, and you will be
-              re-directed to the associated Payment Request form.
-            </p>
+          <p>
+            If you’d like to view the Payment Request form submission before
+            deletion, please close this dialog box, and you will be re-directed
+            to the associated Payment Request form.
+          </p>
 
-            <p>
-              To proceed with deleting the associated Payment Request form
-              submission, please select the{" "}
-              <strong>Delete Payment Request Form Submission</strong> button
-              below, and the Payment Request form submission will be deleted.
-              The Application form will then be open for editing.
-            </p>
+          <p>
+            To proceed with deleting the associated Payment Request form
+            submission, please select the{" "}
+            <strong>Delete Payment Request Form Submission</strong> button
+            below, and the Payment Request form submission will be deleted. The
+            Application form will then be open for editing.
+          </p>
 
-            <div className="usa-alert usa-alert--error" role="alert">
-              <div className="usa-alert__body">
-                <p className="usa-alert__text">
-                  <strong>Please note:</strong> Once deleted, the Payment
-                  Request form submission will be removed from your dashboard
-                  and cannot be recovered.
-                </p>
-              </div>
+          <div className="usa-alert usa-alert--error" role="alert">
+            <div className="usa-alert__body">
+              <p className="usa-alert__text">
+                <strong>Please note:</strong> Once deleted, the Payment Request
+                form submission will be removed from your dashboard and cannot
+                be recovered.
+              </p>
             </div>
-          </>
-        ),
-        confirmText: "Delete Payment Request Form Submission",
-        confirmedAction: () => {
-          const paymentRequest = rebate.paymentRequest.formio;
+          </div>
+        </>
+      ),
+      confirmText: "Delete Payment Request Form Submission",
+      confirmedAction: () => {
+        const paymentRequest = rebate.paymentRequest.formio;
 
-          if (!paymentRequest) {
+        if (!paymentRequest) {
+          displayErrorNotification(
+            <>
+              <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                Error deleting Payment Request <em>{rebate.rebateId}</em>.
+              </p>
+              <p className="tw-mt-1 tw-text-sm tw-text-gray-500">
+                Please notify the helpdesk that a problem exists preventing the
+                deletion of Payment Request form submission{" "}
+                <em>{rebate.rebateId}</em>.
+              </p>
+            </>
+          );
+
+          // NOTE: logging rebate for helpdesk debugging purposes
+          console.log(rebate);
+          return;
+        }
+
+        displayInfoNotification(
+          <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+            Deleting Payment Request <em>{rebate.rebateId}</em>...
+          </p>
+        );
+
+        const url = `${serverUrl}/api/delete-formio-payment-request-submission`;
+
+        postData(url, {
+          mongoId: paymentRequest._id,
+          rebateId: paymentRequest.data.hidden_bap_rebate_id,
+          comboKey: paymentRequest.data.bap_hidden_entity_combo_key,
+        })
+          .then((res) => {
+            window.location.reload();
+          })
+          .catch((err) => {
             displayErrorNotification(
               <>
                 <p className="tw-text-sm tw-font-medium tw-text-gray-900">
                   Error deleting Payment Request <em>{rebate.rebateId}</em>.
                 </p>
                 <p className="tw-mt-1 tw-text-sm tw-text-gray-500">
-                  Please notify the helpdesk that a problem exists preventing
-                  the deletion of Payment Request form submission{" "}
-                  <em>{rebate.rebateId}</em>.
+                  Please reload the page to attempt the deletion again, or
+                  contact the helpdesk if the problem persists.
                 </p>
               </>
             );
-
-            // NOTE: logging rebate for helpdesk debugging purposes
-            console.log(rebate);
-            return;
-          }
-
-          displayInfoNotification(
-            <p className="tw-text-sm tw-font-medium tw-text-gray-900">
-              Deleting Payment Request <em>{rebate.rebateId}</em>...
-            </p>
-          );
-
-          const url = `${serverUrl}/api/delete-formio-payment-request-submission`;
-
-          postData(url, {
-            mongoId: paymentRequest._id,
-            rebateId: paymentRequest.data.hidden_bap_rebate_id,
-            comboKey: paymentRequest.data.bap_hidden_entity_combo_key,
-          })
-            .then((res) => {
-              window.location.reload();
-            })
-            .catch((err) => {
-              displayErrorNotification(
-                <>
-                  <p className="tw-text-sm tw-font-medium tw-text-gray-900">
-                    Error deleting Payment Request <em>{rebate.rebateId}</em>.
-                  </p>
-                  <p className="tw-mt-1 tw-text-sm tw-text-gray-500">
-                    Please reload the page to attempt the deletion again, or
-                    contact the helpdesk if the problem persists.
-                  </p>
-                </>
-              );
-            });
-        },
-        dismissedAction: () => navigate(`/payment-request/${rebate.rebateId}`),
+          });
       },
+      dismissedAction: () => navigate(`/payment-request/${rebate.rebateId}`),
     });
 
     return null;
