@@ -18,7 +18,7 @@ import { MarkdownContent } from "components/markdownContent";
 import { useContentData } from "components/app";
 import { useCsbData, useBapSamData } from "components/userDashboard";
 import { useDialogDispatch } from "contexts/dialog";
-import { useNotificationsContext } from "contexts/notifications";
+import { useNotificationsActions } from "contexts/notifications";
 
 type FormioSubmission = {
   [field: string]: unknown;
@@ -115,7 +115,7 @@ export function ApplicationForm() {
     displaySuccessNotification,
     displayErrorNotification,
     dismissNotification,
-  } = useNotificationsContext();
+  } = useNotificationsActions();
 
   const submissionsQueries = useSubmissionsQueries();
   const rebates = useRebates();
@@ -295,6 +295,7 @@ export function ApplicationForm() {
     (submission.state === "submitted" || !applicationFormOpen) &&
     !applicationNeedsEdits;
 
+  /** matched SAM.gov entity for the Application submission */
   const entity = bapSamData.entities.find((entity) => {
     return (
       entity.ENTITY_STATUS__c === "Active" &&

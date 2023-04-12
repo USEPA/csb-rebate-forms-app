@@ -6,11 +6,14 @@ import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { XCircleIcon } from "@heroicons/react/24/outline";
 import { XMarkIcon } from "@heroicons/react/20/solid";
 // ---
-import { useNotificationsContext } from "contexts/notifications";
+import {
+  useNotificationsState,
+  useNotificationsActions,
+} from "contexts/notifications";
 
 export function Notifications() {
-  const { state, dismissNotification } = useNotificationsContext();
-  const { displayed, body, type } = state;
+  const { displayed, body, type } = useNotificationsState();
+  const { dismissNotification } = useNotificationsActions();
 
   return (
     <div className="twpf">
