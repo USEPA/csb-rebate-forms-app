@@ -13,7 +13,7 @@ import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/tooltip";
 import { useContentData } from "components/app";
 import { useCsbData } from "components/userDashboard";
-import { useDialogDispatch } from "contexts/dialog";
+import { useDialogActions } from "contexts/dialog";
 
 type FormType = "application" | "payment-request" | "close-out";
 
@@ -42,7 +42,7 @@ export function Helpdesk() {
 
   const content = useContentData();
   const csbData = useCsbData();
-  const dialogDispatch = useDialogDispatch();
+  const { displayDialog } = useDialogActions();
   const helpdeskAccess = useHelpdeskAccess();
 
   const [formType, setFormType] = useState<FormType>("application");
@@ -324,25 +324,22 @@ export function Helpdesk() {
                           (formType === "close-out" && !closeOutFormOpen)
                       }
                       onClick={(_ev) => {
-                        dialogDispatch({
-                          type: "DISPLAY_DIALOG",
-                          payload: {
-                            dismissable: true,
-                            heading:
-                              "Are you sure you want to change this submission's state back to draft?",
-                            description: (
-                              <p>
-                                Once the submission is back in a draft state,
-                                all users with access to this submission will be
-                                able to further edit it.
-                              </p>
-                            ),
-                            confirmText: "Yes",
-                            dismissText: "Cancel",
-                            confirmedAction: () => {
-                              setFormDisplayed(false);
-                              mutation.mutate();
-                            },
+                        displayDialog({
+                          dismissable: true,
+                          heading:
+                            "Are you sure you want to change this submission's state back to draft?",
+                          description: (
+                            <p>
+                              Once the submission is back in a draft state, all
+                              users with access to this submission will be able
+                              to further edit it.
+                            </p>
+                          ),
+                          confirmText: "Yes",
+                          dismissText: "Cancel",
+                          confirmedAction: () => {
+                            setFormDisplayed(false);
+                            mutation.mutate();
                           },
                         });
                       }}

@@ -75,9 +75,10 @@ export function NotificationsProvider({ children }: Props) {
 }
 
 /**
- * Returns state stored in `NotificationsProvider` context component.
+ * Custom hook that returns state stored in `NotificationsProvider` context
+ * component.
  */
-function useNotificationsState() {
+export function useNotificationsState() {
   const context = useContext(StateContext);
   if (context === undefined) {
     const message = `useNotificationsState must be called within a NotificationsProvider`;
@@ -87,8 +88,8 @@ function useNotificationsState() {
 }
 
 /**
- * Returns `dispatch` method for dispatching actions to update state stored in
- * `NotificationsProvider` context component.
+ * Custom hook that returns `dispatch` method for dispatching actions to update
+ * state stored in `NotificationsProvider` context component.
  */
 function useNotificationsDispatch() {
   const context = useContext(DispatchContext);
@@ -100,16 +101,14 @@ function useNotificationsDispatch() {
 }
 
 /**
- * Custom hook that returns notifications current state, functions to display
- * each notification type (info, success, warning, or error), and a function to
- * dismiss a currently displayed notification.
+ * Custom hook that returns functions to dispatch actions to display each
+ * notification type (info, success, warning, or error), and dismiss a currently
+ * displayed notification.
  */
-export function useNotificationsContext() {
-  const state = useNotificationsState();
+export function useNotificationsActions() {
   const dispatch = useNotificationsDispatch();
 
   return {
-    state,
     displayInfoNotification(body: ReactNode) {
       return dispatch({
         type: "DISPLAY_NOTIFICATION",

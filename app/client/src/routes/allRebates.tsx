@@ -17,7 +17,7 @@ import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/tooltip";
 import { useContentData } from "components/app";
 import { useCsbData, useBapSamData } from "components/userDashboard";
-import { useNotificationsContext } from "contexts/notifications";
+import { useNotificationsActions } from "contexts/notifications";
 
 type BapFormSubmission = {
   UEI_EFTI_Combo_Key__c: string; // UEI + EFTI combo key
@@ -705,7 +705,7 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
 
   const csbData = useCsbData();
   const bapSamData = useBapSamData();
-  const { displayErrorNotification } = useNotificationsContext();
+  const { displayErrorNotification } = useNotificationsActions();
 
   // NOTE: used to display a loading indicator inside the new Payment Request button
   const [postDataResponsePending, setPostDataResponsePending] = useState(false);
@@ -719,7 +719,7 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
   const applicationSelectedButNoPaymentRequest =
     applicationSelected && !Boolean(paymentRequest.formio);
 
-  /** matched SAM.gov entity for the application */
+  /** matched SAM.gov entity for the Application submission */
   const entity = bapSamData.entities.find((entity) => {
     return (
       entity.ENTITY_STATUS__c === "Active" &&

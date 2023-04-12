@@ -14,7 +14,7 @@ import {
 } from "../config";
 import { useHelpdeskAccess } from "components/app";
 import { Loading } from "components/loading";
-import { Action, useDialogDispatch } from "contexts/dialog";
+import { useDialogActions } from "contexts/dialog";
 
 type CsbData = {
   submissionPeriodOpen: {
@@ -141,7 +141,7 @@ export function UserDashboard(props: { email: string }) {
   const csbData = useCsbData();
   const bapSamData = useBapSamData();
 
-  const dialogDispatch = useDialogDispatch();
+  const { displayDialog } = useDialogActions();
   const helpdeskAccess = useHelpdeskAccess();
 
   const onAllRebatesPage = pathname === "/";
@@ -152,31 +152,6 @@ export function UserDashboard(props: { email: string }) {
   const applicationFormOpen = csbData
     ? csbData.submissionPeriodOpen.application
     : false;
-
-  /**
-   * When provided a destination location to navigate to, creates an action
-   * object that can be dispatched to the `DialogProvider` context component,
-   * which the `ConfirmationDialog` component (rendered in the `App` component's
-   * `ProtectedRoute` component) uses to display the provided info.
-   */
-  function createDialogNavAction(destination: string): Action {
-    return {
-      type: "DISPLAY_DIALOG",
-      payload: {
-        dismissable: true,
-        heading: "Are you sure you want to navigate away from this page?",
-        description: (
-          <p>
-            If you haven’t saved the current form, any changes you’ve made will
-            be lost.
-          </p>
-        ),
-        confirmText: "Yes",
-        dismissText: "Cancel",
-        confirmedAction: () => navigate(destination),
-      },
-    };
-  }
 
   if (!csbData || !bapSamData) {
     return <Loading />;
@@ -240,8 +215,20 @@ export function UserDashboard(props: { email: string }) {
               onClick={(ev) => {
                 if (onApplicationFormPage || onPaymentRequestFormPage) {
                   ev.preventDefault();
-                  const action = createDialogNavAction("/");
-                  dialogDispatch(action);
+                  displayDialog({
+                    dismissable: true,
+                    heading:
+                      "Are you sure you want to navigate away from this page?",
+                    description: (
+                      <p>
+                        If you haven’t saved the current form, any changes
+                        you’ve made will be lost.
+                      </p>
+                    ),
+                    confirmText: "Yes",
+                    dismissText: "Cancel",
+                    confirmedAction: () => navigate("/"),
+                  });
                 }
               }}
             >
@@ -295,8 +282,20 @@ export function UserDashboard(props: { email: string }) {
                   onClick={(ev) => {
                     if (onApplicationFormPage || onPaymentRequestFormPage) {
                       ev.preventDefault();
-                      const action = createDialogNavAction("/helpdesk");
-                      dialogDispatch(action);
+                      displayDialog({
+                        dismissable: true,
+                        heading:
+                          "Are you sure you want to navigate away from this page?",
+                        description: (
+                          <p>
+                            If you haven’t saved the current form, any changes
+                            you’ve made will be lost.
+                          </p>
+                        ),
+                        confirmText: "Yes",
+                        dismissText: "Cancel",
+                        confirmedAction: () => navigate("/helpdesk"),
+                      });
                     }
                   }}
                 >
