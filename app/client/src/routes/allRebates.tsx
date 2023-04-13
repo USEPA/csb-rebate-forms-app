@@ -758,17 +758,20 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
                 })
                 .catch((err) => {
                   setPostDataResponsePending(false);
-                  displayErrorNotification(
-                    <>
-                      <p className="tw-text-sm tw-font-medium tw-text-gray-900">
-                        Error creating Payment Request{" "}
-                        <em>{application.bap?.rebateId}</em>.
-                      </p>
-                      <p className="tw-mt-1 tw-text-sm tw-text-gray-500">
-                        Please try again.
-                      </p>
-                    </>
-                  );
+                  displayErrorNotification({
+                    id: Date.now(),
+                    body: (
+                      <>
+                        <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                          Error creating Payment Request{" "}
+                          <em>{application.bap?.rebateId}</em>.
+                        </p>
+                        <p className="tw-mt-1 tw-text-sm tw-text-gray-500">
+                          Please try again.
+                        </p>
+                      </>
+                    ),
+                  });
                 });
             }}
           >
