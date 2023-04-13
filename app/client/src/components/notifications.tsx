@@ -12,14 +12,14 @@ import {
 } from "contexts/notifications";
 
 export function Notifications() {
-  const { displayed, body, type } = useNotificationsState();
+  const { displayed, type, body } = useNotificationsState();
   const { dismissNotification } = useNotificationsActions();
 
   return (
     <div className="twpf">
       <div
         aria-live="assertive"
-        className="tw-pointer-events-none tw-fixed tw-inset-0 tw-z-10 tw-flex tw-items-end tw-p-4 sm:tw-items-start"
+        className="tw-pointer-events-none tw-fixed tw-inset-0 tw-z-20 tw-flex tw-items-end tw-p-4 sm:tw-items-start"
       >
         <div className="tw-flex tw-w-full tw-flex-col tw-items-center tw-space-y-4 sm:tw-items-end">
           <Transition
@@ -67,7 +67,7 @@ export function Notifications() {
                     <button
                       type="button"
                       className="tw-inline-flex tw-rounded-md tw-bg-white tw-text-gray-400 tw-transition-none hover:tw-text-gray-700 focus:tw-text-gray-700"
-                      onClick={() => dismissNotification()}
+                      onClick={() => dismissNotification({ id: 0 })}
                     >
                       <span className="tw-sr-only">Close</span>
                       <XMarkIcon

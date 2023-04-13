@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
+import { Dialog } from "@headlessui/react";
 import { Formio, Form } from "@formio/react";
 import { cloneDeep, isEqual } from "lodash";
 import icons from "uswds/img/sprite.svg";
@@ -124,18 +125,18 @@ export function ApplicationForm() {
   const { userAccess, formSchema, submission } = query.data ?? {};
 
   /**
-   * Stores when the form is being submitted, so it can be referenced in the
-   * Form component's `onSubmit` event prop to prevent double submits
+   * Stores when data is being posted to the server, so a loading overlay can
+   * be rendered over the form, preventing the user from losing input data when
+   * the form is re-rendered with data returned from the server's successful
+   * post response.
    */
-  const formIsBeingSubmitted = useRef(false);
+  const dataIsPosting = useRef(false);
 
   /**
-   * Stores the last succesfully submitted data, so it can be used in the Form
-   * component's `onNextPage` event prop's "dirty check" which determines if
-   * posting of updated data is needed (so we don't make needless requests if no
-   * field data in the form has changed).
+   * Stores when the form is being submitted, so it can be referenced in the
+   * Form component's `onSubmit` event prop to prevent double submits.
    */
-  const lastSuccesfullySubmittedData = useRef<{ [field: string]: unknown }>({});
+  const formIsBeingSubmitted = useRef(false);
 
   /**
    * Stores the form data's state right after the user clicks the Save, Submit,
@@ -145,6 +146,14 @@ export function ApplicationForm() {
    * Form component's `submission` prop.
    */
   const pendingSubmissionData = useRef<{ [field: string]: unknown }>({});
+
+  /**
+   * Stores the last succesfully submitted data, so it can be used in the Form
+   * component's `onNextPage` event prop's "dirty check" which determines if
+   * posting of updated data is needed (so we don't make needless requests if no
+   * field data in the form has changed).
+   */
+  const lastSuccesfullySubmittedData = useRef<{ [field: string]: unknown }>({});
 
   if (!csbData || !bapSamData) {
     return <Loading />;
@@ -231,29 +240,35 @@ export function ApplicationForm() {
         const paymentRequest = rebate.paymentRequest.formio;
 
         if (!paymentRequest) {
-          displayErrorNotification(
-            <>
-              <p className="tw-text-sm tw-font-medium tw-text-gray-900">
-                Error deleting Payment Request <em>{rebate.rebateId}</em>.
-              </p>
-              <p className="tw-mt-1 tw-text-sm tw-text-gray-500">
-                Please notify the helpdesk that a problem exists preventing the
-                deletion of Payment Request form submission{" "}
-                <em>{rebate.rebateId}</em>.
-              </p>
-            </>
-          );
+          displayErrorNotification({
+            id: Date.now(),
+            body: (
+              <>
+                <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                  Error deleting Payment Request <em>{rebate.rebateId}</em>.
+                </p>
+                <p className="tw-mt-1 tw-text-sm tw-text-gray-500">
+                  Please notify the helpdesk that a problem exists preventing
+                  the deletion of Payment Request form submission{" "}
+                  <em>{rebate.rebateId}</em>.
+                </p>
+              </>
+            ),
+          });
 
           // NOTE: logging rebate for helpdesk debugging purposes
           console.log(rebate);
           return;
         }
 
-        displayInfoNotification(
-          <p className="tw-text-sm tw-font-medium tw-text-gray-900">
-            Deleting Payment Request <em>{rebate.rebateId}</em>...
-          </p>
-        );
+        displayInfoNotification({
+          id: Date.now(),
+          body: (
+            <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+              Deleting Payment Request <em>{rebate.rebateId}</em>...
+            </p>
+          ),
+        });
 
         const url = `${serverUrl}/api/delete-formio-payment-request-submission`;
 
@@ -266,17 +281,20 @@ export function ApplicationForm() {
             window.location.reload();
           })
           .catch((err) => {
-            displayErrorNotification(
-              <>
-                <p className="tw-text-sm tw-font-medium tw-text-gray-900">
-                  Error deleting Payment Request <em>{rebate.rebateId}</em>.
-                </p>
-                <p className="tw-mt-1 tw-text-sm tw-text-gray-500">
-                  Please reload the page to attempt the deletion again, or
-                  contact the helpdesk if the problem persists.
-                </p>
-              </>
-            );
+            displayErrorNotification({
+              id: Date.now(),
+              body: (
+                <>
+                  <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                    Error deleting Payment Request <em>{rebate.rebateId}</em>.
+                  </p>
+                  <p className="tw-mt-1 tw-text-sm tw-text-gray-500">
+                    Please reload the page to attempt the deletion again, or
+                    contact the helpdesk if the problem persists.
+                  </p>
+                </>
+              ),
+            });
           });
       },
       dismissedAction: () => navigate(`/payment-request/${rebate.rebateId}`),
@@ -318,6 +336,17 @@ export function ApplicationForm() {
           }
         />
       )}
+
+      <Dialog as="div" open={dataIsPosting.current} onClose={(ev) => {}}>
+        <div className="tw-fixed tw-inset-0 tw-bg-black/30" />
+        <div className="tw-fixed tw-inset-0 tw-z-20">
+          <div className="tw-flex tw-min-h-full tw-items-center tw-justify-center">
+            <Dialog.Panel className="tw-rounded-lg tw-bg-white tw-px-4 tw-pb-4 tw-shadow-xl">
+              <Loading />
+            </Dialog.Panel>
+          </div>
+        </div>
+      </Dialog>
 
       <ul className="usa-icon-list">
         <li className="usa-icon-list__item">
@@ -382,62 +411,67 @@ export function ApplicationForm() {
             if (data.hasOwnProperty("ncesDataSource")) delete data.ncesDataSource; // prettier-ignore
             if (data.hasOwnProperty("ncesDataLookup")) delete data.ncesDataLookup; // prettier-ignore
 
-            displayInfoNotification(
-              <p className="tw-text-sm tw-font-medium tw-text-gray-900">
-                {onSubmitSubmission.state === "submitted" ? (
-                  <>Submitting...</>
-                ) : (
-                  <>Saving draft...</>
-                )}
-              </p>
-            );
-
-            pendingSubmissionData.current = data;
-
             const updatedSubmission = {
               ...onSubmitSubmission,
               data,
             };
 
+            dismissNotification({ id: 0 });
+            dataIsPosting.current = true;
+            pendingSubmissionData.current = data;
+
             mutation.mutate(updatedSubmission, {
               onSuccess: (res, payload, context) => {
-                lastSuccesfullySubmittedData.current = cloneDeep(res.data);
                 pendingSubmissionData.current = {};
+                lastSuccesfullySubmittedData.current = cloneDeep(res.data);
 
-                displaySuccessNotification(
-                  <p className="tw-text-sm tw-font-medium tw-text-gray-900">
-                    {onSubmitSubmission.state === "submitted" ? (
-                      <>
-                        Application <em>{mongoId}</em> submitted successfully.
-                      </>
-                    ) : (
-                      <>Draft saved successfully.</>
-                    )}
-                  </p>
-                );
+                /** success notification id */
+                const id = Date.now();
+
+                displaySuccessNotification({
+                  id,
+                  body: (
+                    <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                      {onSubmitSubmission.state === "submitted" ? (
+                        <>
+                          Application <em>{mongoId}</em> submitted successfully.
+                        </>
+                      ) : (
+                        <>Draft saved successfully.</>
+                      )}
+                    </p>
+                  ),
+                });
 
                 if (onSubmitSubmission.state === "submitted") {
+                  /**
+                   * NOTE: we'll keep the success notification displayed and
+                   * redirect the user to their dashboard
+                   */
                   navigate("/");
                 }
 
                 if (onSubmitSubmission.state === "draft") {
-                  setTimeout(() => {
-                    dismissNotification();
-                  }, 5000);
+                  setTimeout(() => dismissNotification({ id }), 5000);
                 }
               },
               onError: (error, payload, context) => {
+                displayErrorNotification({
+                  id: Date.now(),
+                  body: (
+                    <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                      {onSubmitSubmission.state === "submitted" ? (
+                        <>Error submitting Application form.</>
+                      ) : (
+                        <>Error saving draft.</>
+                      )}
+                    </p>
+                  ),
+                });
+              },
+              onSettled: (data, error, payload, context) => {
+                dataIsPosting.current = false;
                 formIsBeingSubmitted.current = false;
-
-                displayErrorNotification(
-                  <p className="tw-text-sm tw-font-medium tw-text-gray-900">
-                    {onSubmitSubmission.state === "submitted" ? (
-                      <>Error submitting Application form.</>
-                    ) : (
-                      <>Error saving draft.</>
-                    )}
-                  </p>
-                );
               },
             });
           }}
@@ -468,41 +502,47 @@ export function ApplicationForm() {
             delete submittedData.hidden_current_user_name;
             if (isEqual(currentData, submittedData)) return;
 
-            displayInfoNotification(
-              <p className="tw-text-sm tw-font-medium tw-text-gray-900">
-                Saving draft...
-              </p>
-            );
-
-            pendingSubmissionData.current = data;
-
             const updatedSubmission = {
               ...onNextPageParam.submission,
               data,
               state: "draft" as const,
             };
 
+            dismissNotification({ id: 0 });
+            dataIsPosting.current = true;
+            pendingSubmissionData.current = data;
+
             mutation.mutate(updatedSubmission, {
               onSuccess: (res, payload, context) => {
-                lastSuccesfullySubmittedData.current = cloneDeep(res.data);
                 pendingSubmissionData.current = {};
+                lastSuccesfullySubmittedData.current = cloneDeep(res.data);
 
-                displaySuccessNotification(
-                  <p className="tw-text-sm tw-font-medium tw-text-gray-900">
-                    Draft saved successfully.
-                  </p>
-                );
+                /** success notification id */
+                const id = Date.now();
 
-                setTimeout(() => {
-                  dismissNotification();
-                }, 5000);
+                displaySuccessNotification({
+                  id,
+                  body: (
+                    <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                      Draft saved successfully.
+                    </p>
+                  ),
+                });
+
+                setTimeout(() => dismissNotification({ id }), 5000);
               },
               onError: (error, payload, context) => {
-                displayErrorNotification(
-                  <p className="tw-text-sm tw-font-medium tw-text-gray-900">
-                    Error saving draft.
-                  </p>
-                );
+                displayErrorNotification({
+                  id: Date.now(),
+                  body: (
+                    <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                      Error saving draft.
+                    </p>
+                  ),
+                });
+              },
+              onSettled: (data, error, payload, context) => {
+                dataIsPosting.current = false;
               },
             });
           }}

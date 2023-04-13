@@ -12,6 +12,7 @@ type Props = {
 
 type State = {
   displayed: boolean;
+  id: number;
   type: "info" | "success" | "warning" | "error";
   body: ReactNode;
 };
@@ -20,17 +21,24 @@ type Action =
   | {
       type: "DISPLAY_NOTIFICATION";
       payload: {
+        id: number;
         type: "info" | "success" | "warning" | "error";
         body: ReactNode;
       };
     }
-  | { type: "DISMISS_NOTIFICATION" };
+  | {
+      type: "DISMISS_NOTIFICATION";
+      payload: {
+        id: number;
+      };
+    };
 
 const StateContext = createContext<State | undefined>(undefined);
 const DispatchContext = createContext<Dispatch<Action> | undefined>(undefined);
 
 const initialState: State = {
   displayed: false,
+  id: 0,
   type: "info",
   body: null,
 };
@@ -38,21 +46,35 @@ const initialState: State = {
 function reducer(state: State, action: Action): State {
   switch (action.type) {
     case "DISPLAY_NOTIFICATION": {
-      const { type, body } = action.payload;
+      const { id, type, body } = action.payload;
       return {
         displayed: true,
+        id,
         type,
         body,
       };
     }
 
     case "DISMISS_NOTIFICATION": {
-      const { type, body } = state;
-      return {
-        displayed: false,
-        type,
-        body,
-      };
+      const { id } = action.payload;
+
+      /**
+       * NOTE: id is passed in action's payload, as we sometimes dispatch this
+       * action in a setTimeout... so we only want to dismiss the notification
+       * if the id passed matches the stored id in state, or if the id passed
+       * is zero (used to manually dismiss notifications)
+       */
+
+      if (id === 0 || id === state.id) {
+        return {
+          displayed: false,
+          id: 0,
+          type: state.type,
+          body: state.body,
+        };
+      }
+
+      return state;
     }
 
     default: {
@@ -109,33 +131,52 @@ export function useNotificationsActions() {
   const dispatch = useNotificationsDispatch();
 
   return {
-    displayInfoNotification(body: ReactNode) {
-      return dispatch({
+    displayInfoNotification(options: { id: number; body: ReactNode }) {
+      dispatch({
         type: "DISPLAY_NOTIFICATION",
-        payload: { type: "info" as const, body },
+        payload: {
+          type: "info" as const,
+          id: options.id,
+          body: options.body,
+        },
       });
     },
-    displaySuccessNotification(body: ReactNode) {
-      return dispatch({
+    displaySuccessNotification(options: { id: number; body: ReactNode }) {
+      dispatch({
         type: "DISPLAY_NOTIFICATION",
-        payload: { type: "success" as const, body },
+        payload: {
+          type: "success" as const,
+          id: options.id,
+          body: options.body,
+        },
       });
     },
-    displayWarningNotification(body: ReactNode) {
-      return dispatch({
+    displayWarningNotification(options: { id: number; body: ReactNode }) {
+      dispatch({
         type: "DISPLAY_NOTIFICATION",
-        payload: { type: "warning" as const, body },
+        payload: {
+          type: "warning" as const,
+          id: options.id,
+          body: options.body,
+        },
       });
     },
-    displayErrorNotification(body: ReactNode) {
-      return dispatch({
+    displayErrorNotification(options: { id: number; body: ReactNode }) {
+      dispatch({
         type: "DISPLAY_NOTIFICATION",
-        payload: { type: "error" as const, body },
+        payload: {
+          type: "error" as const,
+          id: options.id,
+          body: options.body,
+        },
       });
     },
-    dismissNotification() {
-      return dispatch({
+    dismissNotification(options: { id: number }) {
+      dispatch({
         type: "DISMISS_NOTIFICATION",
+        payload: {
+          id: options.id,
+        },
       });
     },
   };
