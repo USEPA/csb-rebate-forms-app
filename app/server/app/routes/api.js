@@ -458,7 +458,7 @@ router.post(
     } = entity;
 
     return getBapApplicationSubmission(req, reviewItemId)
-      .then(({ formsTableRecordQuery, busTableRecordsQuery }) => {
+      .then(({ applicationTableRecordQuery, busTableRecordsQuery }) => {
         const {
           CSB_NCES_ID__c,
           Primary_Applicant__r,
@@ -469,7 +469,7 @@ router.post(
           School_District_Prioritized__c,
           Total_Rebate_Funds_Requested__c,
           Total_Infrastructure_Funds__c,
-        } = formsTableRecordQuery[0];
+        } = applicationTableRecordQuery[0];
 
         const busInfo = busTableRecordsQuery.map((record) => ({
           busNum: record.Rebate_Item_num__c,
