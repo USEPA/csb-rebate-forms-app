@@ -7,7 +7,6 @@ import {
   Route,
   useLocation,
 } from "react-router-dom";
-import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useIdleTimer } from "react-idle-timer";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import "uswds/css/uswds.css";
@@ -19,7 +18,7 @@ import "@formio/premium/dist/premium.css";
 import "formiojs/dist/formio.full.min.css";
 // ---
 import { serverBasePath, serverUrl, cloudSpace } from "../config";
-import { getData } from "../utilities";
+import { getData, useContentQuery, useContentData } from "../utilities";
 import { Loading } from "components/loading";
 import { MarkdownContent } from "components/markdownContent";
 import { Welcome } from "routes/welcome";
@@ -34,24 +33,6 @@ import { PaymentRequestForm } from "routes/paymentRequestForm";
 import { CloseOutForm } from "routes/closeOutForm";
 import { useDialogState, useDialogActions } from "contexts/dialog";
 import { EpaUserData, useUserState, useUserDispatch } from "contexts/user";
-
-type Content = {
-  siteAlert: string;
-  helpdeskIntro: string;
-  allRebatesIntro: string;
-  allRebatesOutro: string;
-  newApplicationDialog: string;
-  draftApplicationIntro: string;
-  submittedApplicationIntro: string;
-  draftPaymentRequestIntro: string;
-  submittedPaymentRequestIntro: string;
-};
-
-/** Custom hook that returns cached fetched content data */
-export function useContentData() {
-  const queryClient = useQueryClient();
-  return queryClient.getQueryData<Content>(["content"]);
-}
 
 /** Custom hook to display a site-wide alert banner */
 function useSiteAlertBanner() {
@@ -275,12 +256,7 @@ function ProtectedRoute() {
 }
 
 export function App() {
-  useQuery({
-    queryKey: ["content"],
-    queryFn: () => getData<Content>(`${serverUrl}/api/content`),
-    refetchOnWindowFocus: false,
-  });
-
+  useContentQuery();
   useSiteAlertBanner();
   useDisclaimerBanner();
 

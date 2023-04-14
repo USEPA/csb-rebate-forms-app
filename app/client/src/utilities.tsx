@@ -1,8 +1,20 @@
 import { useEffect } from "react";
-import { useQueryClient, useQueries } from "@tanstack/react-query";
+import { useQueryClient, useQuery, useQueries } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 // ---
-import { serverUrl } from "./config";
+import { serverUrl, serverUrlForHrefs } from "./config";
+
+type Content = {
+  siteAlert: string;
+  helpdeskIntro: string;
+  allRebatesIntro: string;
+  allRebatesOutro: string;
+  newApplicationDialog: string;
+  draftApplicationIntro: string;
+  submittedApplicationIntro: string;
+  draftPaymentRequestIntro: string;
+  submittedPaymentRequestIntro: string;
+};
 
 export type CsbData = {
   submissionPeriodOpen: {
@@ -187,10 +199,51 @@ export function postData<T = any>(url: string, data: object) {
   });
 }
 
+/** Custom hook to fetch content data */
+export function useContentQuery() {
+  return useQuery({
+    queryKey: ["content"],
+    queryFn: () => getData<Content>(`${serverUrl}/api/content`),
+    refetchOnWindowFocus: false,
+  });
+}
+
+/** Custom hook that returns cached fetched content data */
+export function useContentData() {
+  const queryClient = useQueryClient();
+  return queryClient.getQueryData<Content>(["content"]);
+}
+
+/** Custom hook to fetch CSB data */
+export function useCsbQuery() {
+  return useQuery({
+    queryKey: ["csb-data"],
+    queryFn: () => getData<CsbData>(`${serverUrl}/api/csb-data`),
+    refetchOnWindowFocus: false,
+  });
+}
+
 /** Custom hook that returns cached fetched CSB data */
 export function useCsbData() {
   const queryClient = useQueryClient();
   return queryClient.getQueryData<CsbData>(["csb-data"]);
+}
+
+/** Custom hook to fetch BAP SAM.gov data */
+export function useBapSamQuery() {
+  return useQuery({
+    queryKey: ["bap-sam-data"],
+    queryFn: () => getData<BapSamData>(`${serverUrl}/api/bap-sam-data`),
+    onSuccess: (res) => {
+      if (!res.results) {
+        window.location.href = `${serverUrlForHrefs}/logout?RelayState=/welcome?info=bap-sam-results`;
+      }
+    },
+    onError: (err) => {
+      window.location.href = `${serverUrlForHrefs}/logout?RelayState=/welcome?error=bap-sam-fetch`;
+    },
+    refetchOnWindowFocus: false,
+  });
 }
 
 /** Custom hook that returns cached fetched BAP SAM.gov data */

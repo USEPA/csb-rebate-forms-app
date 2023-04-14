@@ -7,6 +7,7 @@ import { serverUrl, messages } from "../config";
 import {
   Rebate,
   postData,
+  useContentData,
   useCsbData,
   useBapSamData,
   useSubmissionsQueries,
@@ -18,7 +19,6 @@ import { Loading, LoadingButtonIcon } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/tooltip";
-import { useContentData } from "components/app";
 import { useNotificationsActions } from "contexts/notifications";
 
 const defaultTableRowClassNames = "bg-gray-5";

@@ -1,20 +1,13 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import { Formio } from "@formio/react";
 import premium from "@formio/premium";
 import uswds from "@formio/uswds";
 import icons from "uswds/img/sprite.svg";
 // ---
+import { serverUrlForHrefs, formioBaseUrl, formioProjectUrl } from "../config";
 import {
-  serverUrl,
-  serverUrlForHrefs,
-  formioBaseUrl,
-  formioProjectUrl,
-} from "../config";
-import {
-  CsbData,
-  BapSamData,
-  getData,
+  useCsbQuery,
+  useBapSamQuery,
   useCsbData,
   useBapSamData,
 } from "../utilities";
@@ -68,25 +61,8 @@ export function UserDashboard(props: { email: string }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
-  useQuery({
-    queryKey: ["csb-data"],
-    queryFn: () => getData<CsbData>(`${serverUrl}/api/csb-data`),
-    refetchOnWindowFocus: false,
-  });
-
-  useQuery({
-    queryKey: ["bap-sam-data"],
-    queryFn: () => getData<BapSamData>(`${serverUrl}/api/bap-sam-data`),
-    onSuccess: (res) => {
-      if (!res.results) {
-        window.location.href = `${serverUrlForHrefs}/logout?RelayState=/welcome?info=bap-sam-results`;
-      }
-    },
-    onError: (err) => {
-      window.location.href = `${serverUrlForHrefs}/logout?RelayState=/welcome?error=bap-sam-fetch`;
-    },
-    refetchOnWindowFocus: false,
-  });
+  useCsbQuery();
+  useBapSamQuery();
 
   const csbData = useCsbData();
   const bapSamData = useBapSamData();

@@ -10,6 +10,7 @@ import { serverUrl, messages } from "../config";
 import {
   getData,
   postData,
+  useContentData,
   useCsbData,
   useBapSamData,
   useSubmissionsQueries,
@@ -20,7 +21,6 @@ import {
 import { Loading } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
-import { useContentData } from "components/app";
 import { useNotificationsActions } from "contexts/notifications";
 
 type FormioSubmission = {
