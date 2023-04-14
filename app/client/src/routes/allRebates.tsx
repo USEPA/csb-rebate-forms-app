@@ -10,13 +10,12 @@ import { useQueryClient, useQueries } from "@tanstack/react-query";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages, getData, postData } from "../config";
-import { getUserInfo } from "../utilities";
+import { useCsbData, useBapSamData, getUserInfo } from "../utilities";
 import { Loading, LoadingButtonIcon } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/tooltip";
 import { useContentData } from "components/app";
-import { useCsbData, useBapSamData } from "components/userDashboard";
 import { useNotificationsActions } from "contexts/notifications";
 
 type BapFormSubmission = {

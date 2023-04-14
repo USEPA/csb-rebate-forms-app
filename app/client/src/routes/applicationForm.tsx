@@ -7,7 +7,7 @@ import { cloneDeep, isEqual } from "lodash";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages, getData, postData } from "../config";
-import { getUserInfo } from "../utilities";
+import { useCsbData, useBapSamData, getUserInfo } from "../utilities";
 import {
   submissionNeedsEdits,
   useSubmissionsQueries,
@@ -17,7 +17,6 @@ import { Loading } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { useContentData } from "components/app";
-import { useCsbData, useBapSamData } from "components/userDashboard";
 import { useDialogActions } from "contexts/dialog";
 import { useNotificationsActions } from "contexts/notifications";
 
