@@ -303,8 +303,12 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
   const bapSamData = useBapSamData();
   const { displayErrorNotification } = useNotificationsActions();
 
-  // NOTE: used to display a loading indicator inside the new Payment Request button
-  const [postDataResponsePending, setPostDataResponsePending] = useState(false);
+  /**
+   * Stores when data is being posted to the server, so a loading indicator can
+   * be rendered inside the "New Payment Request" button, and we can prevent
+   * double submits/creations of new payment request form submissions.
+   */
+  const [dataIsPosting, setDataIsPosting] = useState(false);
 
   if (!csbData || !bapSamData) return null;
 
@@ -333,7 +337,9 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
             onClick={(ev) => {
               if (!application.bap?.rebateId || !entity) return;
 
-              setPostDataResponsePending(true);
+              // account for when data is posting to prevent double submits
+              if (dataIsPosting) return;
+              setDataIsPosting(true);
 
               const { title, name } = getUserInfo(email, entity);
 
@@ -349,11 +355,9 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
                 applicationFormModified: application.bap.modified,
               })
                 .then((res) => {
-                  setPostDataResponsePending(false);
                   navigate(`/payment-request/${application.bap?.rebateId}`);
                 })
                 .catch((err) => {
-                  setPostDataResponsePending(false);
                   displayErrorNotification({
                     id: Date.now(),
                     body: (
@@ -368,6 +372,9 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
                       </>
                     ),
                   });
+                })
+                .finally(() => {
+                  setDataIsPosting(false);
                 });
             }}
           >
@@ -381,7 +388,7 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
                 <use href={`${icons}#add_circle`} />
               </svg>
               <span className="margin-left-1">New Payment Request</span>
-              {postDataResponsePending && <LoadingButtonIcon />}
+              {dataIsPosting && <LoadingButtonIcon />}
             </span>
           </button>
         </th>
@@ -621,9 +628,7 @@ export function AllRebates() {
                 {rebates.map((rebate, index) => (
                   <Fragment key={rebate.rebateId}>
                     <ApplicationSubmission rebate={rebate} />
-
                     <PaymentRequestSubmission rebate={rebate} />
-
                     {/* blank row after all rebates but the last one */}
                     {index !== rebates.length - 1 && (
                       <tr className="bg-white">
