@@ -163,7 +163,7 @@ export function useDialogActions() {
       confirmedAction: () => void;
       dismissedAction?: () => void;
     }) {
-      return dispatch({
+      dispatch({
         type: "DISPLAY_DIALOG",
         payload: {
           dismissable: options.dismissable,
@@ -177,13 +177,13 @@ export function useDialogActions() {
       });
     },
     updateDialogDescription(description: ReactNode) {
-      return dispatch({
+      dispatch({
         type: "UPDATE_DIALOG_DESCRIPTION",
         payload: { description },
       });
     },
     resetDialog() {
-      return dispatch({ type: "RESET_DIALOG" });
+      dispatch({ type: "RESET_DIALOG" });
     },
   };
 }

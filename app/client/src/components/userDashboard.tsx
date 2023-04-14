@@ -1,81 +1,24 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { Formio } from "@formio/react";
 import premium from "@formio/premium";
 import uswds from "@formio/uswds";
 import icons from "uswds/img/sprite.svg";
 // ---
+import { serverUrlForHrefs, formioBaseUrl, formioProjectUrl } from "../config";
 import {
-  serverUrl,
-  serverUrlForHrefs,
-  formioBaseUrl,
-  formioProjectUrl,
-  getData,
-} from "../config";
+  useCsbQuery,
+  useBapSamQuery,
+  useCsbData,
+  useBapSamData,
+} from "../utilities";
 import { useHelpdeskAccess } from "components/app";
 import { Loading } from "components/loading";
 import { useDialogActions } from "contexts/dialog";
-
-type CsbData = {
-  submissionPeriodOpen: {
-    application: boolean;
-    paymentRequest: boolean;
-    closeOut: boolean;
-  };
-};
-
-export type BapSamEntity = {
-  ENTITY_COMBO_KEY__c: string;
-  UNIQUE_ENTITY_ID__c: string;
-  ENTITY_EFT_INDICATOR__c: string;
-  ENTITY_STATUS__c: "Active" | string;
-  LEGAL_BUSINESS_NAME__c: string;
-  PHYSICAL_ADDRESS_LINE_1__c: string;
-  PHYSICAL_ADDRESS_LINE_2__c: string | null;
-  PHYSICAL_ADDRESS_CITY__c: string;
-  PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c: string;
-  PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c: string;
-  PHYSICAL_ADDRESS_ZIP_CODE_4__c: string;
-  // contacts
-  ELEC_BUS_POC_EMAIL__c: string | null;
-  ELEC_BUS_POC_NAME__c: string | null;
-  ELEC_BUS_POC_TITLE__c: string | null;
-  //
-  ALT_ELEC_BUS_POC_EMAIL__c: string | null;
-  ALT_ELEC_BUS_POC_NAME__c: string | null;
-  ALT_ELEC_BUS_POC_TITLE__c: string | null;
-  //
-  GOVT_BUS_POC_EMAIL__c: string | null;
-  GOVT_BUS_POC_NAME__c: string | null;
-  GOVT_BUS_POC_TITLE__c: string | null;
-  //
-  ALT_GOVT_BUS_POC_EMAIL__c: string | null;
-  ALT_GOVT_BUS_POC_NAME__c: string | null;
-  ALT_GOVT_BUS_POC_TITLE__c: string | null;
-  //
-  attributes: { type: string; url: string };
-};
-
-type BapSamData =
-  | { results: false; entities: [] }
-  | { results: true; entities: BapSamEntity[] };
 
 Formio.setBaseUrl(formioBaseUrl);
 Formio.setProjectUrl(formioProjectUrl);
 Formio.use(premium);
 Formio.use(uswds);
-
-/** Custom hook that returns cached fetched CSB data */
-export function useCsbData() {
-  const queryClient = useQueryClient();
-  return queryClient.getQueryData<CsbData>(["csb-data"]);
-}
-
-/** Custom hook that returns cached fetched BAP SAM.gov data */
-export function useBapSamData() {
-  const queryClient = useQueryClient();
-  return queryClient.getQueryData<BapSamData>(["bap-sam-data"]);
-}
 
 function IconText(props: {
   order: "icon-text" | "text-icon";
@@ -118,25 +61,8 @@ export function UserDashboard(props: { email: string }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
-  useQuery({
-    queryKey: ["csb-data"],
-    queryFn: () => getData<CsbData>(`${serverUrl}/api/csb-data`),
-    refetchOnWindowFocus: false,
-  });
-
-  useQuery({
-    queryKey: ["bap-sam-data"],
-    queryFn: () => getData<BapSamData>(`${serverUrl}/api/bap-sam-data`),
-    onSuccess: (res) => {
-      if (!res.results) {
-        window.location.href = `${serverUrlForHrefs}/logout?RelayState=/welcome?info=bap-sam-results`;
-      }
-    },
-    onError: (err) => {
-      window.location.href = `${serverUrlForHrefs}/logout?RelayState=/welcome?error=bap-sam-fetch`;
-    },
-    refetchOnWindowFocus: false,
-  });
+  useCsbQuery();
+  useBapSamQuery();
 
   const csbData = useCsbData();
   const bapSamData = useBapSamData();
