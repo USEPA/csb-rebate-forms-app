@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useQueryClient, useQueries } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 // ---
-import { serverUrl, getData } from "./config";
+import { serverUrl } from "./config";
 
 export type CsbData = {
   submissionPeriodOpen: {
@@ -149,6 +149,43 @@ export type Rebate = {
     bap: BapSubmission | null;
   };
 };
+
+async function fetchData<T = any>(url: string, options: RequestInit) {
+  try {
+    const response = await fetch(url, options);
+    if (!response.ok) throw new Error(response.statusText);
+    const contentType = response.headers.get("content-type");
+    return contentType?.includes("application/json")
+      ? ((await response.json()) as Promise<T>)
+      : (Promise.resolve() as Promise<T>);
+  } catch (error) {
+    return await Promise.reject(error);
+  }
+}
+
+/**
+ * Fetches data and returns a promise containing JSON fetched from a provided
+ * web service URL or handles any other OK response returned from the server
+ */
+export function getData<T = any>(url: string) {
+  return fetchData<T>(url, {
+    method: "GET",
+    credentials: "include" as const,
+  });
+}
+
+/**
+ * Posts JSON data and returns a promise containing JSON fetched from a provided
+ * web service URL or handles any other OK response returned from the server
+ */
+export function postData<T = any>(url: string, data: object) {
+  return fetchData<T>(url, {
+    method: "POST",
+    credentials: "include" as const,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+}
 
 /** Custom hook that returns cached fetched CSB data */
 export function useCsbData() {

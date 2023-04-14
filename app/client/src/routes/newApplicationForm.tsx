@@ -4,9 +4,10 @@ import { Dialog, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl, messages, postData } from "../config";
+import { serverUrl, messages } from "../config";
 import {
   BapSamEntity,
+  postData,
   useCsbData,
   useBapSamData,
   getUserInfo,

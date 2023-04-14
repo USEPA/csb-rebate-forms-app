@@ -3,9 +3,10 @@ import type { LinkProps } from "react-router-dom";
 import { Link, useNavigate, useOutletContext } from "react-router-dom";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl, messages, postData } from "../config";
+import { serverUrl, messages } from "../config";
 import {
   Rebate,
+  postData,
   useCsbData,
   useBapSamData,
   useSubmissionsQueries,

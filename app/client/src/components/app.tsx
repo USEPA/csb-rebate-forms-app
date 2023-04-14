@@ -18,7 +18,8 @@ import "@formio/choices.js/public/assets/styles/choices.min.css";
 import "@formio/premium/dist/premium.css";
 import "formiojs/dist/formio.full.min.css";
 // ---
-import { serverBasePath, serverUrl, cloudSpace, getData } from "../config";
+import { serverBasePath, serverUrl, cloudSpace } from "../config";
+import { getData } from "../utilities";
 import { Loading } from "components/loading";
 import { MarkdownContent } from "components/markdownContent";
 import { Welcome } from "routes/welcome";
