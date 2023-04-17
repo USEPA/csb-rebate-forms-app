@@ -14,6 +14,8 @@ type Content = {
   submittedApplicationIntro: string;
   draftPaymentRequestIntro: string;
   submittedPaymentRequestIntro: string;
+  draftCloseOutIntro: string;
+  submittedCloseOutIntro: string;
 };
 
 export type CsbData = {
@@ -136,6 +138,13 @@ type FormioCloseOutSubmission = {
   modified: string; // ISO 8601 date string
   data: {
     [field: string]: unknown;
+    // fields injected upon new draft Payment Request submission creation:
+    bap_hidden_entity_combo_key: string;
+    hidden_prf_modified: string; // ISO 8601 date string
+    hidden_current_user_email: string;
+    hidden_current_user_title: string;
+    hidden_current_user_name: string;
+    hidden_bap_rebate_id: string;
   };
 };
 
@@ -370,8 +379,7 @@ function useCombinedRebates() {
     const comboKey = bapMatch?.UEI_EFTI_Combo_Key__c || null;
     const rebateId = bapMatch?.Parent_Rebate_ID__c || null;
     const reviewItemId = bapMatch?.CSB_Review_Item_ID__c || null;
-    const status =
-      bapMatch?.Parent_CSB_Rebate__r?.CSB_Funding_Request_Status__c || null;
+    const status = bapMatch?.Parent_CSB_Rebate__r?.CSB_Funding_Request_Status__c || null; // prettier-ignore
 
     /**
      * NOTE: If new Application form submissions have been reciently created in
@@ -417,8 +425,7 @@ function useCombinedRebates() {
     const comboKey = bapMatch?.UEI_EFTI_Combo_Key__c || null;
     const rebateId = bapMatch?.Parent_Rebate_ID__c || null;
     const reviewItemId = bapMatch?.CSB_Review_Item_ID__c || null;
-    const status =
-      bapMatch?.Parent_CSB_Rebate__r?.CSB_Payment_Request_Status__c || null;
+    const status = bapMatch?.Parent_CSB_Rebate__r?.CSB_Payment_Request_Status__c || null; // prettier-ignore
 
     /**
      * NOTE: If the BAP ETL is running, there should be a submission with a
@@ -442,7 +449,24 @@ function useCombinedRebates() {
    * submission data.
    */
   for (const formioSubmission of formioCloseOutSubmissions) {
-    console.log(formioSubmission); // TODO
+    const formioBapRebateId = formioSubmission.data.hidden_bap_rebate_id;
+
+    const bapMatch = bapFormSubmissions.closeOuts.find((bapSub) => {
+      return bapSub.Parent_Rebate_ID__c === formioBapRebateId;
+    });
+
+    const modified = bapMatch?.CSB_Modified_Full_String__c || null;
+    const comboKey = bapMatch?.UEI_EFTI_Combo_Key__c || null;
+    const rebateId = bapMatch?.Parent_Rebate_ID__c || null;
+    const reviewItemId = bapMatch?.CSB_Review_Item_ID__c || null;
+    const status = bapMatch?.Parent_CSB_Rebate__r?.CSB_Payment_Request_Status__c || null; // prettier-ignore
+
+    if (rebates[formioBapRebateId]) {
+      rebates[formioBapRebateId].closeOut = {
+        formio: { ...formioSubmission },
+        bap: { modified, comboKey, rebateId, reviewItemId, status },
+      };
+    }
   }
 
   return rebates;

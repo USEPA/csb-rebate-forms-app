@@ -293,7 +293,7 @@ async function queryForBapApplicationSubmission(req, reviewItemId) {
   //   sobjecttype = '${BAP_FORMS_TABLE}'
   // LIMIT 1`
 
-  const formsTableIdQuery = await bapConnection
+  const applicationTableIdQuery = await bapConnection
     .sobject("recordtype")
     .find(
       {
@@ -308,7 +308,7 @@ async function queryForBapApplicationSubmission(req, reviewItemId) {
     .limit(1)
     .execute(async (err, records) => ((await err) ? err : records));
 
-  const formsTableId = formsTableIdQuery["0"].Id;
+  const applicationTableId = applicationTableIdQuery["0"].Id;
 
   // `SELECT
   //   Id,
@@ -331,15 +331,15 @@ async function queryForBapApplicationSubmission(req, reviewItemId) {
   // FROM
   //   ${BAP_FORMS_TABLE}
   // WHERE
-  //   recordtypeid = '${formsTableId}' AND
+  //   recordtypeid = '${applicationTableId}' AND
   //   CSB_Review_Item_ID__c = '${reviewItemId}' AND
   //   Latest_Version__c = TRUE`
 
-  const formsTableRecordQuery = await bapConnection
+  const applicationTableRecordQuery = await bapConnection
     .sobject(BAP_FORMS_TABLE)
     .find(
       {
-        recordtypeid: formsTableId,
+        recordtypeid: applicationTableId,
         CSB_Review_Item_ID__c: reviewItemId,
         Latest_Version__c: true,
       },
@@ -366,7 +366,7 @@ async function queryForBapApplicationSubmission(req, reviewItemId) {
     )
     .execute(async (err, records) => ((await err) ? err : records));
 
-  const formsTableRecordId = formsTableRecordQuery["0"].Id;
+  const applicationTableRecordId = applicationTableRecordQuery["0"].Id;
 
   // `SELECT
   //   Id
@@ -405,7 +405,7 @@ async function queryForBapApplicationSubmission(req, reviewItemId) {
   //   ${BAP_BUS_TABLE}
   // WHERE
   //   recordtypeid = '${busTableId}' AND
-  //   Related_Order_Request__c = '${formsTableRecordId}' AND
+  //   Related_Order_Request__c = '${applicationTableRecordId}' AND
   //   CSB_Rebate_Item_Type__c = 'Old Bus'`
 
   const busTableRecordsQuery = await bapConnection
@@ -413,7 +413,7 @@ async function queryForBapApplicationSubmission(req, reviewItemId) {
     .find(
       {
         recordtypeid: busTableId,
-        Related_Order_Request__c: formsTableRecordId,
+        Related_Order_Request__c: applicationTableRecordId,
         CSB_Rebate_Item_Type__c: "Old Bus",
       },
       {
@@ -428,7 +428,7 @@ async function queryForBapApplicationSubmission(req, reviewItemId) {
     )
     .execute(async (err, records) => ((await err) ? err : records));
 
-  return { formsTableRecordQuery, busTableRecordsQuery };
+  return { applicationTableRecordQuery, busTableRecordsQuery };
 }
 
 /**
@@ -444,8 +444,187 @@ async function queryForBapPaymentRequestSubmission(req, reviewItemId) {
   /** @type {jsforce.Connection} */
   const bapConnection = req.app.locals.bapConnection;
 
-  // TODO
-  return {};
+  // `SELECT
+  //   Id
+  // FROM
+  //   recordtype
+  // WHERE
+  //   developername = 'CSB_Payment_Request' AND
+  //   sobjecttype = '${BAP_FORMS_TABLE}'
+  // LIMIT 1`
+
+  const paymentRequestTableIdQuery = await bapConnection
+    .sobject("recordtype")
+    .find(
+      {
+        developername: "CSB_Payment_Request",
+        sobjecttype: BAP_FORMS_TABLE,
+      },
+      {
+        // "*": 1,
+        Id: 1, // Salesforce record ID
+      }
+    )
+    .limit(1)
+    .execute(async (err, records) => ((await err) ? err : records));
+
+  const paymentRequestTableId = paymentRequestTableIdQuery["0"].Id;
+
+  // `SELECT
+  //   Id,
+  //   UEI_EFTI_Combo_Key__c,
+  //   CSB_NCES_ID__c,
+  //   Primary_Applicant__r.Name,
+  //   Primary_Applicant__r.Title,
+  //   Primary_Applicant__r.Phone,
+  //   Primary_Applicant__r.Email,
+  //   Alternate_Applicant__r.Name,
+  //   Alternate_Applicant__r.Title,
+  //   Alternate_Applicant__r.Phone,
+  //   Alternate_Applicant__r.Email,
+  //   Applicant_Organization__r.Name,
+  //   CSB_School_District__r.Name,
+  //   Fleet_Name__c,
+  //   School_District_Prioritized__c,
+  //   Total_Rebate_Funds_Requested__c,
+  //   Total_Infrastructure_Funds__c,
+  //   Total_Bus_And_Infrastructure_Rebate__c,
+  //   Num_Of_Buses_Requested_From_Application__c,
+  //   Total_Price_All_Buses__c,
+  //   Total_Bus_Rebate_Amount__c,
+  //   Total_All_Eligible_Infrastructure_Costs__c,
+  //   Total_Infrastructure_Rebate__c,
+  //   Total_Level_2_Charger_Costs__c,
+  //   Total_DC_Fast_Charger_Costs__c,
+  //   Total_Other_Infrastructure_Costs__c
+  // FROM
+  //   ${BAP_FORMS_TABLE}
+  // WHERE
+  //   recordtypeid = '${paymentRequestTableId}' AND
+  //   CSB_Review_Item_ID__c = '${reviewItemId}' AND
+  //   Latest_Version__c = TRUE`
+
+  const paymentRequestTableRecordQuery = await bapConnection
+    .sobject(BAP_FORMS_TABLE)
+    .find(
+      {
+        recordtypeid: paymentRequestTableId,
+        CSB_Review_Item_ID__c: reviewItemId,
+        Latest_Version__c: true,
+      },
+      {
+        // "*": 1,
+        Id: 1, // Salesforce record ID
+        UEI_EFTI_Combo_Key__c: 1,
+        CSB_NCES_ID__c: 1,
+        "Primary_Applicant__r.Name": 1,
+        "Primary_Applicant__r.Title": 1,
+        "Primary_Applicant__r.Phone": 1,
+        "Primary_Applicant__r.Email": 1,
+        "Alternate_Applicant__r.Name": 1,
+        "Alternate_Applicant__r.Title": 1,
+        "Alternate_Applicant__r.Phone": 1,
+        "Alternate_Applicant__r.Email": 1,
+        "Applicant_Organization__r.Name": 1,
+        "CSB_School_District__r.Name": 1,
+        Fleet_Name__c: 1,
+        School_District_Prioritized__c: 1,
+        Total_Rebate_Funds_Requested__c: 1,
+        Total_Infrastructure_Funds__c: 1,
+        Total_Bus_And_Infrastructure_Rebate__c: 1,
+        Num_Of_Buses_Requested_From_Application__c: 1,
+        Total_Price_All_Buses__c: 1,
+        Total_Bus_Rebate_Amount__c: 1,
+        Total_All_Eligible_Infrastructure_Costs__c: 1,
+        Total_Infrastructure_Rebate__c: 1,
+        Total_Level_2_Charger_Costs__c: 1,
+        Total_DC_Fast_Charger_Costs__c: 1,
+        Total_Other_Infrastructure_Costs__c: 1,
+      }
+    )
+    .execute(async (err, records) => ((await err) ? err : records));
+
+  const paymentRequestTableRecordId = paymentRequestTableRecordQuery["0"].Id;
+
+  // `SELECT
+  //   Id
+  // FROM
+  //   recordtype
+  // WHERE
+  //   developername = 'CSB_Rebate_Item' AND
+  //   sobjecttype = '${BAP_BUS_TABLE}'
+  // LIMIT 1`
+
+  const busTableIdQuery = await bapConnection
+    .sobject("recordtype")
+    .find(
+      {
+        developername: "CSB_Rebate_Item",
+        sobjecttype: BAP_BUS_TABLE,
+      },
+      {
+        // "*": 1,
+        Id: 1, // Salesforce record ID
+      }
+    )
+    .limit(1)
+    .execute(async (err, records) => ((await err) ? err : records));
+
+  const busTableId = busTableIdQuery["0"].Id;
+
+  // `SELECT
+  //   Rebate_Item_num__c,
+  //   CSB_VIN__c,
+  //   CSB_Model_Year__c,
+  //   CSB_Fuel_Type__c,
+  //   CSB_Manufacturer_if_Other__c,
+  //   Old_Bus_NCES_District_ID__c,
+  //   Old_Bus_Estimated_Remaining_Life__c,
+  //   Related_Line_Item__r.Purchaser_Name__c,
+  //   New_Bus_Fuel_Type__c,
+  //   New_Bus_Make__c,
+  //   New_Bus_Model__c,
+  //   New_Bus_Model_Year__c,
+  //   New_Bus_GVWR__c,
+  //   New_Bus_Rebate_Amount__c,
+  //   New_Bus_Purchase_Price__c
+  // FROM
+  //   ${BAP_BUS_TABLE}
+  // WHERE
+  //   recordtypeid = '${busTableId}' AND
+  //   Related_Order_Request__c = '${paymentRequestTableRecordId}' AND
+  //   CSB_Rebate_Item_Type__c = 'New Bus'`
+
+  const busTableRecordsQuery = await bapConnection
+    .sobject(BAP_BUS_TABLE)
+    .find(
+      {
+        recordtypeid: busTableId,
+        Related_Order_Request__c: paymentRequestTableRecordId,
+        CSB_Rebate_Item_Type__c: "New Bus",
+      },
+      {
+        // "*": 1,
+        Rebate_Item_num__c: 1,
+        CSB_VIN__c: 1,
+        CSB_Model_Year__c: 1,
+        CSB_Fuel_Type__c: 1,
+        CSB_Manufacturer_if_Other__c: 1,
+        Old_Bus_NCES_District_ID__c: 1,
+        Old_Bus_Estimated_Remaining_Life__c: 1,
+        "Related_Line_Item__r.Vendor_Name__c": 1,
+        New_Bus_Fuel_Type__c: 1,
+        New_Bus_Make__c: 1,
+        New_Bus_Model__c: 1,
+        New_Bus_Model_Year__c: 1,
+        New_Bus_GVWR__c: 1,
+        New_Bus_Rebate_Amount__c: 1,
+        New_Bus_Purchase_Price__c: 1,
+      }
+    )
+    .execute(async (err, records) => ((await err) ? err : records));
+
+  return { paymentRequestTableRecordQuery, busTableRecordsQuery };
 }
 
 /**

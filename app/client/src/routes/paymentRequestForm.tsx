@@ -239,17 +239,6 @@ export function PaymentRequestForm() {
         />
       )}
 
-      <Dialog as="div" open={dataIsPosting.current} onClose={(ev) => {}}>
-        <div className="tw-fixed tw-inset-0 tw-bg-black/30" />
-        <div className="tw-fixed tw-inset-0 tw-z-20">
-          <div className="tw-flex tw-min-h-full tw-items-center tw-justify-center">
-            <Dialog.Panel className="tw-rounded-lg tw-bg-white tw-px-4 tw-pb-4 tw-shadow-xl">
-              <Loading />
-            </Dialog.Panel>
-          </div>
-        </div>
-      </Dialog>
-
       <ul className="usa-icon-list">
         <li className="usa-icon-list__item">
           <div className="usa-icon-list__icon text-primary">
@@ -262,6 +251,17 @@ export function PaymentRequestForm() {
           </div>
         </li>
       </ul>
+
+      <Dialog as="div" open={dataIsPosting.current} onClose={(ev) => {}}>
+        <div className="tw-fixed tw-inset-0 tw-bg-black/30" />
+        <div className="tw-fixed tw-inset-0 tw-z-20">
+          <div className="tw-flex tw-min-h-full tw-items-center tw-justify-center">
+            <Dialog.Panel className="tw-rounded-lg tw-bg-white tw-px-4 tw-pb-4 tw-shadow-xl">
+              <Loading />
+            </Dialog.Panel>
+          </div>
+        </div>
+      </Dialog>
 
       <div className="csb-form">
         <Form
