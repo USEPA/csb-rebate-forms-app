@@ -765,23 +765,44 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
   } = entity;
 
   return getBapPaymentRequestSubmission(req, reviewItemId)
-    .then((response) => {
-      const busInfo = [1, 2, 3].map((record) => ({
-        busNum: "",
-        oldBusVin: "",
-        oldBusFuelType: "",
-        oldBusNcesDistrictId: "",
-        oldBusModelYear: "",
-        oldBusEstimatedRemainingLife: "",
-        newBusDealer: "",
-        newBusFuelType: "",
-        newBusManufacturer: "",
-        newBusManufacturerOther: "",
-        newBusModel: "",
-        newBusModelYear: "",
-        newBusGvwr: "",
-        hidden_bap_prf_rebate: "",
-        newBusPurchasePrice: "",
+    .then(({ paymentRequestTableRecordQuery, busTableRecordsQuery }) => {
+      const {
+        CSB_NCES_ID__c,
+        Primary_Applicant__r,
+        Alternate_Applicant__r,
+        Applicant_Organization__r,
+        CSB_School_District__r,
+        Fleet_Name__c,
+        School_District_Prioritized__c,
+        Total_Rebate_Funds_Requested__c,
+        Total_Infrastructure_Funds__c,
+        Total_Bus_And_Infrastructure_Rebate__c,
+        Num_Of_Buses_Requested_From_Application__c,
+        Total_Price_All_Buses__c,
+        Total_Bus_Rebate_Amount__c,
+        Total_All_Eligible_Infrastructure_Costs__c,
+        Total_Infrastructure_Rebate__c,
+        Total_Level_2_Charger_Costs__c,
+        Total_DC_Fast_Charger_Costs__c,
+        Total_Other_Infrastructure_Costs__c,
+      } = paymentRequestTableRecordQuery[0];
+
+      const busInfo = busTableRecordsQuery.map((record) => ({
+        busNum: record.Rebate_Item_num__c,
+        oldBusNcesDistrictId: CSB_NCES_ID__c,
+        oldBusVin: record.CSB_VIN__c,
+        oldBusModelYear: record.CSB_Model_Year__c,
+        oldBusFuelType: record.CSB_Fuel_Type__c,
+        oldBusEstimatedRemainingLife: record.Old_Bus_Estimated_Remaining_Life__c, // prettier-ignore
+        newBusDealer: record.Vendor_Name__c,
+        newBusFuelType: record.New_Bus_Fuel_Type__c,
+        newBusManufacturer: record.New_Bus_Make__c,
+        newBusManufacturerOther: record.CSB_Manufacturer_if_Other__c,
+        newBusModel: record.New_Bus_Model__c,
+        newBusModelYear: record.New_Bus_Model_Year__c,
+        newBusGvwr: record.New_Bus_GVWR__c,
+        newBusPurchasePrice: record.New_Bus_Purchase_Price__c,
+        hidden_bap_prf_rebate: record.New_Bus_Rebate_Amount__c,
       }));
 
       const submission = {
@@ -798,30 +819,30 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
           hidden_sam_alt_elec_bus_poc_email: ALT_ELEC_BUS_POC_EMAIL__c,
           hidden_sam_govt_bus_poc_email: GOVT_BUS_POC_EMAIL__c,
           hidden_sam_alt_govt_bus_poc_email: ALT_GOVT_BUS_POC_EMAIL__c,
-          hidden_bap_prioritized: "",
-          hidden_bap_district_id: "",
-          hidden_bap_requested_funds: "",
-          hidden_bap_primary_name: "",
-          hidden_bap_primary_title: "",
-          hidden_bap_primary_phone_number: "",
-          hidden_bap_primary_email: "",
-          hidden_bap_alternate_name: "",
-          hidden_bap_alternate_title: "",
-          hidden_bap_alternate_phone_number: "",
-          hidden_bap_alternate_email: "",
-          hidden_bap_org_name: "",
-          hidden_bap_fleet_name: "",
-          hidden_bap_district_name: "",
-          hidden_bap_prf_infra_max_rebate: "",
-          hidden_bap_received_funds: "",
-          hidden_bap_buses_requested_app: "",
-          hidden_bap_total_bus_costs_prf: "",
-          hidden_bap_total_bus_rebate_received: "",
-          hidden_bap_total_infra_costs_prf: "",
-          hidden_bap_total_infra_rebate_received: "",
-          hidden_bap_total_infra_level2_charger: "",
-          hidden_bap_total_infra_dc_fast_charger: "",
-          hidden_bap_total_infra_other_costs: "",
+          hidden_bap_district_id: CSB_NCES_ID__c,
+          hidden_bap_district_name: CSB_School_District__r?.Name, //
+          hidden_bap_primary_name: Primary_Applicant__r?.Name,
+          hidden_bap_primary_title: Primary_Applicant__r?.Title,
+          hidden_bap_primary_phone_number: Primary_Applicant__r?.Phone,
+          hidden_bap_primary_email: Primary_Applicant__r?.Email,
+          hidden_bap_alternate_name: Alternate_Applicant__r?.Name || "",
+          hidden_bap_alternate_title: Alternate_Applicant__r?.Title || "",
+          hidden_bap_alternate_phone_number: Alternate_Applicant__r?.Phone || "", // prettier-ignore
+          hidden_bap_alternate_email: Alternate_Applicant__r?.Email || "",
+          hidden_bap_org_name: Applicant_Organization__r?.Name,
+          hidden_bap_fleet_name: Fleet_Name__c,
+          hidden_bap_prioritized: School_District_Prioritized__c,
+          hidden_bap_requested_funds: Total_Rebate_Funds_Requested__c,
+          hidden_bap_prf_infra_max_rebate: Total_Infrastructure_Funds__c,
+          hidden_bap_received_funds: Total_Bus_And_Infrastructure_Rebate__c,
+          hidden_bap_buses_requested_app: Num_Of_Buses_Requested_From_Application__c, // prettier-ignore
+          hidden_bap_total_bus_costs_prf: Total_Price_All_Buses__c,
+          hidden_bap_total_bus_rebate_received: Total_Bus_Rebate_Amount__c,
+          hidden_bap_total_infra_costs_prf: Total_All_Eligible_Infrastructure_Costs__c, // prettier-ignore
+          hidden_bap_total_infra_rebate_received: Total_Infrastructure_Rebate__c, // prettier-ignore
+          hidden_bap_total_infra_level2_charger: Total_Level_2_Charger_Costs__c,
+          hidden_bap_total_infra_dc_fast_charger: Total_DC_Fast_Charger_Costs__c, // prettier-ignore
+          hidden_bap_total_infra_other_costs: Total_Other_Infrastructure_Costs__c, // prettier-ignore
           busInfo,
         },
         // add custom metadata to track formio submissions from wrapper
