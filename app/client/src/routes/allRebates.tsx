@@ -492,12 +492,237 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
               text="Needs Clarification"
               tooltip="Check your email for instructions on what needs clarification"
             />
-          ) : paymentRequestFundingApproved ? (
+          ) : paymentRequestFundingApproved /* TODO: check if this should change now */ ? (
             <TextWithTooltip
               text="Funding Approved"
               tooltip="Check your email for more details on funding"
               iconName="check_circle" // check inside a circle
               iconClassNames="text-primary" // blue
+            />
+          ) : (
+            <>
+              <svg
+                className={statusIconClassNames}
+                aria-hidden="true"
+                focusable="false"
+                role="img"
+              >
+                <use href={statusIcon} />
+              </svg>
+              <span className="margin-left-05">{statusText}</span>
+            </>
+          )}
+        </span>
+      </td>
+
+      <td className={statusTableCellClassNames}>&nbsp;</td>
+
+      <td className={statusTableCellClassNames}>&nbsp;</td>
+
+      <td className={statusTableCellClassNames}>
+        {hidden_current_user_email}
+        <br />
+        <span title={`${date} ${time}`}>{date}</span>
+      </td>
+    </tr>
+  );
+}
+
+function CloseOutSubmission(props: { rebate: Rebate }) {
+  const { rebate } = props;
+  const { paymentRequest, closeOut } = rebate;
+
+  const navigate = useNavigate();
+  const { email } = useOutletContext<{ email: string }>();
+
+  const csbData = useCsbData();
+  const bapSamData = useBapSamData();
+  const { displayErrorNotification } = useNotificationsActions();
+
+  /**
+   * Stores when data is being posted to the server, so a loading indicator can
+   * be rendered inside the "New Close-Out" button, and we can prevent double
+   * submits/creations of new close-out form submissions.
+   */
+  const [dataIsPosting, setDataIsPosting] = useState(false);
+
+  if (!csbData || !bapSamData) return null;
+
+  const closeOutFormOpen = csbData.submissionPeriodOpen.closeOut;
+
+  const paymentRequestSelected = paymentRequest.bap?.status === "Accepted";
+
+  const paymentRequestSelectedButNoCloseOut =
+    paymentRequestSelected && !Boolean(closeOut.formio);
+
+  /** matched SAM.gov entity for the Payment Request submission */
+  const entity = bapSamData.entities.find((entity) => {
+    return (
+      entity.ENTITY_STATUS__c === "Active" &&
+      entity.ENTITY_COMBO_KEY__c ===
+        paymentRequest.formio?.data.bap_hidden_entity_combo_key
+    );
+  });
+
+  if (paymentRequestSelectedButNoCloseOut) {
+    return (
+      <tr className={highlightedTableRowClassNames}>
+        <th scope="row" colSpan={6}>
+          <button
+            className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
+            onClick={(ev) => {
+              if (!paymentRequest.bap?.rebateId || !entity) return;
+
+              // account for when data is posting to prevent double submits
+              if (dataIsPosting) return;
+              setDataIsPosting(true);
+
+              const { title, name } = getUserInfo(email, entity);
+
+              // create a new draft close-out submission
+              postData(`${serverUrl}/api/formio-close-out-submission/`, {
+                email,
+                title,
+                name,
+                entity,
+                comboKey: paymentRequest.bap.comboKey,
+                rebateId: paymentRequest.bap.rebateId, // CSB Rebate ID (6 digits)
+                reviewItemId: paymentRequest.bap.reviewItemId, // CSB Rebate ID with form/version ID (9 digits)
+                paymentRequestFormModified: paymentRequest.bap.modified,
+              })
+                .then((res) => {
+                  navigate(`/close-out/${paymentRequest.bap?.rebateId}`);
+                })
+                .catch((err) => {
+                  displayErrorNotification({
+                    id: Date.now(),
+                    body: (
+                      <>
+                        <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                          Error creating Close-Out{" "}
+                          <em>{paymentRequest.bap?.rebateId}</em>.
+                        </p>
+                        <p className="tw-mt-1 tw-text-sm tw-text-gray-500">
+                          Please try again.
+                        </p>
+                      </>
+                    ),
+                  });
+                })
+                .finally(() => {
+                  setDataIsPosting(false);
+                });
+            }}
+          >
+            <span className="display-flex flex-align-center">
+              <svg
+                className="usa-icon"
+                aria-hidden="true"
+                focusable="false"
+                role="img"
+              >
+                <use href={`${icons}#add_circle`} />
+              </svg>
+              <span className="margin-left-1">New Close-Out</span>
+              {dataIsPosting && <LoadingButtonIcon />}
+            </span>
+          </button>
+        </th>
+      </tr>
+    );
+  }
+
+  // return if a Close-Out submission has not been created for this rebate
+  if (!closeOut.formio) return null;
+
+  const { hidden_current_user_email, hidden_bap_rebate_id } =
+    closeOut.formio.data;
+
+  const date = new Date(closeOut.formio.modified).toLocaleDateString();
+  const time = new Date(closeOut.formio.modified).toLocaleTimeString();
+
+  const closeOutNeedsEdits = submissionNeedsEdits({
+    formio: closeOut.formio,
+    bap: closeOut.bap,
+  });
+
+  const closeOutNeedsClarification =
+    closeOut.bap?.status === "Needs Clarification";
+
+  const closeOutNotApproved = closeOut.bap?.status === "Coordinator Denied"; // TODO: confirm BAP status
+
+  const closeOutReimbursementNeeded =
+    closeOut.bap?.status === "Reimbursement Needed"; // TODO: confirm BAP status
+
+  const closeOutApproved = closeOut.bap?.status === "Accepted"; // TODO: confirm BAP status
+
+  const statusTableCellClassNames =
+    closeOut.formio.state === "submitted" || !closeOutFormOpen
+      ? "text-italic"
+      : "";
+
+  const statusIconClassNames = closeOutApproved
+    ? "usa-icon text-primary" // blue
+    : "usa-icon";
+
+  const statusIcon = closeOutNeedsEdits
+    ? `${icons}#priority_high` // !
+    : closeOutNotApproved
+    ? `${icons}#cancel` // ✕ inside a circle
+    : closeOutReimbursementNeeded
+    ? `${icons}#priority_high` // !
+    : closeOutApproved
+    ? `${icons}#check_circle` // check inside a circle
+    : closeOut.formio.state === "draft"
+    ? `${icons}#more_horiz` // three horizontal dots
+    : closeOut.formio.state === "submitted"
+    ? `${icons}#check` // check
+    : `${icons}#remove`; // — (fallback, not used)
+
+  const statusText = closeOutNeedsEdits
+    ? "Edits Requested"
+    : closeOutNotApproved
+    ? "Close-Out Not Approved"
+    : closeOutReimbursementNeeded
+    ? "Reimbursement Needed"
+    : closeOutApproved
+    ? "Close-Out Approved"
+    : closeOut.formio.state === "draft"
+    ? "Draft"
+    : closeOut.formio.state === "submitted"
+    ? "Submitted"
+    : ""; // fallback, not used
+
+  const closeOutFormUrl = `/close-out/${hidden_bap_rebate_id}`;
+
+  return (
+    <tr
+      className={
+        closeOutNeedsEdits
+          ? highlightedTableRowClassNames
+          : defaultTableRowClassNames
+      }
+    >
+      <th scope="row" className={statusTableCellClassNames}>
+        {closeOutNeedsEdits ? (
+          <ButtonLink type="edit" to={closeOutFormUrl} />
+        ) : closeOut.formio.state === "submitted" || !closeOutFormOpen ? (
+          <ButtonLink type="view" to={closeOutFormUrl} />
+        ) : closeOut.formio.state === "draft" ? (
+          <ButtonLink type="edit" to={closeOutFormUrl} />
+        ) : null}
+      </th>
+
+      <td className={statusTableCellClassNames}>&nbsp;</td>
+
+      <td className={statusTableCellClassNames}>
+        <span>Close-Out</span>
+        <br />
+        <span className="display-flex flex-align-center font-sans-2xs">
+          {closeOutNeedsClarification ? (
+            <TextWithTooltip
+              text="Needs Clarification"
+              tooltip="Check your email for instructions on what needs clarification"
             />
           ) : (
             <>
@@ -629,6 +854,7 @@ export function AllRebates() {
                   <Fragment key={rebate.rebateId}>
                     <ApplicationSubmission rebate={rebate} />
                     <PaymentRequestSubmission rebate={rebate} />
+                    <CloseOutSubmission rebate={rebate} />
                     {/* blank row after all rebates but the last one */}
                     {index !== rebates.length - 1 && (
                       <tr className="bg-white">
