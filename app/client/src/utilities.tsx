@@ -14,6 +14,8 @@ type Content = {
   submittedApplicationIntro: string;
   draftPaymentRequestIntro: string;
   submittedPaymentRequestIntro: string;
+  draftCloseOutIntro: string;
+  submittedCloseOutIntro: string;
 };
 
 export type CsbData = {

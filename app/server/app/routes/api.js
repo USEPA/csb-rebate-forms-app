@@ -91,6 +91,8 @@ router.get("/content", (req, res) => {
     "submitted-application-intro.md",
     "draft-payment-request-intro.md",
     "submitted-payment-request-intro.md",
+    "draft-close-out-intro.md",
+    "submitted-close-out-intro.md",
   ];
 
   const s3BucketUrl = `https://${s3Bucket}.s3-${s3Region}.amazonaws.com`;
@@ -122,6 +124,8 @@ router.get("/content", (req, res) => {
         submittedApplicationIntro: data[6],
         draftPaymentRequestIntro: data[7],
         submittedPaymentRequestIntro: data[8],
+        draftCloseOutIntro: data[9],
+        submittedCloseOutIntro: data[10],
       });
     })
     .catch((error) => {
