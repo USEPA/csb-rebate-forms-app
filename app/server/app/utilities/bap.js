@@ -612,7 +612,7 @@ async function queryForBapPaymentRequestSubmission(req, reviewItemId) {
         CSB_Manufacturer_if_Other__c: 1,
         Old_Bus_NCES_District_ID__c: 1,
         Old_Bus_Estimated_Remaining_Life__c: 1,
-        "Related_Line_Item__r.Purchaser_Name__c": 1,
+        "Related_Line_Item__r.Vendor_Name__c": 1,
         New_Bus_Fuel_Type__c: 1,
         New_Bus_Make__c: 1,
         New_Bus_Model__c: 1,
