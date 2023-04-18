@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import { Dialog } from "@headlessui/react";
@@ -106,8 +106,17 @@ function useFormioSubmissionQueryAndMutation(mongoId: string | undefined) {
 }
 
 export function ApplicationForm() {
-  const navigate = useNavigate();
   const { email } = useOutletContext<{ email: string }>();
+  /* ensure user verification (JWT refresh) doesn't cause form to re-render */
+  return useMemo(() => {
+    return <UserApplicationForm email={email} />;
+  }, [email]);
+}
+
+function UserApplicationForm(props: { email: string }) {
+  const { email } = props;
+
+  const navigate = useNavigate();
   const { id: mongoId } = useParams<"id">(); // MongoDB ObjectId string
 
   const content = useContentData();
