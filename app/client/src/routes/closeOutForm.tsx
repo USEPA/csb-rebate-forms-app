@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import { Dialog } from "@headlessui/react";
@@ -101,8 +101,17 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
 }
 
 export function CloseOutForm() {
-  const navigate = useNavigate();
   const { email } = useOutletContext<{ email: string }>();
+  /* ensure user verification (JWT refresh) doesn't cause form to re-render */
+  return useMemo(() => {
+    return <UserCloseOutForm email={email} />;
+  }, [email]);
+}
+
+function UserCloseOutForm(props: { email: string }) {
+  const { email } = props;
+
+  const navigate = useNavigate();
   const { id: rebateId } = useParams<"id">(); // CSB Rebate ID (6 digits)
 
   const content = useContentData();
