@@ -798,15 +798,23 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
         oldBusModelYear: record.CSB_Model_Year__c,
         oldBusFuelType: record.CSB_Fuel_Type__c,
         oldBusEstimatedRemainingLife: record.Old_Bus_Estimated_Remaining_Life__c, // prettier-ignore
+        hidden_prf_oldBusExclude: record.Old_Bus_Exclude__c,
         newBusDealer: record.Vendor_Name__c,
         newBusFuelType: record.New_Bus_Fuel_Type__c,
-        newBusManufacturer: record.New_Bus_Make__c,
-        newBusManufacturerOther: record.CSB_Manufacturer_if_Other__c,
+        hidden_prf_newBusFuelType: record.New_Bus_Fuel_Type__c,
+        newBusMake: record.New_Bus_Make__c,
+        hidden_prf_newBusMake: record.New_Bus_Make__c,
+        newBusMakeOther: record.CSB_Manufacturer_if_Other__c,
+        hidden_prf_newBusMakeOther: record.CSB_Manufacturer_if_Other__c,
         newBusModel: record.New_Bus_Model__c,
+        hidden_prf_newBusModel: record.New_Bus_Model__c,
         newBusModelYear: record.New_Bus_Model_Year__c,
+        hidden_prf_newBusModelYear: record.New_Bus_Model_Year__c,
         newBusGvwr: record.New_Bus_GVWR__c,
+        hidden_prf_newBusGvwr: record.New_Bus_GVWR__c,
         newBusPurchasePrice: record.New_Bus_Purchase_Price__c,
-        hidden_bap_prf_rebate: record.New_Bus_Rebate_Amount__c,
+        hidden_prf_newBusPurchasePrice: record.New_Bus_Purchase_Price__c,
+        hidden_prf_rebate: record.New_Bus_Rebate_Amount__c,
       }));
 
       const submission = {
@@ -824,7 +832,7 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
           hidden_sam_govt_bus_poc_email: GOVT_BUS_POC_EMAIL__c,
           hidden_sam_alt_govt_bus_poc_email: ALT_GOVT_BUS_POC_EMAIL__c,
           hidden_bap_district_id: CSB_NCES_ID__c,
-          hidden_bap_district_name: CSB_School_District__r?.Name, //
+          hidden_bap_district_name: CSB_School_District__r?.Name,
           hidden_bap_primary_name: Primary_Applicant__r?.Name,
           hidden_bap_primary_title: Primary_Applicant__r?.Title,
           hidden_bap_primary_phone_number: Primary_Applicant__r?.Phone,

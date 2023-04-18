@@ -148,7 +148,8 @@ function checkClientRouteExists(req, res, next) {
   if (
     !clientRoutes.includes(req.path) &&
     !req.path.includes("/rebate/") &&
-    !req.path.includes("/payment-request/")
+    !req.path.includes("/payment-request/") &&
+    !req.path.includes("/close-out/")
   ) {
     return res.status(404).sendFile(resolve(__dirname, "public/404.html"));
   }
