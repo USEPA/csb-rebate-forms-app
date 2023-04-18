@@ -798,6 +798,7 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
         oldBusModelYear: record.CSB_Model_Year__c,
         oldBusFuelType: record.CSB_Fuel_Type__c,
         oldBusEstimatedRemainingLife: record.Old_Bus_Estimated_Remaining_Life__c, // prettier-ignore
+        hidden_prf_oldBusExclude: record.Old_Bus_Exclude__c,
         newBusDealer: record.Vendor_Name__c,
         newBusFuelType: record.New_Bus_Fuel_Type__c,
         hidden_prf_newBusFuelType: record.New_Bus_Fuel_Type__c,
