@@ -274,11 +274,11 @@ async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
 /**
  * Uses cached JSforce connection to query the BAP for a single Application form submission.
  * @param {express.Request} req
- * @param {string} reviewItemId CSB Rebate ID with the form/version ID (9 digits)
+ * @param {string} applicationReviewItemId CSB Rebate ID with the form/version ID (9 digits)
  * @returns {Promise<Object>} Application form submission fields
  */
-async function queryForBapApplicationSubmission(req, reviewItemId) {
-  const message = `Querying BAP for Application form submission associated with CSB Review Item ID: ${reviewItemId}.`;
+async function queryForBapApplicationSubmission(req, applicationReviewItemId) {
+  const message = `Querying BAP for Application form submission associated with CSB Review Item ID: ${applicationReviewItemId}.`;
   log({ level: "info", message });
 
   /** @type {jsforce.Connection} */
@@ -293,7 +293,7 @@ async function queryForBapApplicationSubmission(req, reviewItemId) {
   //   sobjecttype = '${BAP_FORMS_TABLE}'
   // LIMIT 1`
 
-  const applicationTableIdQuery = await bapConnection
+  const applicationRecordTypeIdQuery = await bapConnection
     .sobject("recordtype")
     .find(
       {
@@ -308,7 +308,7 @@ async function queryForBapApplicationSubmission(req, reviewItemId) {
     .limit(1)
     .execute(async (err, records) => ((await err) ? err : records));
 
-  const applicationTableId = applicationTableIdQuery["0"].Id;
+  const applicationRecordTypeId = applicationRecordTypeIdQuery["0"].Id;
 
   // `SELECT
   //   Id,
@@ -331,16 +331,16 @@ async function queryForBapApplicationSubmission(req, reviewItemId) {
   // FROM
   //   ${BAP_FORMS_TABLE}
   // WHERE
-  //   recordtypeid = '${applicationTableId}' AND
-  //   CSB_Review_Item_ID__c = '${reviewItemId}' AND
+  //   recordtypeid = '${applicationRecordTypeId}' AND
+  //   CSB_Review_Item_ID__c = '${applicationReviewItemId}' AND
   //   Latest_Version__c = TRUE`
 
-  const applicationTableRecordQuery = await bapConnection
+  const applicationRecordQuery = await bapConnection
     .sobject(BAP_FORMS_TABLE)
     .find(
       {
-        recordtypeid: applicationTableId,
-        CSB_Review_Item_ID__c: reviewItemId,
+        recordtypeid: applicationRecordTypeId,
+        CSB_Review_Item_ID__c: applicationReviewItemId,
         Latest_Version__c: true,
       },
       {
@@ -366,7 +366,7 @@ async function queryForBapApplicationSubmission(req, reviewItemId) {
     )
     .execute(async (err, records) => ((await err) ? err : records));
 
-  const applicationTableRecordId = applicationTableRecordQuery["0"].Id;
+  const applicationRecordId = applicationRecordQuery["0"].Id;
 
   // `SELECT
   //   Id
@@ -377,7 +377,7 @@ async function queryForBapApplicationSubmission(req, reviewItemId) {
   //   sobjecttype = '${BAP_BUS_TABLE}'
   // LIMIT 1`
 
-  const busTableIdQuery = await bapConnection
+  const busRecordTypeIdQuery = await bapConnection
     .sobject("recordtype")
     .find(
       {
@@ -392,7 +392,7 @@ async function queryForBapApplicationSubmission(req, reviewItemId) {
     .limit(1)
     .execute(async (err, records) => ((await err) ? err : records));
 
-  const busTableId = busTableIdQuery["0"].Id;
+  const busRecordTypeId = busRecordTypeIdQuery["0"].Id;
 
   // `SELECT
   //   Rebate_Item_num__c,
@@ -404,16 +404,16 @@ async function queryForBapApplicationSubmission(req, reviewItemId) {
   // FROM
   //   ${BAP_BUS_TABLE}
   // WHERE
-  //   recordtypeid = '${busTableId}' AND
-  //   Related_Order_Request__c = '${applicationTableRecordId}' AND
+  //   recordtypeid = '${busRecordTypeId}' AND
+  //   Related_Order_Request__c = '${applicationRecordId}' AND
   //   CSB_Rebate_Item_Type__c = 'Old Bus'`
 
-  const busTableRecordsQuery = await bapConnection
+  const busRecordsQuery = await bapConnection
     .sobject(BAP_BUS_TABLE)
     .find(
       {
-        recordtypeid: busTableId,
-        Related_Order_Request__c: applicationTableRecordId,
+        recordtypeid: busRecordTypeId,
+        Related_Order_Request__c: applicationRecordId,
         CSB_Rebate_Item_Type__c: "Old Bus",
       },
       {
@@ -428,17 +428,20 @@ async function queryForBapApplicationSubmission(req, reviewItemId) {
     )
     .execute(async (err, records) => ((await err) ? err : records));
 
-  return { applicationTableRecordQuery, busTableRecordsQuery };
+  return { applicationRecordQuery, busRecordsQuery };
 }
 
 /**
  * Uses cached JSforce connection to query the BAP for a single Payment Request form submission.
  * @param {express.Request} req
- * @param {string} reviewItemId CSB Rebate ID with the form/version ID (9 digits)
+ * @param {string} paymentRequestReviewItemId CSB Rebate ID with the form/version ID (9 digits)
  * @returns {Promise<Object>} Payment Request form submission fields
  */
-async function queryForBapPaymentRequestSubmission(req, reviewItemId) {
-  const message = `Querying BAP for Payment Request form submission associated with CSB Review Item ID: ${reviewItemId}.`;
+async function queryForBapPaymentRequestSubmission(
+  req,
+  paymentRequestReviewItemId
+) {
+  const message = `Querying BAP for Payment Request form submission associated with CSB Review Item ID: ${paymentRequestReviewItemId}.`;
   log({ level: "info", message });
 
   /** @type {jsforce.Connection} */
@@ -453,7 +456,7 @@ async function queryForBapPaymentRequestSubmission(req, reviewItemId) {
   //   sobjecttype = '${BAP_FORMS_TABLE}'
   // LIMIT 1`
 
-  const paymentRequestTableIdQuery = await bapConnection
+  const paymentRequestRecordTypeIdQuery = await bapConnection
     .sobject("recordtype")
     .find(
       {
@@ -468,7 +471,7 @@ async function queryForBapPaymentRequestSubmission(req, reviewItemId) {
     .limit(1)
     .execute(async (err, records) => ((await err) ? err : records));
 
-  const paymentRequestTableId = paymentRequestTableIdQuery["0"].Id;
+  const paymentRequestRecordTypeId = paymentRequestRecordTypeIdQuery["0"].Id;
 
   // `SELECT
   //   Id,
@@ -500,16 +503,16 @@ async function queryForBapPaymentRequestSubmission(req, reviewItemId) {
   // FROM
   //   ${BAP_FORMS_TABLE}
   // WHERE
-  //   recordtypeid = '${paymentRequestTableId}' AND
-  //   CSB_Review_Item_ID__c = '${reviewItemId}' AND
+  //   recordtypeid = '${paymentRequestRecordTypeId}' AND
+  //   CSB_Review_Item_ID__c = '${paymentRequestReviewItemId}' AND
   //   Latest_Version__c = TRUE`
 
-  const paymentRequestTableRecordQuery = await bapConnection
+  const paymentRequestRecordQuery = await bapConnection
     .sobject(BAP_FORMS_TABLE)
     .find(
       {
-        recordtypeid: paymentRequestTableId,
-        CSB_Review_Item_ID__c: reviewItemId,
+        recordtypeid: paymentRequestRecordTypeId,
+        CSB_Review_Item_ID__c: paymentRequestReviewItemId,
         Latest_Version__c: true,
       },
       {
@@ -544,7 +547,7 @@ async function queryForBapPaymentRequestSubmission(req, reviewItemId) {
     )
     .execute(async (err, records) => ((await err) ? err : records));
 
-  const paymentRequestTableRecordId = paymentRequestTableRecordQuery["0"].Id;
+  const paymentRequestRecordId = paymentRequestRecordQuery["0"].Id;
 
   // `SELECT
   //   Id
@@ -555,7 +558,7 @@ async function queryForBapPaymentRequestSubmission(req, reviewItemId) {
   //   sobjecttype = '${BAP_BUS_TABLE}'
   // LIMIT 1`
 
-  const busTableIdQuery = await bapConnection
+  const busRecordTypeIdQuery = await bapConnection
     .sobject("recordtype")
     .find(
       {
@@ -570,7 +573,7 @@ async function queryForBapPaymentRequestSubmission(req, reviewItemId) {
     .limit(1)
     .execute(async (err, records) => ((await err) ? err : records));
 
-  const busTableId = busTableIdQuery["0"].Id;
+  const busRecordTypeId = busRecordTypeIdQuery["0"].Id;
 
   // `SELECT
   //   Rebate_Item_num__c,
@@ -591,16 +594,16 @@ async function queryForBapPaymentRequestSubmission(req, reviewItemId) {
   // FROM
   //   ${BAP_BUS_TABLE}
   // WHERE
-  //   recordtypeid = '${busTableId}' AND
-  //   Related_Order_Request__c = '${paymentRequestTableRecordId}' AND
+  //   recordtypeid = '${busRecordTypeId}' AND
+  //   Related_Order_Request__c = '${paymentRequestRecordId}' AND
   //   CSB_Rebate_Item_Type__c = 'New Bus'`
 
-  const busTableRecordsQuery = await bapConnection
+  const busRecordsQuery = await bapConnection
     .sobject(BAP_BUS_TABLE)
     .find(
       {
-        recordtypeid: busTableId,
-        Related_Order_Request__c: paymentRequestTableRecordId,
+        recordtypeid: busRecordTypeId,
+        Related_Order_Request__c: paymentRequestRecordId,
         CSB_Rebate_Item_Type__c: "New Bus",
       },
       {
@@ -624,7 +627,7 @@ async function queryForBapPaymentRequestSubmission(req, reviewItemId) {
     )
     .execute(async (err, records) => ((await err) ? err : records));
 
-  return { paymentRequestTableRecordQuery, busTableRecordsQuery };
+  return { paymentRequestRecordQuery, busRecordsQuery };
 }
 
 /**
@@ -703,24 +706,24 @@ function getBapFormSubmissionsStatuses(req, comboKeys) {
 /**
  * Fetches an Application form submission associated with a CSB Review Item ID.
  * @param {express.Request} req
- * @param {string} reviewItemId
+ * @param {string} applicationReviewItemId
  */
-function getBapApplicationSubmission(req, reviewItemId) {
+function getBapApplicationSubmission(req, applicationReviewItemId) {
   return verifyBapConnection(req, {
     name: queryForBapApplicationSubmission,
-    args: [req, reviewItemId],
+    args: [req, applicationReviewItemId],
   });
 }
 
 /**
  * Fetches a Payment Request form submission associated with a CSB Review Item ID.
  * @param {express.Request} req
- * @param {string} reviewItemId
+ * @param {string} paymentRequestReviewItemId
  */
-function getBapPaymentRequestSubmission(req, reviewItemId) {
+function getBapPaymentRequestSubmission(req, paymentRequestReviewItemId) {
   return verifyBapConnection(req, {
     name: queryForBapPaymentRequestSubmission,
-    args: [req, reviewItemId],
+    args: [req, paymentRequestReviewItemId],
   });
 }
 

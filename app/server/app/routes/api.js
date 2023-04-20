@@ -436,7 +436,7 @@ router.post(
       entity,
       comboKey,
       rebateId,
-      reviewItemId,
+      applicationReviewItemId,
       applicationFormModified,
     } = req.body;
 
@@ -461,8 +461,8 @@ router.post(
       ALT_GOVT_BUS_POC_EMAIL__c,
     } = entity;
 
-    return getBapApplicationSubmission(req, reviewItemId)
-      .then(({ applicationTableRecordQuery, busTableRecordsQuery }) => {
+    return getBapApplicationSubmission(req, applicationReviewItemId)
+      .then(({ applicationRecordQuery, busRecordsQuery }) => {
         const {
           CSB_NCES_ID__c,
           Primary_Applicant__r,
@@ -473,9 +473,9 @@ router.post(
           School_District_Prioritized__c,
           Total_Rebate_Funds_Requested__c,
           Total_Infrastructure_Funds__c,
-        } = applicationTableRecordQuery[0];
+        } = applicationRecordQuery[0];
 
-        const busInfo = busTableRecordsQuery.map((record) => ({
+        const busInfo = busRecordsQuery.map((record) => ({
           busNum: record.Rebate_Item_num__c,
           oldBusNcesDistrictId: CSB_NCES_ID__c,
           oldBusVin: record.CSB_VIN__c,
@@ -743,7 +743,7 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
     entity,
     comboKey,
     rebateId,
-    reviewItemId,
+    paymentRequestReviewItemId,
     paymentRequestFormModified,
   } = req.body;
 
@@ -768,8 +768,8 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
     ALT_GOVT_BUS_POC_EMAIL__c,
   } = entity;
 
-  return getBapPaymentRequestSubmission(req, reviewItemId)
-    .then(({ paymentRequestTableRecordQuery, busTableRecordsQuery }) => {
+  return getBapPaymentRequestSubmission(req, paymentRequestReviewItemId)
+    .then(({ paymentRequestRecordQuery, busRecordsQuery }) => {
       const {
         CSB_NCES_ID__c,
         Primary_Applicant__r,
@@ -789,9 +789,9 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
         Total_Level_2_Charger_Costs__c,
         Total_DC_Fast_Charger_Costs__c,
         Total_Other_Infrastructure_Costs__c,
-      } = paymentRequestTableRecordQuery[0];
+      } = paymentRequestRecordQuery[0];
 
-      const busInfo = busTableRecordsQuery.map((record) => ({
+      const busInfo = busRecordsQuery.map((record) => ({
         busNum: record.Rebate_Item_num__c,
         oldBusNcesDistrictId: CSB_NCES_ID__c,
         oldBusVin: record.CSB_VIN__c,
