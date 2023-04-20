@@ -6,55 +6,17 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages } from "../config";
 import {
-  BapSamEntity,
+  FormioApplicationSubmission,
   postData,
   useContentData,
   useCsbData,
   useBapSamData,
   getUserInfo,
 } from "../utilities";
-import { Loading } from "components/loading";
+import { Loading, LoadingButtonIcon } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/tooltip";
-
-type FormioSubmission = {
-  [field: string]: unknown;
-  _id: string; // MongoDB ObjectId string
-  state: "submitted" | "draft";
-  modified: string; // ISO 8601 date string
-  data: { [field: string]: unknown };
-  metadata: { [field: string]: unknown };
-};
-
-function createNewApplication(email: string, entity: BapSamEntity) {
-  const { title, name } = getUserInfo(email, entity);
-
-  return postData<FormioSubmission>(
-    `${serverUrl}/api/formio-application-submission/`,
-    {
-      data: {
-        last_updated_by: email,
-        hidden_current_user_email: email,
-        hidden_current_user_title: title,
-        hidden_current_user_name: name,
-        bap_hidden_entity_combo_key: entity.ENTITY_COMBO_KEY__c,
-        sam_hidden_applicant_email: email,
-        sam_hidden_applicant_title: title,
-        sam_hidden_applicant_name: name,
-        sam_hidden_applicant_efti: entity.ENTITY_EFT_INDICATOR__c,
-        sam_hidden_applicant_uei: entity.UNIQUE_ENTITY_ID__c,
-        sam_hidden_applicant_organization_name: entity.LEGAL_BUSINESS_NAME__c,
-        sam_hidden_applicant_street_address_1: entity.PHYSICAL_ADDRESS_LINE_1__c, // prettier-ignore
-        sam_hidden_applicant_street_address_2: entity.PHYSICAL_ADDRESS_LINE_2__c, // prettier-ignore
-        sam_hidden_applicant_city: entity.PHYSICAL_ADDRESS_CITY__c,
-        sam_hidden_applicant_state: entity.PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c, // prettier-ignore
-        sam_hidden_applicant_zip_code: entity.PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c, // prettier-ignore
-      },
-      state: "draft",
-    }
-  );
-}
 
 export function NewApplicationForm() {
   const navigate = useNavigate();
@@ -64,15 +26,20 @@ export function NewApplicationForm() {
   const csbData = useCsbData();
   const bapSamData = useBapSamData();
 
-  const [message, setMessage] = useState<{
+  const [errorMessage, setErrorMessage] = useState<{
     displayed: boolean;
-    type: "info" | "success" | "warning" | "error";
     text: string;
   }>({
     displayed: false,
-    type: "info",
     text: "",
   });
+
+  /**
+   * Stores when data is being posted to the server, so a loading indicator can
+   * be rendered inside the new application button, and we can prevent double
+   * submits/creations of new application form submissions.
+   */
+  const [postingDataId, setPostingDataId] = useState("0");
 
   if (!csbData || !bapSamData) {
     return <Loading />;
@@ -159,8 +126,8 @@ export function NewApplicationForm() {
                         />
                       )}
 
-                      {message.displayed && (
-                        <Message type={message.type} text={message.text} />
+                      {errorMessage.displayed && (
+                        <Message type="error" text={errorMessage.text} />
                       )}
 
                       <div
@@ -197,62 +164,102 @@ export function NewApplicationForm() {
                             </tr>
                           </thead>
                           <tbody>
-                            {activeSamEntities.map((entity, index) => (
-                              <tr key={index}>
-                                <th scope="row" className="font-sans-2xs">
-                                  <button
-                                    className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-                                    onClick={(ev) => {
-                                      setMessage({
-                                        displayed: true,
-                                        type: "info",
-                                        text: "Creating new rebate form application...",
-                                      });
+                            {activeSamEntities.map((entity) => {
+                              const comboKey = entity.ENTITY_COMBO_KEY__c;
+                              const uei = entity.UNIQUE_ENTITY_ID__c;
+                              const efti = entity.ENTITY_EFT_INDICATOR__c;
+                              const orgName = entity.LEGAL_BUSINESS_NAME__c;
 
-                                      createNewApplication(email, entity)
-                                        .then((res) => {
-                                          navigate(`/rebate/${res._id}`);
-                                        })
-                                        .catch((err) => {
-                                          setMessage({
-                                            displayed: true,
-                                            type: "error",
-                                            text: "Error creating new rebate form application.",
-                                          });
+                              return (
+                                <tr key={comboKey}>
+                                  <th scope="row" className="font-sans-2xs">
+                                    <button
+                                      className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
+                                      onClick={(ev) => {
+                                        setErrorMessage({
+                                          displayed: false,
+                                          text: "",
                                         });
-                                    }}
-                                  >
-                                    <span className="usa-sr-only">
-                                      Create Form with UEI:{" "}
-                                      {entity.UNIQUE_ENTITY_ID__c} and EFTI:{" "}
-                                      {entity.ENTITY_EFT_INDICATOR__c}
-                                    </span>
-                                    <span className="display-flex flex-align-center">
-                                      <svg
-                                        className="usa-icon"
-                                        aria-hidden="true"
-                                        focusable="false"
-                                        role="img"
-                                      >
-                                        <use href={`${icons}#arrow_forward`} />
-                                      </svg>
-                                      <span className="mobile-lg:display-none margin-left-1">
-                                        New Form
+
+                                        // account for when data is posting to prevent double submits
+                                        if (postingDataId !== "0") return;
+                                        setPostingDataId(comboKey);
+
+                                        const { title, name } = getUserInfo(
+                                          email,
+                                          entity
+                                        );
+
+                                        postData<FormioApplicationSubmission>(
+                                          `${serverUrl}/api/formio-application-submission/`,
+                                          {
+                                            data: {
+                                              last_updated_by: email,
+                                              hidden_current_user_email: email,
+                                              hidden_current_user_title: title,
+                                              hidden_current_user_name: name,
+                                              bap_hidden_entity_combo_key: comboKey, // prettier-ignore
+                                              sam_hidden_applicant_email: email,
+                                              sam_hidden_applicant_title: title,
+                                              sam_hidden_applicant_name: name,
+                                              sam_hidden_applicant_efti: efti,
+                                              sam_hidden_applicant_uei: uei,
+                                              sam_hidden_applicant_organization_name: orgName, // prettier-ignore
+                                              sam_hidden_applicant_street_address_1: entity.PHYSICAL_ADDRESS_LINE_1__c, // prettier-ignore
+                                              sam_hidden_applicant_street_address_2: entity.PHYSICAL_ADDRESS_LINE_2__c, // prettier-ignore
+                                              sam_hidden_applicant_city: entity.PHYSICAL_ADDRESS_CITY__c, // prettier-ignore
+                                              sam_hidden_applicant_state: entity.PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c, // prettier-ignore
+                                              sam_hidden_applicant_zip_code: entity.PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c, // prettier-ignore
+                                            },
+                                            state: "draft",
+                                          }
+                                        )
+                                          .then((res) => {
+                                            navigate(`/rebate/${res._id}`);
+                                          })
+                                          .catch((err) => {
+                                            setErrorMessage({
+                                              displayed: true,
+                                              text: "Error creating new rebate form application.",
+                                            });
+                                          })
+                                          .finally(() => {
+                                            setPostingDataId("0");
+                                          });
+                                      }}
+                                    >
+                                      <span className="usa-sr-only">
+                                        New Application with UEI: {uei} and
+                                        EFTI: {efti}
                                       </span>
-                                    </span>
-                                  </button>
-                                </th>
-                                <td className="font-sans-2xs">
-                                  {entity.UNIQUE_ENTITY_ID__c}
-                                </td>
-                                <td className="font-sans-2xs">
-                                  {entity.ENTITY_EFT_INDICATOR__c || "0000"}
-                                </td>
-                                <td className="font-sans-2xs">
-                                  {entity.LEGAL_BUSINESS_NAME__c}
-                                </td>
-                              </tr>
-                            ))}
+                                      <span className="display-flex flex-align-center">
+                                        <svg
+                                          className="usa-icon"
+                                          aria-hidden="true"
+                                          focusable="false"
+                                          role="img"
+                                        >
+                                          <use
+                                            href={`${icons}#arrow_forward`}
+                                          />
+                                        </svg>
+                                        <span className="mobile-lg:display-none margin-left-1">
+                                          New Application
+                                        </span>
+                                        {postingDataId === comboKey && (
+                                          <LoadingButtonIcon />
+                                        )}
+                                      </span>
+                                    </button>
+                                  </th>
+                                  <td className="font-sans-2xs">{uei}</td>
+                                  <td className="font-sans-2xs">
+                                    {efti || "0000"}
+                                  </td>
+                                  <td className="font-sans-2xs">{orgName}</td>
+                                </tr>
+                              );
+                            })}
                           </tbody>
                         </table>
                       </div>

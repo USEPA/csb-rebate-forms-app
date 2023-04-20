@@ -26,7 +26,7 @@ export type CsbData = {
   };
 };
 
-export type BapSamEntity = {
+type BapSamEntity = {
   ENTITY_COMBO_KEY__c: string;
   UNIQUE_ENTITY_ID__c: string;
   ENTITY_EFT_INDICATOR__c: string;
@@ -81,7 +81,7 @@ type BapFormSubmission = {
   attributes: { type: string; url: string };
 };
 
-type FormioApplicationSubmission = {
+export type FormioApplicationSubmission = {
   [field: string]: unknown;
   _id: string; // MongoDB ObjectId string
   state: "submitted" | "draft";
