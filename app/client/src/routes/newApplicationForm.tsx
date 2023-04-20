@@ -172,7 +172,10 @@ export function NewApplicationForm() {
 
                               return (
                                 <tr key={comboKey}>
-                                  <th scope="row" className="font-sans-2xs">
+                                  <th
+                                    scope="row"
+                                    className="width-15 font-sans-2xs"
+                                  >
                                     <button
                                       className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
                                       onClick={(ev) => {
