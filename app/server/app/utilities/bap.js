@@ -278,7 +278,10 @@ async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
  * @returns {Promise<Object>} Application form submission fields
  */
 async function queryForBapApplicationSubmission(req, applicationReviewItemId) {
-  const message = `Querying BAP for Application form submission associated with CSB Review Item ID: ${applicationReviewItemId}.`;
+  const message =
+    `Querying BAP for Application form submission associated with ` +
+    `Application Review Item ID: ${applicationReviewItemId}.`;
+
   log({ level: "info", message });
 
   /** @type {jsforce.Connection} */
@@ -434,18 +437,96 @@ async function queryForBapApplicationSubmission(req, applicationReviewItemId) {
 /**
  * Uses cached JSforce connection to query the BAP for a single Payment Request form submission.
  * @param {express.Request} req
+ * @param {string} applicationReviewItemId CSB Rebate ID with the form/version ID (9 digits)
  * @param {string} paymentRequestReviewItemId CSB Rebate ID with the form/version ID (9 digits)
  * @returns {Promise<Object>} Payment Request form submission fields
  */
 async function queryForBapPaymentRequestSubmission(
   req,
+  applicationReviewItemId,
   paymentRequestReviewItemId
 ) {
-  const message = `Querying BAP for Payment Request form submission associated with CSB Review Item ID: ${paymentRequestReviewItemId}.`;
+  const message =
+    `Querying BAP for Payment Request form submission associated with ` +
+    `Application Review Item ID: ${applicationReviewItemId} and ` +
+    `Payment Request Review Item ID: ${paymentRequestReviewItemId}.`;
+
   log({ level: "info", message });
 
   /** @type {jsforce.Connection} */
   const bapConnection = req.app.locals.bapConnection;
+
+  // `SELECT
+  //   Id
+  // FROM
+  //   recordtype
+  // WHERE
+  //   developername = 'CSB_Funding_Request' AND
+  //   sobjecttype = '${BAP_FORMS_TABLE}'
+  // LIMIT 1`
+
+  const applicationRecordTypeIdQuery = await bapConnection
+    .sobject("recordtype")
+    .find(
+      {
+        developername: "CSB_Funding_Request",
+        sobjecttype: BAP_FORMS_TABLE,
+      },
+      {
+        // "*": 1,
+        Id: 1, // Salesforce record ID
+      }
+    )
+    .limit(1)
+    .execute(async (err, records) => ((await err) ? err : records));
+
+  const applicationRecordTypeId = applicationRecordTypeIdQuery["0"].Id;
+
+  // `SELECT
+  //   Id,
+  //   CSB_Private_Fleet__c,
+  //   Fleet_Contact_Name__c,
+  //   Fleet_Contact_Title__c,
+  //   Fleet_Contact_Phone__c,
+  //   Fleet_Contact_Email__c,
+  //   Fleet_Name__c,
+  //   Fleet_Street_Address__c,
+  //   Fleet_City__c,
+  //   Fleet_Name_2__c,
+  //   Fleet_State__c,
+  //   Fleet_Zip__c
+  // FROM
+  //   ${BAP_FORMS_TABLE}
+  // WHERE
+  //   recordtypeid = '${applicationRecordTypeId}' AND
+  //   CSB_Review_Item_ID__c = '${applicationReviewItemId}' AND
+  //   Latest_Version__c = TRUE`
+
+  const applicationRecordQuery = await bapConnection
+    .sobject(BAP_FORMS_TABLE)
+    .find(
+      {
+        recordtypeid: applicationRecordTypeId,
+        CSB_Review_Item_ID__c: applicationReviewItemId,
+        Latest_Version__c: true,
+      },
+      {
+        // "*": 1,
+        Id: 1, // Salesforce record ID
+        CSB_Private_Fleet__c: 1,
+        Fleet_Contact_Name__c: 1,
+        Fleet_Contact_Title__c: 1,
+        Fleet_Contact_Phone__c: 1,
+        Fleet_Contact_Email__c: 1,
+        Fleet_Name__c: 1,
+        Fleet_Street_Address__c: 1,
+        Fleet_City__c: 1,
+        Fleet_Name_2__c: 1,
+        Fleet_State__c: 1,
+        Fleet_Zip__c: 1,
+      }
+    )
+    .execute(async (err, records) => ((await err) ? err : records));
 
   // `SELECT
   //   Id
@@ -627,7 +708,7 @@ async function queryForBapPaymentRequestSubmission(
     )
     .execute(async (err, records) => ((await err) ? err : records));
 
-  return { paymentRequestRecordQuery, busRecordsQuery };
+  return { applicationRecordQuery, paymentRequestRecordQuery, busRecordsQuery };
 }
 
 /**
@@ -704,7 +785,9 @@ function getBapFormSubmissionsStatuses(req, comboKeys) {
 }
 
 /**
- * Fetches an Application form submission associated with a CSB Review Item ID.
+ * Fetches Application form submission data associated with an Application
+ * Review Item ID.
+ *
  * @param {express.Request} req
  * @param {string} applicationReviewItemId
  */
@@ -716,14 +799,22 @@ function getBapApplicationSubmission(req, applicationReviewItemId) {
 }
 
 /**
- * Fetches a Payment Request form submission associated with a CSB Review Item ID.
+ * Fetches Application form submission data and Payment Request form submission
+ * data associated with an Application Review Item ID and a Payment Request
+ * Review Item ID.
+ *
  * @param {express.Request} req
+ * @param {string} applicationReviewItemId
  * @param {string} paymentRequestReviewItemId
  */
-function getBapPaymentRequestSubmission(req, paymentRequestReviewItemId) {
+function getBapPaymentRequestSubmission(
+  req,
+  applicationReviewItemId,
+  paymentRequestReviewItemId
+) {
   return verifyBapConnection(req, {
     name: queryForBapPaymentRequestSubmission,
-    args: [req, paymentRequestReviewItemId],
+    args: [req, applicationReviewItemId, paymentRequestReviewItemId],
   });
 }
 
