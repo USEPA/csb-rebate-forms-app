@@ -19,8 +19,8 @@ const {
 const {
   getSamEntities,
   getBapFormSubmissionsStatuses,
-  getBapApplicationSubmission,
-  getBapPaymentRequestSubmission,
+  getBapDataForPaymentRequest,
+  getBapDataForCloseOut,
 } = require("../utilities/bap");
 const log = require("../utilities/logger");
 
@@ -461,7 +461,7 @@ router.post(
       ALT_GOVT_BUS_POC_EMAIL__c,
     } = entity;
 
-    return getBapApplicationSubmission(req, applicationReviewItemId)
+    return getBapDataForPaymentRequest(req, applicationReviewItemId)
       .then(({ applicationRecordQuery, busRecordsQuery }) => {
         const {
           CSB_NCES_ID__c,
@@ -769,7 +769,7 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
     ALT_GOVT_BUS_POC_EMAIL__c,
   } = entity;
 
-  return getBapPaymentRequestSubmission(
+  return getBapDataForCloseOut(
     req,
     applicationReviewItemId,
     paymentRequestReviewItemId

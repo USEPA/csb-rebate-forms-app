@@ -96,6 +96,7 @@ function setupConnection(app) {
 
 /**
  * Uses cached JSforce connection to query the BAP for SAM.gov entities.
+ *
  * @param {express.Request} req
  * @param {string} email
  * @returns {Promise<BapSamEntity[]>} collection of SAM.gov entity data
@@ -182,7 +183,9 @@ async function queryForSamEntities(req, email) {
 }
 
 /**
- * Uses cached JSforce connection to query the BAP for form submissions statuses and related metadata.
+ * Uses cached JSforce connection to query the BAP for form submissions statuses
+ * and related metadata.
+ *
  * @param {express.Request} req
  * @param {string[]} comboKeys
  * @returns {Promise<BapFormSubmission[]>} collection of fields associated with each form submission
@@ -272,12 +275,14 @@ async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
 }
 
 /**
- * Uses cached JSforce connection to query the BAP for a single Application form submission.
+ * Uses cached JSforce connection to query the BAP for Application form
+ * submission data, for use in a brand new Payment Request form submission.
+ *
  * @param {express.Request} req
  * @param {string} applicationReviewItemId CSB Rebate ID with the form/version ID (9 digits)
  * @returns {Promise<Object>} Application form submission fields
  */
-async function queryForBapApplicationSubmission(req, applicationReviewItemId) {
+async function queryBapForPaymentRequestData(req, applicationReviewItemId) {
   const message =
     `Querying BAP for Application form submission associated with ` +
     `Application Review Item ID: ${applicationReviewItemId}.`;
@@ -435,20 +440,24 @@ async function queryForBapApplicationSubmission(req, applicationReviewItemId) {
 }
 
 /**
- * Uses cached JSforce connection to query the BAP for a single Payment Request form submission.
+ * Uses cached JSforce connection to query the BAP for Application form
+ * submission data and Payment Request form submission data, for use in a brand
+ * new Close-out form submission.
+ *
  * @param {express.Request} req
  * @param {string} applicationReviewItemId CSB Rebate ID with the form/version ID (9 digits)
  * @param {string} paymentRequestReviewItemId CSB Rebate ID with the form/version ID (9 digits)
  * @returns {Promise<Object>} Payment Request form submission fields
  */
-async function queryForBapPaymentRequestSubmission(
+async function queryBapForCloseOutData(
   req,
   applicationReviewItemId,
   paymentRequestReviewItemId
 ) {
   const message =
-    `Querying BAP for Payment Request form submission associated with ` +
+    `Querying BAP for Application form submission associated with ` +
     `Application Review Item ID: ${applicationReviewItemId} and ` +
+    `Payment Request form submission associated with ` +
     `Payment Request Review Item ID: ${paymentRequestReviewItemId}.`;
 
   log({ level: "info", message });
@@ -777,9 +786,9 @@ function getBapFormSubmissionsStatuses(req, comboKeys) {
  * @param {express.Request} req
  * @param {string} applicationReviewItemId
  */
-function getBapApplicationSubmission(req, applicationReviewItemId) {
+function getBapDataForPaymentRequest(req, applicationReviewItemId) {
   return verifyBapConnection(req, {
-    name: queryForBapApplicationSubmission,
+    name: queryBapForPaymentRequestData,
     args: [req, applicationReviewItemId],
   });
 }
@@ -793,13 +802,13 @@ function getBapApplicationSubmission(req, applicationReviewItemId) {
  * @param {string} applicationReviewItemId
  * @param {string} paymentRequestReviewItemId
  */
-function getBapPaymentRequestSubmission(
+function getBapDataForCloseOut(
   req,
   applicationReviewItemId,
   paymentRequestReviewItemId
 ) {
   return verifyBapConnection(req, {
-    name: queryForBapPaymentRequestSubmission,
+    name: queryBapForCloseOutData,
     args: [req, applicationReviewItemId, paymentRequestReviewItemId],
   });
 }
@@ -808,6 +817,6 @@ module.exports = {
   getSamEntities,
   getBapComboKeys,
   getBapFormSubmissionsStatuses,
-  getBapApplicationSubmission,
-  getBapPaymentRequestSubmission,
+  getBapDataForPaymentRequest,
+  getBapDataForCloseOut,
 };
