@@ -21,7 +21,7 @@ type State = {
   dismissedAction?: () => void;
 };
 
-export type Action =
+type Action =
   | {
       type: "DISPLAY_DIALOG";
       payload: {
@@ -122,7 +122,7 @@ export function DialogProvider({ children }: Props) {
 }
 
 /**
- * Returns state stored in `DialogProvider` context component.
+ * Custom hook that returns state stored in `DialogProvider` context component.
  */
 export function useDialogState() {
   const context = useContext(StateContext);
@@ -134,14 +134,56 @@ export function useDialogState() {
 }
 
 /**
- * Returns `dispatch` method for dispatching actions to update state stored in
- * `DialogProvider` context component.
+ * Custom hook that returns `dispatch` method for dispatching actions to update
+ * state stored in `DialogProvider` context component.
  */
-export function useDialogDispatch() {
+function useDialogDispatch() {
   const context = useContext(DispatchContext);
   if (context === undefined) {
     const message = `useDialogDispatch must be used within a DialogProvider`;
     throw new Error(message);
   }
   return context;
+}
+
+/**
+ * Custom hook that returns functions to dispatch actions to display a dialog,
+ * update a dialog's description, and reset (hide) a displayed dialog.
+ */
+export function useDialogActions() {
+  const dispatch = useDialogDispatch();
+
+  return {
+    displayDialog(options: {
+      dismissable: boolean;
+      heading: string;
+      description: ReactNode;
+      confirmText: string;
+      dismissText?: string;
+      confirmedAction: () => void;
+      dismissedAction?: () => void;
+    }) {
+      dispatch({
+        type: "DISPLAY_DIALOG",
+        payload: {
+          dismissable: options.dismissable,
+          heading: options.heading,
+          description: options.description,
+          confirmText: options.confirmText,
+          dismissText: options.dismissText,
+          confirmedAction: options.confirmedAction,
+          dismissedAction: options.dismissedAction,
+        },
+      });
+    },
+    updateDialogDescription(description: ReactNode) {
+      dispatch({
+        type: "UPDATE_DIALOG_DESCRIPTION",
+        payload: { description },
+      });
+    },
+    resetDialog() {
+      dispatch({ type: "RESET_DIALOG" });
+    },
+  };
 }

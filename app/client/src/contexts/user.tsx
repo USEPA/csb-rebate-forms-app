@@ -10,7 +10,7 @@ type Props = {
   children: ReactNode;
 };
 
-type EpaUserData = {
+export type EpaUserData = {
   mail: string;
   memberof: string;
   exp: number;

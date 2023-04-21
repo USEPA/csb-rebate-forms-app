@@ -1,53 +1,73 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import { Form } from "@formio/react";
 import icon from "uswds/img/usa-icons-bg/search--white.svg";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl, messages, getData, postData } from "../config";
+import { serverUrl, messages } from "../config";
+import { getData, postData, useContentData, useCsbData } from "../utilities";
 import { useHelpdeskAccess } from "components/app";
 import { Loading } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
-import { TextWithTooltip } from "components/infoTooltip";
-import { useContentState } from "contexts/content";
-import { useDialogDispatch } from "contexts/dialog";
-import { useUserState } from "contexts/user";
-import { useCsbState } from "contexts/csb";
-import {
-  FormioFetchedResponse,
-  useFormioFormState,
-  useFormioFormDispatch,
-} from "contexts/formioForm";
+import { TextWithTooltip } from "components/tooltip";
+import { useDialogActions } from "contexts/dialog";
 
 type FormType = "application" | "payment-request" | "close-out";
 
+type FormioSubmission = {
+  [field: string]: unknown;
+  _id: string; // MongoDB ObjectId string
+  modified: string; // ISO 8601 date string
+  metadata: { [field: string]: unknown };
+  data: { [field: string]: unknown };
+  state: "submitted" | "draft";
+};
+
+type ServerResponse =
+  | {
+      formSchema: null;
+      submission: null;
+    }
+  | {
+      formSchema: { url: string; json: object };
+      submission: FormioSubmission;
+    };
+
 export function Helpdesk() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  const { content } = useContentState();
-  const dialogDispatch = useDialogDispatch();
-  const { epaUserData } = useUserState();
-  const { csbData } = useCsbState();
-  const { formio } = useFormioFormState();
-  const formioFormDispatch = useFormioFormDispatch();
+  const content = useContentData();
+  const csbData = useCsbData();
+  const { displayDialog } = useDialogActions();
   const helpdeskAccess = useHelpdeskAccess();
-
-  // reset formio form state since it's used across pages
-  useEffect(() => {
-    formioFormDispatch({ type: "RESET_FORMIO_DATA" });
-  }, [formioFormDispatch]);
 
   const [formType, setFormType] = useState<FormType>("application");
   const [searchId, setSearchId] = useState("");
   const [formDisplayed, setFormDisplayed] = useState(false);
 
-  if (
-    csbData.status !== "success" ||
-    epaUserData.status !== "success" ||
-    helpdeskAccess === "idle" ||
-    helpdeskAccess === "pending"
-  ) {
+  useEffect(() => {
+    queryClient.resetQueries({ queryKey: ["helpdesk"] });
+  }, [queryClient]);
+
+  const url = `${serverUrl}/help/formio-submission/${formType}/${searchId}`;
+
+  const query = useQuery({
+    queryKey: ["helpdesk"],
+    queryFn: () => getData<ServerResponse>(url),
+    enabled: false,
+  });
+
+  const mutation = useMutation({
+    mutationFn: () => postData<ServerResponse>(url, {}),
+    onSuccess: (data) => queryClient.setQueryData(["helpdesk"], data),
+  });
+
+  const { formSchema, submission } = query.data ?? {};
+
+  if (!csbData || helpdeskAccess === "idle" || helpdeskAccess === "pending") {
     return <Loading />;
   }
 
@@ -55,19 +75,16 @@ export function Helpdesk() {
     navigate("/", { replace: true });
   }
 
-  const applicationFormOpen = csbData.data.submissionPeriodOpen.application;
-  const paymentRequestFormOpen =
-    csbData.data.submissionPeriodOpen.paymentRequest;
-  const closeOutFormOpen = csbData.data.submissionPeriodOpen.closeOut;
-
-  const { formSchema, submission } = formio.data;
+  const applicationFormOpen = csbData.submissionPeriodOpen.application;
+  const paymentRequestFormOpen = csbData.submissionPeriodOpen.paymentRequest;
+  const closeOutFormOpen = csbData.submissionPeriodOpen.closeOut;
 
   return (
     <>
-      {content.status === "success" && (
+      {content && (
         <MarkdownContent
           className="margin-top-4"
-          children={content.data?.helpdeskIntro || ""}
+          children={content.helpdeskIntro}
         />
       )}
 
@@ -83,7 +100,7 @@ export function Helpdesk() {
               checked={formType === "application"}
               onChange={(ev) => {
                 setFormType(ev.target.value as FormType);
-                formioFormDispatch({ type: "RESET_FORMIO_DATA" });
+                queryClient.resetQueries({ queryKey: ["helpdesk"] });
               }}
             />
             <label
@@ -104,7 +121,7 @@ export function Helpdesk() {
               checked={formType === "payment-request"}
               onChange={(ev) => {
                 setFormType(ev.target.value as FormType);
-                formioFormDispatch({ type: "RESET_FORMIO_DATA" });
+                queryClient.resetQueries({ queryKey: ["helpdesk"] });
               }}
             />
             <label
@@ -125,7 +142,7 @@ export function Helpdesk() {
               checked={formType === "close-out"}
               onChange={(ev) => {
                 setFormType(ev.target.value as FormType);
-                formioFormDispatch({ type: "RESET_FORMIO_DATA" });
+                queryClient.resetQueries({ queryKey: ["helpdesk"] });
               }}
               disabled={true} // NOTE: disabled until the close-out form is created
             />
@@ -144,20 +161,7 @@ export function Helpdesk() {
           onSubmit={(ev) => {
             ev.preventDefault();
             setFormDisplayed(false);
-            formioFormDispatch({ type: "FETCH_FORMIO_DATA_REQUEST" });
-            getData(
-              `${serverUrl}/help/formio-submission/${formType}/${searchId}`
-            )
-              .then((res: FormioFetchedResponse) => {
-                if (!res.submission) return;
-                formioFormDispatch({
-                  type: "FETCH_FORMIO_DATA_SUCCESS",
-                  payload: { data: res },
-                });
-              })
-              .catch((err) => {
-                formioFormDispatch({ type: "FETCH_FORMIO_DATA_FAILURE" });
-              });
+            query.refetch();
           }}
         >
           <label className="usa-sr-only" htmlFor="search-submissions-by-id">
@@ -178,23 +182,11 @@ export function Helpdesk() {
         </form>
       </div>
 
-      {formio.status === "pending" && <Loading />}
-
-      {formio.status === "failure" && (
+      {query.isFetching || mutation.isLoading ? (
+        <Loading />
+      ) : query.isError || mutation.isError ? (
         <Message type="error" text={messages.helpdeskSubmissionSearchError} />
-      )}
-
-      {/*
-        NOTE: when the application form submission data is successfully fetched,
-        the response should contain the submission data, but since it's coming
-        from an external server, we should check that it exists first before
-        using it
-      */}
-      {formio.status === "success" && !formio.data && (
-        <Message type="error" text={messages.helpdeskSubmissionSearchError} />
-      )}
-
-      {formio.status === "success" && formSchema && submission && (
+      ) : query.isSuccess && !!formSchema && !!submission ? (
         <>
           <div className="usa-table-container--scrollable" tabIndex={0}>
             <table
@@ -301,7 +293,9 @@ export function Helpdesk() {
                   {formType === "application" ? (
                     <td>{submission.data.last_updated_by as string}</td>
                   ) : formType === "payment-request" ? (
-                    <td>{submission.data.hidden_current_user_email}</td>
+                    <td>
+                      {submission.data.hidden_current_user_email as string}
+                    </td>
                   ) : (
                     <td>&nbsp;</td>
                   )}
@@ -322,49 +316,29 @@ export function Helpdesk() {
                     <button
                       className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
                       disabled={
+                        // prettier-ignore
                         submission.state === "draft" ||
-                        (formType === "application" && !applicationFormOpen) ||
-                        (formType === "payment-request" &&
-                          !paymentRequestFormOpen) ||
-                        (formType === "close-out" && !closeOutFormOpen)
+                          (formType === "application" && !applicationFormOpen) ||
+                          (formType === "payment-request" && !paymentRequestFormOpen) ||
+                          (formType === "close-out" && !closeOutFormOpen)
                       }
                       onClick={(_ev) => {
-                        dialogDispatch({
-                          type: "DISPLAY_DIALOG",
-                          payload: {
-                            dismissable: true,
-                            heading:
-                              "Are you sure you want to change this submission's state back to draft?",
-                            description: (
-                              <p>
-                                Once the submission is back in a draft state,
-                                all users with access to this submission will be
-                                able to further edit it.
-                              </p>
-                            ),
-                            confirmText: "Yes",
-                            dismissText: "Cancel",
-                            confirmedAction: () => {
-                              setFormDisplayed(false);
-                              formioFormDispatch({
-                                type: "FETCH_FORMIO_DATA_REQUEST",
-                              });
-                              postData(
-                                `${serverUrl}/help/formio-submission/${formType}/${searchId}`,
-                                {}
-                              )
-                                .then((res: FormioFetchedResponse) => {
-                                  formioFormDispatch({
-                                    type: "FETCH_FORMIO_DATA_SUCCESS",
-                                    payload: { data: res },
-                                  });
-                                })
-                                .catch((err) => {
-                                  formioFormDispatch({
-                                    type: "FETCH_FORMIO_DATA_FAILURE",
-                                  });
-                                });
-                            },
+                        displayDialog({
+                          dismissable: true,
+                          heading:
+                            "Are you sure you want to change this submission's state back to draft?",
+                          description: (
+                            <p>
+                              Once the submission is back in a draft state, all
+                              users with access to this submission will be able
+                              to further edit it.
+                            </p>
+                          ),
+                          confirmText: "Yes",
+                          dismissText: "Cancel",
+                          confirmedAction: () => {
+                            setFormDisplayed(false);
+                            mutation.mutate();
                           },
                         });
                       }}
@@ -422,7 +396,7 @@ export function Helpdesk() {
             </>
           )}
         </>
-      )}
+      ) : null}
     </>
   );
 }

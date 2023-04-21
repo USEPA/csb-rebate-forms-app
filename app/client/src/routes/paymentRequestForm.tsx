@@ -1,122 +1,63 @@
-import { useMemo, useEffect, useState, useRef } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useEffect, useMemo, useRef } from "react";
+import { useNavigate, useOutletContext, useParams } from "react-router-dom";
+import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
+import { Dialog } from "@headlessui/react";
 import { Formio, Form } from "@formio/react";
 import { cloneDeep, isEqual } from "lodash";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl, messages, getData, postData } from "../config";
-import { getUserInfo } from "../utilities";
+import { serverUrl, messages } from "../config";
 import {
+  getData,
+  postData,
+  useContentData,
+  useCsbData,
+  useBapSamData,
+  useSubmissionsQueries,
+  useRebates,
   submissionNeedsEdits,
-  useFetchedFormSubmissions,
-  useCombinedSubmissions,
-  useSortedRebates,
-} from "routes/allRebates";
+  getUserInfo,
+} from "../utilities";
 import { Loading } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
-import { useContentState } from "contexts/content";
-import { useUserState } from "contexts/user";
-import { useCsbState } from "contexts/csb";
-import { useBapState } from "contexts/bap";
-import { useFormioSubmissionsState } from "contexts/formioSubmissions";
-import {
-  FormioSubmissionData,
-  FormioFetchedResponse,
-  useFormioFormState,
-  useFormioFormDispatch,
-} from "contexts/formioForm";
-import {
-  usePageMessageState,
-  usePageMessageDispatch,
-} from "contexts/pageMessage";
+import { useNotificationsActions } from "contexts/notifications";
 
-function PageMessage() {
-  const { displayed, type, text } = usePageMessageState();
-  if (!displayed) return null;
-  return <Message type={type} text={text} />;
-}
+type FormioSubmission = {
+  [field: string]: unknown;
+  _id: string; // MongoDB ObjectId string
+  modified: string; // ISO 8601 date string
+  metadata: { [field: string]: unknown };
+  data: { [field: string]: unknown };
+  state: "submitted" | "draft";
+};
 
-export function PaymentRequestForm() {
-  const { epaUserData } = useUserState();
-  const email = epaUserData.status !== "success" ? "" : epaUserData.data.mail;
-
-  /**
-   * NOTE: The child component only uses the email from the `user` context, but
-   * the `epaUserData.data` object includes an `exp` field that changes whenever
-   * the JWT is refreshed. Since the user verification process `verifyUser()`
-   * gets called from the parent `ProtectedRoute` component, we need to memoize
-   * the email address (which won't change) to prevent the child component from
-   * needlessly re-rendering.
-   */
-  return useMemo(() => {
-    return <PaymentRequestFormContent email={email} />;
-  }, [email]);
-}
-
-function PaymentRequestFormContent({ email }: { email: string }) {
-  const navigate = useNavigate();
-  const { rebateId } = useParams<"rebateId">(); // CSB Rebate ID (6 digits)
-  const [searchParams] = useSearchParams();
-
-  const { content } = useContentState();
-  const { csbData } = useCsbState();
-  const { samEntities, formSubmissions: bapFormSubmissions } = useBapState();
-  const {
-    applicationSubmissions: formioApplicationSubmissions,
-    paymentRequestSubmissions: formioPaymentRequestSubmissions,
-  } = useFormioSubmissionsState();
-  const { formio } = useFormioFormState();
-  const formioFormDispatch = useFormioFormDispatch();
-  const pageMessageDispatch = usePageMessageDispatch();
-
-  // reset formio form state since it's used across pages
-  useEffect(() => {
-    formioFormDispatch({ type: "RESET_FORMIO_DATA" });
-  }, [formioFormDispatch]);
-
-  // reset page message state since it's used across pages
-  useEffect(() => {
-    pageMessageDispatch({ type: "RESET_MESSAGE" });
-  }, [pageMessageDispatch]);
-
-  useFetchedFormSubmissions();
-
-  const combinedRebates = useCombinedSubmissions();
-  const sortedRebates = useSortedRebates(combinedRebates);
-
-  // log combined 'sortedRebates' array if 'debug' search parameter exists
-  useEffect(() => {
-    if (searchParams.has("debug") && sortedRebates.length > 0) {
-      console.log(sortedRebates);
+type ServerResponse =
+  | {
+      userAccess: false;
+      formSchema: null;
+      submission: null;
     }
-  }, [searchParams, sortedRebates]);
+  | {
+      userAccess: true;
+      formSchema: { url: string; json: object };
+      submission: FormioSubmission;
+    };
 
-  // create ref to store when form is being submitted, so it can be referenced
-  // in the Form component's `onSubmit` event prop, to prevent double submits
-  const formIsBeingSubmitted = useRef(false);
-
-  // set when form submission data is initially fetched, and then re-set each
-  // time a successful update of the submission data is posted to forms.gov
-  const [storedSubmissionData, setStoredSubmissionData] =
-    useState<FormioSubmissionData>({});
-
-  // create ref to storedSubmissionData, so the latest value can be referenced
-  // in the Form component's `onNextPage` event prop
-  const storedSubmissionDataRef = useRef<FormioSubmissionData>({});
-
-  // initially empty, but will be set once the user attemts to submit the form
-  // (both successfully and unsuccessfully). passed to the to the <Form />
-  // component's submission prop, so the fields the user filled out will not be
-  // lost if a submission update fails, so the user can attempt submitting again
-  const [pendingSubmissionData, setPendingSubmissionData] =
-    useState<FormioSubmissionData>({});
+/** Custom hook to fetch Formio submission data */
+function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
+  const queryClient = useQueryClient();
 
   useEffect(() => {
-    formioFormDispatch({ type: "FETCH_FORMIO_DATA_REQUEST" });
+    queryClient.resetQueries({ queryKey: ["payment-request"] });
+  }, [queryClient]);
 
-    getData(`${serverUrl}/api/formio-payment-request-submission/${rebateId}`)
-      .then((res: FormioFetchedResponse) => {
+  const url = `${serverUrl}/api/formio-payment-request-submission/${rebateId}`;
+
+  const query = useQuery({
+    queryKey: ["payment-request", { id: rebateId }],
+    queryFn: () => {
+      return getData<ServerResponse>(url).then((res) => {
         // set up s3 re-route to wrapper app
         const s3Provider = Formio.Providers.providers.storage.s3;
         Formio.Providers.providers.storage.s3 = function (formio: any) {
@@ -127,78 +68,120 @@ function PaymentRequestFormContent({ email }: { email: string }) {
           return s3Provider(s3Formio);
         };
 
-        const data = { ...res.submission?.data };
-
-        setStoredSubmissionData((_prevData) => {
-          storedSubmissionDataRef.current = cloneDeep(data);
-          return data;
-        });
-
-        formioFormDispatch({
-          type: "FETCH_FORMIO_DATA_SUCCESS",
-          payload: { data: res },
-        });
-      })
-      .catch((err) => {
-        formioFormDispatch({ type: "FETCH_FORMIO_DATA_FAILURE" });
+        return Promise.resolve(res);
       });
-  }, [rebateId, formioFormDispatch]);
+    },
+    refetchOnWindowFocus: false,
+  });
 
-  if (formio.status === "idle") {
-    return null;
-  }
+  const mutation = useMutation({
+    mutationFn: (updatedSubmission: {
+      mongoId: string;
+      submission: {
+        data: { [field: string]: unknown };
+        metadata: { [field: string]: unknown };
+        state: "submitted" | "draft";
+      };
+    }) => {
+      return postData<FormioSubmission>(url, updatedSubmission);
+    },
+    onSuccess: (res) => {
+      return queryClient.setQueryData<ServerResponse>(
+        ["payment-request", { id: rebateId }],
+        (prevData) => {
+          return prevData?.submission
+            ? { ...prevData, submission: res }
+            : prevData;
+        }
+      );
+    },
+  });
 
-  if (formio.status === "pending") {
+  return { query, mutation };
+}
+
+export function PaymentRequestForm() {
+  const { email } = useOutletContext<{ email: string }>();
+  /* ensure user verification (JWT refresh) doesn't cause form to re-render */
+  return useMemo(() => {
+    return <UserPaymentRequestForm email={email} />;
+  }, [email]);
+}
+
+function UserPaymentRequestForm(props: { email: string }) {
+  const { email } = props;
+
+  const navigate = useNavigate();
+  const { id: rebateId } = useParams<"id">(); // CSB Rebate ID (6 digits)
+
+  const content = useContentData();
+  const csbData = useCsbData();
+  const bapSamData = useBapSamData();
+  const {
+    displaySuccessNotification,
+    displayErrorNotification,
+    dismissNotification,
+  } = useNotificationsActions();
+
+  const submissionsQueries = useSubmissionsQueries();
+  const rebates = useRebates();
+
+  const { query, mutation } = useFormioSubmissionQueryAndMutation(rebateId);
+  const { userAccess, formSchema, submission } = query.data ?? {};
+
+  /**
+   * Stores when data is being posted to the server, so a loading overlay can
+   * be rendered over the form, preventing the user from losing input data when
+   * the form is re-rendered with data returned from the server's successful
+   * post response.
+   */
+  const dataIsPosting = useRef(false);
+
+  /**
+   * Stores when the form is being submitted, so it can be referenced in the
+   * Form component's `onSubmit` event prop to prevent double submits.
+   */
+  const formIsBeingSubmitted = useRef(false);
+
+  /**
+   * Stores the form data's state right after the user clicks the Save, Submit,
+   * or Next button. As soon as a post request to update the data succeeds, this
+   * pending submission data is reset to an empty object. This pending data,
+   * along with the submission data returned from the server is passed into the
+   * Form component's `submission` prop.
+   */
+  const pendingSubmissionData = useRef<{ [field: string]: unknown }>({});
+
+  /**
+   * Stores the last succesfully submitted data, so it can be used in the Form
+   * component's `onNextPage` event prop's "dirty check" which determines if
+   * posting of updated data is needed (so we don't make needless requests if no
+   * field data in the form has changed).
+   */
+  const lastSuccesfullySubmittedData = useRef<{ [field: string]: unknown }>({});
+
+  if (!csbData || !bapSamData) {
     return <Loading />;
   }
 
-  const { userAccess, formSchema, submission } = formio.data;
-
-  if (
-    formio.status === "failure" ||
-    !userAccess ||
-    !formSchema ||
-    !submission
-  ) {
-    return (
-      <Message
-        type="error"
-        text="The requested submission does not exist, or you do not have access. Please contact support if you believe this is a mistake."
-      />
-    );
-  }
-
-  if (
-    email === "" ||
-    csbData.status !== "success" ||
-    samEntities.status !== "success"
-  ) {
+  if (submissionsQueries.some((query) => query.isFetching)) {
     return <Loading />;
   }
 
-  if (
-    bapFormSubmissions.status === "idle" ||
-    bapFormSubmissions.status === "pending" ||
-    formioApplicationSubmissions.status === "idle" ||
-    formioApplicationSubmissions.status === "pending" ||
-    formioPaymentRequestSubmissions.status === "idle" ||
-    formioPaymentRequestSubmissions.status === "pending"
-  ) {
-    return <Loading />;
-  }
-
-  if (
-    bapFormSubmissions.status === "failure" ||
-    formioApplicationSubmissions.status === "failure" ||
-    formioPaymentRequestSubmissions.status === "failure"
-  ) {
+  if (submissionsQueries.some((query) => query.isError)) {
     return <Message type="error" text={messages.formSubmissionsError} />;
   }
 
-  const paymentRequestFormOpen =
-    csbData.data.submissionPeriodOpen.paymentRequest;
+  if (query.isInitialLoading) {
+    return <Loading />;
+  }
 
-  const rebate = sortedRebates.find((item) => item.rebateId === rebateId);
+  if (query.isError || !userAccess || !formSchema || !submission) {
+    const text = `The requested submission does not exist, or you do not have access. Please contact support if you believe this is a mistake.`;
+    return <Message type="error" text={text} />;
+  }
+
+  const rebate = rebates.find((r) => r.rebateId === rebateId);
 
   const applicationNeedsEdits = !rebate
     ? false
@@ -214,29 +197,18 @@ function PaymentRequestFormContent({ email }: { email: string }) {
         bap: rebate.paymentRequest.bap,
       });
 
-  // NOTE: If a corresponding Application form submission needs edits, a warning
-  // message is displayed that this Payment Request form submission will be
-  // deleted, and the form will be rendered read-only.
-  if (applicationNeedsEdits) {
-    pageMessageDispatch({
-      type: "DISPLAY_MESSAGE",
-      payload: {
-        type: "warning",
-        text: messages.paymentRequestFormWillBeDeleted,
-      },
-    });
-  }
+  const paymentRequestFormOpen = csbData.submissionPeriodOpen.paymentRequest;
 
   const formIsReadOnly =
     applicationNeedsEdits ||
     ((submission.state === "submitted" || !paymentRequestFormOpen) &&
       !paymentRequestNeedsEdits);
 
-  const entityComboKey = storedSubmissionData.bap_hidden_entity_combo_key;
-  const entity = samEntities.data.entities.find((entity) => {
+  /** matched SAM.gov entity for the Payment Request submission */
+  const entity = bapSamData.entities.find((entity) => {
     return (
       entity.ENTITY_STATUS__c === "Active" &&
-      entity.ENTITY_COMBO_KEY__c === entityComboKey
+      entity.ENTITY_COMBO_KEY__c === submission.data.bap_hidden_entity_combo_key
     );
   });
 
@@ -256,20 +228,25 @@ function PaymentRequestFormContent({ email }: { email: string }) {
 
   return (
     <div className="margin-top-2">
-      {content.status === "success" && (
+      {content && (
         <MarkdownContent
           className="margin-top-4"
           children={
             submission.state === "draft"
-              ? content.data?.draftPaymentRequestIntro || ""
+              ? content.draftPaymentRequestIntro
               : submission.state === "submitted"
-              ? content.data?.submittedPaymentRequestIntro || ""
+              ? content.submittedPaymentRequestIntro
               : ""
           }
         />
       )}
 
-      <PageMessage />
+      {applicationNeedsEdits && (
+        <Message
+          type="warning"
+          text={messages.paymentRequestFormWillBeDeleted}
+        />
+      )}
 
       <ul className="usa-icon-list">
         <li className="usa-icon-list__item">
@@ -284,13 +261,24 @@ function PaymentRequestFormContent({ email }: { email: string }) {
         </li>
       </ul>
 
+      <Dialog as="div" open={dataIsPosting.current} onClose={(ev) => {}}>
+        <div className="tw-fixed tw-inset-0 tw-bg-black/30" />
+        <div className="tw-fixed tw-inset-0 tw-z-20">
+          <div className="tw-flex tw-min-h-full tw-items-center tw-justify-center">
+            <Dialog.Panel className="tw-rounded-lg tw-bg-white tw-px-4 tw-pb-4 tw-shadow-xl">
+              <Loading />
+            </Dialog.Panel>
+          </div>
+        </div>
+      </Dialog>
+
       <div className="csb-form">
         <Form
           form={formSchema.json}
           url={formSchema.url} // NOTE: used for file uploads
           submission={{
             data: {
-              ...storedSubmissionData,
+              ...submission.data,
               last_updated_by: email,
               hidden_current_user_email: email,
               hidden_current_user_title: title,
@@ -301,7 +289,7 @@ function PaymentRequestFormContent({ email }: { email: string }) {
               hidden_sam_alt_elec_bus_poc_email: ALT_ELEC_BUS_POC_EMAIL__c,
               hidden_sam_govt_bus_poc_email: GOVT_BUS_POC_EMAIL__c,
               hidden_sam_alt_govt_bus_poc_email: ALT_GOVT_BUS_POC_EMAIL__c,
-              ...pendingSubmissionData,
+              ...pendingSubmissionData.current,
             },
           }}
           options={{
@@ -309,9 +297,9 @@ function PaymentRequestFormContent({ email }: { email: string }) {
             noAlerts: true,
           }}
           onSubmit={(onSubmitSubmission: {
+            data: { [field: string]: unknown };
+            metadata: { [field: string]: unknown };
             state: "submitted" | "draft";
-            data: FormioSubmissionData;
-            metadata: unknown;
           }) => {
             if (formIsReadOnly) return;
 
@@ -323,143 +311,153 @@ function PaymentRequestFormContent({ email }: { email: string }) {
 
             const data = { ...onSubmitSubmission.data };
 
-            if (onSubmitSubmission.state === "submitted") {
-              pageMessageDispatch({
-                type: "DISPLAY_MESSAGE",
-                payload: { type: "info", text: "Submitting form..." },
-              });
-            }
+            const updatedSubmission = {
+              mongoId: submission._id,
+              submission: {
+                ...onSubmitSubmission,
+                data,
+              },
+            };
 
-            if (onSubmitSubmission.state === "draft") {
-              pageMessageDispatch({
-                type: "DISPLAY_MESSAGE",
-                payload: { type: "info", text: "Saving form..." },
-              });
-            }
+            dismissNotification({ id: 0 });
+            dataIsPosting.current = true;
+            pendingSubmissionData.current = data;
 
-            setPendingSubmissionData(data);
+            mutation.mutate(updatedSubmission, {
+              onSuccess: (res, payload, context) => {
+                pendingSubmissionData.current = {};
+                lastSuccesfullySubmittedData.current = cloneDeep(res.data);
 
-            postData(
-              `${serverUrl}/api/formio-payment-request-submission/${rebateId}`,
-              {
-                mongoId: formio.data.submission?._id,
-                submission: { ...onSubmitSubmission, data },
-              }
-            )
-              .then((res) => {
-                setStoredSubmissionData((_prevData) => {
-                  storedSubmissionDataRef.current = cloneDeep(res.data);
-                  return res.data;
+                /** success notification id */
+                const id = Date.now();
+
+                displaySuccessNotification({
+                  id,
+                  body: (
+                    <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                      {onSubmitSubmission.state === "submitted" ? (
+                        <>
+                          Payment Request <em>{rebateId}</em> submitted
+                          successfully.
+                        </>
+                      ) : (
+                        <>Draft saved successfully.</>
+                      )}
+                    </p>
+                  ),
                 });
 
-                setPendingSubmissionData({});
-
                 if (onSubmitSubmission.state === "submitted") {
-                  const submissionSuccessMessage = `Payment Request Form ${rebateId} successfully submitted.`;
-                  navigate("/", { state: { submissionSuccessMessage } });
+                  /**
+                   * NOTE: we'll keep the success notification displayed and
+                   * redirect the user to their dashboard
+                   */
+                  navigate("/");
                 }
 
                 if (onSubmitSubmission.state === "draft") {
-                  pageMessageDispatch({
-                    type: "DISPLAY_MESSAGE",
-                    payload: {
-                      type: "success",
-                      text: "Draft successfully saved.",
-                    },
-                  });
-
-                  setTimeout(() => {
-                    pageMessageDispatch({ type: "RESET_MESSAGE" });
-                  }, 5000);
+                  setTimeout(() => dismissNotification({ id }), 5000);
                 }
-              })
-              .catch((err) => {
-                formIsBeingSubmitted.current = false;
-
-                pageMessageDispatch({
-                  type: "DISPLAY_MESSAGE",
-                  payload: {
-                    type: "error",
-                    text: "Error submitting Payment Request form.",
-                  },
+              },
+              onError: (error, payload, context) => {
+                displayErrorNotification({
+                  id: Date.now(),
+                  body: (
+                    <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                      {onSubmitSubmission.state === "submitted" ? (
+                        <>Error submitting Payment Request form.</>
+                      ) : (
+                        <>Error saving draft.</>
+                      )}
+                    </p>
+                  ),
                 });
-              });
+              },
+              onSettled: (data, error, payload, context) => {
+                dataIsPosting.current = false;
+                formIsBeingSubmitted.current = false;
+              },
+            });
           }}
           onNextPage={(onNextPageParam: {
             page: number;
             submission: {
-              data: FormioSubmissionData;
-              metadata: unknown;
+              data: { [field: string]: unknown };
+              metadata: { [field: string]: unknown };
             };
           }) => {
             if (formIsReadOnly) return;
 
             const data = { ...onNextPageParam.submission.data };
 
-            // don't post an update if no changes have been made to the form
-            // (ignoring current user fields)
-            const dataToCheck = { ...data };
-            delete dataToCheck.hidden_current_user_email;
-            delete dataToCheck.hidden_current_user_title;
-            delete dataToCheck.hidden_current_user_name;
-            const storedDataToCheck = { ...storedSubmissionDataRef.current };
-            delete storedDataToCheck.hidden_current_user_email;
-            delete storedDataToCheck.hidden_current_user_title;
-            delete storedDataToCheck.hidden_current_user_name;
-            if (isEqual(dataToCheck, storedDataToCheck)) return;
+            // "dirty check" – don't post an update if no changes have been made
+            // to the form (ignoring current user fields)
+            const currentData = { ...data };
+            const submittedData = { ...lastSuccesfullySubmittedData.current };
+            delete currentData.hidden_current_user_email;
+            delete currentData.hidden_current_user_title;
+            delete currentData.hidden_current_user_name;
+            delete submittedData.hidden_current_user_email;
+            delete submittedData.hidden_current_user_title;
+            delete submittedData.hidden_current_user_name;
+            if (isEqual(currentData, submittedData)) return;
 
-            pageMessageDispatch({
-              type: "DISPLAY_MESSAGE",
-              payload: { type: "info", text: "Saving form..." },
+            const updatedSubmission = {
+              mongoId: submission._id,
+              submission: {
+                ...onNextPageParam.submission,
+                data,
+                state: "draft" as const,
+              },
+            };
+
+            dismissNotification({ id: 0 });
+            dataIsPosting.current = true;
+            pendingSubmissionData.current = data;
+
+            mutation.mutate(updatedSubmission, {
+              onSuccess: (res, payload, context) => {
+                pendingSubmissionData.current = {};
+                lastSuccesfullySubmittedData.current = cloneDeep(res.data);
+
+                /** success notification id */
+                const id = Date.now();
+
+                displaySuccessNotification({
+                  id,
+                  body: (
+                    <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                      Draft saved successfully.
+                    </p>
+                  ),
+                });
+
+                setTimeout(() => dismissNotification({ id }), 5000);
+              },
+              onError: (error, payload, context) => {
+                displayErrorNotification({
+                  id: Date.now(),
+                  body: (
+                    <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                      Error saving draft.
+                    </p>
+                  ),
+                });
+              },
+              onSettled: (data, error, payload, context) => {
+                dataIsPosting.current = false;
+              },
             });
-
-            setPendingSubmissionData(data);
-
-            postData(
-              `${serverUrl}/api/formio-payment-request-submission/${rebateId}`,
-              {
-                mongoId: formio.data.submission?._id,
-                submission: {
-                  ...onNextPageParam.submission,
-                  data,
-                  state: "draft",
-                },
-              }
-            )
-              .then((res) => {
-                setStoredSubmissionData((_prevData) => {
-                  storedSubmissionDataRef.current = cloneDeep(res.data);
-                  return res.data;
-                });
-
-                setPendingSubmissionData({});
-
-                pageMessageDispatch({
-                  type: "DISPLAY_MESSAGE",
-                  payload: {
-                    type: "success",
-                    text: "Draft successfully saved.",
-                  },
-                });
-
-                setTimeout(() => {
-                  pageMessageDispatch({ type: "RESET_MESSAGE" });
-                }, 5000);
-              })
-              .catch((err) => {
-                pageMessageDispatch({
-                  type: "DISPLAY_MESSAGE",
-                  payload: {
-                    type: "error",
-                    text: "Error saving draft Payment Request form.",
-                  },
-                });
-              });
           }}
         />
       </div>
 
-      <PageMessage />
+      {applicationNeedsEdits && (
+        <Message
+          type="warning"
+          text={messages.paymentRequestFormWillBeDeleted}
+        />
+      )}
     </div>
   );
 }
