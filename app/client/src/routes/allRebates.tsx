@@ -335,7 +335,7 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
           <button
             className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
             onClick={(ev) => {
-              if (!application.bap?.rebateId || !entity) return;
+              if (!application.bap || !entity) return;
 
               // account for when data is posting to prevent double submits
               if (dataIsPosting) return;
@@ -351,7 +351,7 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
                 entity,
                 comboKey: application.bap.comboKey,
                 rebateId: application.bap.rebateId, // CSB Rebate ID (6 digits)
-                reviewItemId: application.bap.reviewItemId, // CSB Rebate ID with form/version ID (9 digits)
+                applicationReviewItemId: application.bap.reviewItemId, // CSB Rebate ID with form/version ID (9 digits)
                 applicationFormModified: application.bap.modified,
               })
                 .then((res) => {
@@ -530,7 +530,7 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
 
 function CloseOutSubmission(props: { rebate: Rebate }) {
   const { rebate } = props;
-  const { paymentRequest, closeOut } = rebate;
+  const { application, paymentRequest, closeOut } = rebate;
 
   const navigate = useNavigate();
   const { email } = useOutletContext<{ email: string }>();
@@ -571,7 +571,7 @@ function CloseOutSubmission(props: { rebate: Rebate }) {
           <button
             className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
             onClick={(ev) => {
-              if (!paymentRequest.bap?.rebateId || !entity) return;
+              if (!application.bap || !paymentRequest.bap || !entity) return;
 
               // account for when data is posting to prevent double submits
               if (dataIsPosting) return;
@@ -587,7 +587,8 @@ function CloseOutSubmission(props: { rebate: Rebate }) {
                 entity,
                 comboKey: paymentRequest.bap.comboKey,
                 rebateId: paymentRequest.bap.rebateId, // CSB Rebate ID (6 digits)
-                reviewItemId: paymentRequest.bap.reviewItemId, // CSB Rebate ID with form/version ID (9 digits)
+                applicationReviewItemId: application.bap.reviewItemId, // CSB Rebate ID with form/version ID (9 digits)
+                paymentRequestReviewItemId: paymentRequest.bap.reviewItemId, // CSB Rebate ID with form/version ID (9 digits)
                 paymentRequestFormModified: paymentRequest.bap.modified,
               })
                 .then((res) => {

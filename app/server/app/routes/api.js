@@ -19,8 +19,8 @@ const {
 const {
   getSamEntities,
   getBapFormSubmissionsStatuses,
-  getBapApplicationSubmission,
-  getBapPaymentRequestSubmission,
+  getBapDataForPaymentRequest,
+  getBapDataForCloseOut,
 } = require("../utilities/bap");
 const log = require("../utilities/logger");
 
@@ -436,7 +436,7 @@ router.post(
       entity,
       comboKey,
       rebateId,
-      reviewItemId,
+      applicationReviewItemId,
       applicationFormModified,
     } = req.body;
 
@@ -461,8 +461,8 @@ router.post(
       ALT_GOVT_BUS_POC_EMAIL__c,
     } = entity;
 
-    return getBapApplicationSubmission(req, reviewItemId)
-      .then(({ applicationTableRecordQuery, busTableRecordsQuery }) => {
+    return getBapDataForPaymentRequest(req, applicationReviewItemId)
+      .then(({ applicationRecordQuery, busRecordsQuery }) => {
         const {
           CSB_NCES_ID__c,
           Primary_Applicant__r,
@@ -473,9 +473,9 @@ router.post(
           School_District_Prioritized__c,
           Total_Rebate_Funds_Requested__c,
           Total_Infrastructure_Funds__c,
-        } = applicationTableRecordQuery[0];
+        } = applicationRecordQuery[0];
 
-        const busInfo = busTableRecordsQuery.map((record) => ({
+        const busInfo = busRecordsQuery.map((record) => ({
           busNum: record.Rebate_Item_num__c,
           oldBusNcesDistrictId: CSB_NCES_ID__c,
           oldBusVin: record.CSB_VIN__c,
@@ -743,7 +743,8 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
     entity,
     comboKey,
     rebateId,
-    reviewItemId,
+    applicationReviewItemId,
+    paymentRequestReviewItemId,
     paymentRequestFormModified,
   } = req.body;
 
@@ -768,111 +769,129 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
     ALT_GOVT_BUS_POC_EMAIL__c,
   } = entity;
 
-  return getBapPaymentRequestSubmission(req, reviewItemId)
-    .then(({ paymentRequestTableRecordQuery, busTableRecordsQuery }) => {
-      const {
-        CSB_NCES_ID__c,
-        Primary_Applicant__r,
-        Alternate_Applicant__r,
-        Applicant_Organization__r,
-        CSB_School_District__r,
-        Fleet_Name__c,
-        School_District_Prioritized__c,
-        Total_Rebate_Funds_Requested__c,
-        Total_Infrastructure_Funds__c,
-        Total_Bus_And_Infrastructure_Rebate__c,
-        Num_Of_Buses_Requested_From_Application__c,
-        Total_Price_All_Buses__c,
-        Total_Bus_Rebate_Amount__c,
-        Total_All_Eligible_Infrastructure_Costs__c,
-        Total_Infrastructure_Rebate__c,
-        Total_Level_2_Charger_Costs__c,
-        Total_DC_Fast_Charger_Costs__c,
-        Total_Other_Infrastructure_Costs__c,
-      } = paymentRequestTableRecordQuery[0];
+  return getBapDataForCloseOut(
+    req,
+    applicationReviewItemId,
+    paymentRequestReviewItemId
+  )
+    .then(
+      ({
+        applicationRecordQuery,
+        paymentRequestRecordQuery,
+        busRecordsQuery,
+      }) => {
+        const { Fleet_Contact_Name__c, School_District_Contact__r } =
+          applicationRecordQuery[0];
 
-      const busInfo = busTableRecordsQuery.map((record) => ({
-        busNum: record.Rebate_Item_num__c,
-        oldBusNcesDistrictId: CSB_NCES_ID__c,
-        oldBusVin: record.CSB_VIN__c,
-        oldBusModelYear: record.CSB_Model_Year__c,
-        oldBusFuelType: record.CSB_Fuel_Type__c,
-        oldBusEstimatedRemainingLife: record.Old_Bus_Estimated_Remaining_Life__c, // prettier-ignore
-        hidden_prf_oldBusExclude: record.Old_Bus_Exclude__c,
-        newBusDealer: record.Vendor_Name__c,
-        newBusFuelType: record.New_Bus_Fuel_Type__c,
-        hidden_prf_newBusFuelType: record.New_Bus_Fuel_Type__c,
-        newBusMake: record.New_Bus_Make__c,
-        hidden_prf_newBusMake: record.New_Bus_Make__c,
-        newBusMakeOther: record.CSB_Manufacturer_if_Other__c,
-        hidden_prf_newBusMakeOther: record.CSB_Manufacturer_if_Other__c,
-        newBusModel: record.New_Bus_Model__c,
-        hidden_prf_newBusModel: record.New_Bus_Model__c,
-        newBusModelYear: record.New_Bus_Model_Year__c,
-        hidden_prf_newBusModelYear: record.New_Bus_Model_Year__c,
-        newBusGvwr: record.New_Bus_GVWR__c,
-        hidden_prf_newBusGvwr: record.New_Bus_GVWR__c,
-        newBusPurchasePrice: record.New_Bus_Purchase_Price__c,
-        hidden_prf_newBusPurchasePrice: record.New_Bus_Purchase_Price__c,
-        hidden_prf_rebate: record.New_Bus_Rebate_Amount__c,
-      }));
+        const {
+          CSB_NCES_ID__c,
+          Primary_Applicant__r,
+          Alternate_Applicant__r,
+          Applicant_Organization__r,
+          CSB_School_District__r,
+          Fleet_Name__c,
+          School_District_Prioritized__c,
+          Total_Rebate_Funds_Requested__c,
+          Total_Infrastructure_Funds__c,
+          Total_Bus_And_Infrastructure_Rebate__c,
+          Num_Of_Buses_Requested_From_Application__c,
+          Total_Price_All_Buses__c,
+          Total_Bus_Rebate_Amount__c,
+          Total_All_Eligible_Infrastructure_Costs__c,
+          Total_Infrastructure_Rebate__c,
+          Total_Level_2_Charger_Costs__c,
+          Total_DC_Fast_Charger_Costs__c,
+          Total_Other_Infrastructure_Costs__c,
+        } = paymentRequestRecordQuery[0];
 
-      const submission = {
-        data: {
-          bap_hidden_entity_combo_key: comboKey,
-          hidden_prf_modified: paymentRequestFormModified,
-          hidden_current_user_email: email,
-          hidden_current_user_title: title,
-          hidden_current_user_name: name,
-          hidden_bap_rebate_id: rebateId,
-          hidden_sam_uei: UNIQUE_ENTITY_ID__c,
-          hidden_sam_efti: ENTITY_EFT_INDICATOR__c || "0000",
-          hidden_sam_elec_bus_poc_email: ELEC_BUS_POC_EMAIL__c,
-          hidden_sam_alt_elec_bus_poc_email: ALT_ELEC_BUS_POC_EMAIL__c,
-          hidden_sam_govt_bus_poc_email: GOVT_BUS_POC_EMAIL__c,
-          hidden_sam_alt_govt_bus_poc_email: ALT_GOVT_BUS_POC_EMAIL__c,
-          hidden_bap_district_id: CSB_NCES_ID__c,
-          hidden_bap_district_name: CSB_School_District__r?.Name,
-          hidden_bap_primary_name: Primary_Applicant__r?.Name,
-          hidden_bap_primary_title: Primary_Applicant__r?.Title,
-          hidden_bap_primary_phone_number: Primary_Applicant__r?.Phone,
-          hidden_bap_primary_email: Primary_Applicant__r?.Email,
-          hidden_bap_alternate_name: Alternate_Applicant__r?.Name || "",
-          hidden_bap_alternate_title: Alternate_Applicant__r?.Title || "",
-          hidden_bap_alternate_phone_number: Alternate_Applicant__r?.Phone || "", // prettier-ignore
-          hidden_bap_alternate_email: Alternate_Applicant__r?.Email || "",
-          hidden_bap_org_name: Applicant_Organization__r?.Name,
-          hidden_bap_fleet_name: Fleet_Name__c,
-          hidden_bap_prioritized: School_District_Prioritized__c,
-          hidden_bap_requested_funds: Total_Rebate_Funds_Requested__c,
-          hidden_bap_prf_infra_max_rebate: Total_Infrastructure_Funds__c,
-          hidden_bap_received_funds: Total_Bus_And_Infrastructure_Rebate__c,
-          hidden_bap_buses_requested_app: Num_Of_Buses_Requested_From_Application__c, // prettier-ignore
-          hidden_bap_total_bus_costs_prf: Total_Price_All_Buses__c,
-          hidden_bap_total_bus_rebate_received: Total_Bus_Rebate_Amount__c,
-          hidden_bap_total_infra_costs_prf: Total_All_Eligible_Infrastructure_Costs__c, // prettier-ignore
-          hidden_bap_total_infra_rebate_received: Total_Infrastructure_Rebate__c, // prettier-ignore
-          hidden_bap_total_infra_level2_charger: Total_Level_2_Charger_Costs__c,
-          hidden_bap_total_infra_dc_fast_charger: Total_DC_Fast_Charger_Costs__c, // prettier-ignore
-          hidden_bap_total_infra_other_costs: Total_Other_Infrastructure_Costs__c, // prettier-ignore
-          busInfo,
-        },
-        // add custom metadata to track formio submissions from wrapper
-        metadata: {
-          ...formioCsbMetadata,
-        },
-        state: "draft",
-      };
+        const busInfo = busRecordsQuery.map((record) => ({
+          busNum: record.Rebate_Item_num__c,
+          oldBusNcesDistrictId: CSB_NCES_ID__c,
+          oldBusVin: record.CSB_VIN__c,
+          oldBusModelYear: record.CSB_Model_Year__c,
+          oldBusFuelType: record.CSB_Fuel_Type__c,
+          oldBusEstimatedRemainingLife: record.Old_Bus_Estimated_Remaining_Life__c, // prettier-ignore
+          hidden_prf_oldBusExclude: record.Old_Bus_Exclude__c,
+          newBusDealer: record.Vendor_Name__c,
+          newBusFuelType: record.New_Bus_Fuel_Type__c,
+          hidden_prf_newBusFuelType: record.New_Bus_Fuel_Type__c,
+          newBusMake: record.New_Bus_Make__c,
+          hidden_prf_newBusMake: record.New_Bus_Make__c,
+          newBusMakeOther: record.CSB_Manufacturer_if_Other__c,
+          hidden_prf_newBusMakeOther: record.CSB_Manufacturer_if_Other__c,
+          newBusModel: record.New_Bus_Model__c,
+          hidden_prf_newBusModel: record.New_Bus_Model__c,
+          newBusModelYear: record.New_Bus_Model_Year__c,
+          hidden_prf_newBusModelYear: record.New_Bus_Model_Year__c,
+          newBusGvwr: record.New_Bus_GVWR__c,
+          hidden_prf_newBusGvwr: record.New_Bus_GVWR__c,
+          newBusPurchasePrice: record.New_Bus_Purchase_Price__c,
+          hidden_prf_newBusPurchasePrice: record.New_Bus_Purchase_Price__c,
+          hidden_prf_rebate: record.New_Bus_Rebate_Amount__c,
+        }));
 
-      axiosFormio(req)
-        .post(`${formioCloseOutFormUrl}/submission`, submission)
-        .then((axiosRes) => axiosRes.data)
-        .then((submission) => res.json(submission))
-        .catch((error) => {
-          const message = `Error posting Formio Close-Out form submission`;
-          return res.status(error?.response?.status || 500).json({ message });
-        });
-    })
+        const submission = {
+          data: {
+            bap_hidden_entity_combo_key: comboKey,
+            hidden_prf_modified: paymentRequestFormModified,
+            hidden_current_user_email: email,
+            hidden_current_user_title: title,
+            hidden_current_user_name: name,
+            hidden_bap_rebate_id: rebateId,
+            hidden_sam_uei: UNIQUE_ENTITY_ID__c,
+            hidden_sam_efti: ENTITY_EFT_INDICATOR__c || "0000",
+            hidden_sam_elec_bus_poc_email: ELEC_BUS_POC_EMAIL__c,
+            hidden_sam_alt_elec_bus_poc_email: ALT_ELEC_BUS_POC_EMAIL__c,
+            hidden_sam_govt_bus_poc_email: GOVT_BUS_POC_EMAIL__c,
+            hidden_sam_alt_govt_bus_poc_email: ALT_GOVT_BUS_POC_EMAIL__c,
+            hidden_bap_district_id: CSB_NCES_ID__c,
+            hidden_bap_district_name: CSB_School_District__r?.Name,
+            hidden_bap_primary_fname: Primary_Applicant__r?.FirstName,
+            hidden_bap_primary_lname: Primary_Applicant__r?.LastName,
+            hidden_bap_primary_title: Primary_Applicant__r?.Title,
+            hidden_bap_primary_phone_number: Primary_Applicant__r?.Phone,
+            hidden_bap_primary_email: Primary_Applicant__r?.Email,
+            hidden_bap_alternate_fname: Alternate_Applicant__r?.FirstName || "",
+            hidden_bap_alternate_lname: Alternate_Applicant__r?.LastName || "",
+            hidden_bap_alternate_title: Alternate_Applicant__r?.Title || "",
+            hidden_bap_alternate_phone_number: Alternate_Applicant__r?.Phone || "", // prettier-ignore
+            hidden_bap_alternate_email: Alternate_Applicant__r?.Email || "",
+            hidden_bap_org_name: Applicant_Organization__r?.Name,
+            hidden_bap_fleet_name: Fleet_Name__c,
+            hidden_bap_prioritized: School_District_Prioritized__c,
+            hidden_bap_requested_funds: Total_Rebate_Funds_Requested__c,
+            hidden_bap_prf_infra_max_rebate: Total_Infrastructure_Funds__c,
+            hidden_bap_received_funds: Total_Bus_And_Infrastructure_Rebate__c,
+            hidden_bap_buses_requested_app: Num_Of_Buses_Requested_From_Application__c, // prettier-ignore
+            hidden_bap_total_bus_costs_prf: Total_Price_All_Buses__c,
+            hidden_bap_total_bus_rebate_received: Total_Bus_Rebate_Amount__c,
+            hidden_bap_total_infra_costs_prf: Total_All_Eligible_Infrastructure_Costs__c, // prettier-ignore
+            hidden_bap_total_infra_rebate_received: Total_Infrastructure_Rebate__c, // prettier-ignore
+            hidden_bap_total_infra_level2_charger: Total_Level_2_Charger_Costs__c, // prettier-ignore
+            hidden_bap_total_infra_dc_fast_charger: Total_DC_Fast_Charger_Costs__c, // prettier-ignore
+            hidden_bap_total_infra_other_costs: Total_Other_Infrastructure_Costs__c, // prettier-ignore
+            hidden_bap_fleet_contact_name: Fleet_Contact_Name__c,
+            hidden_bap_district_contact_fname: School_District_Contact__r?.FirstName, // prettier-ignore
+            hidden_bap_district_contact_lname: School_District_Contact__r?.LastName, // prettier-ignore
+            busInfo,
+          },
+          // add custom metadata to track formio submissions from wrapper
+          metadata: {
+            ...formioCsbMetadata,
+          },
+          state: "draft",
+        };
+
+        axiosFormio(req)
+          .post(`${formioCloseOutFormUrl}/submission`, submission)
+          .then((axiosRes) => axiosRes.data)
+          .then((submission) => res.json(submission))
+          .catch((error) => {
+            const message = `Error posting Formio Close-Out form submission`;
+            return res.status(error?.response?.status || 500).json({ message });
+          });
+      }
+    )
     .catch((error) => {
       const message = `Error getting Payment Request form submission from BAP`;
       return res.status(401).json({ message });
