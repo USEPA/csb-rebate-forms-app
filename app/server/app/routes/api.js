@@ -780,21 +780,8 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
         paymentRequestRecordQuery,
         busRecordsQuery,
       }) => {
-        const {
-          CSB_Private_Fleet__c,
-          Fleet_Contact_Name__c,
-          Fleet_Contact_Title__c,
-          Fleet_Contact_Phone__c,
-          Fleet_Contact_Email__c,
-          // Fleet_Name__c,
-          Fleet_Street_Address__c,
-          Fleet_City__c,
-          Fleet_Name_2__c,
-          Fleet_State__c,
-          Fleet_Zip__c,
-        } = applicationRecordQuery[0];
-
-        // TODO: inject the above data into new hidden fields
+        const { Fleet_Contact_Name__c, School_District_Contact__r } =
+          applicationRecordQuery[0];
 
         const {
           CSB_NCES_ID__c,
@@ -881,6 +868,9 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
             hidden_bap_total_infra_level2_charger: Total_Level_2_Charger_Costs__c, // prettier-ignore
             hidden_bap_total_infra_dc_fast_charger: Total_DC_Fast_Charger_Costs__c, // prettier-ignore
             hidden_bap_total_infra_other_costs: Total_Other_Infrastructure_Costs__c, // prettier-ignore
+            hidden_bap_fleet_contact_name: Fleet_Contact_Name__c,
+            hidden_bap_district_contact_fname: School_District_Contact__r?.FirstName, // prettier-ignore
+            hidden_bap_district_contact_lname: School_District_Contact__r?.LastName, // prettier-ignore
             busInfo,
           },
           // add custom metadata to track formio submissions from wrapper

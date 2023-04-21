@@ -483,18 +483,9 @@ async function queryForBapPaymentRequestSubmission(
   const applicationRecordTypeId = applicationRecordTypeIdQuery["0"].Id;
 
   // `SELECT
-  //   Id,
-  //   CSB_Private_Fleet__c,
   //   Fleet_Contact_Name__c,
-  //   Fleet_Contact_Title__c,
-  //   Fleet_Contact_Phone__c,
-  //   Fleet_Contact_Email__c,
-  //   Fleet_Name__c,
-  //   Fleet_Street_Address__c,
-  //   Fleet_City__c,
-  //   Fleet_Name_2__c,
-  //   Fleet_State__c,
-  //   Fleet_Zip__c
+  //   School_District_Contact__r.FirstName,
+  //   School_District_Contact__r.LastName,
   // FROM
   //   ${BAP_FORMS_TABLE}
   // WHERE
@@ -512,18 +503,9 @@ async function queryForBapPaymentRequestSubmission(
       },
       {
         // "*": 1,
-        Id: 1, // Salesforce record ID
-        CSB_Private_Fleet__c: 1,
         Fleet_Contact_Name__c: 1,
-        Fleet_Contact_Title__c: 1,
-        Fleet_Contact_Phone__c: 1,
-        Fleet_Contact_Email__c: 1,
-        Fleet_Name__c: 1,
-        Fleet_Street_Address__c: 1,
-        Fleet_City__c: 1,
-        Fleet_Name_2__c: 1,
-        Fleet_State__c: 1,
-        Fleet_Zip__c: 1,
+        "School_District_Contact__r.FirstName": 1,
+        "School_District_Contact__r.LastName": 1,
       }
     )
     .execute(async (err, records) => ((await err) ? err : records));
