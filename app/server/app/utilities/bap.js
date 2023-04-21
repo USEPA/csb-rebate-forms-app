@@ -485,7 +485,7 @@ async function queryForBapPaymentRequestSubmission(
   // `SELECT
   //   Fleet_Contact_Name__c,
   //   School_District_Contact__r.FirstName,
-  //   School_District_Contact__r.LastName,
+  //   School_District_Contact__r.LastName
   // FROM
   //   ${BAP_FORMS_TABLE}
   // WHERE
@@ -540,11 +540,13 @@ async function queryForBapPaymentRequestSubmission(
   //   Id,
   //   UEI_EFTI_Combo_Key__c,
   //   CSB_NCES_ID__c,
-  //   Primary_Applicant__r.Name,
+  //   Primary_Applicant__r.FirstName,
+  //   Primary_Applicant__r.LastName,
   //   Primary_Applicant__r.Title,
   //   Primary_Applicant__r.Phone,
   //   Primary_Applicant__r.Email,
-  //   Alternate_Applicant__r.Name,
+  //   Alternate_Applicant__r.FirstName,
+  //   Alternate_Applicant__r.LastName,
   //   Alternate_Applicant__r.Title,
   //   Alternate_Applicant__r.Phone,
   //   Alternate_Applicant__r.Email,
@@ -583,11 +585,13 @@ async function queryForBapPaymentRequestSubmission(
         Id: 1, // Salesforce record ID
         UEI_EFTI_Combo_Key__c: 1,
         CSB_NCES_ID__c: 1,
-        "Primary_Applicant__r.Name": 1,
+        "Primary_Applicant__r.FirstName": 1,
+        "Primary_Applicant__r.LastName": 1,
         "Primary_Applicant__r.Title": 1,
         "Primary_Applicant__r.Phone": 1,
         "Primary_Applicant__r.Email": 1,
-        "Alternate_Applicant__r.Name": 1,
+        "Alternate_Applicant__r.FirstName": 1,
+        "Alternate_Applicant__r.LastName": 1,
         "Alternate_Applicant__r.Title": 1,
         "Alternate_Applicant__r.Phone": 1,
         "Alternate_Applicant__r.Email": 1,
