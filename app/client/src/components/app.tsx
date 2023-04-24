@@ -143,7 +143,7 @@ function useInactivityDialog(callback: () => void) {
 
       /**
        * If user makes action and the JWT is set to expire within 3 minutes,
-       * call the callback (access "/epa-user-data") to refresh the JWT
+       * call the callback (access "/user") to refresh the JWT
        */
       if (timeToExpire < threeMinutes) {
         callback();
@@ -214,7 +214,7 @@ function ProtectedRoute() {
    * redirect them to the "/welcome" route)
    */
   const verifyUser = useCallback(() => {
-    getData<EpaUserData>(`${serverUrl}/api/epa-user-data`)
+    getData<EpaUserData>(`${serverUrl}/api/user`)
       .then((res) => {
         userDispatch({
           type: "FETCH_EPA_USER_DATA_SUCCESS",

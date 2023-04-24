@@ -147,6 +147,12 @@ router.get("/content", (req, res) => {
 
 router.use(ensureAuthenticated);
 
+// --- get user data from EPA Gateway/Login.gov
+router.get("/user", (req, res) => {
+  const { mail, memberof, exp } = req.user;
+  return res.json({ mail, memberof, exp });
+});
+
 // --- get CSB app specific data (open enrollment status, etc.)
 router.get("/csb-data", (req, res) => {
   return res.json({
@@ -156,12 +162,6 @@ router.get("/csb-data", (req, res) => {
       closeOut: closeOutFormOpen,
     },
   });
-});
-
-// --- get user data from EPA Gateway/Login.gov
-router.get("/epa-user-data", (req, res) => {
-  const { mail, memberof, exp } = req.user;
-  return res.json({ mail, memberof, exp });
 });
 
 // --- get user's SAM.gov data from EPA's Business Automation Platform (BAP)
@@ -759,6 +759,8 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
     log({ level: "error", message, req });
     return res.status(401).json({ message: "Unauthorized" });
   }
+
+  // const comboKey = "1234560000111234";
 
   const {
     UNIQUE_ENTITY_ID__c,
