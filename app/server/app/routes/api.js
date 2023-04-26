@@ -760,8 +760,6 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
-  // const comboKey = "1234560000111234";
-
   const {
     UNIQUE_ENTITY_ID__c,
     ENTITY_EFT_INDICATOR__c,

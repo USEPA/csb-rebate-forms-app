@@ -168,7 +168,7 @@ function ApplicationSubmission(props: { rebate: Rebate }) {
         ) : (
           <TextWithTooltip
             text=" "
-            tooltip="Rebate ID should be displayed within 24hrs. after starting a new rebate form application"
+            tooltip="Rebate ID should be displayed within 24hrs. after submitting a rebate form application"
           />
         )}
       </td>
