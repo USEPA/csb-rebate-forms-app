@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { render } from "react-dom";
 import {
   BrowserRouter,
@@ -17,8 +17,13 @@ import "@formio/choices.js/public/assets/styles/choices.min.css";
 import "@formio/premium/dist/premium.css";
 import "formiojs/dist/formio.full.min.css";
 // ---
-import { serverBasePath, serverUrl, cloudSpace } from "../config";
-import { getData, useContentQuery, useContentData } from "../utilities";
+import { serverBasePath, serverUrlForHrefs, cloudSpace } from "../config";
+import {
+  useContentQuery,
+  useContentData,
+  useUserQuery,
+  useUserData,
+} from "../utilities";
 import { Loading } from "components/loading";
 import { MarkdownContent } from "components/markdownContent";
 import { Welcome } from "routes/welcome";
@@ -32,7 +37,6 @@ import { ApplicationForm } from "routes/applicationForm";
 import { PaymentRequestForm } from "routes/paymentRequestForm";
 import { CloseOutForm } from "routes/closeOutForm";
 import { useDialogState, useDialogActions } from "contexts/dialog";
-import { EpaUserData, useUserState, useUserDispatch } from "contexts/user";
 
 /** Custom hook to display a site-wide alert banner */
 function useSiteAlertBanner() {
@@ -90,9 +94,9 @@ function useDisclaimerBanner() {
 
 /** Custom hook to set up inactivity timer to auto-logout user if they're inactive for >15 minutes */
 function useInactivityDialog(callback: () => void) {
-  const { epaUserData } = useUserState();
   const { dialogShown, heading } = useDialogState();
   const { displayDialog, updateDialogDescription } = useDialogActions();
+  const user = useUserData();
 
   /** Initial time (seconds) used in the logout countdown timer */
   const oneMinute = 60;
@@ -135,10 +139,9 @@ function useInactivityDialog(callback: () => void) {
         setCountdownSeconds(oneMinute);
       }
 
-      if (epaUserData.status !== "success") return;
+      if (!user) return;
 
-      const { exp } = epaUserData.data; // seconds
-      const timeToExpire = exp - Date.now() / 1000; // seconds
+      const timeToExpire = user.exp - Date.now() / 1000; // seconds
       const threeMinutes = 180; // seconds
 
       /**
@@ -161,88 +164,54 @@ function useInactivityDialog(callback: () => void) {
         setCountdownSeconds((seconds) => (seconds > 0 ? seconds - 1 : seconds));
         updateDialogDescription(
           <p>
-            You will be automatically logged out in {countdownSeconds - 1}{" "}
+            You will be automatically logged out in{" "}
+            {countdownSeconds > 0 ? countdownSeconds - 1 : countdownSeconds}{" "}
             seconds due to inactivity.
           </p>
         );
       }, 1000);
-      return () => clearTimeout(timeoutID);
-    }
 
-    /** log user out from server if inactivity countdown reaches 0 */
-    if (countdownSeconds === 0) {
-      window.location.href = `${serverUrl}/logout?RelayState=/welcome?info=timeout`;
+      /** log user out from server if inactivity countdown reaches 0 */
+      if (countdownSeconds <= 0) {
+        window.location.href = `${serverUrlForHrefs}/logout?RelayState=/welcome?info=timeout`;
+      }
+
+      return () => clearTimeout(timeoutID);
     }
   }, [dialogShown, heading, countdownSeconds, updateDialogDescription]);
 }
 
 /** Custom hook to check if user should have access to the helpdesk page */
 export function useHelpdeskAccess() {
-  const { epaUserData } = useUserState();
+  const user = useUserData();
+  const userRoles = user?.memberof.split(",") || [];
 
-  const [helpdeskAccess, setHelpdeskAccess] =
-    useState<(typeof epaUserData)["status"]>("idle");
-
-  useEffect(() => {
-    if (epaUserData.status === "pending") {
-      setHelpdeskAccess("pending");
-    }
-
-    if (epaUserData.status === "success") {
-      const userRoles = epaUserData.data.memberof.split(",");
-
-      setHelpdeskAccess(
-        userRoles.includes("csb_admin") || userRoles.includes("csb_helpdesk")
-          ? "success"
-          : "failure"
-      );
-    }
-  }, [epaUserData]);
-
-  return helpdeskAccess;
+  return !user
+    ? "pending"
+    : userRoles.includes("csb_admin") || userRoles.includes("csb_helpdesk")
+    ? "success"
+    : "failure";
 }
 
 function ProtectedRoute() {
   const { pathname } = useLocation();
-  const { isAuthenticating, isAuthenticated, epaUserData } = useUserState();
-  const userDispatch = useUserDispatch();
 
-  const email = epaUserData.status !== "success" ? "" : epaUserData.data.mail;
-
-  /**
-   * check if user is already logged in or needs to be logged out (which will
-   * redirect them to the "/welcome" route)
-   */
-  const verifyUser = useCallback(() => {
-    getData<EpaUserData>(`${serverUrl}/api/user`)
-      .then((res) => {
-        userDispatch({
-          type: "FETCH_EPA_USER_DATA_SUCCESS",
-          payload: { epaUserData: res },
-        });
-        userDispatch({ type: "USER_SIGN_IN" });
-      })
-      .catch((err) => {
-        userDispatch({ type: "FETCH_EPA_USER_DATA_FAILURE" });
-        userDispatch({ type: "USER_SIGN_OUT" });
-      });
-  }, [userDispatch]);
+  const { isLoading, isError, data, refetch } = useUserQuery();
 
   // NOTE: even though `pathname` isn't used in the effect below, it's being
   // included it in the dependency array as we want to verify the user's access
   // any time a route changes
   useEffect(() => {
-    userDispatch({ type: "FETCH_EPA_USER_DATA_REQUEST" });
-    verifyUser();
-  }, [userDispatch, verifyUser, pathname]);
+    refetch();
+  }, [refetch, pathname]);
 
-  useInactivityDialog(verifyUser);
+  useInactivityDialog(refetch);
 
-  if (isAuthenticating) {
+  if (isLoading) {
     return <Loading />;
   }
 
-  if (!isAuthenticated) {
+  if (isError) {
     return <Navigate to="/welcome" replace />;
   }
 
@@ -250,7 +219,7 @@ function ProtectedRoute() {
     <TooltipProvider>
       <ConfirmationDialog />
       <Notifications />
-      <UserDashboard email={email} />
+      <UserDashboard email={data?.mail || ""} />
     </TooltipProvider>
   );
 }
