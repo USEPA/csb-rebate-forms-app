@@ -18,6 +18,12 @@ type Content = {
   submittedCloseOutIntro: string;
 };
 
+type UserData = {
+  mail: string;
+  memberof: string;
+  exp: number;
+};
+
 export type CsbData = {
   submissionPeriodOpen: {
     application: boolean;
@@ -221,6 +227,22 @@ export function useContentQuery() {
 export function useContentData() {
   const queryClient = useQueryClient();
   return queryClient.getQueryData<Content>(["content"]);
+}
+
+/** Custom hook to fetch user data */
+export function useUserQuery() {
+  return useQuery({
+    queryKey: ["user"],
+    queryFn: () => getData<UserData>(`${serverUrl}/api/user`),
+    enabled: false,
+    retry: false,
+  });
+}
+
+/** Custom hook that returns cached fetched user data */
+export function useUserData() {
+  const queryClient = useQueryClient();
+  return queryClient.getQueryData<UserData>(["user"]);
 }
 
 /** Custom hook to fetch CSB data */

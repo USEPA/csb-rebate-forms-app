@@ -67,7 +67,7 @@ export function Helpdesk() {
 
   const { formSchema, submission } = query.data ?? {};
 
-  if (!csbData || helpdeskAccess === "idle" || helpdeskAccess === "pending") {
+  if (!csbData || helpdeskAccess === "pending") {
     return <Loading />;
   }
 
