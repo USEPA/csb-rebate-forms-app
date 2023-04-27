@@ -235,6 +235,7 @@ export function useUserQuery() {
     queryKey: ["user"],
     queryFn: () => getData<UserData>(`${serverUrl}/api/user`),
     enabled: false,
+    retry: false,
   });
 }
 

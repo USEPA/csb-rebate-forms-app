@@ -98,21 +98,20 @@ function useInactivityDialog(callback: () => void) {
   const { displayDialog, updateDialogDescription } = useDialogActions();
   const user = useUserData();
 
-  /** Initial time (seconds) used in the logout countdown timer */
-  const oneMinute = 60;
-
-  const [countdownSeconds, setCountdownSeconds] = useState(oneMinute);
-
-  /**
-   * One minute less than our intended 15 minute timeout, so `onIdle` is called
-   * and displays a 60 second warning modal to keep user logged in.
-   */
-  const timeout = 14 * 60 * 1000; // 14 minutes in milliseconds
+  /** NOTE: 1 minute initial time used in the logout countdown timer */
+  const [countdownSeconds, setCountdownSeconds] = useState(60);
 
   const { reset } = useIdleTimer({
-    timeout,
+    /**
+     * NOTE: setting timeout to be one minute less than the JWT's configured 15
+     * minute timeout (set via the `expiresIn` option in the server app's
+     * createJwt() middleware function), so `onIdle` is called and displays a
+     * 1 minute countdown in a warning modal prompting user action to remain
+     * logged in.
+     */
+    timeout: 14 * 60 * 1000,
     onIdle: () => {
-      // display 60 second countdown dialog after 14 minutes of idle time
+      /* display a 1 minute countdown dialog after 14 minutes of idle time. */
       displayDialog({
         dismissable: false,
         heading: "Inactivity Warning",
@@ -132,23 +131,22 @@ function useInactivityDialog(callback: () => void) {
     onAction: () => {
       if (!dialogShown) {
         /**
-         * keep logout timer at initial countdown time (60 seconds) if the
-         * dialog isn't shown, so logout timer is ready for the next inactivity
-         * warning
+         * keep the logout timer at 1 minute if the countdown dialog isn't
+         * shown, so the logout timer is ready for the next inactivity warning.
          */
-        setCountdownSeconds(oneMinute);
+        setCountdownSeconds(60);
       }
 
       if (!user) return;
 
-      const timeToExpire = user.exp - Date.now() / 1000; // seconds
-      const threeMinutes = 180; // seconds
+      const jwtTimeToExpireInSeconds = user.exp - Date.now() / 1000;
+      const threeMinutesInSeconds = 3 * 60;
 
       /**
-       * If user makes action and the JWT is set to expire within 3 minutes,
-       * call the callback (access "/user") to refresh the JWT
+       * if the user causes action and the JWT is set to expire within 3 minutes,
+       * call the callback (access /api/user) to refresh the JWT behind the scenes
        */
-      if (timeToExpire < threeMinutes) {
+      if (jwtTimeToExpireInSeconds < threeMinutesInSeconds) {
         callback();
         reset();
       }
@@ -158,7 +156,12 @@ function useInactivityDialog(callback: () => void) {
   });
 
   useEffect(() => {
-    /** update inactivity warning dialog's time remaining every second */
+    /** log the user out if the inactivity countdown reaches zero. */
+    if (countdownSeconds <= 0) {
+      window.location.href = `${serverUrlForHrefs}/logout?RelayState=/welcome?info=timeout`;
+    }
+
+    /** update the inactivity warning's countdown time remaining every second. */
     if (dialogShown && heading === "Inactivity Warning") {
       const timeoutID = setTimeout(() => {
         setCountdownSeconds((seconds) => (seconds > 0 ? seconds - 1 : seconds));
@@ -170,11 +173,6 @@ function useInactivityDialog(callback: () => void) {
           </p>
         );
       }, 1000);
-
-      /** log user out from server if inactivity countdown reaches 0 */
-      if (countdownSeconds <= 0) {
-        window.location.href = `${serverUrlForHrefs}/logout?RelayState=/welcome?info=timeout`;
-      }
 
       return () => clearTimeout(timeoutID);
     }
