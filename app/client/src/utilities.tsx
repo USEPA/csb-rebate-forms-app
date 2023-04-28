@@ -349,7 +349,7 @@ export function useSubmissionsQueries() {
 
 /**
  * Custom hook to combine Application form submissions data, Payment Request
- * form submissions data, and Close-Out form submissions data from both the BAP
+ * form submissions data, and Close Out form submissions data from both the BAP
  * and Formio into a single `submissions` object, with the BAP assigned
  * `rebateId` as the keys.
  **/
@@ -466,8 +466,8 @@ function useCombinedRebates() {
   }
 
   /**
-   * Iterate over Formio Close-Out form submissions, matching them with
-   * submissions returned from the BAP, so we can set the Close-Out form
+   * Iterate over Formio Close Out form submissions, matching them with
+   * submissions returned from the BAP, so we can set the Close Out form
    * submission data.
    */
   for (const formioSubmission of formioCloseOutSubmissions) {
@@ -497,7 +497,7 @@ function useCombinedRebates() {
 /**
  * Custom hook that sorts rebates by:
  * - most recient formio modified date, regardless of form
- *   (Application, Payment Request, or Close-Out)
+ *   (Application, Payment Request, or Close Out)
  * - Application submissions needing edits
  * - selected Applications submissions without a corresponding Payment Request
  *   submission

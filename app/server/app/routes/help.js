@@ -201,7 +201,7 @@ router.post("/formio-submission/:formType/:id", (req, res) => {
 
   if (formType === "close-out") {
     if (!closeOutFormOpen) {
-      const message = `CSB Close-Out form enrollment period is closed`;
+      const message = `CSB Close Out form enrollment period is closed`;
       return res.status(400).json({ message });
     }
 

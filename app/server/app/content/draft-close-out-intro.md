@@ -1,1 +1,1 @@
-## Edit Your Close-Out
+## Edit Your Close Out

@@ -306,7 +306,7 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
   /**
    * Stores when data is being posted to the server, so a loading indicator can
    * be rendered inside the "New Payment Request" button, and we can prevent
-   * double submits/creations of new payment request form submissions.
+   * double submits/creations of new Payment Request form submissions.
    */
   const [dataIsPosting, setDataIsPosting] = useState(false);
 
@@ -343,7 +343,7 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
 
               const { title, name } = getUserInfo(email, entity);
 
-              // create a new draft payment request submission
+              // create a new draft Payment Request form submission
               postData(`${serverUrl}/api/formio-payment-request-submission/`, {
                 email,
                 title,
@@ -541,8 +541,8 @@ function CloseOutSubmission(props: { rebate: Rebate }) {
 
   /**
    * Stores when data is being posted to the server, so a loading indicator can
-   * be rendered inside the "New Close-Out" button, and we can prevent double
-   * submits/creations of new close-out form submissions.
+   * be rendered inside the "New Close Out" button, and we can prevent double
+   * submits/creations of new Close Out form submissions.
    */
   const [dataIsPosting, setDataIsPosting] = useState(false);
 
@@ -579,7 +579,7 @@ function CloseOutSubmission(props: { rebate: Rebate }) {
 
               const { title, name } = getUserInfo(email, entity);
 
-              // create a new draft close-out submission
+              // create a new draft Close Out form submission
               postData(`${serverUrl}/api/formio-close-out-submission/`, {
                 email,
                 title,
@@ -600,7 +600,7 @@ function CloseOutSubmission(props: { rebate: Rebate }) {
                     body: (
                       <>
                         <p className="tw-text-sm tw-font-medium tw-text-gray-900">
-                          Error creating Close-Out{" "}
+                          Error creating Close Out{" "}
                           <em>{paymentRequest.bap?.rebateId}</em>.
                         </p>
                         <p className="tw-mt-1 tw-text-sm tw-text-gray-500">
@@ -624,7 +624,7 @@ function CloseOutSubmission(props: { rebate: Rebate }) {
               >
                 <use href={`${icons}#add_circle`} />
               </svg>
-              <span className="margin-left-1">New Close-Out</span>
+              <span className="margin-left-1">New Close Out</span>
               {dataIsPosting && <LoadingButtonIcon />}
             </span>
           </button>
@@ -633,7 +633,7 @@ function CloseOutSubmission(props: { rebate: Rebate }) {
     );
   }
 
-  // return if a Close-Out submission has not been created for this rebate
+  // return if a Close Out submission has not been created for this rebate
   if (!closeOut.formio) return null;
 
   const { hidden_current_user_email, hidden_bap_rebate_id } =
@@ -683,11 +683,11 @@ function CloseOutSubmission(props: { rebate: Rebate }) {
   const statusText = closeOutNeedsEdits
     ? "Edits Requested"
     : closeOutNotApproved
-    ? "Close-Out Not Approved"
+    ? "Close Out Not Approved"
     : closeOutReimbursementNeeded
     ? "Reimbursement Needed"
     : closeOutApproved
-    ? "Close-Out Approved"
+    ? "Close Out Approved"
     : closeOut.formio.state === "draft"
     ? "Draft"
     : closeOut.formio.state === "submitted"
@@ -717,7 +717,7 @@ function CloseOutSubmission(props: { rebate: Rebate }) {
       <td className={statusTableCellClassNames}>&nbsp;</td>
 
       <td className={statusTableCellClassNames}>
-        <span>Close-Out</span>
+        <span>Close Out</span>
         <br />
         <span className="display-flex flex-align-center font-sans-2xs">
           {closeOutNeedsClarification ? (
@@ -803,7 +803,7 @@ export function AllRebates() {
                   <th scope="col">
                     <TextWithTooltip
                       text="Form Type"
-                      tooltip="Application, Payment Request, or Close-Out form"
+                      tooltip="Application, Payment Request, or Close Out form"
                     />
                     <br />
                     <TextWithTooltip
