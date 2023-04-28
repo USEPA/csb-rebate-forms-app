@@ -252,7 +252,7 @@ router.post(
               ? formType === "payment-request"
               : "CSB Payment Request"
               ? formType === "close-out"
-              : "CSB Close-Out"
+              : "CSB Close Out"
             : "CSB";
         const message = `${formName} form enrollment period is closed`;
         return res.status(400).json({ message });
@@ -714,7 +714,7 @@ router.post(
   }
 );
 
-// --- get user's Close-Out form submissions from Formio
+// --- get user's Close Out form submissions from Formio
 router.get("/formio-close-out-submissions", storeBapComboKeys, (req, res) => {
   const userSubmissionsUrl =
     `${formioCloseOutFormUrl}/submission` +
@@ -729,12 +729,12 @@ router.get("/formio-close-out-submissions", storeBapComboKeys, (req, res) => {
     .then((axiosRes) => axiosRes.data)
     .then((submissions) => res.json(submissions))
     .catch((error) => {
-      const message = `Error getting Formio Close-Out form submissions`;
+      const message = `Error getting Formio Close Out form submissions`;
       return res.status(error?.response?.status || 500).json({ message });
     });
 });
 
-// --- post a new Close-Out form submission to Formio
+// --- post a new Close Out form submission to Formio
 router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
   const {
     email,
@@ -749,13 +749,13 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
   } = req.body;
 
   if (!closeOutFormOpen) {
-    const message = `CSB Close-Out form enrollment period is closed`;
+    const message = `CSB Close Out form enrollment period is closed`;
     return res.status(400).json({ message });
   }
 
   // verify post data includes one of user's BAP combo keys
   if (!req.bapComboKeys.includes(comboKey)) {
-    const message = `User with email ${req.user.mail} attempted to post a new Close-Out form submission without a matching BAP combo key`;
+    const message = `User with email ${req.user.mail} attempted to post a new Close Out form submission without a matching BAP combo key`;
     log({ level: "error", message, req });
     return res.status(401).json({ message: "Unauthorized" });
   }
@@ -888,7 +888,7 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
           .then((axiosRes) => axiosRes.data)
           .then((submission) => res.json(submission))
           .catch((error) => {
-            const message = `Error posting Formio Close-Out form submission`;
+            const message = `Error posting Formio Close Out form submission`;
             return res.status(error?.response?.status || 500).json({ message });
           });
       }
@@ -899,7 +899,7 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
     });
 });
 
-// --- get an existing Close-Out form's schema and submission data from Formio
+// --- get an existing Close Out form's schema and submission data from Formio
 router.get(
   "/formio-close-out-submission/:rebateId",
   storeBapComboKeys,
@@ -922,7 +922,7 @@ router.get(
         const comboKey = submission.data.bap_hidden_entity_combo_key;
 
         if (!req.bapComboKeys.includes(comboKey)) {
-          const message = `User with email ${req.user.mail} attempted to access Close-Out form submission ${rebateId} that they do not have access to.`;
+          const message = `User with email ${req.user.mail} attempted to access Close Out form submission ${rebateId} that they do not have access to.`;
           log({ level: "warn", message, req });
           return res.json({
             userAccess: false,
@@ -957,13 +957,13 @@ router.get(
           });
       })
       .catch((error) => {
-        const message = `Error getting Formio Close-Out form submission ${rebateId}`;
+        const message = `Error getting Formio Close Out form submission ${rebateId}`;
         res.status(error?.response?.status || 500).json({ message });
       });
   }
 );
 
-// --- post an update to an existing draft Close-Out form submission to Formio
+// --- post an update to an existing draft Close Out form submission to Formio
 router.post(
   "/formio-close-out-submission/:rebateId",
   storeBapComboKeys,
@@ -977,7 +977,7 @@ router.post(
       .then(() => {
         // verify post data includes one of user's BAP combo keys
         if (!req.bapComboKeys.includes(comboKey)) {
-          const message = `User with email ${req.user.mail} attempted to update Close-Out form submission ${rebateId} without a matching BAP combo key`;
+          const message = `User with email ${req.user.mail} attempted to update Close Out form submission ${rebateId} without a matching BAP combo key`;
           log({ level: "error", message, req });
           return res.status(401).json({ message: "Unauthorized" });
         }
@@ -999,12 +999,12 @@ router.post(
           .then((axiosRes) => axiosRes.data)
           .then((submission) => res.json(submission))
           .catch((error) => {
-            const message = `Error updating Formio Close-Out form submission ${rebateId}`;
+            const message = `Error updating Formio Close Out form submission ${rebateId}`;
             return res.status(error?.response?.status || 500).json({ message });
           });
       })
       .catch((error) => {
-        const message = `CSB Close-Out form enrollment period is closed`;
+        const message = `CSB Close Out form enrollment period is closed`;
         return res.status(400).json({ message });
       });
   }

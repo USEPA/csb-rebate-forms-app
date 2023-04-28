@@ -37,7 +37,7 @@ export function NewApplicationForm() {
   /**
    * Stores when data is being posted to the server, so a loading indicator can
    * be rendered inside the new application button, and we can prevent double
-   * submits/creations of new application form submissions.
+   * submits/creations of new Application form submissions.
    */
   const [postingDataId, setPostingDataId] = useState("0");
 

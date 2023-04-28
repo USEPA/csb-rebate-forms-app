@@ -196,7 +196,7 @@ function UserCloseOutForm(props: { email: string }) {
     (submission.state === "submitted" || !closeOutFormOpen) &&
     !closeOutNeedsEdits;
 
-  /** matched SAM.gov entity for the Close-Out submission */
+  /** matched SAM.gov entity for the Close Out submission */
   const entity = bapSamData.entities.find((entity) => {
     return (
       entity.ENTITY_STATUS__c === "Active" &&
@@ -307,7 +307,7 @@ function UserCloseOutForm(props: { email: string }) {
                     <p className="tw-text-sm tw-font-medium tw-text-gray-900">
                       {onSubmitSubmission.state === "submitted" ? (
                         <>
-                          Close-Out <em>{rebateId}</em> submitted successfully.
+                          Close Out <em>{rebateId}</em> submitted successfully.
                         </>
                       ) : (
                         <>Draft saved successfully.</>
@@ -334,7 +334,7 @@ function UserCloseOutForm(props: { email: string }) {
                   body: (
                     <p className="tw-text-sm tw-font-medium tw-text-gray-900">
                       {onSubmitSubmission.state === "submitted" ? (
-                        <>Error submitting Close-Out form.</>
+                        <>Error submitting Close Out form.</>
                       ) : (
                         <>Error saving draft.</>
                       )}
