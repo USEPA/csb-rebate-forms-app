@@ -249,10 +249,10 @@ router.post(
         const formName =
           formType === "application"
             ? "CSB Application"
-              ? formType === "payment-request"
-              : "CSB Payment Request"
-              ? formType === "close-out"
-              : "CSB Close Out"
+            : formType === "payment-request"
+            ? "CSB Payment Request"
+            : formType === "close-out"
+            ? "CSB Close Out"
             : "CSB";
         const message = `${formName} form enrollment period is closed`;
         return res.status(400).json({ message });
