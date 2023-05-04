@@ -1,6 +1,4 @@
-/**
- * Utilities to fetch data from EPA's Business Automation Platform (BAP)
- */
+/** Utilities to fetch data from EPA's Business Automation Platform (BAP) */
 
 const jsforce = require("jsforce");
 const express = require("express");
@@ -82,14 +80,16 @@ function setupConnection(app) {
   return bapConnection
     .loginByOAuth2(BAP_USER, BAP_PASSWORD)
     .then((userInfo) => {
-      const message = `Initializing BAP connection: ${userInfo.url}.`;
-      log({ level: "info", message });
-      // Store bapConnection in global express object using app.locals
+      const logMessage = `Initializing BAP connection: ${userInfo.url}.`;
+      log({ level: "info", message: logMessage });
+
+      /** Store bapConnection in global express object using app.locals. */
       app.locals.bapConnection = bapConnection;
     })
     .catch((err) => {
-      const message = `Error initializing BAP connection.`;
-      log({ level: "info", message });
+      const logMessage = `Error initializing BAP connection.`;
+      log({ level: "info", message: logMessage });
+
       throw err;
     });
 }
@@ -102,11 +102,11 @@ function setupConnection(app) {
  * @returns {Promise<BapSamEntity[]>} collection of SAM.gov entity data
  */
 async function queryForSamEntities(req, email) {
-  const message = `Querying BAP for SAM.gov entities for user with email: ${email}.`;
-  log({ level: "info", message });
+  const logMessage = `Querying the BAP for SAM.gov entities for user with email: '${email}'.`;
+  log({ level: "info", message: logMessage });
 
   /** @type {jsforce.Connection} */
-  const bapConnection = req.app.locals.bapConnection;
+  const { bapConnection } = req.app.locals;
 
   // `SELECT
   //   ENTITY_COMBO_KEY__c,
@@ -191,11 +191,11 @@ async function queryForSamEntities(req, email) {
  * @returns {Promise<BapFormSubmission[]>} collection of fields associated with each form submission
  */
 async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
-  const message = `Querying BAP for form submissions statuses associated with combokeys: ${comboKeys}.`;
-  log({ level: "info", message });
+  const logMessage = `Querying the BAP for form submissions statuses associated with combokeys: '${comboKeys}'.`;
+  log({ level: "info", message: logMessage });
 
   /** @type {jsforce.Connection} */
-  const bapConnection = req.app.locals.bapConnection;
+  const { bapConnection } = req.app.locals;
 
   // `SELECT
   //   Parent_Rebate_ID__c,
@@ -283,14 +283,13 @@ async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
  * @returns {Promise<Object>} Application form submission fields
  */
 async function queryBapForPaymentRequestData(req, applicationReviewItemId) {
-  const message =
-    `Querying BAP for Application form submission associated with ` +
-    `Application Review Item ID: ${applicationReviewItemId}.`;
-
-  log({ level: "info", message });
+  const logMessage =
+    `Querying the BAP for Application form submission associated with ` +
+    `Application Review Item ID: '${applicationReviewItemId}'.`;
+  log({ level: "info", message: logMessage });
 
   /** @type {jsforce.Connection} */
-  const bapConnection = req.app.locals.bapConnection;
+  const { bapConnection } = req.app.locals;
 
   // `SELECT
   //   Id
@@ -454,16 +453,15 @@ async function queryBapForCloseOutData(
   applicationReviewItemId,
   paymentRequestReviewItemId
 ) {
-  const message =
-    `Querying BAP for Application form submission associated with ` +
-    `Application Review Item ID: ${applicationReviewItemId} and ` +
+  const logMessage =
+    `Querying the BAP for Application form submission associated with ` +
+    `Application Review Item ID: '${applicationReviewItemId}' and ` +
     `Payment Request form submission associated with ` +
-    `Payment Request Review Item ID: ${paymentRequestReviewItemId}.`;
-
-  log({ level: "info", message });
+    `Payment Request Review Item ID: '${paymentRequestReviewItemId}'.`;
+  log({ level: "info", message: logMessage });
 
   /** @type {jsforce.Connection} */
-  const bapConnection = req.app.locals.bapConnection;
+  const { bapConnection } = req.app.locals;
 
   // `SELECT
   //   Id
@@ -709,7 +707,9 @@ async function queryBapForCloseOutData(
 }
 
 /**
- * Verifies the BAP connection has been setup, then calls the provided callback function with the provided arguments.
+ * Verifies the BAP connection has been setup, then calls the provided callback
+ * function with the provided arguments.
+ *
  * @param {express.Request} req
  * @param {Object} callback callback function name and arguments to call after BAP connection has been verified
  * @param {function} callback.name name of the callback function
@@ -717,27 +717,30 @@ async function queryBapForCloseOutData(
  */
 function verifyBapConnection(req, { name, args }) {
   /** @type {jsforce.Connection} */
-  const bapConnection = req.app.locals.bapConnection;
+  const { bapConnection } = req.app.locals;
 
   function callback() {
     return name(...args).catch((err) => {
-      const message = `BAP Error: ${err}`;
-      log({ level: "error", message, req });
+      const logMessage = `BAP Error: ${err}.`;
+      log({ level: "error", message: logMessage, req });
+
       throw err;
     });
   }
 
   if (!bapConnection) {
-    const message = `BAP connection has not yet been initialized.`;
-    log({ level: "info", message });
+    const logMessage = `BAP connection has not yet been initialized.`;
+    log({ level: "info", message: logMessage });
+
     return setupConnection(req.app).then(() => callback());
   }
 
   return bapConnection
     .identity((err, res) => {
       if (err) {
-        const message = `BAP connection identity error.`;
-        log({ level: "info", message });
+        const logMessage = `BAP connection identity error.`;
+        log({ level: "info", message: logMessage });
+
         return setupConnection(req.app).then(() => callback());
       }
     })
@@ -746,6 +749,7 @@ function verifyBapConnection(req, { name, args }) {
 
 /**
  * Fetches SAM.gov entities associated with a provided user.
+ *
  * @param {express.Request} req
  * @param {string} email
  */
@@ -758,6 +762,7 @@ function getSamEntities(req, email) {
 
 /**
  * Fetches SAM.gov entity combo keys associated with a provided user.
+ *
  * @param {express.Request} req
  * @param {string} email
  */
@@ -771,6 +776,7 @@ function getBapComboKeys(req, email) {
 
 /**
  * Fetches form submissions statuses associated with a provided set of combo keys.
+ *
  * @param {express.Request} req
  * @param {string[]} comboKeys
  */
