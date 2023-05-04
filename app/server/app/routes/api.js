@@ -813,7 +813,7 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
           oldBusEstimatedRemainingLife: record.Old_Bus_Estimated_Remaining_Life__c, // prettier-ignore
           oldBusExclude: record.Old_Bus_Exclude__c,
           hidden_prf_oldBusExclude: record.Old_Bus_Exclude__c,
-          newBusDealer: record.Vendor_Name__c,
+          newBusDealer: record.Related_Line_Item__r.Vendor_Name__c,
           newBusFuelType: record.New_Bus_Fuel_Type__c,
           hidden_prf_newBusFuelType: record.New_Bus_Fuel_Type__c,
           newBusMake: record.New_Bus_Make__c,
