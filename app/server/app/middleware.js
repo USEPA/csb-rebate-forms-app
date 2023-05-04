@@ -3,14 +3,16 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const ObjectId = require("mongodb").ObjectId;
 // ---
-const { createJwt, jwtAlgorithm } = require("./utilities/createJwt");
+const {
+  createJWT,
+  jwtAlgorithm,
+  jwtCookieName,
+} = require("./utilities/createJwt");
 const log = require("./utilities/logger");
 const { getBapComboKeys } = require("./utilities/bap");
 
 const { CLIENT_URL, SERVER_URL, SERVER_BASE_PATH, JWT_PUBLIC_KEY } =
   process.env;
-
-const cookieName = "csb-token";
 
 /**
  * Middleware to check for JWT, add user object to request, and create new JWT
@@ -23,8 +25,10 @@ const cookieName = "csb-token";
  * @param {express.NextFunction} next
  */
 function ensureAuthenticated(req, res, next, rejectCallback = rejectRequest) {
+  const token = req.cookies[jwtCookieName];
+
   /** If no JWT passed in token cookie, send Unauthorized response or redirect. */
-  if (!req.cookies[cookieName]) {
+  if (!token) {
     const logMessage = `No JWT cookie present in request.`;
     log({ level: "warn", message: logMessage, req });
 
@@ -32,10 +36,10 @@ function ensureAuthenticated(req, res, next, rejectCallback = rejectRequest) {
   }
 
   jwt.verify(
-    req.cookies[cookieName],
+    token,
     JWT_PUBLIC_KEY,
     { algorithms: [jwtAlgorithm] },
-    function (err, user) {
+    function verifyCallback(err, decoded) {
       if (err) {
         const jwtExpired = err instanceof jwt.TokenExpiredError;
 
@@ -56,13 +60,13 @@ function ensureAuthenticated(req, res, next, rejectCallback = rejectRequest) {
       }
 
       /** Add user to the request object. */
-      req.user = user;
+      req.user = decoded;
 
       /** Create a new token to update expiration to 15 min from now. */
-      const token = createJwt(user);
+      const newToken = createJWT(decoded);
 
       /** Add JWT in cookie and proceed with request. */
-      res.cookie(cookieName, token, {
+      res.cookie(jwtCookieName, newToken, {
         httpOnly: true,
         overwrite: true,
         sameSite: "lax",
@@ -106,7 +110,7 @@ function ensureHelpdesk(req, res, next) {
  */
 function rejectRequest(req, res, jwtExpired) {
   /** Clear token cookie if there was an error verifying (e.g. jwtExpired). */
-  res.clearCookie(cookieName);
+  res.clearCookie(jwtCookieName);
 
   if (req.originalUrl.includes("/api")) {
     /** Send JSON Unauthorized message if request is for an API endpoint. */

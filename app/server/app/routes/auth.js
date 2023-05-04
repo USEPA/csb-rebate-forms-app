@@ -2,14 +2,13 @@ const express = require("express");
 const passport = require("passport");
 const samlStrategy = require("../config/samlStrategy");
 const { ensureAuthenticated } = require("../middleware");
-const { createJwt } = require("../utilities/createJwt");
+const { createJWT, jwtCookieName } = require("../utilities/createJwt");
 const log = require("../utilities/logger");
 
 const router = express.Router();
 
 // For redirects below, set const for base url (SERVER_URL is needed as fallback when using sub path, e.g. /csb)
 const baseUrl = process.env.CLIENT_URL || process.env.SERVER_URL;
-const cookieName = "csb-token";
 
 router.get(
   "/login",
@@ -29,11 +28,11 @@ router.post(
   (req, res) => {
     // Create JWT, set as cookie, then redirect to client
     // Note: nameID and nameIDFormat are required to send with logout request
-    const token = createJwt({
+    const token = createJWT({
       ...req.user,
       ...req.user.attributes,
     });
-    res.cookie(cookieName, token, {
+    res.cookie(jwtCookieName, token, {
       httpOnly: true,
       sameSite: "lax",
       secure: true,
@@ -80,7 +79,7 @@ router.get("/logout", ensureAuthenticated, (req, res) => {
 
 const logoutCallback = (req, res) => {
   // Clear token cookie so client no longer passes JWT after logout
-  res.clearCookie(cookieName);
+  res.clearCookie(jwtCookieName);
 
   // If "RelayState" was passed in original logout request (either querystring or post body), redirect to below
   const RelayState = req.query?.RelayState || req.body?.RelayState;

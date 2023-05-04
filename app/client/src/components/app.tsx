@@ -105,7 +105,7 @@ function useInactivityDialog(callback: () => void) {
     /**
      * NOTE: setting timeout to be one minute less than the JWT's configured 15
      * minute timeout (set via the `expiresIn` option in the server app's
-     * createJwt() middleware function), so `onIdle` is called and displays a
+     * createJWT() middleware function), so `onIdle` is called and displays a
      * 1 minute countdown in a warning modal prompting user action to remain
      * logged in.
      */
