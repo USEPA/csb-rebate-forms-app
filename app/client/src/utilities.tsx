@@ -180,11 +180,11 @@ export type Rebate = {
 async function fetchData<T = any>(url: string, options: RequestInit) {
   try {
     const response = await fetch(url, options);
-    if (!response.ok) throw new Error(response.statusText);
     const contentType = response.headers.get("content-type");
-    return contentType?.includes("application/json")
+    const data = contentType?.includes("application/json")
       ? ((await response.json()) as Promise<T>)
-      : (Promise.resolve() as Promise<T>);
+      : ((await response.text()) as unknown as Promise<T>);
+    return response.ok ? Promise.resolve(data) : Promise.reject(data);
   } catch (error) {
     return await Promise.reject(error);
   }
