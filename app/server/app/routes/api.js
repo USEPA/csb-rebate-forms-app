@@ -24,17 +24,27 @@ const {
 } = require("../utilities/bap");
 const log = require("../utilities/logger");
 
-const applicationFormOpen = process.env.CSB_APPLICATION_FORM_OPEN === "true";
-const paymentRequestFormOpen = process.env.CSB_PAYMENT_REQUEST_FORM_OPEN === "true"; // prettier-ignore
-const closeOutFormOpen = process.env.CSB_CLOSE_OUT_FORM_OPEN === "true";
+const {
+  NODE_ENV,
+  CSB_APPLICATION_FORM_OPEN,
+  CSB_PAYMENT_REQUEST_FORM_OPEN,
+  CSB_CLOSE_OUT_FORM_OPEN,
+  S3_PUBLIC_BUCKET,
+  S3_PUBLIC_REGION,
+} = process.env;
+
+const applicationFormOpen = CSB_APPLICATION_FORM_OPEN === "true";
+const paymentRequestFormOpen = CSB_PAYMENT_REQUEST_FORM_OPEN === "true";
+const closeOutFormOpen = CSB_CLOSE_OUT_FORM_OPEN === "true";
 
 /**
  * Returns a resolved or rejected promise, depending on if the given form's
  * submission period is open (as set via environment variables), and if the form
  * submission has the status of "Edits Requested" or not (as stored in and
  * returned from the BAP).
+ *
  * @param {Object} param
- * @param {'application'|'payment-request'|'close-out'} param.formType
+ * @param {'application' | 'payment-request' | 'close-out'} param.formType
  * @param {string} param.mongoId
  * @param {string} param.comboKey
  * @param {express.Request} param.req
@@ -45,7 +55,7 @@ function checkFormSubmissionPeriodAndBapStatus({
   comboKey,
   req,
 }) {
-  // form submission period is open, so continue
+  /** Form submission period is open, so continue. */
   if (
     (formType === "application" && applicationFormOpen) ||
     (formType === "payment-request" && paymentRequestFormOpen) ||
@@ -54,7 +64,7 @@ function checkFormSubmissionPeriodAndBapStatus({
     return Promise.resolve();
   }
 
-  // form submission period is closed, so only continue if edits are requested
+  /** Form submission period is closed, so only continue if edits are requested. */
   return getBapFormSubmissionsStatuses(req, [comboKey]).then((submissions) => {
     const submission = submissions.find((s) => s.CSB_Form_ID__c === mongoId);
 
@@ -77,10 +87,7 @@ const router = express.Router();
 
 // --- get static content from S3
 router.get("/content", (req, res) => {
-  const s3Bucket = process.env.S3_PUBLIC_BUCKET;
-  const s3Region = process.env.S3_PUBLIC_REGION;
-
-  // NOTE: static content files found in `app/server/app/content/` directory
+  /** NOTE: static content files found in `app/server/app/content/` directory. */
   const filenames = [
     "site-alert.md",
     "helpdesk-intro.md",
@@ -95,21 +102,25 @@ router.get("/content", (req, res) => {
     "submitted-close-out-intro.md",
   ];
 
-  const s3BucketUrl = `https://${s3Bucket}.s3-${s3Region}.amazonaws.com`;
+  const s3BucketUrl = `https://${S3_PUBLIC_BUCKET}.s3-${S3_PUBLIC_REGION}.amazonaws.com`;
 
   Promise.all(
     filenames.map((filename) => {
-      // local development: read files directly from disk
-      // Cloud.gov: fetch files from the public s3 bucket
-      return process.env.NODE_ENV === "development"
+      /**
+       * local development: read files directly from disk
+       * Cloud.gov: fetch files from the public s3 bucket
+       */
+      return NODE_ENV === "development"
         ? readFile(resolve(__dirname, "../content", filename), "utf8")
         : axios.get(`${s3BucketUrl}/content/${filename}`);
     })
   )
     .then((stringsOrResponses) => {
-      // local development: no further processing of strings needed
-      // Cloud.gov: get data from responses
-      return process.env.NODE_ENV === "development"
+      /**
+       * local development: no further processing of strings needed
+       * Cloud.gov: get data from responses
+       */
+      return NODE_ENV === "development"
         ? stringsOrResponses
         : stringsOrResponses.map((axiosRes) => axiosRes.data);
     })
@@ -130,18 +141,19 @@ router.get("/content", (req, res) => {
     })
     .catch((error) => {
       if (typeof error.toJSON === "function") {
-        log({ level: "debug", message: error.toJSON(), req });
+        const logMessage = error.toJSON();
+        log({ level: "debug", message: logMessage, req });
       }
 
-      const errorStatus = error.response?.status;
+      const errorStatus = error.response?.status || 500;
       const errorMethod = error.response?.config?.method?.toUpperCase();
       const errorUrl = error.response?.config?.url;
-      const message = `S3 Error: ${errorStatus} ${errorMethod} ${errorUrl}`;
-      log({ level: "error", message, req });
 
-      return res
-        .status(error?.response?.status || 500)
-        .json({ message: "Error getting static content from S3 bucket" });
+      const logMessage = `S3 Error: ${errorStatus} ${errorMethod} ${errorUrl}`;
+      log({ level: "error", message: logMessage, req });
+
+      const errorMessage = `Error getting static content from S3 bucket.`;
+      return res.status(errorStatus).json({ message: errorMessage });
     });
 });
 
@@ -166,34 +178,49 @@ router.get("/csb-data", (req, res) => {
 
 // --- get user's SAM.gov data from EPA's Business Automation Platform (BAP)
 router.get("/bap-sam-data", (req, res) => {
-  getSamEntities(req, req.user.mail)
-    .then((entities) => {
-      // NOTE: allow admin or helpdesk users access to the app, even without SAM.gov data
-      const userRoles = req.user.memberof.split(",");
-      const helpdeskUser =
-        userRoles.includes("csb_admin") || userRoles.includes("csb_helpdesk");
+  const { mail, memberof } = req.user;
+  const userRoles = memberof.split(",");
+  const adminOrHelpdeskUser =
+    userRoles.includes("csb_admin") || userRoles.includes("csb_helpdesk");
 
-      if (!helpdeskUser && entities?.length === 0) {
-        const message = `User with email ${req.user.mail} tried to use app without any associated SAM records.`;
-        log({ level: "error", message, req });
-        return res.json({ results: false, entities: [] });
+  getSamEntities(req, mail)
+    .then((entities) => {
+      /**
+       * NOTE: allow admin or helpdesk users access to the app, even without
+       * SAM.gov data.
+       */
+      if (!adminOrHelpdeskUser && entities?.length === 0) {
+        const logMessage = `User with email '${mail}' tried to use app without any associated SAM records.`;
+        log({ level: "error", message: logMessage, req });
+
+        return res.json({
+          results: false,
+          entities: [],
+        });
       }
 
-      return res.json({ results: true, entities });
+      return res.json({
+        results: true,
+        entities,
+      });
     })
     .catch((error) => {
-      const message = `Error getting SAM.gov data from BAP`;
-      return res.status(401).json({ message });
+      const errorStatus = 500;
+      const errorMessage = `Error getting SAM.gov data from the BAP.`;
+      return res.status(errorStatus).json({ message: errorMessage });
     });
 });
 
 // --- get user's form submissions statuses from EPA's BAP
 router.get("/bap-form-submissions", storeBapComboKeys, (req, res) => {
-  return getBapFormSubmissionsStatuses(req, req.bapComboKeys)
+  const { bapComboKeys } = req;
+
+  return getBapFormSubmissionsStatuses(req, bapComboKeys)
     .then((submissions) => res.json(submissions))
     .catch((error) => {
-      const message = `Error getting form submissions statuses from BAP`;
-      return res.status(401).json({ message });
+      const errorStatus = 500;
+      const errorMessage = `Error getting form submissions statuses from the BAP.`;
+      return res.status(errorStatus).json({ message: errorMessage });
     });
 });
 
@@ -202,21 +229,27 @@ router.get(
   "/s3/:formType/:mongoId/:comboKey/storage/s3",
   storeBapComboKeys,
   (req, res) => {
+    const { bapComboKeys, query } = req;
+    const { mail } = req.user;
     const { comboKey } = req.params;
 
-    if (!req.bapComboKeys.includes(comboKey)) {
-      const message = `User with email ${req.user.mail} attempted to download a file without a matching BAP combo key`;
-      log({ level: "error", message, req });
-      return res.status(401).json({ message: "Unauthorized" });
+    if (!bapComboKeys.includes(comboKey)) {
+      const logMessage = `User with email '${mail}' attempted to download a file without a matching BAP combo key.`;
+      log({ level: "error", message: logMessage, req });
+
+      const errorStatus = 401;
+      const errorMessage = `Unauthorized.`;
+      return res.status(errorStatus).json({ message: errorMessage });
     }
 
     axiosFormio(req)
-      .get(`${formioApplicationFormUrl}/storage/s3`, { params: req.query })
+      .get(`${formioApplicationFormUrl}/storage/s3`, { params: query })
       .then((axiosRes) => axiosRes.data)
       .then((fileMetadata) => res.json(fileMetadata))
       .catch((error) => {
-        const message = `Error downloading file from S3`;
-        return res.status(error?.response?.status || 500).json({ message });
+        const errorStatus = error.response?.status || 500;
+        const errorMessage = `Error downloading file from S3.`;
+        return res.status(errorStatus).json({ message: errorMessage });
       });
   }
 );
@@ -226,23 +259,29 @@ router.post(
   "/s3/:formType/:mongoId/:comboKey/storage/s3",
   storeBapComboKeys,
   (req, res) => {
+    const { bapComboKeys, body } = req;
+    const { mail } = req.user;
     const { formType, mongoId, comboKey } = req.params;
 
     checkFormSubmissionPeriodAndBapStatus({ formType, mongoId, comboKey, req })
       .then(() => {
-        if (!req.bapComboKeys.includes(comboKey)) {
-          const message = `User with email ${req.user.mail} attempted to upload a file without a matching BAP combo key`;
-          log({ level: "error", message, req });
-          return res.status(401).json({ message: "Unauthorized" });
+        if (!bapComboKeys.includes(comboKey)) {
+          const logMessage = `User with email '${mail}' attempted to upload a file without a matching BAP combo key.`;
+          log({ level: "error", message: logMessage, req });
+
+          const errorStatus = 401;
+          const errorMessage = `Unauthorized.`;
+          return res.status(errorStatus).json({ message: errorMessage });
         }
 
         axiosFormio(req)
-          .post(`${formioApplicationFormUrl}/storage/s3`, req.body)
+          .post(`${formioApplicationFormUrl}/storage/s3`, body)
           .then((axiosRes) => axiosRes.data)
           .then((fileMetadata) => res.json(fileMetadata))
           .catch((error) => {
-            const message = `Error uploading file to S3`;
-            return res.status(error?.response?.status || 500).json({ message });
+            const errorStatus = error.response?.status || 500;
+            const errorMessage = `Error uploading file to S3.`;
+            return res.status(errorStatus).json({ message: errorMessage });
           });
       })
       .catch((error) => {
@@ -254,68 +293,79 @@ router.post(
             : formType === "close-out"
             ? "CSB Close Out"
             : "CSB";
-        const message = `${formName} form enrollment period is closed`;
-        return res.status(400).json({ message });
+
+        const errorStatus = 400;
+        const errorMessage = `${formName} form enrollment period is closed.`;
+        return res.status(errorStatus).json({ message: errorMessage });
       });
   }
 );
 
 // --- get user's Application form submissions from Formio
 router.get("/formio-application-submissions", storeBapComboKeys, (req, res) => {
-  // NOTE: Helpdesk users might not have any SAM.gov records associated with
-  // their email address so we should not return any submissions to those users.
-  // The only reason we explicitly need to do this is because there could be
-  // some submissions without `bap_hidden_entity_combo_key` field values in the
-  // Formio database – that will never be the case for submissions created from
-  // this app, but there could be submissions created externally if someone is
-  // testing posting data (e.g. from a REST client, or the Formio Viewer)
-  if (req.bapComboKeys.length === 0) return res.json([]);
+  const { bapComboKeys } = req;
+
+  /**
+   * NOTE: Helpdesk users might not have any SAM.gov records associated with
+   * their email address so we should not return any submissions to those users.
+   * The only reason we explicitly need to do this is because there could be
+   * some submissions without `bap_hidden_entity_combo_key` field values in the
+   * Formio database – that will never be the case for submissions created from
+   * this app, but there could be submissions created externally if someone is
+   * testing posting data (e.g. from a REST client, or the Formio Viewer).
+   */
+  if (bapComboKeys.length === 0) return res.json([]);
 
   const userSubmissionsUrl =
     `${formioApplicationFormUrl}/submission` +
     `?sort=-modified` +
     `&limit=1000000` +
     `&data.bap_hidden_entity_combo_key=` +
-    `${req.bapComboKeys.join("&data.bap_hidden_entity_combo_key=")}`;
+    `${bapComboKeys.join("&data.bap_hidden_entity_combo_key=")}`;
 
   axiosFormio(req)
     .get(userSubmissionsUrl)
     .then((axiosRes) => axiosRes.data)
     .then((submissions) => res.json(submissions))
     .catch((error) => {
-      const message = `Error getting Formio Application form submissions`;
-      return res.status(error?.response?.status || 500).json({ message });
+      const errorStatus = error.response?.status || 500;
+      const errorMessage = `Error getting Formio Application form submissions.`;
+      return res.status(errorStatus).json({ message: errorMessage });
     });
 });
 
 // --- post a new Application form submission to Formio
 router.post("/formio-application-submission", storeBapComboKeys, (req, res) => {
-  const comboKey = req.body.data?.bap_hidden_entity_combo_key;
+  const { bapComboKeys, body } = req;
+  const { mail } = req.user;
+  const comboKey = body.data?.bap_hidden_entity_combo_key;
 
   if (!applicationFormOpen) {
-    const message = `CSB Application form enrollment period is closed`;
-    return res.status(400).json({ message });
+    const errorStatus = 400;
+    const errorMessage = `CSB Application form enrollment period is closed.`;
+    return res.status(errorStatus).json({ message: errorMessage });
   }
 
-  // verify post data includes one of user's BAP combo keys
-  if (!req.bapComboKeys.includes(comboKey)) {
-    const message = `User with email ${req.user.mail} attempted to post a new Application form submission without a matching BAP combo key`;
-    log({ level: "error", message, req });
-    return res.status(401).json({ message: "Unauthorized" });
+  if (!bapComboKeys.includes(comboKey)) {
+    const logMessage = `User with email '${mail}' attempted to post a new Application form submission without a matching BAP combo key.`;
+    log({ level: "error", message: logMessage, req });
+
+    const errorStatus = 401;
+    const errorMessage = `Unauthorized.`;
+    return res.status(errorStatus).json({ message: errorMessage });
   }
 
-  // add custom metadata to track formio submissions from wrapper
-  req.body.metadata = {
-    ...formioCsbMetadata,
-  };
+  /** Add custom metadata to track formio submissions from wrapper. */
+  body.metadata = { ...formioCsbMetadata };
 
   axiosFormio(req)
-    .post(`${formioApplicationFormUrl}/submission`, req.body)
+    .post(`${formioApplicationFormUrl}/submission`, body)
     .then((axiosRes) => axiosRes.data)
     .then((submission) => res.json(submission))
     .catch((error) => {
-      const message = `Error posting Formio Application form submission`;
-      return res.status(error?.response?.status || 500).json({ message });
+      const errorStatus = error.response?.status || 500;
+      const errorMessage = `Error posting Formio Application form submission.`;
+      return res.status(errorStatus).json({ message: errorMessage });
     });
 });
 
@@ -325,6 +375,8 @@ router.get(
   verifyMongoObjectId,
   storeBapComboKeys,
   (req, res) => {
+    const { bapComboKeys } = req;
+    const { mail } = req.user;
     const { mongoId } = req.params;
 
     Promise.all([
@@ -335,9 +387,10 @@ router.get(
       .then(([submission, schema]) => {
         const comboKey = submission.data.bap_hidden_entity_combo_key;
 
-        if (!req.bapComboKeys.includes(comboKey)) {
-          const message = `User with email ${req.user.mail} attempted to access Application form submission ${mongoId} that they do not have access to.`;
-          log({ level: "warn", message, req });
+        if (!bapComboKeys.includes(comboKey)) {
+          const logMessage = `User with email '${mail}' attempted to access Application form submission '${mongoId}' that they do not have access to.`;
+          log({ level: "warn", message: logMessage, req });
+
           return res.json({
             userAccess: false,
             formSchema: null,
@@ -352,8 +405,9 @@ router.get(
         });
       })
       .catch((error) => {
-        const message = `Error getting Formio Application form submission ${mongoId}`;
-        res.status(error?.response?.status || 500).json({ message });
+        const errorStatus = error.response?.status || 500;
+        const errorMessage = `Error getting Formio Application form submission ${mongoId}.`;
+        res.status(errorStatus).json({ message: errorMessage });
       });
   }
 );
