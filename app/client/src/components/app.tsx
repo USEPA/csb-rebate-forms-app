@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { render } from "react-dom";
 import {
   BrowserRouter,
@@ -17,8 +17,13 @@ import "@formio/choices.js/public/assets/styles/choices.min.css";
 import "@formio/premium/dist/premium.css";
 import "formiojs/dist/formio.full.min.css";
 // ---
-import { serverBasePath, serverUrl, cloudSpace } from "../config";
-import { getData, useContentQuery, useContentData } from "../utilities";
+import { serverBasePath, serverUrlForHrefs, cloudSpace } from "../config";
+import {
+  useContentQuery,
+  useContentData,
+  useUserQuery,
+  useUserData,
+} from "../utilities";
 import { Loading } from "components/loading";
 import { MarkdownContent } from "components/markdownContent";
 import { Welcome } from "routes/welcome";
@@ -32,7 +37,6 @@ import { ApplicationForm } from "routes/applicationForm";
 import { PaymentRequestForm } from "routes/paymentRequestForm";
 import { CloseOutForm } from "routes/closeOutForm";
 import { useDialogState, useDialogActions } from "contexts/dialog";
-import { EpaUserData, useUserState, useUserDispatch } from "contexts/user";
 
 /** Custom hook to display a site-wide alert banner */
 function useSiteAlertBanner() {
@@ -90,25 +94,24 @@ function useDisclaimerBanner() {
 
 /** Custom hook to set up inactivity timer to auto-logout user if they're inactive for >15 minutes */
 function useInactivityDialog(callback: () => void) {
-  const { epaUserData } = useUserState();
   const { dialogShown, heading } = useDialogState();
   const { displayDialog, updateDialogDescription } = useDialogActions();
+  const user = useUserData();
 
-  /** Initial time (seconds) used in the logout countdown timer */
-  const oneMinute = 60;
-
-  const [countdownSeconds, setCountdownSeconds] = useState(oneMinute);
-
-  /**
-   * One minute less than our intended 15 minute timeout, so `onIdle` is called
-   * and displays a 60 second warning modal to keep user logged in.
-   */
-  const timeout = 14 * 60 * 1000; // 14 minutes in milliseconds
+  /** NOTE: 1 minute initial time used in the logout countdown timer */
+  const [countdownSeconds, setCountdownSeconds] = useState(60);
 
   const { reset } = useIdleTimer({
-    timeout,
+    /**
+     * NOTE: setting timeout to be one minute less than the JWT's configured 15
+     * minute timeout (set via the `expiresIn` option in the server app's
+     * createJWT() middleware function), so `onIdle` is called and displays a
+     * 1 minute countdown in a warning modal prompting user action to remain
+     * logged in.
+     */
+    timeout: 14 * 60 * 1000,
     onIdle: () => {
-      // display 60 second countdown dialog after 14 minutes of idle time
+      /* display a 1 minute countdown dialog after 14 minutes of idle time. */
       displayDialog({
         dismissable: false,
         heading: "Inactivity Warning",
@@ -128,24 +131,22 @@ function useInactivityDialog(callback: () => void) {
     onAction: () => {
       if (!dialogShown) {
         /**
-         * keep logout timer at initial countdown time (60 seconds) if the
-         * dialog isn't shown, so logout timer is ready for the next inactivity
-         * warning
+         * keep the logout timer at 1 minute if the countdown dialog isn't
+         * shown, so the logout timer is ready for the next inactivity warning.
          */
-        setCountdownSeconds(oneMinute);
+        setCountdownSeconds(60);
       }
 
-      if (epaUserData.status !== "success") return;
+      if (!user) return;
 
-      const { exp } = epaUserData.data; // seconds
-      const timeToExpire = exp - Date.now() / 1000; // seconds
-      const threeMinutes = 180; // seconds
+      const jwtTimeToExpireInSeconds = user.exp - Date.now() / 1000;
+      const threeMinutesInSeconds = 3 * 60;
 
       /**
-       * If user makes action and the JWT is set to expire within 3 minutes,
-       * call the callback (access "/epa-user-data") to refresh the JWT
+       * if the user causes action and the JWT is set to expire within 3 minutes,
+       * call the callback (access /api/user) to refresh the JWT behind the scenes
        */
-      if (timeToExpire < threeMinutes) {
+      if (jwtTimeToExpireInSeconds < threeMinutesInSeconds) {
         callback();
         reset();
       }
@@ -155,94 +156,60 @@ function useInactivityDialog(callback: () => void) {
   });
 
   useEffect(() => {
-    /** update inactivity warning dialog's time remaining every second */
+    /** log the user out if the inactivity countdown reaches zero. */
+    if (countdownSeconds <= 0) {
+      window.location.href = `${serverUrlForHrefs}/logout?RelayState=/welcome?info=timeout`;
+    }
+
+    /** update the inactivity warning's countdown time remaining every second. */
     if (dialogShown && heading === "Inactivity Warning") {
       const timeoutID = setTimeout(() => {
         setCountdownSeconds((seconds) => (seconds > 0 ? seconds - 1 : seconds));
         updateDialogDescription(
           <p>
-            You will be automatically logged out in {countdownSeconds - 1}{" "}
+            You will be automatically logged out in{" "}
+            {countdownSeconds > 0 ? countdownSeconds - 1 : countdownSeconds}{" "}
             seconds due to inactivity.
           </p>
         );
       }, 1000);
-      return () => clearTimeout(timeoutID);
-    }
 
-    /** log user out from server if inactivity countdown reaches 0 */
-    if (countdownSeconds === 0) {
-      window.location.href = `${serverUrl}/logout?RelayState=/welcome?info=timeout`;
+      return () => clearTimeout(timeoutID);
     }
   }, [dialogShown, heading, countdownSeconds, updateDialogDescription]);
 }
 
 /** Custom hook to check if user should have access to the helpdesk page */
 export function useHelpdeskAccess() {
-  const { epaUserData } = useUserState();
+  const user = useUserData();
+  const userRoles = user?.memberof.split(",") || [];
 
-  const [helpdeskAccess, setHelpdeskAccess] =
-    useState<(typeof epaUserData)["status"]>("idle");
-
-  useEffect(() => {
-    if (epaUserData.status === "pending") {
-      setHelpdeskAccess("pending");
-    }
-
-    if (epaUserData.status === "success") {
-      const userRoles = epaUserData.data.memberof.split(",");
-
-      setHelpdeskAccess(
-        userRoles.includes("csb_admin") || userRoles.includes("csb_helpdesk")
-          ? "success"
-          : "failure"
-      );
-    }
-  }, [epaUserData]);
-
-  return helpdeskAccess;
+  return !user
+    ? "pending"
+    : userRoles.includes("csb_admin") || userRoles.includes("csb_helpdesk")
+    ? "success"
+    : "failure";
 }
 
 function ProtectedRoute() {
   const { pathname } = useLocation();
-  const { isAuthenticating, isAuthenticated, epaUserData } = useUserState();
-  const userDispatch = useUserDispatch();
 
-  const email = epaUserData.status !== "success" ? "" : epaUserData.data.mail;
-
-  /**
-   * check if user is already logged in or needs to be logged out (which will
-   * redirect them to the "/welcome" route)
-   */
-  const verifyUser = useCallback(() => {
-    getData<EpaUserData>(`${serverUrl}/api/epa-user-data`)
-      .then((res) => {
-        userDispatch({
-          type: "FETCH_EPA_USER_DATA_SUCCESS",
-          payload: { epaUserData: res },
-        });
-        userDispatch({ type: "USER_SIGN_IN" });
-      })
-      .catch((err) => {
-        userDispatch({ type: "FETCH_EPA_USER_DATA_FAILURE" });
-        userDispatch({ type: "USER_SIGN_OUT" });
-      });
-  }, [userDispatch]);
+  const { isLoading, isError, data, refetch } = useUserQuery();
 
   // NOTE: even though `pathname` isn't used in the effect below, it's being
   // included it in the dependency array as we want to verify the user's access
   // any time a route changes
   useEffect(() => {
-    userDispatch({ type: "FETCH_EPA_USER_DATA_REQUEST" });
-    verifyUser();
-  }, [userDispatch, verifyUser, pathname]);
+    refetch();
+  }, [refetch, pathname]);
 
-  useInactivityDialog(verifyUser);
+  useInactivityDialog(refetch);
 
-  if (isAuthenticating) {
+  if (isLoading) {
     return <Loading />;
   }
 
-  if (!isAuthenticated) {
+  if (isError) {
     return <Navigate to="/welcome" replace />;
   }
 
@@ -250,7 +217,7 @@ function ProtectedRoute() {
     <TooltipProvider>
       <ConfirmationDialog />
       <Notifications />
-      <UserDashboard email={email} />
+      <UserDashboard email={data?.mail || ""} />
     </TooltipProvider>
   );
 }

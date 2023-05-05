@@ -11,14 +11,19 @@ const {
 const { ensureAuthenticated, ensureHelpdesk } = require("../middleware");
 const log = require("../utilities/logger");
 
-const applicationFormOpen = process.env.CSB_APPLICATION_FORM_OPEN === "true";
-const paymentRequestFormOpen =
-  process.env.CSB_PAYMENT_REQUEST_FORM_OPEN === "true";
-const closeOutFormOpen = process.env.CSB_CLOSE_OUT_FORM_OPEN === "true";
+const {
+  CSB_APPLICATION_FORM_OPEN,
+  CSB_PAYMENT_REQUEST_FORM_OPEN,
+  CSB_CLOSE_OUT_FORM_OPEN,
+} = process.env;
+
+const applicationFormOpen = CSB_APPLICATION_FORM_OPEN === "true";
+const paymentRequestFormOpen = CSB_PAYMENT_REQUEST_FORM_OPEN === "true";
+const closeOutFormOpen = CSB_CLOSE_OUT_FORM_OPEN === "true";
 
 const router = express.Router();
 
-// confirm user is both authenticated and authorized with valid helpdesk roles
+/** Confirm user is both authenticated and authorized with valid helpdesk roles. */
 router.use(ensureAuthenticated);
 router.use(ensureHelpdesk);
 
@@ -29,10 +34,11 @@ router.get("/formio-submission/:formType/:id", (req, res) => {
   if (formType === "application") {
     const mongoId = id;
 
-    // NOTE: verifyMongoObjectId middleware content:
+    /** NOTE: verifyMongoObjectId */
     if (mongoId && !ObjectId.isValid(mongoId)) {
-      const message = `MongoDB ObjectId validation error for: ${mongoId}`;
-      return res.status(400).json({ message });
+      const errorStatus = 400;
+      const errorMessage = `MongoDB ObjectId validation error for: '${mongoId}'.`;
+      return res.status(errorStatus).json({ message: errorMessage });
     }
 
     Promise.all([
@@ -47,8 +53,9 @@ router.get("/formio-submission/:formType/:id", (req, res) => {
         });
       })
       .catch((error) => {
-        const message = `Error getting Formio Application form submission ${mongoId}`;
-        return res.status(error?.response?.status || 500).json({ message });
+        const errorStatus = error.response?.status || 500;
+        const errorMessage = `Error getting Formio Application form submission '${mongoId}'.`;
+        return res.status(errorStatus).json({ message: errorMessage });
       });
   }
 
@@ -68,18 +75,21 @@ router.get("/formio-submission/:formType/:id", (req, res) => {
       .then(([submissions, schema]) => {
         const mongoId = submissions[0]._id;
 
-        // NOTE: verifyMongoObjectId middleware content:
+        /** NOTE: verifyMongoObjectId */
         if (mongoId && !ObjectId.isValid(mongoId)) {
-          const message = `MongoDB ObjectId validation error for: ${mongoId}`;
-          return res.status(400).json({ message });
+          const errorStatus = 400;
+          const errorMessage = `MongoDB ObjectId validation error for: '${mongoId}'.`;
+          return res.status(errorStatus).json({ message: errorMessage });
         }
 
-        // NOTE: We can't just use the returned submission data here because
-        // Formio returns the string literal 'YES' instead of a base64 encoded
-        // image string for signature fields when you query for all submissions
-        // matching on a field's value (`/submission?data.hidden_bap_rebate_id=${rebateId}`).
-        // We need to query for a specific submission (e.g. `/submission/${mongoId}`),
-        // to have Formio return the correct signature field data.
+        /**
+         * NOTE: We can't just use the returned submission data here because
+         * Formio returns the string literal 'YES' instead of a base64 encoded
+         * image string for signature fields when you query for all submissions
+         * matching on a field's value (`/submission?data.hidden_bap_rebate_id=${rebateId}`).
+         * We need to query for a specific submission (e.g. `/submission/${mongoId}`),
+         * to have Formio return the correct signature field data.
+         */
         axiosFormio(req)
           .get(`${formioPaymentRequestFormUrl}/submission/${mongoId}`)
           .then((axiosRes) => axiosRes.data)
@@ -91,8 +101,9 @@ router.get("/formio-submission/:formType/:id", (req, res) => {
           });
       })
       .catch((error) => {
-        const message = `Error getting Formio Payment Request form submission ${rebateId}`;
-        res.status(error?.response?.status || 500).json({ message });
+        const errorStatus = error.response?.status || 500;
+        const errorMessage = `Error getting Formio Payment Request form submission '${rebateId}'.`;
+        res.status(errorStatus).json({ message: errorMessage });
       });
   }
 
@@ -108,16 +119,18 @@ router.post("/formio-submission/:formType/:id", (req, res) => {
 
   if (formType === "application") {
     if (!applicationFormOpen) {
-      const message = `CSB Application form enrollment period is closed`;
-      return res.status(400).json({ message });
+      const errorStatus = 400;
+      const errorMessage = `CSB Application form enrollment period is closed.`;
+      return res.status(errorStatus).json({ message: errorMessage });
     }
 
     const mongoId = id;
 
-    // NOTE: verifyMongoObjectId middleware content:
+    /** NOTE: verifyMongoObjectId */
     if (mongoId && !ObjectId.isValid(mongoId)) {
-      const message = `MongoDB ObjectId validation error for: ${mongoId}`;
-      return res.status(400).json({ message });
+      const errorStatus = 400;
+      const errorMessage = `MongoDB ObjectId validation error for: '${mongoId}'.`;
+      return res.status(errorStatus).json({ message: errorMessage });
     }
 
     Promise.all([
@@ -134,8 +147,8 @@ router.post("/formio-submission/:formType/:id", (req, res) => {
           })
           .then((axiosRes) => axiosRes.data)
           .then((updatedSubmission) => {
-            const message = `User with email ${mail} updated Application form submission ${mongoId} from submitted to draft.`;
-            log({ level: "info", message, req });
+            const logMessage = `User with email '${mail}' updated Application form submission '${mongoId}' from submitted to draft.`;
+            log({ level: "info", message: logMessage, req });
 
             return res.json({
               formSchema: { url: formioApplicationFormUrl, json: schema },
@@ -144,15 +157,17 @@ router.post("/formio-submission/:formType/:id", (req, res) => {
           });
       })
       .catch((error) => {
-        const message = `Error updating Formio Application form submission ${mongoId}`;
-        res.status(error?.response?.status || 500).json({ message });
+        const errorStatus = error.response?.status || 500;
+        const errorMessage = `Error updating Formio Application form submission '${mongoId}'.`;
+        res.status(errorStatus).json({ message: errorMessage });
       });
   }
 
   if (formType === "payment-request") {
     if (!paymentRequestFormOpen) {
-      const message = `CSB Payment Request form enrollment period is closed`;
-      return res.status(400).json({ message });
+      const errorStatus = 400;
+      const errorMessage = `CSB Payment Request form enrollment period is closed.`;
+      return res.status(errorStatus).json({ message: errorMessage });
     }
 
     const rebateId = id;
@@ -170,10 +185,11 @@ router.post("/formio-submission/:formType/:id", (req, res) => {
         const submission = submissions[0];
         const mongoId = submission._id;
 
-        // NOTE: verifyMongoObjectId middleware content:
+        /** NOTE: verifyMongoObjectId */
         if (mongoId && !ObjectId.isValid(mongoId)) {
-          const message = `MongoDB ObjectId validation error for: ${mongoId}`;
-          return res.status(400).json({ message });
+          const errorStatus = 400;
+          const errorMessage = `MongoDB ObjectId validation error for: '${mongoId}'.`;
+          return res.status(errorStatus).json({ message: errorMessage });
         }
 
         axiosFormio(req)
@@ -184,8 +200,8 @@ router.post("/formio-submission/:formType/:id", (req, res) => {
           })
           .then((axiosRes) => axiosRes.data)
           .then((updatedSubmission) => {
-            const message = `User with email ${mail} updated Payment Request form submission ${rebateId} from submitted to draft.`;
-            log({ level: "info", message, req });
+            const logMessage = `User with email '${mail}' updated Payment Request form submission '${rebateId}' from submitted to draft.`;
+            log({ level: "info", message: logMessage, req });
 
             return res.json({
               formSchema: { url: formioPaymentRequestFormUrl, json: schema },
@@ -194,15 +210,17 @@ router.post("/formio-submission/:formType/:id", (req, res) => {
           });
       })
       .catch((error) => {
-        const message = `Error getting Formio Payment Request form submission ${rebateId}`;
-        res.status(error?.response?.status || 500).json({ message });
+        const errorStatus = error.response?.status || 500;
+        const errorMessage = `Error getting Formio Payment Request form submission '${rebateId}'.`;
+        res.status(errorStatus).json({ message: errorMessage });
       });
   }
 
   if (formType === "close-out") {
     if (!closeOutFormOpen) {
-      const message = `CSB Close-Out form enrollment period is closed`;
-      return res.status(400).json({ message });
+      const errorStatus = 400;
+      const errorMessage = `CSB Close Out form enrollment period is closed.`;
+      return res.status(errorStatus).json({ message: errorMessage });
     }
 
     // TODO

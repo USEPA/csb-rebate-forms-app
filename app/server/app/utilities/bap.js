@@ -1,6 +1,4 @@
-/**
- * Utilities to fetch data from EPA's Business Automation Platform (BAP)
- */
+/** Utilities to fetch data from EPA's Business Automation Platform (BAP) */
 
 const jsforce = require("jsforce");
 const express = require("express");
@@ -31,9 +29,10 @@ const log = require("../utilities/logger");
  * @property {string} PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c
  * @property {string} PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c
  * @property {string} PHYSICAL_ADDRESS_ZIP_CODE_4__c
- * @property {Object} attributes
- * @property {string} attributes.type
- * @property {string} attributes.url
+ * @property {{
+ *  type: string
+ *  url: string
+ * }} attributes
  */
 
 /**
@@ -44,13 +43,138 @@ const log = require("../utilities/logger");
  * @property {string} CSB_Review_Item_ID__c
  * @property {string} Parent_Rebate_ID__c
  * @property {string} Record_Type_Name__c
- * @property {Object} Parent_CSB_Rebate__r
- * @property {string} Parent_CSB_Rebate__r.CSB_Funding_Request_Status__c
- * @property {string} Parent_CSB_Rebate__r.CSB_Payment_Request_Status__c
- * @property {string} Parent_CSB_Rebate__r.CSB_Closeout_Request_Status__c
- * @property {Object} attributes
- * @property {string} attributes.type
- * @property {string} attributes.url
+ * @property {{
+ *  CSB_Funding_Request_Status__c: string
+ *  CSB_Payment_Request_Status__c: string
+ *  CSB_Closeout_Request_Status__c: string
+ * }} Parent_CSB_Rebate__r
+ * @property {{
+ *  type: string
+ *  url: string
+ * }} attributes
+ */
+
+/**
+ * @typedef {Object} BapDataForPaymentRequest
+ * @property {{
+ *  Id: string
+ *  UEI_EFTI_Combo_Key__c: string
+ *  CSB_NCES_ID__c: string
+ *  Primary_Applicant__r: {
+ *    Name: string
+ *    Title: string
+ *    Phone: string
+ *    Email: string
+ *  }
+ *  Alternate_Applicant__r: {
+ *    Name: string
+ *    Title: string
+ *    Phone: string
+ *    Email: string
+ *  } | null
+ *  Applicant_Organization__r: {
+ *    Name: string
+ *  }
+ *  CSB_School_District__r: {
+ *    Name: string
+ *  }
+ *  Fleet_Name__c: string
+ *  School_District_Prioritized__c: string
+ *  Total_Rebate_Funds_Requested__c: string
+ *  Total_Infrastructure_Funds__c: string
+ * }[]} applicationRecordQuery
+ * @property {{
+ *  Rebate_Item_num__c: string
+ *  CSB_VIN__c: string
+ *  CSB_Model_Year__c: string
+ *  CSB_Fuel_Type__c: string
+ *  CSB_Replacement_Fuel_Type__c: string
+ *  CSB_Funds_Requested__c: string
+ * }[]} busRecordsQuery
+ * @property {{
+ *  type: string
+ *  url: string
+ * }} attributes
+ */
+
+/**
+ * @typedef {Object} BapDataForForCloseOut
+ * @property {{
+ *  Fleet_Name__c: string
+ *  Fleet_Street_Address__c: string
+ *  Fleet_City__c: string
+ *  Fleet_State__c: string
+ *  Fleet_Zip__c: string
+ *  Fleet_Contact_Name__c: string
+ *  Fleet_Contact_Title__c: string
+ *  Fleet_Contact_Phone__c: string
+ *  Fleet_Contact_Email__c: string
+ *  School_District_Contact__r: {
+ *    FirstName: string
+ *    LastName: string
+ *  }
+ * }[]} applicationRecordQuery
+ * @property {{
+ *  Id: string
+ *  UEI_EFTI_Combo_Key__c: string
+ *  CSB_NCES_ID__c: string
+ *  Primary_Applicant__r: {
+ *    FirstName: string
+ *    LastName: string
+ *    Title: string
+ *    Phone: string
+ *    Email: string
+ *  }
+ *  Alternate_Applicant__r: {
+ *    FirstName: string
+ *    LastName: string
+ *    Title: string
+ *    Phone: string
+ *    Email: string
+ *  } | null
+ *  Applicant_Organization__r: {
+ *    Name: string
+ *  }
+ *  CSB_School_District__r: {
+ *    Name: string
+ *  }
+ *  School_District_Prioritized__c: string
+ *  Total_Rebate_Funds_Requested_PO__c: string
+ *  Total_Bus_And_Infrastructure_Rebate__c: string
+ *  Total_Infrastructure_Funds__c: string
+ *  Num_Of_Buses_Requested_From_Application__c: string
+ *  Total_Price_All_Buses__c: string
+ *  Total_Bus_Rebate_Amount__c: string
+ *  Total_All_Eligible_Infrastructure_Costs__c: string
+ *  Total_Infrastructure_Rebate__c: string
+ *  Total_Level_2_Charger_Costs__c: string
+ *  Total_DC_Fast_Charger_Costs__c: string
+ *  Total_Other_Infrastructure_Costs__c: string
+ * }[]} paymentRequestRecordQuery
+ * @property {{
+ *  Rebate_Item_num__c: string
+ *  CSB_VIN__c: string
+ *  CSB_Model_Year__c: string
+ *  CSB_Fuel_Type__c: string
+ *  CSB_Manufacturer_if_Other__c: string
+ *  Old_Bus_NCES_District_ID__c: string
+ *  Old_Bus_Estimated_Remaining_Life__c: string
+ *  Old_Bus_Exclude__c: string
+ *  Related_Line_Item__r: {
+ *    Purchaser_Name__c: string
+ *  }
+ *  New_Bus_Fuel_Type__c: string
+ *  New_Bus_Make__c: string
+ *  New_Bus_Model__c: string
+ *  New_Bus_Model_Year__c: string
+ *  New_Bus_GVWR__c: string
+ *  New_Bus_Rebate_Amount__c: string
+ *  New_Bus_Purchase_Price__c: string
+ * }[]} busRecordsQuery
+ * @property {{
+ *  type: string
+ *  url: string
+ * }} attributes
  */
 
 const {
@@ -82,14 +206,16 @@ function setupConnection(app) {
   return bapConnection
     .loginByOAuth2(BAP_USER, BAP_PASSWORD)
     .then((userInfo) => {
-      const message = `Initializing BAP connection: ${userInfo.url}.`;
-      log({ level: "info", message });
-      // Store bapConnection in global express object using app.locals
+      const logMessage = `Initializing BAP connection: ${userInfo.url}.`;
+      log({ level: "info", message: logMessage });
+
+      /** Store bapConnection in global express object using app.locals. */
       app.locals.bapConnection = bapConnection;
     })
     .catch((err) => {
-      const message = `Error initializing BAP connection.`;
-      log({ level: "info", message });
+      const logMessage = `Error initializing BAP connection.`;
+      log({ level: "info", message: logMessage });
+
       throw err;
     });
 }
@@ -102,11 +228,11 @@ function setupConnection(app) {
  * @returns {Promise<BapSamEntity[]>} collection of SAM.gov entity data
  */
 async function queryForSamEntities(req, email) {
-  const message = `Querying BAP for SAM.gov entities for user with email: ${email}.`;
-  log({ level: "info", message });
+  const logMessage = `Querying the BAP for SAM.gov entities for user with email: '${email}'.`;
+  log({ level: "info", message: logMessage });
 
   /** @type {jsforce.Connection} */
-  const bapConnection = req.app.locals.bapConnection;
+  const { bapConnection } = req.app.locals;
 
   // `SELECT
   //   ENTITY_COMBO_KEY__c,
@@ -191,11 +317,11 @@ async function queryForSamEntities(req, email) {
  * @returns {Promise<BapFormSubmission[]>} collection of fields associated with each form submission
  */
 async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
-  const message = `Querying BAP for form submissions statuses associated with combokeys: ${comboKeys}.`;
-  log({ level: "info", message });
+  const logMessage = `Querying the BAP for form submissions statuses associated with combokeys: '${comboKeys}'.`;
+  log({ level: "info", message: logMessage });
 
   /** @type {jsforce.Connection} */
-  const bapConnection = req.app.locals.bapConnection;
+  const { bapConnection } = req.app.locals;
 
   // `SELECT
   //   Parent_Rebate_ID__c,
@@ -280,17 +406,16 @@ async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
  *
  * @param {express.Request} req
  * @param {string} applicationReviewItemId CSB Rebate ID with the form/version ID (9 digits)
- * @returns {Promise<Object>} Application form submission fields
+ * @returns {Promise<BapDataForPaymentRequest>} Application form submission fields
  */
 async function queryBapForPaymentRequestData(req, applicationReviewItemId) {
-  const message =
-    `Querying BAP for Application form submission associated with ` +
-    `Application Review Item ID: ${applicationReviewItemId}.`;
-
-  log({ level: "info", message });
+  const logMessage =
+    `Querying the BAP for Application form submission associated with ` +
+    `Application Review Item ID: '${applicationReviewItemId}'.`;
+  log({ level: "info", message: logMessage });
 
   /** @type {jsforce.Connection} */
-  const bapConnection = req.app.locals.bapConnection;
+  const { bapConnection } = req.app.locals;
 
   // `SELECT
   //   Id
@@ -447,23 +572,22 @@ async function queryBapForPaymentRequestData(req, applicationReviewItemId) {
  * @param {express.Request} req
  * @param {string} applicationReviewItemId CSB Rebate ID with the form/version ID (9 digits)
  * @param {string} paymentRequestReviewItemId CSB Rebate ID with the form/version ID (9 digits)
- * @returns {Promise<Object>} Payment Request form submission fields
+ * @returns {Promise<BapDataForForCloseOut>} Application form and Payment Request form submission fields
  */
 async function queryBapForCloseOutData(
   req,
   applicationReviewItemId,
   paymentRequestReviewItemId
 ) {
-  const message =
-    `Querying BAP for Application form submission associated with ` +
-    `Application Review Item ID: ${applicationReviewItemId} and ` +
+  const logMessage =
+    `Querying the BAP for Application form submission associated with ` +
+    `Application Review Item ID: '${applicationReviewItemId}' and ` +
     `Payment Request form submission associated with ` +
-    `Payment Request Review Item ID: ${paymentRequestReviewItemId}.`;
-
-  log({ level: "info", message });
+    `Payment Request Review Item ID: '${paymentRequestReviewItemId}'.`;
+  log({ level: "info", message: logMessage });
 
   /** @type {jsforce.Connection} */
-  const bapConnection = req.app.locals.bapConnection;
+  const { bapConnection } = req.app.locals;
 
   // `SELECT
   //   Id
@@ -492,7 +616,15 @@ async function queryBapForCloseOutData(
   const applicationRecordTypeId = applicationRecordTypeIdQuery["0"].Id;
 
   // `SELECT
+  //   Fleet_Name__c,
+  //   Fleet_Street_Address__c,
+  //   Fleet_City__c,
+  //   Fleet_State__c,
+  //   Fleet_Zip__c,
   //   Fleet_Contact_Name__c,
+  //   Fleet_Contact_Title__c,
+  //   Fleet_Contact_Phone__c,
+  //   Fleet_Contact_Email__c,
   //   School_District_Contact__r.FirstName,
   //   School_District_Contact__r.LastName
   // FROM
@@ -512,7 +644,15 @@ async function queryBapForCloseOutData(
       },
       {
         // "*": 1,
+        Fleet_Name__c: 1,
+        Fleet_Street_Address__c: 1,
+        Fleet_City__c: 1,
+        Fleet_State__c: 1,
+        Fleet_Zip__c: 1,
         Fleet_Contact_Name__c: 1,
+        Fleet_Contact_Title__c: 1,
+        Fleet_Contact_Phone__c: 1,
+        Fleet_Contact_Email__c: 1,
         "School_District_Contact__r.FirstName": 1,
         "School_District_Contact__r.LastName": 1,
       }
@@ -561,11 +701,10 @@ async function queryBapForCloseOutData(
   //   Alternate_Applicant__r.Email,
   //   Applicant_Organization__r.Name,
   //   CSB_School_District__r.Name,
-  //   Fleet_Name__c,
   //   School_District_Prioritized__c,
-  //   Total_Rebate_Funds_Requested__c,
-  //   Total_Infrastructure_Funds__c,
+  //   Total_Rebate_Funds_Requested_PO__c,
   //   Total_Bus_And_Infrastructure_Rebate__c,
+  //   Total_Infrastructure_Funds__c,
   //   Num_Of_Buses_Requested_From_Application__c,
   //   Total_Price_All_Buses__c,
   //   Total_Bus_Rebate_Amount__c,
@@ -606,11 +745,10 @@ async function queryBapForCloseOutData(
         "Alternate_Applicant__r.Email": 1,
         "Applicant_Organization__r.Name": 1,
         "CSB_School_District__r.Name": 1,
-        Fleet_Name__c: 1,
         School_District_Prioritized__c: 1,
-        Total_Rebate_Funds_Requested__c: 1,
-        Total_Infrastructure_Funds__c: 1,
+        Total_Rebate_Funds_Requested_PO__c: 1,
         Total_Bus_And_Infrastructure_Rebate__c: 1,
+        Total_Infrastructure_Funds__c: 1,
         Num_Of_Buses_Requested_From_Application__c: 1,
         Total_Price_All_Buses__c: 1,
         Total_Bus_Rebate_Amount__c: 1,
@@ -709,35 +847,40 @@ async function queryBapForCloseOutData(
 }
 
 /**
- * Verifies the BAP connection has been setup, then calls the provided callback function with the provided arguments.
+ * Verifies the BAP connection has been setup, then calls the provided callback
+ * function with the provided arguments.
+ *
  * @param {express.Request} req
- * @param {Object} callback callback function name and arguments to call after BAP connection has been verified
- * @param {function} callback.name name of the callback function
- * @param {any[]} callback.args arguments to pass to the callback function
+ * @param {Object} fn callback function name and arguments to call after BAP connection has been verified
+ * @param {function} fn.name name of the callback function
+ * @param {any[]} fn.args arguments to pass to the callback function
  */
 function verifyBapConnection(req, { name, args }) {
   /** @type {jsforce.Connection} */
-  const bapConnection = req.app.locals.bapConnection;
+  const { bapConnection } = req.app.locals;
 
   function callback() {
     return name(...args).catch((err) => {
-      const message = `BAP Error: ${err}`;
-      log({ level: "error", message, req });
+      const logMessage = `BAP Error: ${err}.`;
+      log({ level: "error", message: logMessage, req });
+
       throw err;
     });
   }
 
   if (!bapConnection) {
-    const message = `BAP connection has not yet been initialized.`;
-    log({ level: "info", message });
+    const logMessage = `BAP connection has not yet been initialized.`;
+    log({ level: "info", message: logMessage });
+
     return setupConnection(req.app).then(() => callback());
   }
 
   return bapConnection
     .identity((err, res) => {
       if (err) {
-        const message = `BAP connection identity error.`;
-        log({ level: "info", message });
+        const logMessage = `BAP connection identity error.`;
+        log({ level: "info", message: logMessage });
+
         return setupConnection(req.app).then(() => callback());
       }
     })
@@ -746,8 +889,10 @@ function verifyBapConnection(req, { name, args }) {
 
 /**
  * Fetches SAM.gov entities associated with a provided user.
+ *
  * @param {express.Request} req
  * @param {string} email
+ * @returns {ReturnType<queryForSamEntities>}
  */
 function getSamEntities(req, email) {
   return verifyBapConnection(req, {
@@ -758,6 +903,7 @@ function getSamEntities(req, email) {
 
 /**
  * Fetches SAM.gov entity combo keys associated with a provided user.
+ *
  * @param {express.Request} req
  * @param {string} email
  */
@@ -771,6 +917,7 @@ function getBapComboKeys(req, email) {
 
 /**
  * Fetches form submissions statuses associated with a provided set of combo keys.
+ *
  * @param {express.Request} req
  * @param {string[]} comboKeys
  */
@@ -787,6 +934,7 @@ function getBapFormSubmissionsStatuses(req, comboKeys) {
  *
  * @param {express.Request} req
  * @param {string} applicationReviewItemId
+ * @returns {ReturnType<queryBapForPaymentRequestData>}
  */
 function getBapDataForPaymentRequest(req, applicationReviewItemId) {
   return verifyBapConnection(req, {
@@ -803,6 +951,7 @@ function getBapDataForPaymentRequest(req, applicationReviewItemId) {
  * @param {express.Request} req
  * @param {string} applicationReviewItemId
  * @param {string} paymentRequestReviewItemId
+ * @returns {ReturnType<queryBapForCloseOutData>}
  */
 function getBapDataForCloseOut(
   req,

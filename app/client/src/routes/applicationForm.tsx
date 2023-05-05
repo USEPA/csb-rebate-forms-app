@@ -3,6 +3,7 @@ import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import { Dialog } from "@headlessui/react";
 import { Formio, Form } from "@formio/react";
+import s3 from "formiojs/providers/storage/s3";
 import { cloneDeep, isEqual } from "lodash";
 import icons from "uswds/img/sprite.svg";
 // ---
@@ -59,13 +60,20 @@ function useFormioSubmissionQueryAndMutation(mongoId: string | undefined) {
     queryKey: ["application", { id: mongoId }],
     queryFn: () => {
       return getData<ServerResponse>(url).then((res) => {
-        // set up s3 re-route to wrapper app
-        const s3Provider = Formio.Providers.providers.storage.s3;
+        const comboKey = res.submission?.data.bap_hidden_entity_combo_key;
+
+        /**
+         * Change the formUrl the File component's `uploadFile` uses, so the s3
+         * upload PUT request is routed through the server app.
+         *
+         * https://github.com/formio/formio.js/blob/master/src/components/file/File.js#L760
+         * https://github.com/formio/formio.js/blob/master/src/providers/storage/s3.js#L5
+         * https://github.com/formio/formio.js/blob/master/src/providers/storage/xhr.js#L90
+         */
         Formio.Providers.providers.storage.s3 = function (formio: any) {
           const s3Formio = cloneDeep(formio);
-          const comboKey = res.submission?.data.bap_hidden_entity_combo_key;
           s3Formio.formUrl = `${serverUrl}/api/s3/application/${mongoId}/${comboKey}`;
-          return s3Provider(s3Formio);
+          return s3(s3Formio);
         };
 
         // remove `ncesDataSource` and `ncesDataLookup` fields

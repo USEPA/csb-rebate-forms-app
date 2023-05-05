@@ -67,7 +67,7 @@ export function Helpdesk() {
 
   const { formSchema, submission } = query.data ?? {};
 
-  if (!csbData || helpdeskAccess === "idle" || helpdeskAccess === "pending") {
+  if (!csbData || helpdeskAccess === "pending") {
     return <Loading />;
   }
 
@@ -144,13 +144,13 @@ export function Helpdesk() {
                 setFormType(ev.target.value as FormType);
                 queryClient.resetQueries({ queryKey: ["helpdesk"] });
               }}
-              disabled={true} // NOTE: disabled until the close-out form is created
+              disabled={true} // NOTE: disabled until the Close Out form is created
             />
             <label
               className="usa-radio__label mobile-lg:margin-top-0"
               htmlFor="form-type-close-out"
             >
-              Close-Out
+              Close Out
             </label>
           </div>
         </fieldset>

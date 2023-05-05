@@ -33,7 +33,10 @@ router.get("/formio-application-schema", (req, res) => {
     .get(formioApplicationFormUrl)
     .then((axiosRes) => axiosRes.data)
     .then((schema) => {
-      // Verify that schema has type of form and a title exists (confirming formio returned a valid schema)
+      /**
+       * Verify that schema has type of form and a title exists
+       * (confirming Formio returned a valid schema).
+       */
       return res.json({ status: schema.type === "form" && !!schema.title });
     })
     .catch(() => {
@@ -46,7 +49,26 @@ router.get("/formio-payment-request-schema", (req, res) => {
     .get(formioPaymentRequestFormUrl)
     .then((axiosRes) => axiosRes.data)
     .then((schema) => {
-      // Verify that schema has type of form and a title exists (confirming formio returned a valid schema)
+      /**
+       * Verify that schema has type of form and a title exists
+       * (confirming Formio returned a valid schema).
+       */
+      return res.json({ status: schema.type === "form" && !!schema.title });
+    })
+    .catch(() => {
+      return res.json({ status: false });
+    });
+});
+
+router.get("/formio-close-out-schema", (req, res) => {
+  axiosFormio(req)
+    .get(formioCloseOutFormUrl)
+    .then((axiosRes) => axiosRes.data)
+    .then((schema) => {
+      /**
+       * Verify that schema has type of form and a title exists
+       * (confirming Formio returned a valid schema).
+       */
       return res.json({ status: schema.type === "form" && !!schema.title });
     })
     .catch(() => {

@@ -18,6 +18,12 @@ type Content = {
   submittedCloseOutIntro: string;
 };
 
+type UserData = {
+  mail: string;
+  memberof: string;
+  exp: number;
+};
+
 export type CsbData = {
   submissionPeriodOpen: {
     application: boolean;
@@ -174,11 +180,11 @@ export type Rebate = {
 async function fetchData<T = any>(url: string, options: RequestInit) {
   try {
     const response = await fetch(url, options);
-    if (!response.ok) throw new Error(response.statusText);
     const contentType = response.headers.get("content-type");
-    return contentType?.includes("application/json")
+    const data = contentType?.includes("application/json")
       ? ((await response.json()) as Promise<T>)
-      : (Promise.resolve() as Promise<T>);
+      : ((await response.text()) as unknown as Promise<T>);
+    return response.ok ? Promise.resolve(data) : Promise.reject(data);
   } catch (error) {
     return await Promise.reject(error);
   }
@@ -221,6 +227,22 @@ export function useContentQuery() {
 export function useContentData() {
   const queryClient = useQueryClient();
   return queryClient.getQueryData<Content>(["content"]);
+}
+
+/** Custom hook to fetch user data */
+export function useUserQuery() {
+  return useQuery({
+    queryKey: ["user"],
+    queryFn: () => getData<UserData>(`${serverUrl}/api/user`),
+    enabled: false,
+    retry: false,
+  });
+}
+
+/** Custom hook that returns cached fetched user data */
+export function useUserData() {
+  const queryClient = useQueryClient();
+  return queryClient.getQueryData<UserData>(["user"]);
 }
 
 /** Custom hook to fetch CSB data */
@@ -327,7 +349,7 @@ export function useSubmissionsQueries() {
 
 /**
  * Custom hook to combine Application form submissions data, Payment Request
- * form submissions data, and Close-Out form submissions data from both the BAP
+ * form submissions data, and Close Out form submissions data from both the BAP
  * and Formio into a single `submissions` object, with the BAP assigned
  * `rebateId` as the keys.
  **/
@@ -444,8 +466,8 @@ function useCombinedRebates() {
   }
 
   /**
-   * Iterate over Formio Close-Out form submissions, matching them with
-   * submissions returned from the BAP, so we can set the Close-Out form
+   * Iterate over Formio Close Out form submissions, matching them with
+   * submissions returned from the BAP, so we can set the Close Out form
    * submission data.
    */
   for (const formioSubmission of formioCloseOutSubmissions) {
@@ -475,7 +497,7 @@ function useCombinedRebates() {
 /**
  * Custom hook that sorts rebates by:
  * - most recient formio modified date, regardless of form
- *   (Application, Payment Request, or Close-Out)
+ *   (Application, Payment Request, or Close Out)
  * - Application submissions needing edits
  * - selected Applications submissions without a corresponding Payment Request
  *   submission
