@@ -492,7 +492,15 @@ async function queryBapForCloseOutData(
   const applicationRecordTypeId = applicationRecordTypeIdQuery["0"].Id;
 
   // `SELECT
+  //   Fleet_Name__c,
+  //   Fleet_Street_Address__c,
+  //   Fleet_City__c,
+  //   Fleet_State__c,
+  //   Fleet_Zip__c,
   //   Fleet_Contact_Name__c,
+  //   Fleet_Contact_Title__c,
+  //   Fleet_Contact_Phone__c,
+  //   Fleet_Contact_Email__c,
   //   School_District_Contact__r.FirstName,
   //   School_District_Contact__r.LastName
   // FROM
@@ -512,7 +520,15 @@ async function queryBapForCloseOutData(
       },
       {
         // "*": 1,
+        Fleet_Name__c: 1,
+        Fleet_Street_Address__c: 1,
+        Fleet_City__c: 1,
+        Fleet_State__c: 1,
+        Fleet_Zip__c: 1,
         Fleet_Contact_Name__c: 1,
+        Fleet_Contact_Title__c: 1,
+        Fleet_Contact_Phone__c: 1,
+        Fleet_Contact_Email__c: 1,
         "School_District_Contact__r.FirstName": 1,
         "School_District_Contact__r.LastName": 1,
       }
@@ -561,7 +577,6 @@ async function queryBapForCloseOutData(
   //   Alternate_Applicant__r.Email,
   //   Applicant_Organization__r.Name,
   //   CSB_School_District__r.Name,
-  //   Fleet_Name__c,
   //   School_District_Prioritized__c,
   //   Total_Rebate_Funds_Requested_PO__c,
   //   Total_Bus_And_Infrastructure_Rebate__c,
@@ -606,7 +621,6 @@ async function queryBapForCloseOutData(
         "Alternate_Applicant__r.Email": 1,
         "Applicant_Organization__r.Name": 1,
         "CSB_School_District__r.Name": 1,
-        Fleet_Name__c: 1,
         School_District_Prioritized__c: 1,
         Total_Rebate_Funds_Requested_PO__c: 1,
         Total_Bus_And_Infrastructure_Rebate__c: 1,
