@@ -780,8 +780,18 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
         paymentRequestRecordQuery,
         busRecordsQuery,
       }) => {
-        const { Fleet_Contact_Name__c, School_District_Contact__r } =
-          applicationRecordQuery[0];
+        const {
+          Fleet_Name__c,
+          Fleet_Street_Address__c,
+          Fleet_City__c,
+          Fleet_State__c,
+          Fleet_Zip__c,
+          Fleet_Contact_Name__c,
+          Fleet_Contact_Title__c,
+          Fleet_Contact_Phone__c,
+          Fleet_Contact_Email__c,
+          School_District_Contact__r,
+        } = applicationRecordQuery[0];
 
         const {
           CSB_NCES_ID__c,
@@ -789,7 +799,6 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
           Alternate_Applicant__r,
           Applicant_Organization__r,
           CSB_School_District__r,
-          Fleet_Name__c,
           School_District_Prioritized__c,
           Total_Rebate_Funds_Requested_PO__c,
           Total_Bus_And_Infrastructure_Rebate__c,
@@ -859,6 +868,14 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
             hidden_bap_alternate_email: Alternate_Applicant__r?.Email || "",
             hidden_bap_org_name: Applicant_Organization__r?.Name,
             hidden_bap_fleet_name: Fleet_Name__c,
+            hidden_bap_fleet_address: Fleet_Street_Address__c,
+            hidden_bap_fleet_city: Fleet_City__c,
+            hidden_bap_fleet_state: Fleet_State__c,
+            hidden_bap_fleet_zip: Fleet_Zip__c,
+            hidden_bap_fleet_contact_name: Fleet_Contact_Name__c,
+            hidden_bap_fleet_contact_title: Fleet_Contact_Title__c,
+            hidden_bap_fleet_phone: Fleet_Contact_Phone__c,
+            hidden_bap_fleet_email: Fleet_Contact_Email__c,
             hidden_bap_prioritized: School_District_Prioritized__c,
             hidden_bap_requested_funds: Total_Rebate_Funds_Requested_PO__c,
             hidden_bap_received_funds: Total_Bus_And_Infrastructure_Rebate__c,
@@ -871,7 +888,6 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
             hidden_bap_total_infra_level2_charger: Total_Level_2_Charger_Costs__c, // prettier-ignore
             hidden_bap_total_infra_dc_fast_charger: Total_DC_Fast_Charger_Costs__c, // prettier-ignore
             hidden_bap_total_infra_other_costs: Total_Other_Infrastructure_Costs__c, // prettier-ignore
-            hidden_bap_fleet_contact_name: Fleet_Contact_Name__c,
             hidden_bap_district_contact_fname: School_District_Contact__r?.FirstName, // prettier-ignore
             hidden_bap_district_contact_lname: School_District_Contact__r?.LastName, // prettier-ignore
             busInfo,
