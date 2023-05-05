@@ -1,23 +1,25 @@
 const jwt = require("jsonwebtoken");
-const jwtAlgorithm = process.env.NODE_ENV === "development" ? "HS256" : "RS256";
 
-const createJwt = (userObject) => {
-  return jwt.sign(
-    {
-      mail: userObject.mail,
-      memberof: userObject.memberof || "",
-      nameID: userObject.nameID,
-      nameIDFormat: userObject.nameIDFormat,
-      nameQualifier: userObject.nameQualifier,
-      spNameQualifier: userObject.spNameQualifier,
-      sessionIndex: userObject.sessionIndex,
-    },
-    process.env.JWT_PRIVATE_KEY,
-    {
-      algorithm: jwtAlgorithm,
-      expiresIn: process.env.JWT_EXPIRE || "15m",
-    }
-  );
-};
+const { NODE_ENV, JWT_PRIVATE_KEY, JWT_EXPIRE } = process.env;
 
-module.exports = { createJwt, jwtAlgorithm };
+const jwtAlgorithm = NODE_ENV === "development" ? "HS256" : "RS256";
+const jwtCookieName = "csb-token";
+
+function createJWT(userData) {
+  const payload = {
+    mail: userData.mail,
+    memberof: userData.memberof || "",
+    nameID: userData.nameID,
+    nameIDFormat: userData.nameIDFormat,
+    nameQualifier: userData.nameQualifier,
+    spNameQualifier: userData.spNameQualifier,
+    sessionIndex: userData.sessionIndex,
+  };
+
+  return jwt.sign(payload, JWT_PRIVATE_KEY, {
+    algorithm: jwtAlgorithm,
+    expiresIn: JWT_EXPIRE || "15m",
+  });
+}
+
+module.exports = { createJWT, jwtAlgorithm, jwtCookieName };
