@@ -100,7 +100,15 @@ const log = require("../utilities/logger");
 /**
  * @typedef {Object} BapDataForForCloseOut
  * @property {{
+ *  Fleet_Name__c: string
+ *  Fleet_Street_Address__c: string
+ *  Fleet_City__c: string
+ *  Fleet_State__c: string
+ *  Fleet_Zip__c: string
  *  Fleet_Contact_Name__c: string
+ *  Fleet_Contact_Title__c: string
+ *  Fleet_Contact_Phone__c: string
+ *  Fleet_Contact_Email__c: string
  *  School_District_Contact__r: {
  *    FirstName: string
  *    LastName: string
@@ -130,7 +138,6 @@ const log = require("../utilities/logger");
  *  CSB_School_District__r: {
  *    Name: string
  *  }
- *  Fleet_Name__c: string
  *  School_District_Prioritized__c: string
  *  Total_Rebate_Funds_Requested_PO__c: string
  *  Total_Bus_And_Infrastructure_Rebate__c: string
