@@ -406,7 +406,7 @@ router.get(
       })
       .catch((error) => {
         const errorStatus = error.response?.status || 500;
-        const errorMessage = `Error getting Formio Application form submission ${mongoId}.`;
+        const errorMessage = `Error getting Formio Application form submission '${mongoId}'.`;
         res.status(errorStatus).json({ message: errorMessage });
       });
   }
@@ -418,6 +418,8 @@ router.post(
   verifyMongoObjectId,
   storeBapComboKeys,
   (req, res) => {
+    const { bapComboKeys } = req;
+    const { mail } = req.user;
     const { mongoId } = req.params;
     const submission = req.body;
     const comboKey = submission.data?.bap_hidden_entity_combo_key;
@@ -425,14 +427,16 @@ router.post(
 
     checkFormSubmissionPeriodAndBapStatus({ formType, mongoId, comboKey, req })
       .then(() => {
-        // verify post data includes one of user's BAP combo keys
-        if (!req.bapComboKeys.includes(comboKey)) {
-          const message = `User with email ${req.user.mail} attempted to update Application form submission ${mongoId} without a matching BAP combo key`;
-          log({ level: "error", message, req });
-          return res.status(401).json({ message: "Unauthorized" });
+        if (!bapComboKeys.includes(comboKey)) {
+          const logMessage = `User with email '${mail}' attempted to update Application form submission '${mongoId}' without a matching BAP combo key.`;
+          log({ level: "error", message: logMessage, req });
+
+          const errorStatus = 401;
+          const errorMessage = `Unauthorized.`;
+          return res.status(errorStatus).json({ message: errorMessage });
         }
 
-        // add custom metadata to track formio submissions from wrapper
+        /** Add custom metadata to track formio submissions from wrapper. */
         submission.metadata = {
           ...submission.metadata,
           ...formioCsbMetadata,
@@ -443,13 +447,15 @@ router.post(
           .then((axiosRes) => axiosRes.data)
           .then((submission) => res.json(submission))
           .catch((error) => {
-            const message = `Error updating Formio Application form submission ${mongoId}`;
-            return res.status(error?.response?.status || 500).json({ message });
+            const errorStatus = error.response?.status || 500;
+            const errorMessage = `Error updating Formio Application form submission '${mongoId}'.`;
+            return res.status(errorStatus).json({ message: errorMessage });
           });
       })
       .catch((error) => {
-        const message = `CSB Application form enrollment period is closed`;
-        return res.status(400).json({ message });
+        const errorStatus = 400;
+        const errorMessage = `CSB Application form enrollment period is closed.`;
+        return res.status(errorStatus).json({ message: errorMessage });
       });
   }
 );
@@ -459,11 +465,13 @@ router.get(
   "/formio-payment-request-submissions",
   storeBapComboKeys,
   (req, res) => {
+    const { bapComboKeys } = req;
+
     const userSubmissionsUrl =
       `${formioPaymentRequestFormUrl}/submission` +
       `?sort=-modified` +
       `&limit=1000000` +
-      `&data.bap_hidden_entity_combo_key=${req.bapComboKeys.join(
+      `&data.bap_hidden_entity_combo_key=${bapComboKeys.join(
         "&data.bap_hidden_entity_combo_key="
       )}`;
 
@@ -472,8 +480,9 @@ router.get(
       .then((axiosRes) => axiosRes.data)
       .then((submissions) => res.json(submissions))
       .catch((error) => {
-        const message = `Error getting Formio Payment Request form submissions`;
-        return res.status(error?.response?.status || 500).json({ message });
+        const errorStatus = error.response?.status || 500;
+        const errorMessage = `Error getting Formio Payment Request form submissions.`;
+        return res.status(errorStatus).json({ message: errorMessage });
       });
   }
 );
@@ -483,6 +492,8 @@ router.post(
   "/formio-payment-request-submission",
   storeBapComboKeys,
   (req, res) => {
+    const { bapComboKeys, body } = req;
+    const { mail } = req.user;
     const {
       email,
       title,
@@ -492,18 +503,21 @@ router.post(
       rebateId,
       applicationReviewItemId,
       applicationFormModified,
-    } = req.body;
+    } = body;
 
     if (!paymentRequestFormOpen) {
-      const message = `CSB Payment Request form enrollment period is closed`;
-      return res.status(400).json({ message });
+      const errorStatus = 400;
+      const errorMessage = `CSB Payment Request form enrollment period is closed.`;
+      return res.status(errorStatus).json({ message: errorMessage });
     }
 
-    // verify post data includes one of user's BAP combo keys
-    if (!req.bapComboKeys.includes(comboKey)) {
-      const message = `User with email ${req.user.mail} attempted to post a new Payment Request form submission without a matching BAP combo key`;
-      log({ level: "error", message, req });
-      return res.status(401).json({ message: "Unauthorized" });
+    if (!bapComboKeys.includes(comboKey)) {
+      const logMessage = `User with email '${mail}' attempted to post a new Payment Request form submission without a matching BAP combo key.`;
+      log({ level: "error", message: logMessage, req });
+
+      const errorStatus = 401;
+      const errorMessage = `Unauthorized.`;
+      return res.status(errorStatus).json({ message: errorMessage });
     }
 
     const {
@@ -539,8 +553,10 @@ router.post(
           hidden_bap_max_rebate: record.CSB_Funds_Requested__c,
         }));
 
-        // NOTE: `purchaseOrders` is initialized as an empty array to fix some
-        // issue with the field being changed to an object when the form loads
+        /**
+         * NOTE: `purchaseOrders` is initialized as an empty array to fix some
+         * issue with the field being changed to an object when the form loads
+         */
         const submission = {
           data: {
             bap_hidden_entity_combo_key: comboKey,
@@ -573,7 +589,7 @@ router.post(
             busInfo,
             purchaseOrders: [],
           },
-          // add custom metadata to track formio submissions from wrapper
+          /** Add custom metadata to track formio submissions from wrapper. */
           metadata: {
             ...formioCsbMetadata,
           },
@@ -585,13 +601,15 @@ router.post(
           .then((axiosRes) => axiosRes.data)
           .then((submission) => res.json(submission))
           .catch((error) => {
-            const message = `Error posting Formio Payment Request form submission`;
-            return res.status(error?.response?.status || 500).json({ message });
+            const errorStatus = error.response?.status || 500;
+            const errorMessage = `Error posting Formio Payment Request form submission.`;
+            return res.status(errorStatus).json({ message: errorMessage });
           });
       })
       .catch((error) => {
-        const message = `Error getting Application form submission from BAP`;
-        return res.status(401).json({ message });
+        const errorStatus = 500;
+        const errorMessage = `Error getting data for a new Payment Request form submission from the BAP.`;
+        return res.status(errorStatus).json({ message: errorMessage });
       });
   }
 );
@@ -601,6 +619,8 @@ router.get(
   "/formio-payment-request-submission/:rebateId",
   storeBapComboKeys,
   async (req, res) => {
+    const { bapComboKeys } = req;
+    const { mail } = req.user;
     const { rebateId } = req.params; // CSB Rebate ID (6 digits)
 
     const matchedPaymentRequestFormSubmissions =
@@ -618,9 +638,10 @@ router.get(
         const mongoId = submission._id;
         const comboKey = submission.data.bap_hidden_entity_combo_key;
 
-        if (!req.bapComboKeys.includes(comboKey)) {
-          const message = `User with email ${req.user.mail} attempted to access Payment Request form submission ${rebateId} that they do not have access to.`;
-          log({ level: "warn", message, req });
+        if (!bapComboKeys.includes(comboKey)) {
+          const logMessage = `User with email '${mail}' attempted to access Payment Request form submission '${rebateId}' that they do not have access to.`;
+          log({ level: "warn", message: logMessage, req });
+
           return res.json({
             userAccess: false,
             formSchema: null,
@@ -628,10 +649,11 @@ router.get(
           });
         }
 
-        // NOTE: verifyMongoObjectId middleware content:
+        /** NOTE: verifyMongoObjectId */
         if (mongoId && !ObjectId.isValid(mongoId)) {
-          const message = `MongoDB ObjectId validation error for: ${mongoId}`;
-          return res.status(400).json({ message });
+          const errorStatus = 400;
+          const errorMessage = `MongoDB ObjectId validation error for: '${mongoId}'.`;
+          return res.status(errorStatus).json({ message: errorMessage });
         }
 
         /**
@@ -654,8 +676,9 @@ router.get(
           });
       })
       .catch((error) => {
-        const message = `Error getting Formio Payment Request form submission ${rebateId}`;
-        res.status(error?.response?.status || 500).json({ message });
+        const errorStatus = error.response?.status || 500;
+        const errorMessage = `Error getting Formio Payment Request form submission '${rebateId}'.`;
+        res.status(errorStatus).json({ message: errorMessage });
       });
   }
 );
@@ -665,27 +688,32 @@ router.post(
   "/formio-payment-request-submission/:rebateId",
   storeBapComboKeys,
   (req, res) => {
+    const { bapComboKeys, body } = req;
+    const { mail } = req.user;
     const { rebateId } = req.params; // CSB Rebate ID (6 digits)
-    const { mongoId, submission } = req.body;
+    const { mongoId, submission } = body;
     const comboKey = submission.data?.bap_hidden_entity_combo_key;
     const formType = "payment-request";
 
     checkFormSubmissionPeriodAndBapStatus({ formType, mongoId, comboKey, req })
       .then(() => {
-        // verify post data includes one of user's BAP combo keys
-        if (!req.bapComboKeys.includes(comboKey)) {
-          const message = `User with email ${req.user.mail} attempted to update Payment Request form submission ${rebateId} without a matching BAP combo key`;
-          log({ level: "error", message, req });
-          return res.status(401).json({ message: "Unauthorized" });
+        if (!bapComboKeys.includes(comboKey)) {
+          const logMessage = `User with email '${mail}' attempted to update Payment Request form submission '${rebateId}' without a matching BAP combo key.`;
+          log({ level: "error", message: logMessage, req });
+
+          const errorStatus = 401;
+          const errorMessage = `Unauthorized.`;
+          return res.status(errorStatus).json({ message: errorMessage });
         }
 
-        // NOTE: verifyMongoObjectId middleware content:
+        /** NOTE: verifyMongoObjectId */
         if (mongoId && !ObjectId.isValid(mongoId)) {
-          const message = `MongoDB ObjectId validation error for: ${mongoId}`;
-          return res.status(400).json({ message });
+          const errorStatus = 400;
+          const errorMessage = `MongoDB ObjectId validation error for: '${mongoId}'.`;
+          return res.status(errorStatus).json({ message: errorMessage });
         }
 
-        // add custom metadata to track formio submissions from wrapper
+        /** Add custom metadata to track formio submissions from wrapper. */
         submission.metadata = {
           ...submission.metadata,
           ...formioCsbMetadata,
@@ -699,13 +727,15 @@ router.post(
           .then((axiosRes) => axiosRes.data)
           .then((submission) => res.json(submission))
           .catch((error) => {
-            const message = `Error updating Formio Payment Request form submission ${rebateId}`;
-            return res.status(error?.response?.status || 500).json({ message });
+            const errorStatus = error.response?.status || 500;
+            const errorMessage = `Error updating Formio Payment Request form submission '${rebateId}'.`;
+            return res.status(errorStatus).json({ message: errorMessage });
           });
       })
       .catch((error) => {
-        const message = `CSB Payment Request form enrollment period is closed`;
-        return res.status(400).json({ message });
+        const errorStatus = 400;
+        const errorMessage = `CSB Payment Request form enrollment period is closed.`;
+        return res.status(errorStatus).json({ message: errorMessage });
       });
   }
 );
@@ -715,13 +745,18 @@ router.post(
   "/delete-formio-payment-request-submission",
   storeBapComboKeys,
   (req, res) => {
-    const { mongoId, rebateId, comboKey } = req.body;
+    const { bapComboKeys, body } = req;
+    const { mail } = req.user;
+    const { mongoId, rebateId, comboKey } = body;
 
     // verify post data includes one of user's BAP combo keys
-    if (!req.bapComboKeys.includes(comboKey)) {
-      const message = `User with email ${req.user.mail} attempted to delete Payment Request form submission ${rebateId} without a matching BAP combo key`;
-      log({ level: "error", message, req });
-      return res.status(401).json({ message: "Unauthorized" });
+    if (!bapComboKeys.includes(comboKey)) {
+      const logMessage = `User with email '${mail}' attempted to delete Payment Request form submission '${rebateId}' without a matching BAP combo key.`;
+      log({ level: "error", message: logMessage, req });
+
+      const errorStatus = 401;
+      const errorMessage = `Unauthorized.`;
+      return res.status(errorStatus).json({ message: errorMessage });
     }
 
     /**
@@ -743,27 +778,30 @@ router.post(
           "Edits Requested";
 
         if (!applicationNeedsEdits) {
-          const message = `CSB Application form submission does not need edits`;
-          return res.status(400).json({ message });
+          const errorStatus = 400;
+          const errorMessage = `Application form submission '${mongoId}' does not need edits.`;
+          return res.status(errorStatus).json({ message: errorMessage });
         }
 
         axiosFormio(req)
           .delete(`${formioPaymentRequestFormUrl}/submission/${mongoId}`)
           .then((axiosRes) => axiosRes.data)
           .then((response) => {
-            const message = `User with email ${req.user.mail} successfully deleted Payment Request form submission ${rebateId}`;
-            log({ level: "info", message, req });
+            const logMessage = `User with email '${mail}' successfully deleted Payment Request form submission '${rebateId}'.`;
+            log({ level: "info", message: logMessage, req });
 
             res.json(response);
           })
           .catch((error) => {
-            const message = `Error deleting Formio Payment Request form submission ${rebateId}`;
-            return res.status(error?.response?.status || 500).json({ message });
+            const errorStatus = error.response?.status || 500;
+            const errorMessage = `Error deleting Formio Payment Request form submission '${rebateId}'.`;
+            return res.status(errorStatus).json({ message: errorMessage });
           });
       })
       .catch((error) => {
-        const message = `Error getting form submissions statuses from BAP`;
-        return res.status(401).json({ message });
+        const errorStatus = 500;
+        const errorMessage = `Error getting form submissions statuses from the BAP.`;
+        return res.status(errorStatus).json({ message: errorMessage });
       });
   }
 );
@@ -985,10 +1023,11 @@ router.get(
           });
         }
 
-        // NOTE: verifyMongoObjectId middleware content:
+        /** NOTE: verifyMongoObjectId */
         if (mongoId && !ObjectId.isValid(mongoId)) {
-          const message = `MongoDB ObjectId validation error for: ${mongoId}`;
-          return res.status(400).json({ message });
+          const errorStatus = 400;
+          const errorMessage = `MongoDB ObjectId validation error for: '${mongoId}'.`;
+          return res.status(errorStatus).json({ message: errorMessage });
         }
 
         /**
@@ -1036,10 +1075,11 @@ router.post(
           return res.status(401).json({ message: "Unauthorized" });
         }
 
-        // NOTE: verifyMongoObjectId middleware content:
+        /** NOTE: verifyMongoObjectId */
         if (mongoId && !ObjectId.isValid(mongoId)) {
-          const message = `MongoDB ObjectId validation error for: ${mongoId}`;
-          return res.status(400).json({ message });
+          const errorStatus = 400;
+          const errorMessage = `MongoDB ObjectId validation error for: '${mongoId}'.`;
+          return res.status(errorStatus).json({ message: errorMessage });
         }
 
         // add custom metadata to track formio submissions from wrapper
