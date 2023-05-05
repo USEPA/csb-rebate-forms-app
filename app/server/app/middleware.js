@@ -96,8 +96,9 @@ function ensureHelpdesk(req, res, next) {
       log({ level: "error", message: logMessage, req });
     }
 
+    const errorStatus = 401;
     const errorMessage = `Unauthorized.`;
-    return res.status(401).json({ message: errorMessage });
+    return res.status(errorStatus).json({ message: errorMessage });
   }
 
   next();
@@ -114,8 +115,9 @@ function rejectRequest(req, res, jwtExpired) {
 
   if (req.originalUrl.includes("/api")) {
     /** Send JSON Unauthorized message if request is for an API endpoint. */
+    const errorStatus = 401;
     const errorMessage = `Unauthorized.`;
-    return res.status(401).json({ message: errorMessage });
+    return res.status(errorStatus).json({ message: errorMessage });
   }
 
   /**
@@ -172,7 +174,10 @@ function checkClientRouteExists(req, res, next) {
     !req.path.includes("/payment-request/") &&
     !req.path.includes("/close-out/")
   ) {
-    return res.status(404).sendFile(resolve(__dirname, "public/404.html"));
+    const errorStatus = 404;
+    return res
+      .status(errorStatus)
+      .sendFile(resolve(__dirname, "public/404.html"));
   }
 
   next();
@@ -212,8 +217,9 @@ function storeBapComboKeys(req, res, next) {
       next();
     })
     .catch(() => {
-      const errorMessage = `Error getting SAM.gov data.`;
-      return res.status(401).json({ message: errorMessage });
+      const errorStatus = 500;
+      const errorMessage = `Error getting SAM.gov data from the BAP.`;
+      return res.status(errorStatus).json({ message: errorMessage });
     });
 }
 
@@ -226,8 +232,9 @@ function verifyMongoObjectId(req, res, next) {
   const { id } = req.params;
 
   if (id && !ObjectId.isValid(id)) {
+    const errorStatus = 400;
     const errorMessage = `MongoDB ObjectId validation error for: ${id}.`;
-    return res.status(400).json({ message: errorMessage });
+    return res.status(errorStatus).json({ message: errorMessage });
   }
 
   next();

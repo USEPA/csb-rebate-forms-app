@@ -18,10 +18,9 @@ function errorHandler(err, req, res, next) {
 
   /** For API errors, return error message in JSON format */
   if (req.originalUrl.includes("/api")) {
+    const errorStatus = err?.response?.status || 500;
     const errorMessage = `An unknown server error occurred. Please try again or contact support.`;
-    return res
-      .status(err?.response?.status || 500)
-      .json({ message: errorMessage });
+    return res.status(errorStatus).json({ message: errorMessage });
   }
 
   /** For non-login non-API errors, redirect back to base route */
