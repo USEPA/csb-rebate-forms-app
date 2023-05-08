@@ -9,54 +9,6 @@
     "description": "U.S. EPA Clean School Bus data collection system"
   },
   "paths": {
-    "/status/app": {
-      "get": {
-        "summary": "/status/app",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [],
-        "parameters": [{ "$ref": "#/components/parameters/scan" }]
-      }
-    },
-    "/status/bap-sam-data": {
-      "get": {
-        "summary": "/status/bap-sam-data",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [],
-        "parameters": [{ "$ref": "#/components/parameters/scan" }]
-      }
-    },
-    "/status/formio-application-schema": {
-      "get": {
-        "summary": "/status/formio-application-schema",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [],
-        "parameters": [{ "$ref": "#/components/parameters/scan" }]
-      }
-    },
-    "/status/formio-payment-request-schema": {
-      "get": {
-        "summary": "/status/formio-payment-request-schema",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [],
-        "parameters": [{ "$ref": "#/components/parameters/scan" }]
-      }
-    },
     "/login": {
       "get": {
         "summary": "/login",
@@ -154,9 +106,69 @@
         "parameters": [{ "$ref": "#/components/parameters/scan" }]
       }
     },
+    "/status/app": {
+      "get": {
+        "summary": "/status/app",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [],
+        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+      }
+    },
+    "/status/bap-sam-data": {
+      "get": {
+        "summary": "/status/bap-sam-data",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [],
+        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+      }
+    },
+    "/status/formio-application-schema": {
+      "get": {
+        "summary": "/status/formio-application-schema",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [],
+        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+      }
+    },
+    "/status/formio-payment-request-schema": {
+      "get": {
+        "summary": "/status/formio-payment-request-schema",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [],
+        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+      }
+    },
+    "/status/formio-close-out-schema": {
+      "get": {
+        "summary": "/status/formio-close-out-schema",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [],
+        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+      }
+    },
     "/help/formio-submission/{formType}/{id}": {
       "get": {
-        "summary": "/help/formio-submission/{id}",
+        "summary": "/help/formio-submission/{formType}/{id}",
         "parameters": [
           {
             "name": "formType",
@@ -319,9 +331,9 @@
         "parameters": [{ "$ref": "#/components/parameters/scan" }]
       }
     },
-    "/api/csb-data": {
+    "/api/user": {
       "get": {
-        "summary": "/api/csb-data",
+        "summary": "/api/user",
         "responses": {
           "200": {
             "description": "OK",
@@ -330,9 +342,17 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "enrollmentClosed": {
-                      "type": "boolean",
-                      "example": true
+                    "mail": {
+                      "type": "string",
+                      "example": "last.first@epa.gov"
+                    },
+                    "memberof": {
+                      "type": "string",
+                      "example": "csb_admin,csb_helpdesk"
+                    },
+                    "exp": {
+                      "type": "number",
+                      "example": 1661376902
                     }
                   }
                 }
@@ -360,9 +380,9 @@
         "parameters": [{ "$ref": "#/components/parameters/scan" }]
       }
     },
-    "/api/user": {
+    "/api/csb-data": {
       "get": {
-        "summary": "/api/user",
+        "summary": "/api/csb-data",
         "responses": {
           "200": {
             "description": "OK",
@@ -371,17 +391,9 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "mail": {
-                      "type": "string",
-                      "example": "last.first@epa.gov"
-                    },
-                    "memberof": {
-                      "type": "string",
-                      "example": "csb_admin,csb_helpdesk"
-                    },
-                    "exp": {
-                      "type": "number",
-                      "example": 1661376902
+                    "enrollmentClosed": {
+                      "type": "boolean",
+                      "example": true
                     }
                   }
                 }
@@ -795,6 +807,127 @@
         },
         "tags": [],
         "parameters": [{ "$ref": "#/components/parameters/scan" }]
+      }
+    },
+    "/api/formio-close-out-submissions": {
+      "get": {
+        "summary": "/api/formio-close-out-submissions",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [],
+        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+      }
+    },
+    "/api/formio-close-out-submission": {
+      "post": {
+        "summary": "/api/formio-close-out-submission",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [],
+        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+      }
+    },
+    "/api/formio-close-out-submission/{rebateId}": {
+      "get": {
+        "summary": "/api/formio-close-out-submission/{rebateId}",
+        "parameters": [
+          {
+            "name": "rebateId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          { "$ref": "#/components/parameters/scan" }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "userAccess": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "formSchema": {
+                      "type": "object",
+                      "properties": {
+                        "url": {
+                          "type": "string",
+                          "example": "https://formmio/project/form/id"
+                        },
+                        "json": {
+                          "type": "object"
+                        }
+                      }
+                    },
+                    "submission": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": []
+      },
+      "post": {
+        "summary": "/api/formio-close-out-submission/{rebateId}",
+        "parameters": [
+          {
+            "name": "rebateId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          { "$ref": "#/components/parameters/scan" }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": []
       }
     }
   },

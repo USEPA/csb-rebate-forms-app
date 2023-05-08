@@ -103,7 +103,7 @@ router.get("/formio-submission/:formType/:id", (req, res) => {
       .catch((error) => {
         const errorStatus = error.response?.status || 500;
         const errorMessage = `Error getting Formio Payment Request form submission '${rebateId}'.`;
-        res.status(errorStatus).json({ message: errorMessage });
+        return res.status(errorStatus).json({ message: errorMessage });
       });
   }
 
@@ -159,7 +159,7 @@ router.post("/formio-submission/:formType/:id", (req, res) => {
       .catch((error) => {
         const errorStatus = error.response?.status || 500;
         const errorMessage = `Error updating Formio Application form submission '${mongoId}'.`;
-        res.status(errorStatus).json({ message: errorMessage });
+        return res.status(errorStatus).json({ message: errorMessage });
       });
   }
 
@@ -212,7 +212,7 @@ router.post("/formio-submission/:formType/:id", (req, res) => {
       .catch((error) => {
         const errorStatus = error.response?.status || 500;
         const errorMessage = `Error getting Formio Payment Request form submission '${rebateId}'.`;
-        res.status(errorStatus).json({ message: errorMessage });
+        return res.status(errorStatus).json({ message: errorMessage });
       });
   }
 
