@@ -9,66 +9,6 @@
     "description": "U.S. EPA Clean School Bus data collection system"
   },
   "paths": {
-    "/status/app": {
-      "get": {
-        "summary": "/status/app",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [],
-        "parameters": [{ "$ref": "#/components/parameters/scan" }]
-      }
-    },
-    "/status/bap-sam-data": {
-      "get": {
-        "summary": "/status/bap-sam-data",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [],
-        "parameters": [{ "$ref": "#/components/parameters/scan" }]
-      }
-    },
-    "/status/formio-application-schema": {
-      "get": {
-        "summary": "/status/formio-application-schema",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [],
-        "parameters": [{ "$ref": "#/components/parameters/scan" }]
-      }
-    },
-    "/status/formio-payment-request-schema": {
-      "get": {
-        "summary": "/status/formio-payment-request-schema",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [],
-        "parameters": [{ "$ref": "#/components/parameters/scan" }]
-      }
-    },
-    "/status/formio-close-out-schema": {
-      "get": {
-        "summary": "/status/formio-close-out-schema",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [],
-        "parameters": [{ "$ref": "#/components/parameters/scan" }]
-      }
-    },
     "/login": {
       "get": {
         "summary": "/login",
@@ -160,6 +100,66 @@
                 }
               }
             }
+          }
+        },
+        "tags": [],
+        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+      }
+    },
+    "/status/app": {
+      "get": {
+        "summary": "/status/app",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [],
+        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+      }
+    },
+    "/status/bap-sam-data": {
+      "get": {
+        "summary": "/status/bap-sam-data",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [],
+        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+      }
+    },
+    "/status/formio-application-schema": {
+      "get": {
+        "summary": "/status/formio-application-schema",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [],
+        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+      }
+    },
+    "/status/formio-payment-request-schema": {
+      "get": {
+        "summary": "/status/formio-payment-request-schema",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [],
+        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+      }
+    },
+    "/status/formio-close-out-schema": {
+      "get": {
+        "summary": "/status/formio-close-out-schema",
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         },
         "tags": [],
