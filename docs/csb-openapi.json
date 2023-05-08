@@ -331,9 +331,9 @@
         "parameters": [{ "$ref": "#/components/parameters/scan" }]
       }
     },
-    "/api/csb-data": {
+    "/api/user": {
       "get": {
-        "summary": "/api/csb-data",
+        "summary": "/api/user",
         "responses": {
           "200": {
             "description": "OK",
@@ -342,9 +342,17 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "enrollmentClosed": {
-                      "type": "boolean",
-                      "example": true
+                    "mail": {
+                      "type": "string",
+                      "example": "last.first@epa.gov"
+                    },
+                    "memberof": {
+                      "type": "string",
+                      "example": "csb_admin,csb_helpdesk"
+                    },
+                    "exp": {
+                      "type": "number",
+                      "example": 1661376902
                     }
                   }
                 }
@@ -372,9 +380,9 @@
         "parameters": [{ "$ref": "#/components/parameters/scan" }]
       }
     },
-    "/api/user": {
+    "/api/csb-data": {
       "get": {
-        "summary": "/api/user",
+        "summary": "/api/csb-data",
         "responses": {
           "200": {
             "description": "OK",
@@ -383,17 +391,9 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "mail": {
-                      "type": "string",
-                      "example": "last.first@epa.gov"
-                    },
-                    "memberof": {
-                      "type": "string",
-                      "example": "csb_admin,csb_helpdesk"
-                    },
-                    "exp": {
-                      "type": "number",
-                      "example": 1661376902
+                    "enrollmentClosed": {
+                      "type": "boolean",
+                      "example": true
                     }
                   }
                 }
