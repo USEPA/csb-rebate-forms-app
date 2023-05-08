@@ -407,7 +407,7 @@ router.get(
       .catch((error) => {
         const errorStatus = error.response?.status || 500;
         const errorMessage = `Error getting Formio Application form submission '${mongoId}'.`;
-        res.status(errorStatus).json({ message: errorMessage });
+        return res.status(errorStatus).json({ message: errorMessage });
       });
   }
 );
@@ -678,7 +678,7 @@ router.get(
       .catch((error) => {
         const errorStatus = error.response?.status || 500;
         const errorMessage = `Error getting Formio Payment Request form submission '${rebateId}'.`;
-        res.status(errorStatus).json({ message: errorMessage });
+        return res.status(errorStatus).json({ message: errorMessage });
       });
   }
 );
@@ -1081,7 +1081,7 @@ router.get(
       .catch((error) => {
         const errorStatus = error.response?.status || 500;
         const errorMessage = `Error getting Formio Close Out form submission '${rebateId}'.`;
-        res.status(errorStatus).json({ message: errorMessage });
+        return res.status(errorStatus).json({ message: errorMessage });
       });
   }
 );
