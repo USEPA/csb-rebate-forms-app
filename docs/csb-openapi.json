@@ -808,6 +808,50 @@
         "tags": [],
         "parameters": [{ "$ref": "#/components/parameters/scan" }]
       }
+    },
+    "/api/formio-close-out-submissions": {
+      "get": {
+        "summary": "/api/formio-close-out-submissions",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [],
+        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+      }
+    },
+    "/api/formio-close-out-submission": {
+      "post": {
+        "summary": "/api/formio-close-out-submission",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [],
+        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+      }
     }
   },
   "tags": [],
