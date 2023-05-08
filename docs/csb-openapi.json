@@ -168,7 +168,7 @@
     },
     "/help/formio-submission/{formType}/{id}": {
       "get": {
-        "summary": "/help/formio-submission/{id}",
+        "summary": "/help/formio-submission/{formType}/{id}",
         "parameters": [
           {
             "name": "formType",
