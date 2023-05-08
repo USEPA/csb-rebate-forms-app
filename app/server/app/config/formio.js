@@ -1,31 +1,39 @@
 const axios = require("axios");
+const express = require("express");
 // ---
 const log = require("../utilities/logger");
 
-const formioBaseUrl = process.env.FORMIO_BASE_URL;
-const formioProjectName = process.env.FORMIO_PROJECT_NAME;
-const formioProjectUrl = `${formioBaseUrl}/${formioProjectName}`;
-const formioApplicationFormPath = process.env.FORMIO_APPLICATION_FORM_PATH;
-const formioPaymentRequestFormPath = process.env.FORMIO_PAYMENT_REQUEST_FORM_PATH; // prettier-ignore
-const formioCloseOutFormPath = process.env.FORMIO_CLOSE_OUT_FORM_PATH;
-const formioApiKey = process.env.FORMIO_API_KEY;
+const {
+  CLOUD_SPACE,
+  SERVER_URL,
+  FORMIO_BASE_URL,
+  FORMIO_PROJECT_NAME,
+  FORMIO_APPLICATION_FORM_PATH,
+  FORMIO_PAYMENT_REQUEST_FORM_PATH,
+  FORMIO_CLOSE_OUT_FORM_PATH,
+  FORMIO_API_KEY,
+} = process.env;
 
-const formioApplicationFormUrl = `${formioProjectUrl}/${formioApplicationFormPath}`;
-const formioPaymentRequestFormUrl = `${formioProjectUrl}/${formioPaymentRequestFormPath}`;
-const formioCloseOutFormUrl = `${formioProjectUrl}/${formioCloseOutFormPath}`;
+const formioProjectUrl = `${FORMIO_BASE_URL}/${FORMIO_PROJECT_NAME}`;
+const formioApplicationFormUrl = `${formioProjectUrl}/${FORMIO_APPLICATION_FORM_PATH}`;
+const formioPaymentRequestFormUrl = `${formioProjectUrl}/${FORMIO_PAYMENT_REQUEST_FORM_PATH}`;
+const formioCloseOutFormUrl = `${formioProjectUrl}/${FORMIO_CLOSE_OUT_FORM_PATH}`;
 
+/** @param {express.Request} req */
 function axiosFormio(req) {
   const instance = axios.create();
 
-  // NOTE: thanks to https://github.com/softonic/axios-retry for the retry logic
+  /** NOTE: thanks to https://github.com/softonic/axios-retry for the retry logic. */
   instance.interceptors.request.use((config) => {
-    config.csb = config.csb || {};
+    config.csb = config.csb ?? {};
     config.csb.retryCount = config.csb.retryCount || 0;
-    config.headers["x-token"] = formioApiKey;
+
+    config.headers["x-token"] = FORMIO_API_KEY;
     config.headers["b3"] = req.headers["b3"] || "";
     config.headers["x-b3-traceid"] = req.headers["x-b3-traceid"] || "";
     config.headers["x-b3-spanid"] = req.headers["x-b3-spanid"] || "";
     config.headers["x-b3-parentspanid"] = req.headers["x-b3-parentspanid"] || ""; // prettier-ignore
+
     return config;
   });
 
@@ -36,35 +44,29 @@ function axiosFormio(req) {
         log({ level: "debug", message: error.toJSON() });
       }
 
-      // attempt to retry a failed request two more times, and log the attempts
+      /** Attempt to retry a failed request 3 times, and log the attempts. */
       const { config } = error;
       const { status } = error.response;
 
-      if (config.csb.retryCount < 2) {
-        config.csb.retryCount += 1;
+      const { retryCount } = config.csb;
+      const method = config.method.toUpperCase();
+      const url = { config };
 
-        log({
-          level: "warn",
-          message:
-            `Formio Error: ` +
-            `${status} ${config.method.toUpperCase()} ${config.url} ` +
-            `– Retrying (${config.csb.retryCount} of 2)...`,
-          req: config,
-        });
+      if (retryCount < 3) {
+        retryCount += 1;
+
+        const logMessage = `Formio Error: ${status} ${method} ${url} - Retrying (${retryCount} of 3)...`;
+        log({ level: "warn", message: logMessage, req: config });
 
         return new Promise((resolve) =>
           setTimeout(() => resolve(instance.request(config)), 1000)
         );
       }
 
-      log({
-        level: "error",
-        message:
-          `Formio Error: ${status} ` +
-          `${config.method.toUpperCase()} ${config.url}. ` +
-          `Response: ${JSON.stringify(error.response.data)}`,
-        req: config,
-      });
+      const logMessage =
+        `Formio Error: ${status} ${method} ${url}. ` +
+        `Response: ${JSON.stringify(error.response.data)}`;
+      log({ level: "error", message: logMessage, req: config });
 
       return Promise.reject(error);
     }
@@ -74,8 +76,8 @@ function axiosFormio(req) {
 }
 
 const formioCsbMetadata = {
-  "csb-app-cloud-space": `env-${process.env.CLOUD_SPACE || "local"}`,
-  "csb-app-cloud-origin": process.env.SERVER_URL || "localhost",
+  "csb-app-cloud-space": `env-${CLOUD_SPACE || "local"}`,
+  "csb-app-cloud-origin": SERVER_URL || "localhost",
 };
 
 module.exports = {
