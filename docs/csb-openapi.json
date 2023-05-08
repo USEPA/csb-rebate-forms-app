@@ -852,6 +852,83 @@
         "tags": [],
         "parameters": [{ "$ref": "#/components/parameters/scan" }]
       }
+    },
+    "/api/formio-close-out-submission/{rebateId}": {
+      "get": {
+        "summary": "/api/formio-close-out-submission/{rebateId}",
+        "parameters": [
+          {
+            "name": "rebateId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          { "$ref": "#/components/parameters/scan" }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "userAccess": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "formSchema": {
+                      "type": "object",
+                      "properties": {
+                        "url": {
+                          "type": "string",
+                          "example": "https://formmio/project/form/id"
+                        },
+                        "json": {
+                          "type": "object"
+                        }
+                      }
+                    },
+                    "submission": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": []
+      },
+      "post": {
+        "summary": "/api/formio-close-out-submission/{rebateId}",
+        "parameters": [
+          {
+            "name": "rebateId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          { "$ref": "#/components/parameters/scan" }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": []
+      }
     }
   },
   "tags": [],
