@@ -53,6 +53,7 @@ router.get("/formio-submission/:formType/:id", (req, res) => {
         });
       })
       .catch((error) => {
+        // NOTE: logged in axiosFormio response interceptor
         const errorStatus = error.response?.status || 500;
         const errorMessage = `Error getting Formio Application form submission '${mongoId}'.`;
         return res.status(errorStatus).json({ message: errorMessage });
@@ -101,6 +102,7 @@ router.get("/formio-submission/:formType/:id", (req, res) => {
           });
       })
       .catch((error) => {
+        // NOTE: logged in axiosFormio response interceptor
         const errorStatus = error.response?.status || 500;
         const errorMessage = `Error getting Formio Payment Request form submission '${rebateId}'.`;
         return res.status(errorStatus).json({ message: errorMessage });
@@ -157,6 +159,7 @@ router.post("/formio-submission/:formType/:id", (req, res) => {
           });
       })
       .catch((error) => {
+        // NOTE: logged in axiosFormio response interceptor
         const errorStatus = error.response?.status || 500;
         const errorMessage = `Error updating Formio Application form submission '${mongoId}'.`;
         return res.status(errorStatus).json({ message: errorMessage });
@@ -210,6 +213,7 @@ router.post("/formio-submission/:formType/:id", (req, res) => {
           });
       })
       .catch((error) => {
+        // NOTE: logged in axiosFormio response interceptor
         const errorStatus = error.response?.status || 500;
         const errorMessage = `Error getting Formio Payment Request form submission '${rebateId}'.`;
         return res.status(errorStatus).json({ message: errorMessage });

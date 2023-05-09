@@ -23,7 +23,8 @@ router.get("/bap-sam-data", (req, res) => {
 
       return res.json({ status: true });
     })
-    .catch(() => {
+    .catch((error) => {
+      // NOTE: logged in bap verifyBapConnection
       return res.json({ status: false });
     });
 });
@@ -39,7 +40,8 @@ router.get("/formio-application-schema", (req, res) => {
        */
       return res.json({ status: schema.type === "form" && !!schema.title });
     })
-    .catch(() => {
+    .catch((error) => {
+      // NOTE: logged in axiosFormio response interceptor
       return res.json({ status: false });
     });
 });
@@ -55,7 +57,8 @@ router.get("/formio-payment-request-schema", (req, res) => {
        */
       return res.json({ status: schema.type === "form" && !!schema.title });
     })
-    .catch(() => {
+    .catch((error) => {
+      // NOTE: logged in axiosFormio response interceptor
       return res.json({ status: false });
     });
 });
@@ -71,7 +74,8 @@ router.get("/formio-close-out-schema", (req, res) => {
        */
       return res.json({ status: schema.type === "form" && !!schema.title });
     })
-    .catch(() => {
+    .catch((error) => {
+      // NOTE: logged in axiosFormio response interceptor
       return res.json({ status: false });
     });
 });
