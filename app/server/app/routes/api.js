@@ -205,6 +205,7 @@ router.get("/bap-sam-data", (req, res) => {
       });
     })
     .catch((error) => {
+      // NOTE: logged in bap verifyBapConnection
       const errorStatus = 500;
       const errorMessage = `Error getting SAM.gov data from the BAP.`;
       return res.status(errorStatus).json({ message: errorMessage });
@@ -218,6 +219,7 @@ router.get("/bap-form-submissions", storeBapComboKeys, (req, res) => {
   return getBapFormSubmissionsStatuses(req, bapComboKeys)
     .then((submissions) => res.json(submissions))
     .catch((error) => {
+      // NOTE: logged in bap verifyBapConnection
       const errorStatus = 500;
       const errorMessage = `Error getting form submissions statuses from the BAP.`;
       return res.status(errorStatus).json({ message: errorMessage });
@@ -247,6 +249,7 @@ router.get(
       .then((axiosRes) => axiosRes.data)
       .then((fileMetadata) => res.json(fileMetadata))
       .catch((error) => {
+        // NOTE: logged in axiosFormio response interceptor
         const errorStatus = error.response?.status || 500;
         const errorMessage = `Error downloading file from S3.`;
         return res.status(errorStatus).json({ message: errorMessage });
@@ -279,6 +282,7 @@ router.post(
           .then((axiosRes) => axiosRes.data)
           .then((fileMetadata) => res.json(fileMetadata))
           .catch((error) => {
+            // NOTE: logged in axiosFormio response interceptor
             const errorStatus = error.response?.status || 500;
             const errorMessage = `Error uploading file to S3.`;
             return res.status(errorStatus).json({ message: errorMessage });
@@ -293,6 +297,9 @@ router.post(
             : formType === "close-out"
             ? "CSB Close Out"
             : "CSB";
+
+        const logMessage = `User with email '${mail}' attempted to upload a file when the ${formName} form enrollment period was closed.`;
+        log({ level: "error", message: logMessage, req });
 
         const errorStatus = 400;
         const errorMessage = `${formName} form enrollment period is closed.`;
@@ -328,6 +335,7 @@ router.get("/formio-application-submissions", storeBapComboKeys, (req, res) => {
     .then((axiosRes) => axiosRes.data)
     .then((submissions) => res.json(submissions))
     .catch((error) => {
+      // NOTE: logged in axiosFormio response interceptor
       const errorStatus = error.response?.status || 500;
       const errorMessage = `Error getting Formio Application form submissions.`;
       return res.status(errorStatus).json({ message: errorMessage });
@@ -363,6 +371,7 @@ router.post("/formio-application-submission", storeBapComboKeys, (req, res) => {
     .then((axiosRes) => axiosRes.data)
     .then((submission) => res.json(submission))
     .catch((error) => {
+      // NOTE: logged in axiosFormio response interceptor
       const errorStatus = error.response?.status || 500;
       const errorMessage = `Error posting Formio Application form submission.`;
       return res.status(errorStatus).json({ message: errorMessage });
@@ -405,6 +414,7 @@ router.get(
         });
       })
       .catch((error) => {
+        // NOTE: logged in axiosFormio response interceptor
         const errorStatus = error.response?.status || 500;
         const errorMessage = `Error getting Formio Application form submission '${mongoId}'.`;
         return res.status(errorStatus).json({ message: errorMessage });
@@ -447,12 +457,16 @@ router.post(
           .then((axiosRes) => axiosRes.data)
           .then((submission) => res.json(submission))
           .catch((error) => {
+            // NOTE: logged in axiosFormio response interceptor
             const errorStatus = error.response?.status || 500;
             const errorMessage = `Error updating Formio Application form submission '${mongoId}'.`;
             return res.status(errorStatus).json({ message: errorMessage });
           });
       })
       .catch((error) => {
+        const logMessage = `User with email '${mail}' attempted to update Application form submission '${mongoId}' when the CSB Application form enrollment period was closed.`;
+        log({ level: "error", message: logMessage, req });
+
         const errorStatus = 400;
         const errorMessage = `CSB Application form enrollment period is closed.`;
         return res.status(errorStatus).json({ message: errorMessage });
@@ -480,6 +494,7 @@ router.get(
       .then((axiosRes) => axiosRes.data)
       .then((submissions) => res.json(submissions))
       .catch((error) => {
+        // NOTE: logged in axiosFormio response interceptor
         const errorStatus = error.response?.status || 500;
         const errorMessage = `Error getting Formio Payment Request form submissions.`;
         return res.status(errorStatus).json({ message: errorMessage });
@@ -601,12 +616,14 @@ router.post(
           .then((axiosRes) => axiosRes.data)
           .then((submission) => res.json(submission))
           .catch((error) => {
+            // NOTE: logged in axiosFormio response interceptor
             const errorStatus = error.response?.status || 500;
             const errorMessage = `Error posting Formio Payment Request form submission.`;
             return res.status(errorStatus).json({ message: errorMessage });
           });
       })
       .catch((error) => {
+        // NOTE: logged in bap verifyBapConnection
         const errorStatus = 500;
         const errorMessage = `Error getting data for a new Payment Request form submission from the BAP.`;
         return res.status(errorStatus).json({ message: errorMessage });
@@ -676,6 +693,7 @@ router.get(
           });
       })
       .catch((error) => {
+        // NOTE: logged in axiosFormio response interceptor
         const errorStatus = error.response?.status || 500;
         const errorMessage = `Error getting Formio Payment Request form submission '${rebateId}'.`;
         return res.status(errorStatus).json({ message: errorMessage });
@@ -727,12 +745,16 @@ router.post(
           .then((axiosRes) => axiosRes.data)
           .then((submission) => res.json(submission))
           .catch((error) => {
+            // NOTE: logged in axiosFormio response interceptor
             const errorStatus = error.response?.status || 500;
             const errorMessage = `Error updating Formio Payment Request form submission '${rebateId}'.`;
             return res.status(errorStatus).json({ message: errorMessage });
           });
       })
       .catch((error) => {
+        const logMessage = `User with email '${mail}' attempted to update Payment Request form submission '${rebateId}' when the CSB Payment Request form enrollment period was closed.`;
+        log({ level: "error", message: logMessage, req });
+
         const errorStatus = 400;
         const errorMessage = `CSB Payment Request form enrollment period is closed.`;
         return res.status(errorStatus).json({ message: errorMessage });
@@ -793,12 +815,14 @@ router.post(
             res.json(response);
           })
           .catch((error) => {
+            // NOTE: logged in axiosFormio response interceptor
             const errorStatus = error.response?.status || 500;
             const errorMessage = `Error deleting Formio Payment Request form submission '${rebateId}'.`;
             return res.status(errorStatus).json({ message: errorMessage });
           });
       })
       .catch((error) => {
+        // NOTE: logged in bap verifyBapConnection
         const errorStatus = 500;
         const errorMessage = `Error getting form submissions statuses from the BAP.`;
         return res.status(errorStatus).json({ message: errorMessage });
@@ -823,6 +847,7 @@ router.get("/formio-close-out-submissions", storeBapComboKeys, (req, res) => {
     .then((axiosRes) => axiosRes.data)
     .then((submissions) => res.json(submissions))
     .catch((error) => {
+      // NOTE: logged in axiosFormio response interceptor
       const errorStatus = error.response?.status || 500;
       const errorMessage = `Error getting Formio Close Out form submissions.`;
       return res.status(errorStatus).json({ message: errorMessage });
@@ -1004,6 +1029,7 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
           .then((axiosRes) => axiosRes.data)
           .then((submission) => res.json(submission))
           .catch((error) => {
+            // NOTE: logged in axiosFormio response interceptor
             const errorStatus = error.response?.status || 500;
             const errorMessage = `Error posting Formio Close Out form submission.`;
             return res.status(errorStatus).json({ message: errorMessage });
@@ -1011,6 +1037,7 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
       }
     )
     .catch((error) => {
+      // NOTE: logged in bap verifyBapConnection
       const errorStatus = 500;
       const errorMessage = `Error getting data for a new Close Out form submission from the BAP.`;
       return res.status(errorStatus).json({ message: errorMessage });
@@ -1079,6 +1106,7 @@ router.get(
           });
       })
       .catch((error) => {
+        // NOTE: logged in axiosFormio response interceptor
         const errorStatus = error.response?.status || 500;
         const errorMessage = `Error getting Formio Close Out form submission '${rebateId}'.`;
         return res.status(errorStatus).json({ message: errorMessage });
@@ -1127,12 +1155,16 @@ router.post(
           .then((axiosRes) => axiosRes.data)
           .then((submission) => res.json(submission))
           .catch((error) => {
+            // NOTE: logged in axiosFormio response interceptor
             const errorStatus = error.response?.status || 500;
             const errorMessage = `Error updating Formio Close Out form submission '${rebateId}'.`;
             return res.status(errorStatus).json({ message: errorMessage });
           });
       })
       .catch((error) => {
+        const logMessage = `User with email '${mail}' attempted to update Close Out form submission '${rebateId}' when the CSB Close Out form enrollment period was closed.`;
+        log({ level: "error", message: logMessage, req });
+
         const errorStatus = 400;
         const errorMessage = `CSB Close Out form enrollment period is closed.`;
         return res.status(errorStatus).json({ message: errorMessage });
