@@ -650,12 +650,12 @@ function CloseOutSubmission(props: { rebate: Rebate }) {
   const closeOutNeedsClarification =
     closeOut.bap?.status === "Needs Clarification";
 
-  const closeOutNotApproved = closeOut.bap?.status === "Coordinator Denied"; // TODO: confirm BAP status
+  const closeOutNotApproved = closeOut.bap?.status === "Branch Director Denied";
 
   const closeOutReimbursementNeeded =
-    closeOut.bap?.status === "Reimbursement Needed"; // TODO: confirm BAP status
+    closeOut.bap?.status === "Reimbursement Needed";
 
-  const closeOutApproved = closeOut.bap?.status === "Accepted"; // TODO: confirm BAP status
+  const closeOutApproved = closeOut.bap?.status === "Branch Director Approved";
 
   const statusTableCellClassNames =
     closeOut.formio.state === "submitted" || !closeOutFormOpen
