@@ -51,7 +51,7 @@ function ButtonLink(props: { type: "edit" | "view"; to: LinkProps["to"] }) {
 
 function ApplicationSubmission(props: { rebate: Rebate }) {
   const { rebate } = props;
-  const { application, paymentRequest } = rebate;
+  const { application, paymentRequest, closeOut } = rebate;
 
   const csbData = useCsbData();
 
@@ -88,6 +88,12 @@ function ApplicationSubmission(props: { rebate: Rebate }) {
 
   const applicationSelectedButNoPaymentRequest =
     applicationSelected && !Boolean(paymentRequest.formio);
+
+  const paymentRequestFundingApproved =
+    paymentRequest.bap?.status === "Accepted";
+
+  const paymentRequestFundingApprovedButNoCloseOut =
+    paymentRequestFundingApproved && !Boolean(closeOut.formio);
 
   const statusTableCellClassNames =
     application.formio.state === "submitted" || !applicationFormOpen
@@ -145,7 +151,9 @@ function ApplicationSubmission(props: { rebate: Rebate }) {
   return (
     <tr
       className={
-        applicationNeedsEdits || applicationSelectedButNoPaymentRequest
+        applicationNeedsEdits ||
+        applicationSelectedButNoPaymentRequest ||
+        paymentRequestFundingApprovedButNoCloseOut
           ? highlightedTableRowClassNames
           : defaultTableRowClassNames
       }
@@ -294,7 +302,7 @@ save the form for the EFT indicator to be displayed. */
 
 function PaymentRequestSubmission(props: { rebate: Rebate }) {
   const { rebate } = props;
-  const { application, paymentRequest } = rebate;
+  const { application, paymentRequest, closeOut } = rebate;
 
   const navigate = useNavigate();
   const { email } = useOutletContext<{ email: string }>();
@@ -427,6 +435,9 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
   const paymentRequestFundingApproved =
     paymentRequest.bap?.status === "Accepted";
 
+  const paymentRequestFundingApprovedButNoCloseOut =
+    paymentRequestFundingApproved && !Boolean(closeOut.formio);
+
   const statusTableCellClassNames =
     paymentRequest.formio.state === "submitted" || !paymentRequestFormOpen
       ? "text-italic"
@@ -463,7 +474,7 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
   return (
     <tr
       className={
-        paymentRequestNeedsEdits
+        paymentRequestNeedsEdits || paymentRequestFundingApprovedButNoCloseOut
           ? highlightedTableRowClassNames
           : defaultTableRowClassNames
       }
@@ -550,10 +561,11 @@ function CloseOutSubmission(props: { rebate: Rebate }) {
 
   const closeOutFormOpen = csbData.submissionPeriodOpen.closeOut;
 
-  const paymentRequestSelected = paymentRequest.bap?.status === "Accepted";
+  const paymentRequestFundingApproved =
+    paymentRequest.bap?.status === "Accepted";
 
-  const paymentRequestSelectedButNoCloseOut =
-    paymentRequestSelected && !Boolean(closeOut.formio);
+  const paymentRequestFundingApprovedButNoCloseOut =
+    paymentRequestFundingApproved && !Boolean(closeOut.formio);
 
   /** matched SAM.gov entity for the Payment Request submission */
   const entity = bapSamData.entities.find((entity) => {
@@ -564,7 +576,7 @@ function CloseOutSubmission(props: { rebate: Rebate }) {
     );
   });
 
-  if (paymentRequestSelectedButNoCloseOut) {
+  if (paymentRequestFundingApprovedButNoCloseOut) {
     return (
       <tr className={highlightedTableRowClassNames}>
         <th scope="row" colSpan={6}>
@@ -699,7 +711,7 @@ function CloseOutSubmission(props: { rebate: Rebate }) {
   return (
     <tr
       className={
-        closeOutNeedsEdits
+        closeOutNeedsEdits || paymentRequestFundingApprovedButNoCloseOut
           ? highlightedTableRowClassNames
           : defaultTableRowClassNames
       }
