@@ -110,7 +110,52 @@ router.get("/formio-submission/:formType/:id", (req, res) => {
   }
 
   if (formType === "close-out") {
-    // TODO
+    const rebateId = id;
+
+    const matchedCloseOutFormSubmissions =
+      `${formioCloseOutFormUrl}/submission` +
+      `?data.hidden_bap_rebate_id=${rebateId}` +
+      `&select=_id`;
+
+    Promise.all([
+      axiosFormio(req).get(matchedCloseOutFormSubmissions),
+      axiosFormio(req).get(formioCloseOutFormUrl),
+    ])
+      .then((axiosResponses) => axiosResponses.map((axiosRes) => axiosRes.data))
+      .then(([submissions, schema]) => {
+        const mongoId = submissions[0]._id;
+
+        /** NOTE: verifyMongoObjectId */
+        if (mongoId && !ObjectId.isValid(mongoId)) {
+          const errorStatus = 400;
+          const errorMessage = `MongoDB ObjectId validation error for: '${mongoId}'.`;
+          return res.status(errorStatus).json({ message: errorMessage });
+        }
+
+        /**
+         * NOTE: We can't just use the returned submission data here because
+         * Formio returns the string literal 'YES' instead of a base64 encoded
+         * image string for signature fields when you query for all submissions
+         * matching on a field's value (`/submission?data.hidden_bap_rebate_id=${rebateId}`).
+         * We need to query for a specific submission (e.g. `/submission/${mongoId}`),
+         * to have Formio return the correct signature field data.
+         */
+        axiosFormio(req)
+          .get(`${formioCloseOutFormUrl}/submission/${mongoId}`)
+          .then((axiosRes) => axiosRes.data)
+          .then((submission) => {
+            return res.json({
+              formSchema: { url: formioCloseOutFormUrl, json: schema },
+              submission,
+            });
+          });
+      })
+      .catch((error) => {
+        // NOTE: logged in axiosFormio response interceptor
+        const errorStatus = error.response?.status || 500;
+        const errorMessage = `Error getting Formio Close Out form submission '${rebateId}'.`;
+        return res.status(errorStatus).json({ message: errorMessage });
+      });
   }
 });
 
