@@ -348,9 +348,9 @@ async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
     .sort({ CreatedDate: -1 })
     .execute(async (err, records) => ((await err) ? err : records));
 
-  const parentRebateIds = parentRebateIdsQuery.map((item) => {
-    return item.Parent_Rebate_ID__c;
-  });
+  const parentRebateIds = Array.isArray(parentRebateIdsQuery)
+    ? parentRebateIdsQuery.map((item) => item.Parent_Rebate_ID__c)
+    : [];
 
   if (parentRebateIds.length === 0) return [];
 
