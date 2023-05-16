@@ -272,7 +272,51 @@ router.post("/formio-submission/:formType/:id", (req, res) => {
       return res.status(errorStatus).json({ message: errorMessage });
     }
 
-    // TODO
+    const rebateId = id;
+
+    const matchedCloseOutFormSubmissions =
+      `${formioCloseOutFormUrl}/submission` +
+      `?data.hidden_bap_rebate_id=${rebateId}`;
+
+    Promise.all([
+      axiosFormio(req).get(matchedCloseOutFormSubmissions),
+      axiosFormio(req).get(formioCloseOutFormUrl),
+    ])
+      .then((axiosResponses) => axiosResponses.map((axiosRes) => axiosRes.data))
+      .then(([submissions, schema]) => {
+        const submission = submissions[0];
+        const mongoId = submission._id;
+
+        /** NOTE: verifyMongoObjectId */
+        if (mongoId && !ObjectId.isValid(mongoId)) {
+          const errorStatus = 400;
+          const errorMessage = `MongoDB ObjectId validation error for: '${mongoId}'.`;
+          return res.status(errorStatus).json({ message: errorMessage });
+        }
+
+        axiosFormio(req)
+          .put(`${formioCloseOutFormUrl}/submission/${mongoId}`, {
+            state: "draft",
+            data: { ...submission.data, hidden_current_user_email: mail },
+            metadata: { ...submission.metadata, ...formioCsbMetadata },
+          })
+          .then((axiosRes) => axiosRes.data)
+          .then((updatedSubmission) => {
+            const logMessage = `User with email '${mail}' updated Close Out form submission '${rebateId}' from submitted to draft.`;
+            log({ level: "info", message: logMessage, req });
+
+            return res.json({
+              formSchema: { url: formioCloseOutFormUrl, json: schema },
+              submission: updatedSubmission,
+            });
+          });
+      })
+      .catch((error) => {
+        // NOTE: logged in axiosFormio response interceptor
+        const errorStatus = error.response?.status || 500;
+        const errorMessage = `Error getting Formio Close Out form submission '${rebateId}'.`;
+        return res.status(errorStatus).json({ message: errorMessage });
+      });
   }
 });
 

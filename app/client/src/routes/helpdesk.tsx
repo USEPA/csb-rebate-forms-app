@@ -319,6 +319,11 @@ export function Helpdesk() {
                     }
                   </td>
 
+                  {/*
+                    TODO: investigate removing the changing of a submission's
+                    formio status now that the BAP team's workflow is in place
+                  */}
+
                   <td>
                     <button
                       className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
