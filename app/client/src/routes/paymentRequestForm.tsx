@@ -185,8 +185,7 @@ function UserPaymentRequestForm(props: { email: string }) {
   }
 
   if (query.isError || !userAccess || !formSchema || !submission) {
-    const text = `The requested submission does not exist, or you do not have access. Please contact support if you believe this is a mistake.`;
-    return <Message type="error" text={text} />;
+    return <Message type="error" text={messages.formSubmissionError} />;
   }
 
   const rebate = rebates.find((r) => r.rebateId === rebateId);
@@ -214,14 +213,17 @@ function UserPaymentRequestForm(props: { email: string }) {
 
   /** matched SAM.gov entity for the Payment Request submission */
   const entity = bapSamData.entities.find((entity) => {
-    return (
-      entity.ENTITY_STATUS__c === "Active" &&
-      entity.ENTITY_COMBO_KEY__c === submission.data.bap_hidden_entity_combo_key
-    );
+    const { ENTITY_COMBO_KEY__c } = entity;
+    return ENTITY_COMBO_KEY__c === submission.data.bap_hidden_entity_combo_key;
   });
 
-  // TODO: do we need to account for when ENTITY_STATUS__c does not equal "Active" (e.g. its expired)?
-  if (!entity) return null;
+  if (!entity) {
+    return <Message type="error" text={messages.formSubmissionError} />;
+  }
+
+  if (entity.ENTITY_STATUS__c !== "Active") {
+    return <Message type="error" text={messages.bapSamNotActive} />;
+  }
 
   const {
     UNIQUE_ENTITY_ID__c,

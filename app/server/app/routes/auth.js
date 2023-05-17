@@ -69,6 +69,9 @@ router.get("/login/fail", (req, res) => {
 });
 
 router.get("/logout", ensureAuthenticated, (req, res) => {
+  const { mail, memberof } = req.user;
+  const userGroups = memberof || "no";
+
   samlStrategy.logout(req, function (err, requestUrl) {
     if (err) {
       const logMessage = `SAML Error - Passport logout failed - ${err}`;
@@ -76,6 +79,9 @@ router.get("/logout", ensureAuthenticated, (req, res) => {
 
       res.redirect(`${baseUrl}/`);
     } else {
+      const logMessage = `User with email '${mail}' and member of ${userGroups} groups logged out.`;
+      log({ level: "info", message: logMessage, req });
+
       /** Send request to SAML logout url. */
       res.redirect(requestUrl);
     }

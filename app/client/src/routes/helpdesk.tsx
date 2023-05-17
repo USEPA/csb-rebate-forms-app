@@ -144,7 +144,6 @@ export function Helpdesk() {
                 setFormType(ev.target.value as FormType);
                 queryClient.resetQueries({ queryKey: ["helpdesk"] });
               }}
-              disabled={true} // NOTE: disabled until the Close Out form is created
             />
             <label
               className="usa-radio__label mobile-lg:margin-top-0"
@@ -276,6 +275,8 @@ export function Helpdesk() {
                     <td>{submission._id}</td>
                   ) : formType === "payment-request" ? (
                     <td>{submission.data.hidden_bap_rebate_id as string}</td>
+                  ) : formType === "close-out" ? (
+                    <td>{submission.data.hidden_bap_rebate_id as string}</td>
                   ) : (
                     <td>&nbsp;</td>
                   )}
@@ -286,6 +287,8 @@ export function Helpdesk() {
                     </td>
                   ) : formType === "payment-request" ? (
                     <td>{submission.data.applicantName as string}</td>
+                  ) : formType === "close-out" ? (
+                    <td>{submission.data.signatureName as string}</td>
                   ) : (
                     <td>&nbsp;</td>
                   )}
@@ -293,6 +296,10 @@ export function Helpdesk() {
                   {formType === "application" ? (
                     <td>{submission.data.last_updated_by as string}</td>
                   ) : formType === "payment-request" ? (
+                    <td>
+                      {submission.data.hidden_current_user_email as string}
+                    </td>
+                  ) : formType === "close-out" ? (
                     <td>
                       {submission.data.hidden_current_user_email as string}
                     </td>
@@ -311,6 +318,11 @@ export function Helpdesk() {
                         : "" // fallback, not used
                     }
                   </td>
+
+                  {/*
+                    TODO: investigate removing the changing of a submission's
+                    formio status now that the BAP team's workflow is in place
+                  */}
 
                   <td>
                     <button
