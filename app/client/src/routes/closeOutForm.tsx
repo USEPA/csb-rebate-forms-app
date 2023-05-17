@@ -275,20 +275,6 @@ function UserCloseOutForm(props: { email: string }) {
           options={{
             readOnly: formIsReadOnly,
             noAlerts: true,
-            hooks: {
-              beforeSubmit: (submission: any, next: any) => {
-                /** Alter the submission as needed. */
-                // submission.data.email = "changed@test.com";
-
-                /** Only call next when we're ready to submit. */
-                next();
-              },
-            },
-          }}
-          formReady={(instance: any) => {
-            instance.on("pagesChanged", () => {
-              //
-            });
           }}
           onSubmit={(onSubmitSubmission: {
             data: { [field: string]: unknown };
