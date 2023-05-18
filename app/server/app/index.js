@@ -61,12 +61,7 @@ requiredEnvironmentVariables.forEach((variable) => {
 const app = express();
 const port = PORT || 3001;
 
-app.use(
-  helmet({
-    crossOriginEmbedderPolicy: false,
-    contentSecurityPolicy: false,
-  })
-);
+app.use(helmet({ contentSecurityPolicy: false }));
 app.use(helmet.hsts({ maxAge: 31536000 }));
 
 /** Instruct web browsers to disable caching. */

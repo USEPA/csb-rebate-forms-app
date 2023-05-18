@@ -10,11 +10,11 @@
     "Devin Galloway <devin.galloway@erg.com>"
   ],
   "devDependencies": {
-    "concurrently": "7.6.0",
+    "concurrently": "8.0.1",
     "husky": "8.0.3",
-    "lint-staged": "13.2.0",
-    "prettier": "2.8.6",
-    "prettier-plugin-tailwindcss": "0.2.5"
+    "lint-staged": "13.2.2",
+    "prettier": "2.8.8",
+    "prettier-plugin-tailwindcss": "0.3.0"
   },
   "scripts": {
     "client": "cd client && npm start",
