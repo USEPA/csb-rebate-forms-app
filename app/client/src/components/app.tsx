@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { render } from "react-dom";
 import {
-  BrowserRouter,
+  createBrowserRouter,
+  createRoutesFromElements,
   Navigate,
-  Routes,
   Route,
+  RouterProvider,
   useLocation,
 } from "react-router-dom";
 import { useIdleTimer } from "react-idle-timer";
@@ -227,20 +228,20 @@ export function App() {
   useSiteAlertBanner();
   useDisclaimerBanner();
 
-  return (
-    <BrowserRouter basename={serverBasePath}>
-      <Routes>
-        <Route path="/welcome" element={<Welcome />} />
-        <Route path="/" element={<ProtectedRoute />}>
-          <Route index element={<AllRebates />} />
-          <Route path="helpdesk" element={<Helpdesk />} />
-          <Route path="rebate/new" element={<NewApplicationForm />} />
-          <Route path="rebate/:id" element={<ApplicationForm />} />
-          <Route path="payment-request/:id" element={<PaymentRequestForm />} />
-          <Route path="close-out/:id" element={<CloseOutForm />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
-  );
+  const routes = createRoutesFromElements([
+    <Route path="/welcome" element={<Welcome />} />,
+    <Route path="/" element={<ProtectedRoute />}>
+      <Route index element={<AllRebates />} />
+      <Route path="helpdesk" element={<Helpdesk />} />
+      <Route path="rebate/new" element={<NewApplicationForm />} />
+      <Route path="rebate/:id" element={<ApplicationForm />} />
+      <Route path="payment-request/:id" element={<PaymentRequestForm />} />
+      <Route path="close-out/:id" element={<CloseOutForm />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Route>,
+  ]);
+
+  const router = createBrowserRouter(routes, { basename: serverBasePath });
+
+  return <RouterProvider router={router} />;
 }
