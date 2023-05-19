@@ -109,7 +109,7 @@ function ApplicationSubmission(props: { rebate: Rebate }) {
     : applicationHasBeenWithdrawn
     ? `${icons}#close` // ✕
     : applicationNotSelected
-    ? `${icons}#check` // TODO: eventually use 'cancel' icon if we show 'Not Selected'
+    ? `${icons}#cancel` // x inside a circle
     : applicationSelected
     ? `${icons}#check_circle` // check inside a circle
     : application.formio.state === "draft"
@@ -123,7 +123,7 @@ function ApplicationSubmission(props: { rebate: Rebate }) {
     : applicationHasBeenWithdrawn
     ? "Withdrawn"
     : applicationNotSelected
-    ? "Submitted" // TODO: eventually show 'Not Selected'
+    ? "Not Selected"
     : applicationSelected
     ? "Selected"
     : application.formio.state === "draft"
