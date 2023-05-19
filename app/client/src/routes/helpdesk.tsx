@@ -6,13 +6,12 @@ import icon from "uswds/img/usa-icons-bg/search--white.svg";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages } from "../config";
-import { getData, postData, useContentData, useCsbData } from "../utilities";
+import { getData, postData, useContentData } from "../utilities";
 import { useHelpdeskAccess } from "components/app";
 import { Loading } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/tooltip";
-import { useDialogActions } from "contexts/dialog";
 
 type FormType = "application" | "payment-request" | "close-out";
 
@@ -40,8 +39,6 @@ export function Helpdesk() {
   const queryClient = useQueryClient();
 
   const content = useContentData();
-  const csbData = useCsbData();
-  const { displayDialog } = useDialogActions();
   const helpdeskAccess = useHelpdeskAccess();
 
   const [formType, setFormType] = useState<FormType>("application");
@@ -67,17 +64,13 @@ export function Helpdesk() {
 
   const { formSchema, submission } = query.data ?? {};
 
-  if (!csbData || helpdeskAccess === "pending") {
+  if (helpdeskAccess === "pending") {
     return <Loading />;
   }
 
   if (helpdeskAccess === "failure") {
     navigate("/", { replace: true });
   }
-
-  const applicationFormOpen = csbData.submissionPeriodOpen.application;
-  const paymentRequestFormOpen = csbData.submissionPeriodOpen.paymentRequest;
-  const closeOutFormOpen = csbData.submissionPeriodOpen.closeOut;
 
   return (
     <>
@@ -243,10 +236,6 @@ export function Helpdesk() {
                       tooltip="Submitted or Draft"
                     />
                   </th>
-
-                  <th scope="col">
-                    <span className="usa-sr-only">Update</span>
-                  </th>
                 </tr>
               </thead>
 
@@ -317,56 +306,6 @@ export function Helpdesk() {
                         ? "Submitted"
                         : "" // fallback, not used
                     }
-                  </td>
-
-                  {/*
-                    TODO: investigate removing the changing of a submission's
-                    formio status now that the BAP team's workflow is in place
-                  */}
-
-                  <td>
-                    <button
-                      className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-                      disabled={
-                        // prettier-ignore
-                        submission.state === "draft" ||
-                          (formType === "application" && !applicationFormOpen) ||
-                          (formType === "payment-request" && !paymentRequestFormOpen) ||
-                          (formType === "close-out" && !closeOutFormOpen)
-                      }
-                      onClick={(_ev) => {
-                        displayDialog({
-                          dismissable: true,
-                          heading:
-                            "Are you sure you want to change this submission's state back to draft?",
-                          description: (
-                            <p>
-                              Once the submission is back in a draft state, all
-                              users with access to this submission will be able
-                              to further edit it.
-                            </p>
-                          ),
-                          confirmText: "Yes",
-                          dismissText: "Cancel",
-                          confirmedAction: () => {
-                            setFormDisplayed(false);
-                            mutation.mutate();
-                          },
-                        });
-                      }}
-                    >
-                      <span className="display-flex flex-align-center">
-                        <svg
-                          className="usa-icon"
-                          aria-hidden="true"
-                          focusable="false"
-                          role="img"
-                        >
-                          <use href={`${icons}#update`} />
-                        </svg>
-                        <span className="margin-left-1">Update</span>
-                      </span>
-                    </button>
                   </td>
                 </tr>
               </tbody>
