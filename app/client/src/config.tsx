@@ -57,6 +57,8 @@ export const messages = {
     "No SAM.gov records match your email. Only Government and Electronic Business SAM.gov Points of Contacts (and alternates) may edit and submit Clean School Bus Rebate Forms.",
   bapSamEntityNotActive:
     "Your SAM.gov account is currently not active. Activate your SAM.gov account to access this submission.",
+  bapSamAtLeastOneEntityNotActive:
+    "At least one of your SAM.gov accounts is currently not active. Any submissions associated with that SAM.gov account will be inaccessible until the account is re-activated.",
   formSubmissionError:
     "The requested submission does not exist, or you do not have access. Please contact support if you believe this is a mistake.",
   formSubmissionsError: "Error loading form submissions.",

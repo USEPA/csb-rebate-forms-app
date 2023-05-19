@@ -768,8 +768,11 @@ function CloseOutSubmission(props: { rebate: Rebate }) {
 
 export function AllRebates() {
   const content = useContentData();
+  const bapSamData = useBapSamData();
   const submissionsQueries = useSubmissionsQueries();
   const rebates = useRebates();
+
+  if (!bapSamData) return null;
 
   if (submissionsQueries.some((query) => query.isFetching)) {
     return <Loading />;
@@ -781,6 +784,13 @@ export function AllRebates() {
 
   return (
     <>
+      {bapSamData.entities.some((e) => e.ENTITY_STATUS__c !== "Active") && (
+        <Message
+          type="warning"
+          text={messages.bapSamAtLeastOneEntityNotActive}
+        />
+      )}
+
       {rebates.length === 0 ? (
         <div className="margin-top-4">
           <Message type="info" text={messages.newApplication} />
