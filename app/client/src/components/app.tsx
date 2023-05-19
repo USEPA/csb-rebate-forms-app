@@ -18,7 +18,12 @@ import "@formio/choices.js/public/assets/styles/choices.min.css";
 import "@formio/premium/dist/premium.css";
 import "formiojs/dist/formio.full.min.css";
 // ---
-import { serverBasePath, serverUrlForHrefs, cloudSpace } from "../config";
+import {
+  serverBasePath,
+  serverUrlForHrefs,
+  cloudSpace,
+  messages,
+} from "../config";
 import {
   useContentQuery,
   useContentData,
@@ -26,6 +31,7 @@ import {
   useUserData,
 } from "../utilities";
 import { Loading } from "components/loading";
+import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { Welcome } from "routes/welcome";
 import { UserDashboard } from "components/userDashboard";
@@ -228,18 +234,20 @@ export function App() {
   useSiteAlertBanner();
   useDisclaimerBanner();
 
-  const routes = createRoutesFromElements([
-    <Route path="/welcome" element={<Welcome />} />,
-    <Route path="/" element={<ProtectedRoute />}>
-      <Route index element={<AllRebates />} />
-      <Route path="helpdesk" element={<Helpdesk />} />
-      <Route path="rebate/new" element={<NewApplicationForm />} />
-      <Route path="rebate/:id" element={<ApplicationForm />} />
-      <Route path="payment-request/:id" element={<PaymentRequestForm />} />
-      <Route path="close-out/:id" element={<CloseOutForm />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Route>,
-  ]);
+  const routes = createRoutesFromElements(
+    <Route errorElement={<Message type="error" text={messages.genericError} />}>
+      <Route path="/welcome" element={<Welcome />} />
+      <Route path="/" element={<ProtectedRoute />}>
+        <Route index element={<AllRebates />} />
+        <Route path="helpdesk" element={<Helpdesk />} />
+        <Route path="rebate/new" element={<NewApplicationForm />} />
+        <Route path="rebate/:id" element={<ApplicationForm />} />
+        <Route path="payment-request/:id" element={<PaymentRequestForm />} />
+        <Route path="close-out/:id" element={<CloseOutForm />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Route>
+    </Route>
+  );
 
   const router = createBrowserRouter(routes, { basename: serverBasePath });
 
