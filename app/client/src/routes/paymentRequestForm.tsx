@@ -222,7 +222,7 @@ function UserPaymentRequestForm(props: { email: string }) {
   }
 
   if (entity.ENTITY_STATUS__c !== "Active") {
-    return <Message type="error" text={messages.bapSamNotActive} />;
+    return <Message type="error" text={messages.bapSamEntityNotActive} />;
   }
 
   const {
