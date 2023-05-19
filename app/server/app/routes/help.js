@@ -6,20 +6,8 @@ const {
   formioApplicationFormUrl,
   formioPaymentRequestFormUrl,
   formioCloseOutFormUrl,
-  formioCsbMetadata,
 } = require("../config/formio");
 const { ensureAuthenticated, ensureHelpdesk } = require("../middleware");
-const log = require("../utilities/logger");
-
-const {
-  CSB_APPLICATION_FORM_OPEN,
-  CSB_PAYMENT_REQUEST_FORM_OPEN,
-  CSB_CLOSE_OUT_FORM_OPEN,
-} = process.env;
-
-const applicationFormOpen = CSB_APPLICATION_FORM_OPEN === "true";
-const paymentRequestFormOpen = CSB_PAYMENT_REQUEST_FORM_OPEN === "true";
-const closeOutFormOpen = CSB_CLOSE_OUT_FORM_OPEN === "true";
 
 const router = express.Router();
 
