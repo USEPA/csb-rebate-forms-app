@@ -309,6 +309,112 @@ async function queryForSamEntities(req, email) {
 }
 
 /**
+ * Uses cached JSforce connection to query the BAP for a single form submission's
+ * statuses and related metadata.
+ *
+ * @param {express.Request} req
+ * @param {'application' | 'payment-request' | 'close-out'} formType
+ * @param {string | null} rebateId
+ * @param {string | null} mongoId
+ * @returns {Promise<BapFormSubmission | null>} fields associated a form submission
+ */
+async function queryForBapFormSubmissionData(req, formType, rebateId, mongoId) {
+  const formName =
+    formType === "application"
+      ? "CSB Application"
+      : formType === "payment-request"
+      ? "CSB Payment Request"
+      : formType === "close-out"
+      ? "CSB Close Out"
+      : "CSB";
+
+  const logId = rebateId ? `rebateId: '${rebateId}'` : `mongoId: '${mongoId}'`;
+  const logMessage = `Querying the BAP for ${formName} form submission data associated with ${logId}.`;
+  log({ level: "info", message: logMessage });
+
+  /** @type {jsforce.Connection} */
+  const { bapConnection } = req.app.locals;
+
+  const developername =
+    formType === "application"
+      ? "CSB_Funding_Request"
+      : formType === "payment-request"
+      ? "CSB_Payment_Request"
+      : formType === "close-out"
+      ? "CSB_Closeout_Request"
+      : null; // fallback
+
+  if (!developername) return null;
+
+  // `SELECT
+  //   Id
+  // FROM
+  //   recordtype
+  // WHERE
+  //   developername = '${developername}' AND
+  //   sobjecttype = '${BAP_FORMS_TABLE}'
+  // LIMIT 1`
+
+  const formRecordTypeIdQuery = await bapConnection
+    .sobject("recordtype")
+    .find(
+      {
+        developername,
+        sobjecttype: BAP_FORMS_TABLE,
+      },
+      {
+        // "*": 1,
+        Id: 1, // Salesforce record ID
+      }
+    )
+    .limit(1)
+    .execute(async (err, records) => ((await err) ? err : records));
+
+  const formRecordTypeId = formRecordTypeIdQuery["0"].Id;
+
+  // `SELECT
+  //   UEI_EFTI_Combo_Key__c,
+  //   CSB_Form_ID__c,
+  //   CSB_Modified_Full_String__c,
+  //   CSB_Review_Item_ID__c,
+  //   Parent_Rebate_ID__c,
+  //   Record_Type_Name__c,
+  //   Parent_CSB_Rebate__r.CSB_Funding_Request_Status__c
+  // FROM
+  //   ${BAP_FORMS_TABLE}
+  // WHERE
+  //   recordtypeid = '${formRecordTypeId}' AND
+  //   CSB_Form_ID__c = '${mongoId}'
+  //   Latest_Version__c = TRUE`
+
+  const formRecordQuery = await bapConnection
+    .sobject(BAP_FORMS_TABLE)
+    .find(
+      {
+        recordtypeid: formRecordTypeId,
+        ...(mongoId && { CSB_Form_ID__c: mongoId }),
+        ...(rebateId && { Parent_Rebate_ID__c: rebateId }),
+        Latest_Version__c: true,
+      },
+      {
+        // "*": 1,
+        UEI_EFTI_Combo_Key__c: 1,
+        CSB_Form_ID__c: 1, // MongoDB ObjectId string
+        CSB_Modified_Full_String__c: 1, // ISO 8601 date string
+        CSB_Review_Item_ID__c: 1, // CSB Rebate ID with form/version ID (9 digits)
+        Parent_Rebate_ID__c: 1, // CSB Rebate ID (6 digits)
+        Record_Type_Name__c: 1, // 'CSB Funding Request' | 'CSB Payment Request' | 'CSB Closeout Request'
+        "Parent_CSB_Rebate__r.CSB_Funding_Request_Status__c": 1,
+        "Parent_CSB_Rebate__r.CSB_Payment_Request_Status__c": 1,
+        "Parent_CSB_Rebate__r.CSB_Closeout_Request_Status__c": 1,
+      }
+    )
+    .execute(async (err, records) => ((await err) ? err : records));
+
+  return formRecordQuery[0];
+}
+
+/**
  * Uses cached JSforce connection to query the BAP for form submissions statuses
  * and related metadata.
  *
@@ -916,10 +1022,27 @@ function getBapComboKeys(req, email) {
 }
 
 /**
+ * Fetches data associated with a provided form submission.
+ *
+ * @param {express.Request} req
+ * @param {'application' | 'payment-request' | 'close-out'} formType
+ * @param {string | null} rebateId
+ * @param {string | null} mongoId
+ * @returns {ReturnType<queryForBapFormSubmissionData>}
+ */
+function getBapFormSubmissionData(req, formType, rebateId, mongoId) {
+  return verifyBapConnection(req, {
+    name: queryForBapFormSubmissionData,
+    args: [req, formType, rebateId, mongoId],
+  });
+}
+
+/**
  * Fetches form submissions statuses associated with a provided set of combo keys.
  *
  * @param {express.Request} req
  * @param {string[]} comboKeys
+ * @returns {ReturnType<queryForBapFormSubmissionsStatuses>}
  */
 function getBapFormSubmissionsStatuses(req, comboKeys) {
   return verifyBapConnection(req, {
@@ -967,6 +1090,7 @@ function getBapDataForCloseOut(
 module.exports = {
   getSamEntities,
   getBapComboKeys,
+  getBapFormSubmissionData,
   getBapFormSubmissionsStatuses,
   getBapDataForPaymentRequest,
   getBapDataForCloseOut,
