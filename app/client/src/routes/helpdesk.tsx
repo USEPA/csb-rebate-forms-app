@@ -6,7 +6,12 @@ import icon from "uswds/img/usa-icons-bg/search--white.svg";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages } from "../config";
-import { getData, postData, useContentData } from "../utilities";
+import {
+  getData,
+  postData,
+  useContentData,
+  BapFormSubmission,
+} from "../utilities";
 import { useHelpdeskAccess } from "components/app";
 import { Loading } from "components/loading";
 import { Message } from "components/message";
@@ -27,12 +32,22 @@ type FormioSubmission = {
 type ServerResponse =
   | {
       formSchema: null;
-      submission: null;
+      formio: null;
+      bap: BapFormSubmission;
     }
   | {
       formSchema: { url: string; json: object };
-      submission: FormioSubmission;
+      formio: FormioSubmission;
+      bap: BapFormSubmission;
     };
+
+function formatDate(field: string) {
+  return new Date(field).toLocaleDateString();
+}
+
+function formatTime(field: string) {
+  return new Date(field).toLocaleTimeString();
+}
 
 export function Helpdesk() {
   const navigate = useNavigate();
@@ -42,14 +57,15 @@ export function Helpdesk() {
   const helpdeskAccess = useHelpdeskAccess();
 
   const [formType, setFormType] = useState<FormType>("application");
-  const [searchId, setSearchId] = useState("");
+  const [searchText, setSearchText] = useState("");
+  const [lastSearchedText, setLastSearchedText] = useState("");
   const [formDisplayed, setFormDisplayed] = useState(false);
 
   useEffect(() => {
     queryClient.resetQueries({ queryKey: ["helpdesk"] });
   }, [queryClient]);
 
-  const url = `${serverUrl}/help/formio-submission/${formType}/${searchId}`;
+  const url = `${serverUrl}/help/formio-submission/${formType}/${searchText}`;
 
   const query = useQuery({
     queryKey: ["helpdesk"],
@@ -62,7 +78,7 @@ export function Helpdesk() {
     onSuccess: (data) => queryClient.setQueryData(["helpdesk"], data),
   });
 
-  const { formSchema, submission } = query.data ?? {};
+  const { formSchema, formio, bap } = query.data ?? {};
 
   if (helpdeskAccess === "pending") {
     return <Loading />;
@@ -153,6 +169,7 @@ export function Helpdesk() {
           onSubmit={(ev) => {
             ev.preventDefault();
             setFormDisplayed(false);
+            setLastSearchedText(searchText);
             query.refetch();
           }}
         >
@@ -164,8 +181,8 @@ export function Helpdesk() {
             className="usa-input"
             type="search"
             name="search-submissions"
-            value={searchId}
-            onChange={(ev) => setSearchId(ev.target.value)}
+            value={searchText}
+            onChange={(ev) => setSearchText(ev.target.value)}
           />
           <button className="usa-button" type="submit">
             <span className="usa-search__submit-text">Search</span>
@@ -178,7 +195,7 @@ export function Helpdesk() {
         <Loading />
       ) : query.isError || mutation.isError ? (
         <Message type="error" text={messages.helpdeskSubmissionSearchError} />
-      ) : query.isSuccess && !!formSchema && !!submission ? (
+      ) : query.isSuccess && !!formSchema && !!formio && !!bap ? (
         <>
           <div className="usa-table-container--scrollable" tabIndex={0}>
             <table
@@ -191,14 +208,7 @@ export function Helpdesk() {
                     <span className="usa-sr-only">Open</span>
                   </th>
 
-                  {formType === "application" ? (
-                    <th scope="col">
-                      <TextWithTooltip
-                        text="Application ID"
-                        tooltip="Formio submission's MongoDB Object ID"
-                      />
-                    </th>
-                  ) : formType === "payment-request" ? (
+                  {lastSearchedText.length === 6 ? (
                     <th scope="col">
                       <TextWithTooltip
                         text="Rebate ID"
@@ -206,7 +216,12 @@ export function Helpdesk() {
                       />
                     </th>
                   ) : (
-                    <th scope="col">&nbsp;</th>
+                    <th scope="col">
+                      <TextWithTooltip
+                        text="MongoDB Object ID"
+                        tooltip="Formio submission's MongoDB Object ID"
+                      />
+                    </th>
                   )}
 
                   <th scope="col">
@@ -225,15 +240,15 @@ export function Helpdesk() {
 
                   <th scope="col">
                     <TextWithTooltip
-                      text="Date Updated"
-                      tooltip="Last date this form was updated"
+                      text="BAP Date Updated"
+                      tooltip="Last date this form was updated, as returned from the BAP"
                     />
                   </th>
 
                   <th scope="col">
                     <TextWithTooltip
-                      text="Status (Formio)"
-                      tooltip="Submitted or Draft"
+                      text="BAP Internal Status"
+                      tooltip="Internal status returned from the BAP"
                     />
                   </th>
                 </tr>
@@ -260,53 +275,58 @@ export function Helpdesk() {
                     </button>
                   </th>
 
+                  {lastSearchedText.length === 6 ? (
+                    <td>{bap.Parent_Rebate_ID__c}</td>
+                  ) : (
+                    <td>{bap.CSB_Form_ID__c}</td>
+                  )}
+
                   {formType === "application" ? (
-                    <td>{submission._id}</td>
+                    <td>{formio.data.sam_hidden_applicant_name as string}</td>
                   ) : formType === "payment-request" ? (
-                    <td>{submission.data.hidden_bap_rebate_id as string}</td>
+                    <td>{formio.data.applicantName as string}</td>
                   ) : formType === "close-out" ? (
-                    <td>{submission.data.hidden_bap_rebate_id as string}</td>
+                    <td>{formio.data.signatureName as string}</td>
                   ) : (
                     <td>&nbsp;</td>
                   )}
 
                   {formType === "application" ? (
-                    <td>
-                      {submission.data.sam_hidden_applicant_name as string}
-                    </td>
+                    <td>{formio.data.last_updated_by as string}</td>
                   ) : formType === "payment-request" ? (
-                    <td>{submission.data.applicantName as string}</td>
+                    <td>{formio.data.hidden_current_user_email as string}</td>
                   ) : formType === "close-out" ? (
-                    <td>{submission.data.signatureName as string}</td>
+                    <td>{formio.data.hidden_current_user_email as string}</td>
                   ) : (
                     <td>&nbsp;</td>
                   )}
-
-                  {formType === "application" ? (
-                    <td>{submission.data.last_updated_by as string}</td>
-                  ) : formType === "payment-request" ? (
-                    <td>
-                      {submission.data.hidden_current_user_email as string}
-                    </td>
-                  ) : formType === "close-out" ? (
-                    <td>
-                      {submission.data.hidden_current_user_email as string}
-                    </td>
-                  ) : (
-                    <td>&nbsp;</td>
-                  )}
-
-                  <td>{new Date(submission.modified).toLocaleDateString()}</td>
 
                   <td>
-                    {
-                      submission.state === "draft"
-                        ? "Draft"
-                        : submission.state === "submitted"
-                        ? "Submitted"
-                        : "" // fallback, not used
-                    }
+                    <span
+                      title={
+                        `${formatDate(bap.CSB_Modified_Full_String__c)} ` +
+                        `${formatTime(bap.CSB_Modified_Full_String__c)}`
+                      }
+                    >
+                      {formatDate(bap.CSB_Modified_Full_String__c)}
+                    </span>
                   </td>
+
+                  {formType === "application" ? (
+                    <td>
+                      {bap.Parent_CSB_Rebate__r.CSB_Funding_Request_Status__c}
+                    </td>
+                  ) : formType === "payment-request" ? (
+                    <td>
+                      {bap.Parent_CSB_Rebate__r.CSB_Payment_Request_Status__c}
+                    </td>
+                  ) : formType === "close-out" ? (
+                    <td>
+                      {bap.Parent_CSB_Rebate__r.CSB_Closeout_Request_Status__c}
+                    </td>
+                  ) : (
+                    <td>&nbsp;</td>
+                  )}
                 </tr>
               </tbody>
             </table>
@@ -322,18 +342,18 @@ export function Helpdesk() {
                     </svg>
                   </div>
                   <div className="usa-icon-list__content">
-                    {formType === "application" ? (
-                      <>
-                        <strong>Application ID:</strong> {submission._id}
-                      </>
-                    ) : formType === "payment-request" ? (
-                      <>
-                        <strong>Rebate ID:</strong>{" "}
-                        {submission.data.hidden_bap_rebate_id}
-                      </>
-                    ) : (
-                      <>&nbsp;</>
-                    )}
+                    <strong>MongoDB Object ID:</strong> {bap.CSB_Form_ID__c}
+                  </div>
+                </li>
+
+                <li className="usa-icon-list__item">
+                  <div className="usa-icon-list__icon text-primary">
+                    <svg className="usa-icon" aria-hidden="true" role="img">
+                      <use href={`${icons}#local_offer`} />
+                    </svg>
+                  </div>
+                  <div className="usa-icon-list__content">
+                    <strong>Rebate ID:</strong> {bap.Parent_Rebate_ID__c}
                   </div>
                 </li>
               </ul>
@@ -341,7 +361,7 @@ export function Helpdesk() {
               <Form
                 form={formSchema.json}
                 url={formSchema.url} // NOTE: used for file uploads
-                submission={{ data: submission.data }}
+                submission={{ data: formio.data }}
                 options={{ readOnly: true }}
               />
             </>

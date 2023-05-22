@@ -68,7 +68,7 @@ export type BapSamData =
   | { results: false; entities: [] }
   | { results: true; entities: BapSamEntity[] };
 
-type BapFormSubmission = {
+export type BapFormSubmission = {
   UEI_EFTI_Combo_Key__c: string; // UEI + EFTI combo key
   CSB_Form_ID__c: string; // MongoDB ObjectId string
   CSB_Modified_Full_String__c: string; // ISO 8601 date string

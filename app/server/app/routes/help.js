@@ -64,10 +64,11 @@ router.get("/formio-submission/:formType/:id", (req, res) => {
         axiosFormio(req).get(formUrl),
       ])
         .then((responses) => responses.map((axiosRes) => axiosRes.data))
-        .then(([submission, schema]) => {
+        .then(([formioSubmission, schema]) => {
           return res.json({
             formSchema: { url: formUrl, json: schema },
-            submission,
+            formio: formioSubmission,
+            bap: bapSubmission,
           });
         })
         .catch((error) => {
