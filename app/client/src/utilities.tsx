@@ -496,11 +496,13 @@ function useCombinedRebates() {
 
 /**
  * Custom hook that sorts rebates by:
- * - most recient formio modified date, regardless of form
+ * - Most recient Formio modified date, regardless of form type
  *   (Application, Payment Request, or Close Out)
- * - Application submissions needing edits
- * - selected Applications submissions without a corresponding Payment Request
- *   submission
+ * - Submissions needing edits, regardless of form type
+ * - Selected Application form submissions without a corresponding Payment
+ *   Request form submission
+ * - Funding Approved Payment Request form submissions without a corresponding
+ *   Close Out form submission
  **/
 function useSortedRebates(rebates: { [rebateId: string]: Rebate }) {
   return Object.entries(rebates)
@@ -535,14 +537,27 @@ function useSortedRebates(rebates: { [rebateId: string]: Rebate }) {
         bap: r1.paymentRequest.bap,
       });
 
+      const r1CloseOutNeedsEdits = submissionNeedsEdits({
+        formio: r1.closeOut.formio,
+        bap: r1.closeOut.bap,
+      });
+
       const r1ApplicationSelected = r1.application.bap?.status === "Accepted";
 
       const r1ApplicationSelectedButNoPaymentRequest =
         r1ApplicationSelected && !Boolean(r1.paymentRequest.formio);
 
+      const r1PaymentRequestFundingApproved =
+        r1.paymentRequest.bap?.status === "Accepted";
+
+      const r1PaymentRequestFundingApprovedButNoCloseOut =
+        r1PaymentRequestFundingApproved && !Boolean(r1.closeOut.formio);
+
       return r1ApplicationNeedsEdits ||
         r1PaymentRequestNeedsEdits ||
-        r1ApplicationSelectedButNoPaymentRequest
+        r1CloseOutNeedsEdits ||
+        r1ApplicationSelectedButNoPaymentRequest ||
+        r1PaymentRequestFundingApprovedButNoCloseOut
         ? -1
         : 0;
     });
