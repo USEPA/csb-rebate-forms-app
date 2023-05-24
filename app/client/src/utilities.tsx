@@ -481,7 +481,7 @@ function useCombinedRebates() {
     const comboKey = bapMatch?.UEI_EFTI_Combo_Key__c || null;
     const rebateId = bapMatch?.Parent_Rebate_ID__c || null;
     const reviewItemId = bapMatch?.CSB_Review_Item_ID__c || null;
-    const status = bapMatch?.Parent_CSB_Rebate__r?.CSB_Payment_Request_Status__c || null; // prettier-ignore
+    const status = bapMatch?.Parent_CSB_Rebate__r?.CSB_Closeout_Request_Status__c || null; // prettier-ignore
 
     if (rebates[formioBapRebateId]) {
       rebates[formioBapRebateId].closeOut = {
