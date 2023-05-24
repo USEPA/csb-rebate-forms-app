@@ -261,6 +261,13 @@ export function Helpdesk() {
 
                   <th scope="col">
                     <TextWithTooltip
+                      text="Form Status"
+                      tooltip="Draft, Edits Requested, Submitted, Withdrawn, Selected, or Not Selected" // TODO: update to reflect other statuses
+                    />
+                  </th>
+
+                  <th scope="col">
+                    <TextWithTooltip
                       text="Applicant Name"
                       tooltip="Name of Applicant"
                     />
@@ -275,15 +282,8 @@ export function Helpdesk() {
 
                   <th scope="col">
                     <TextWithTooltip
-                      text="BAP Date Updated"
-                      tooltip="Last date this form was updated, as returned from the BAP"
-                    />
-                  </th>
-
-                  <th scope="col">
-                    <TextWithTooltip
-                      text="BAP Internal Status"
-                      tooltip="Internal status returned from the BAP"
+                      text="Date Updated"
+                      tooltip="Last date this form was updated"
                     />
                   </th>
                 </tr>
@@ -316,6 +316,8 @@ export function Helpdesk() {
                     <td>{bap.mongoId}</td>
                   )}
 
+                  <td>{getStatus({ formType, formio, bap })}</td>
+
                   {formType === "application" ? (
                     <td>{formio.data.sam_hidden_applicant_name as string}</td>
                   ) : formType === "payment-request" ? (
@@ -339,15 +341,13 @@ export function Helpdesk() {
                   <td>
                     <span
                       title={
-                        `${formatDate(bap.modified)} ` +
-                        `${formatTime(bap.modified)}`
+                        `${formatDate(formio.modified)} ` +
+                        `${formatTime(formio.modified)}`
                       }
                     >
-                      {formatDate(bap.modified)}
+                      {formatDate(formio.modified)}
                     </span>
                   </td>
-
-                  <td>{getStatus({ formType, formio, bap })}</td>
                 </tr>
               </tbody>
             </table>
