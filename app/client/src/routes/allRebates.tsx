@@ -189,6 +189,7 @@ function ApplicationSubmission(props: { rebate: Rebate }) {
             <TextWithTooltip
               text="Needs Clarification"
               tooltip="Check your email for instructions on what needs clarification"
+              iconClassNames="text-base-darkest"
             />
           ) : (
             <>
@@ -508,6 +509,7 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
             <TextWithTooltip
               text="Needs Clarification"
               tooltip="Check your email for instructions on what needs clarification"
+              iconClassNames="text-base-darkest"
             />
           ) : (
             <>
@@ -661,10 +663,10 @@ function CloseOutSubmission(props: { rebate: Rebate }) {
   const closeOutNeedsClarification =
     closeOut.bap?.status === "Needs Clarification";
 
-  const closeOutNotApproved = closeOut.bap?.status === "Branch Director Denied";
-
   const closeOutReimbursementNeeded =
     closeOut.bap?.status === "Reimbursement Needed";
+
+  const closeOutNotApproved = closeOut.bap?.status === "Branch Director Denied";
 
   const closeOutApproved = closeOut.bap?.status === "Branch Director Approved";
 
@@ -681,8 +683,6 @@ function CloseOutSubmission(props: { rebate: Rebate }) {
     ? `${icons}#priority_high` // !
     : closeOutNotApproved
     ? `${icons}#cancel` // ✕ inside a circle
-    : closeOutReimbursementNeeded
-    ? `${icons}#priority_high` // !
     : closeOutApproved
     ? `${icons}#check_circle` // check inside a circle
     : closeOut.formio.state === "draft"
@@ -695,8 +695,6 @@ function CloseOutSubmission(props: { rebate: Rebate }) {
     ? "Edits Requested"
     : closeOutNotApproved
     ? "Close Out Not Approved"
-    : closeOutReimbursementNeeded
-    ? "Reimbursement Needed"
     : closeOutApproved
     ? "Close Out Approved"
     : closeOut.formio.state === "draft"
@@ -735,6 +733,13 @@ function CloseOutSubmission(props: { rebate: Rebate }) {
             <TextWithTooltip
               text="Needs Clarification"
               tooltip="Check your email for instructions on what needs clarification"
+              iconClassNames="text-base-darkest"
+            />
+          ) : closeOutReimbursementNeeded ? (
+            <TextWithTooltip
+              text="Reimbursement Needed"
+              tooltip="Check your email for information on reimbursement needed"
+              iconClassNames="text-base-darkest"
             />
           ) : (
             <>
