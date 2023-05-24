@@ -77,3 +77,38 @@ export const messages = {
   paymentRequestFormWillBeDeleted:
     "A request to edit the Application form associated with this draft or submitted Payment Request form has been made, so this form has been set to read-only mode. Visit your dashboard to make edits to the associated Application form submission.",
 };
+
+/**
+ * Formio status mapping for all form submissions (practically, just capitalizes
+ * "draft" or "submitted", but follows same format as BAP status maps).
+ */
+export const formioStatusMap = new Map<string, string>()
+  .set("draft", "Draft")
+  .set("submitted", "Submitted");
+
+/**
+ * BAP internal to external status mapping for Application form submissions.
+ */
+export const bapApplicationStatusMap = new Map<string, string>()
+  .set("Needs Clarification", "Needs Clarification")
+  .set("Withdrawn", "Withdrawn")
+  .set("Coordinator Denied", "Not Selected")
+  .set("Accepted", "Selected");
+
+/**
+ * BAP internal to external status mapping for Payment Request form submissions.
+ */
+export const bapPaymentRequestStatusMap = new Map<string, string>()
+  .set("Needs Clarification", "Needs Clarification")
+  .set("Withdrawn", "Withdrawn")
+  .set("Coordinator Denied", "Funding Not Approved")
+  .set("Accepted", "Funding Approved");
+
+/**
+ * BAP internal to external status mapping for Close Out form submissions.
+ */
+export const bapCloseOutStatusMap = new Map<string, string>()
+  .set("Needs Clarification", "Needs Clarification")
+  .set("Reimbursement Needed", "Reimbursement Needed")
+  .set("Branch Director Denied", "Close Out Not Approved")
+  .set("Branch Director Approved", "Close Out Approved");

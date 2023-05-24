@@ -5,12 +5,23 @@ import { Form } from "@formio/react";
 import icon from "uswds/img/usa-icons-bg/search--white.svg";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl, messages } from "../config";
 import {
+  serverUrl,
+  messages,
+  formioStatusMap,
+  bapApplicationStatusMap,
+  bapPaymentRequestStatusMap,
+  bapCloseOutStatusMap,
+} from "../config";
+import {
+  FormioApplicationSubmission,
+  FormioPaymentRequestSubmission,
+  FormioCloseOutSubmission,
+  BapSubmission,
   getData,
   postData,
   useContentData,
-  BapFormSubmission,
+  submissionNeedsEdits,
 } from "../utilities";
 import { useHelpdeskAccess } from "components/app";
 import { Loading } from "components/loading";
@@ -20,33 +31,57 @@ import { TextWithTooltip } from "components/tooltip";
 
 type FormType = "application" | "payment-request" | "close-out";
 
-type FormioSubmission = {
-  [field: string]: unknown;
-  _id: string; // MongoDB ObjectId string
-  modified: string; // ISO 8601 date string
-  metadata: { [field: string]: unknown };
-  data: { [field: string]: unknown };
-  state: "submitted" | "draft";
-};
-
 type ServerResponse =
   | {
       formSchema: null;
       formio: null;
-      bap: BapFormSubmission;
+      bap: BapSubmission;
     }
   | {
       formSchema: { url: string; json: object };
-      formio: FormioSubmission;
-      bap: BapFormSubmission;
+      formio:
+        | FormioApplicationSubmission
+        | FormioPaymentRequestSubmission
+        | FormioCloseOutSubmission;
+      bap: BapSubmission;
     };
 
-function formatDate(field: string) {
-  return new Date(field).toLocaleDateString();
+function formatDate(field: string | null) {
+  return field ? new Date(field).toLocaleDateString() : "";
 }
 
-function formatTime(field: string) {
-  return new Date(field).toLocaleTimeString();
+function formatTime(field: string | null) {
+  return field ? new Date(field).toLocaleTimeString() : "";
+}
+
+/**
+ * Returns a submission's status by checking the BAP internal status first,
+ * then falling back to the Formio status if the BAP internal status is not
+ * explicitly accounted for.
+ */
+function getStatus(options: {
+  formType: FormType;
+  formio:
+    | FormioApplicationSubmission
+    | FormioPaymentRequestSubmission
+    | FormioCloseOutSubmission;
+  bap: BapSubmission;
+}) {
+  const { formType, formio, bap } = options;
+  const bapInternalStatus = bap.status;
+  const formioStatus = formioStatusMap.get(formio.state);
+
+  if (!bapInternalStatus) return "";
+
+  return submissionNeedsEdits({ formio, bap })
+    ? "Edits Requested"
+    : formType === "application"
+    ? bapApplicationStatusMap.get(bapInternalStatus) || formioStatus
+    : formType === "payment-request"
+    ? bapPaymentRequestStatusMap.get(bapInternalStatus) || formioStatus
+    : formType === "close-out"
+    ? bapCloseOutStatusMap.get(bapInternalStatus) || formioStatus
+    : "";
 }
 
 export function Helpdesk() {
@@ -276,9 +311,9 @@ export function Helpdesk() {
                   </th>
 
                   {lastSearchedText.length === 6 ? (
-                    <td>{bap.Parent_Rebate_ID__c}</td>
+                    <td>{bap.rebateId}</td>
                   ) : (
-                    <td>{bap.CSB_Form_ID__c}</td>
+                    <td>{bap.mongoId}</td>
                   )}
 
                   {formType === "application" ? (
@@ -304,29 +339,15 @@ export function Helpdesk() {
                   <td>
                     <span
                       title={
-                        `${formatDate(bap.CSB_Modified_Full_String__c)} ` +
-                        `${formatTime(bap.CSB_Modified_Full_String__c)}`
+                        `${formatDate(bap.modified)} ` +
+                        `${formatTime(bap.modified)}`
                       }
                     >
-                      {formatDate(bap.CSB_Modified_Full_String__c)}
+                      {formatDate(bap.modified)}
                     </span>
                   </td>
 
-                  {formType === "application" ? (
-                    <td>
-                      {bap.Parent_CSB_Rebate__r.CSB_Funding_Request_Status__c}
-                    </td>
-                  ) : formType === "payment-request" ? (
-                    <td>
-                      {bap.Parent_CSB_Rebate__r.CSB_Payment_Request_Status__c}
-                    </td>
-                  ) : formType === "close-out" ? (
-                    <td>
-                      {bap.Parent_CSB_Rebate__r.CSB_Closeout_Request_Status__c}
-                    </td>
-                  ) : (
-                    <td>&nbsp;</td>
-                  )}
+                  <td>{getStatus({ formType, formio, bap })}</td>
                 </tr>
               </tbody>
             </table>
@@ -342,7 +363,7 @@ export function Helpdesk() {
                     </svg>
                   </div>
                   <div className="usa-icon-list__content">
-                    <strong>MongoDB Object ID:</strong> {bap.CSB_Form_ID__c}
+                    <strong>MongoDB Object ID:</strong> {bap.mongoId}
                   </div>
                 </li>
 
@@ -353,7 +374,7 @@ export function Helpdesk() {
                     </svg>
                   </div>
                   <div className="usa-icon-list__content">
-                    <strong>Rebate ID:</strong> {bap.Parent_Rebate_ID__c}
+                    <strong>Rebate ID:</strong> {bap.rebateId}
                   </div>
                 </li>
               </ul>

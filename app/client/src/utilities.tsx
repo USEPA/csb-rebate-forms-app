@@ -68,7 +68,7 @@ export type BapSamData =
   | { results: false; entities: [] }
   | { results: true; entities: BapSamEntity[] };
 
-export type BapFormSubmission = {
+type BapFormSubmission = {
   UEI_EFTI_Combo_Key__c: string; // UEI + EFTI combo key
   CSB_Form_ID__c: string; // MongoDB ObjectId string
   CSB_Modified_Full_String__c: string; // ISO 8601 date string
@@ -120,7 +120,7 @@ export type FormioApplicationSubmission = {
   };
 };
 
-type FormioPaymentRequestSubmission = {
+export type FormioPaymentRequestSubmission = {
   [field: string]: unknown;
   _id: string; // MongoDB ObjectId string
   state: "submitted" | "draft";
@@ -137,7 +137,7 @@ type FormioPaymentRequestSubmission = {
   };
 };
 
-type FormioCloseOutSubmission = {
+export type FormioCloseOutSubmission = {
   [field: string]: unknown;
   _id: string; // MongoDB ObjectId string
   state: "submitted" | "draft";
