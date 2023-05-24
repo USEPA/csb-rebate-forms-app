@@ -9,6 +9,7 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages } from "../config";
 import {
+  FormioCloseOutSubmission,
   getData,
   postData,
   useContentData,
@@ -24,15 +25,6 @@ import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { useNotificationsActions } from "contexts/notifications";
 
-type FormioSubmission = {
-  [field: string]: unknown;
-  _id: string; // MongoDB ObjectId string
-  modified: string; // ISO 8601 date string
-  metadata: { [field: string]: unknown };
-  data: { [field: string]: unknown };
-  state: "submitted" | "draft";
-};
-
 type ServerResponse =
   | {
       userAccess: false;
@@ -42,7 +34,7 @@ type ServerResponse =
   | {
       userAccess: true;
       formSchema: { url: string; json: object };
-      submission: FormioSubmission;
+      submission: FormioCloseOutSubmission;
     };
 
 /** Custom hook to fetch Formio submission data */
@@ -91,7 +83,7 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
         state: "submitted" | "draft";
       };
     }) => {
-      return postData<FormioSubmission>(url, updatedSubmission);
+      return postData<FormioCloseOutSubmission>(url, updatedSubmission);
     },
     onSuccess: (res) => {
       return queryClient.setQueryData<ServerResponse>(

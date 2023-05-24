@@ -92,6 +92,9 @@ export type FormioApplicationSubmission = {
   _id: string; // MongoDB ObjectId string
   state: "submitted" | "draft";
   modified: string; // ISO 8601 date string
+  metadata: {
+    [field: string]: unknown;
+  };
   data: {
     [field: string]: unknown;
     // fields injected upon new draft Application submission creation:
@@ -125,6 +128,9 @@ export type FormioPaymentRequestSubmission = {
   _id: string; // MongoDB ObjectId string
   state: "submitted" | "draft";
   modified: string; // ISO 8601 date string
+  metadata: {
+    [field: string]: unknown;
+  };
   data: {
     [field: string]: unknown;
     // fields injected upon new draft Payment Request submission creation:
@@ -142,6 +148,9 @@ export type FormioCloseOutSubmission = {
   _id: string; // MongoDB ObjectId string
   state: "submitted" | "draft";
   modified: string; // ISO 8601 date string
+  metadata: {
+    [field: string]: unknown;
+  };
   data: {
     [field: string]: unknown;
     // fields injected upon new draft Payment Request submission creation:
