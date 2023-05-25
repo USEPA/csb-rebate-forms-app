@@ -400,7 +400,7 @@ async function queryForBapFormSubmissionData(req, formType, rebateId, mongoId) {
         // "*": 1,
         UEI_EFTI_Combo_Key__c: 1,
         CSB_Form_ID__c: 1, // MongoDB ObjectId string
-        CSB_Modified_Full_String__c: 1, // ISO 8601 date string
+        CSB_Modified_Full_String__c: 1, // ISO 8601 date time string
         CSB_Review_Item_ID__c: 1, // CSB Rebate ID with form/version ID (9 digits)
         Parent_Rebate_ID__c: 1, // CSB Rebate ID (6 digits)
         Record_Type_Name__c: 1, // 'CSB Funding Request' | 'CSB Payment Request' | 'CSB Closeout Request'
@@ -491,7 +491,7 @@ async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
         // "*": 1,
         UEI_EFTI_Combo_Key__c: 1,
         CSB_Form_ID__c: 1, // MongoDB ObjectId string
-        CSB_Modified_Full_String__c: 1, // ISO 8601 date string
+        CSB_Modified_Full_String__c: 1, // ISO 8601 date time string
         CSB_Review_Item_ID__c: 1, // CSB Rebate ID with form/version ID (9 digits)
         Parent_Rebate_ID__c: 1, // CSB Rebate ID (6 digits)
         Record_Type_Name__c: 1, // 'CSB Funding Request' | 'CSB Payment Request' | 'CSB Closeout Request'

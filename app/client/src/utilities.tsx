@@ -71,7 +71,7 @@ export type BapSamData =
 type BapFormSubmission = {
   UEI_EFTI_Combo_Key__c: string; // UEI + EFTI combo key
   CSB_Form_ID__c: string; // MongoDB ObjectId string
-  CSB_Modified_Full_String__c: string; // ISO 8601 date string
+  CSB_Modified_Full_String__c: string; // ISO 8601 date time string
   CSB_Review_Item_ID__c: string; // CSB Rebate ID with form/version ID (9 digits)
   Parent_Rebate_ID__c: string; // CSB Rebate ID (6 digits)
   Record_Type_Name__c:
@@ -91,7 +91,7 @@ export type FormioApplicationSubmission = {
   [field: string]: unknown;
   _id: string; // MongoDB ObjectId string
   state: "submitted" | "draft";
-  modified: string; // ISO 8601 date string
+  modified: string; // ISO 8601 date time string
   metadata: {
     [field: string]: unknown;
   };
@@ -127,7 +127,7 @@ export type FormioPaymentRequestSubmission = {
   [field: string]: unknown;
   _id: string; // MongoDB ObjectId string
   state: "submitted" | "draft";
-  modified: string; // ISO 8601 date string
+  modified: string; // ISO 8601 date time string
   metadata: {
     [field: string]: unknown;
   };
@@ -135,7 +135,7 @@ export type FormioPaymentRequestSubmission = {
     [field: string]: unknown;
     // fields injected upon new draft Payment Request submission creation:
     bap_hidden_entity_combo_key: string;
-    hidden_application_form_modified: string; // ISO 8601 date string
+    hidden_application_form_modified: string; // ISO 8601 date time string
     hidden_current_user_email: string;
     hidden_current_user_title: string;
     hidden_current_user_name: string;
@@ -147,7 +147,7 @@ export type FormioCloseOutSubmission = {
   [field: string]: unknown;
   _id: string; // MongoDB ObjectId string
   state: "submitted" | "draft";
-  modified: string; // ISO 8601 date string
+  modified: string; // ISO 8601 date time string
   metadata: {
     [field: string]: unknown;
   };
@@ -155,7 +155,7 @@ export type FormioCloseOutSubmission = {
     [field: string]: unknown;
     // fields injected upon new draft Payment Request submission creation:
     bap_hidden_entity_combo_key: string;
-    hidden_prf_modified: string; // ISO 8601 date string
+    hidden_prf_modified: string; // ISO 8601 date time string
     hidden_current_user_email: string;
     hidden_current_user_title: string;
     hidden_current_user_name: string;
@@ -164,7 +164,7 @@ export type FormioCloseOutSubmission = {
 };
 
 export type BapSubmission = {
-  modified: string | null; // ISO 8601 date string
+  modified: string | null; // ISO 8601 date time string
   comboKey: string | null; // UEI + EFTI combo key
   mongoId: string | null; // MongoDB Object ID
   rebateId: string | null; // CSB Rebate ID (6 digits)

@@ -77,7 +77,7 @@ router.get("/formio-submission/:formType/:id", (req, res) => {
             formSchema: { url: formUrl, json: schema },
             formio: formioSubmission,
             bap: {
-              modified: CSB_Modified_Full_String__c, // ISO 8601 date string
+              modified: CSB_Modified_Full_String__c, // ISO 8601 date time string
               comboKey: UEI_EFTI_Combo_Key__c, // UEI + EFTI combo key
               mongoId: CSB_Form_ID__c, // MongoDB Object ID
               rebateId: Parent_Rebate_ID__c, // CSB Rebate ID (6 digits)

@@ -46,12 +46,12 @@ type ServerResponse =
       bap: BapSubmission;
     };
 
-function formatDate(field: string | null) {
-  return field ? new Date(field).toLocaleDateString() : "";
+function formatDate(dateTimeString: string | null) {
+  return dateTimeString ? new Date(dateTimeString).toLocaleDateString() : "";
 }
 
-function formatTime(field: string | null) {
-  return field ? new Date(field).toLocaleTimeString() : "";
+function formatTime(dateTimeString: string | null) {
+  return dateTimeString ? new Date(dateTimeString).toLocaleTimeString() : "";
 }
 
 /**
