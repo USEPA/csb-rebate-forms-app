@@ -71,7 +71,7 @@ export type BapSamData =
 type BapFormSubmission = {
   UEI_EFTI_Combo_Key__c: string; // UEI + EFTI combo key
   CSB_Form_ID__c: string; // MongoDB ObjectId string
-  CSB_Modified_Full_String__c: string; // ISO 8601 date string
+  CSB_Modified_Full_String__c: string; // ISO 8601 date time string
   CSB_Review_Item_ID__c: string; // CSB Rebate ID with form/version ID (9 digits)
   Parent_Rebate_ID__c: string; // CSB Rebate ID (6 digits)
   Record_Type_Name__c:
@@ -91,7 +91,10 @@ export type FormioApplicationSubmission = {
   [field: string]: unknown;
   _id: string; // MongoDB ObjectId string
   state: "submitted" | "draft";
-  modified: string; // ISO 8601 date string
+  modified: string; // ISO 8601 date time string
+  metadata: {
+    [field: string]: unknown;
+  };
   data: {
     [field: string]: unknown;
     // fields injected upon new draft Application submission creation:
@@ -120,16 +123,19 @@ export type FormioApplicationSubmission = {
   };
 };
 
-type FormioPaymentRequestSubmission = {
+export type FormioPaymentRequestSubmission = {
   [field: string]: unknown;
   _id: string; // MongoDB ObjectId string
   state: "submitted" | "draft";
-  modified: string; // ISO 8601 date string
+  modified: string; // ISO 8601 date time string
+  metadata: {
+    [field: string]: unknown;
+  };
   data: {
     [field: string]: unknown;
     // fields injected upon new draft Payment Request submission creation:
     bap_hidden_entity_combo_key: string;
-    hidden_application_form_modified: string; // ISO 8601 date string
+    hidden_application_form_modified: string; // ISO 8601 date time string
     hidden_current_user_email: string;
     hidden_current_user_title: string;
     hidden_current_user_name: string;
@@ -137,16 +143,19 @@ type FormioPaymentRequestSubmission = {
   };
 };
 
-type FormioCloseOutSubmission = {
+export type FormioCloseOutSubmission = {
   [field: string]: unknown;
   _id: string; // MongoDB ObjectId string
   state: "submitted" | "draft";
-  modified: string; // ISO 8601 date string
+  modified: string; // ISO 8601 date time string
+  metadata: {
+    [field: string]: unknown;
+  };
   data: {
     [field: string]: unknown;
     // fields injected upon new draft Payment Request submission creation:
     bap_hidden_entity_combo_key: string;
-    hidden_prf_modified: string; // ISO 8601 date string
+    hidden_prf_modified: string; // ISO 8601 date time string
     hidden_current_user_email: string;
     hidden_current_user_title: string;
     hidden_current_user_name: string;
@@ -154,9 +163,10 @@ type FormioCloseOutSubmission = {
   };
 };
 
-type BapSubmission = {
-  modified: string | null; // ISO 8601 date string
+export type BapSubmission = {
+  modified: string | null; // ISO 8601 date time string
   comboKey: string | null; // UEI + EFTI combo key
+  mongoId: string | null; // MongoDB Object ID
   rebateId: string | null; // CSB Rebate ID (6 digits)
   reviewItemId: string | null; // CSB Rebate ID with form/version ID (9 digits)
   status: string | null;
@@ -399,6 +409,7 @@ function useCombinedRebates() {
 
     const modified = bapMatch?.CSB_Modified_Full_String__c || null;
     const comboKey = bapMatch?.UEI_EFTI_Combo_Key__c || null;
+    const mongoId = bapMatch?.CSB_Form_ID__c || null;
     const rebateId = bapMatch?.Parent_Rebate_ID__c || null;
     const reviewItemId = bapMatch?.CSB_Review_Item_ID__c || null;
     const status = bapMatch?.Parent_CSB_Rebate__r?.CSB_Funding_Request_Status__c || null; // prettier-ignore
@@ -414,7 +425,7 @@ function useCombinedRebates() {
     rebates[rebateId || `_${formioSubmission._id}`] = {
       application: {
         formio: { ...formioSubmission },
-        bap: { modified, comboKey, rebateId, reviewItemId, status },
+        bap: { modified, comboKey, mongoId, rebateId, reviewItemId, status },
       },
       paymentRequest: { formio: null, bap: null },
       closeOut: { formio: null, bap: null },
@@ -445,6 +456,7 @@ function useCombinedRebates() {
 
     const modified = bapMatch?.CSB_Modified_Full_String__c || null;
     const comboKey = bapMatch?.UEI_EFTI_Combo_Key__c || null;
+    const mongoId = bapMatch?.CSB_Form_ID__c || null;
     const rebateId = bapMatch?.Parent_Rebate_ID__c || null;
     const reviewItemId = bapMatch?.CSB_Review_Item_ID__c || null;
     const status = bapMatch?.Parent_CSB_Rebate__r?.CSB_Payment_Request_Status__c || null; // prettier-ignore
@@ -460,7 +472,7 @@ function useCombinedRebates() {
     if (rebates[formioBapRebateId]) {
       rebates[formioBapRebateId].paymentRequest = {
         formio: { ...formioSubmission },
-        bap: { modified, comboKey, rebateId, reviewItemId, status },
+        bap: { modified, comboKey, mongoId, rebateId, reviewItemId, status },
       };
     }
   }
@@ -479,6 +491,7 @@ function useCombinedRebates() {
 
     const modified = bapMatch?.CSB_Modified_Full_String__c || null;
     const comboKey = bapMatch?.UEI_EFTI_Combo_Key__c || null;
+    const mongoId = bapMatch?.CSB_Form_ID__c || null;
     const rebateId = bapMatch?.Parent_Rebate_ID__c || null;
     const reviewItemId = bapMatch?.CSB_Review_Item_ID__c || null;
     const status = bapMatch?.Parent_CSB_Rebate__r?.CSB_Closeout_Request_Status__c || null; // prettier-ignore
@@ -486,7 +499,7 @@ function useCombinedRebates() {
     if (rebates[formioBapRebateId]) {
       rebates[formioBapRebateId].closeOut = {
         formio: { ...formioSubmission },
-        bap: { modified, comboKey, rebateId, reviewItemId, status },
+        bap: { modified, comboKey, mongoId, rebateId, reviewItemId, status },
       };
     }
   }
