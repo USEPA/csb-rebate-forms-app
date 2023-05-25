@@ -6,20 +6,9 @@ const {
   formioApplicationFormUrl,
   formioPaymentRequestFormUrl,
   formioCloseOutFormUrl,
-  formioCsbMetadata,
 } = require("../config/formio");
 const { ensureAuthenticated, ensureHelpdesk } = require("../middleware");
-const log = require("../utilities/logger");
-
-const {
-  CSB_APPLICATION_FORM_OPEN,
-  CSB_PAYMENT_REQUEST_FORM_OPEN,
-  CSB_CLOSE_OUT_FORM_OPEN,
-} = process.env;
-
-const applicationFormOpen = CSB_APPLICATION_FORM_OPEN === "true";
-const paymentRequestFormOpen = CSB_PAYMENT_REQUEST_FORM_OPEN === "true";
-const closeOutFormOpen = CSB_CLOSE_OUT_FORM_OPEN === "true";
+const { getBapFormSubmissionData } = require("../utilities/bap");
 
 const router = express.Router();
 
@@ -31,204 +20,87 @@ router.use(ensureHelpdesk);
 router.get("/formio-submission/:formType/:id", (req, res) => {
   const { formType, id } = req.params;
 
-  if (formType === "application") {
-    const mongoId = id;
+  const rebateId = id.length === 6 ? id : null;
+  const mongoId = !rebateId ? id : null;
 
-    /** NOTE: verifyMongoObjectId */
-    if (mongoId && !ObjectId.isValid(mongoId)) {
-      const errorStatus = 400;
-      const errorMessage = `MongoDB ObjectId validation error for: '${mongoId}'.`;
-      return res.status(errorStatus).json({ message: errorMessage });
-    }
+  /** NOTE: verifyMongoObjectId */
+  if (mongoId && !ObjectId.isValid(mongoId)) {
+    const errorStatus = 400;
+    const errorMessage = `MongoDB ObjectId validation error for: '${mongoId}'.`;
+    return res.status(errorStatus).json({ message: errorMessage });
+  }
 
-    Promise.all([
-      axiosFormio(req).get(`${formioApplicationFormUrl}/submission/${mongoId}`),
-      axiosFormio(req).get(formioApplicationFormUrl),
-    ])
-      .then((axiosResponses) => axiosResponses.map((axiosRes) => axiosRes.data))
-      .then(([submission, schema]) => {
-        return res.json({
-          formSchema: { url: formioApplicationFormUrl, json: schema },
-          submission,
+  const formName =
+    formType === "application"
+      ? "CSB Application"
+      : formType === "payment-request"
+      ? "CSB Payment Request"
+      : formType === "close-out"
+      ? "CSB Close Out"
+      : "CSB";
+
+  const formUrl =
+    formType === "application"
+      ? formioApplicationFormUrl
+      : formType === "payment-request"
+      ? formioPaymentRequestFormUrl
+      : formType === "close-out"
+      ? formioCloseOutFormUrl
+      : null; // fallback
+
+  return getBapFormSubmissionData(req, formType, rebateId, mongoId).then(
+    (bapSubmission) => {
+      if (!bapSubmission || !formUrl) {
+        const logId = rebateId || mongoId;
+        const errorStatus = 500;
+        const errorMessage = `Error getting ${formName} form submission '${logId}' from the BAP.`;
+        return res.status(errorStatus).json({ message: errorMessage });
+      }
+
+      const {
+        UEI_EFTI_Combo_Key__c,
+        CSB_Form_ID__c,
+        CSB_Modified_Full_String__c,
+        CSB_Review_Item_ID__c,
+        Parent_Rebate_ID__c,
+        Record_Type_Name__c,
+        Parent_CSB_Rebate__r,
+      } = bapSubmission;
+
+      return Promise.all([
+        axiosFormio(req).get(`${formUrl}/submission/${CSB_Form_ID__c}`),
+        axiosFormio(req).get(formUrl),
+      ])
+        .then((responses) => responses.map((axiosRes) => axiosRes.data))
+        .then(([formioSubmission, schema]) => {
+          return res.json({
+            formSchema: { url: formUrl, json: schema },
+            formio: formioSubmission,
+            bap: {
+              modified: CSB_Modified_Full_String__c, // ISO 8601 date time string
+              comboKey: UEI_EFTI_Combo_Key__c, // UEI + EFTI combo key
+              mongoId: CSB_Form_ID__c, // MongoDB Object ID
+              rebateId: Parent_Rebate_ID__c, // CSB Rebate ID (6 digits)
+              reviewItemId: CSB_Review_Item_ID__c, // CSB Rebate ID with form/version ID (9 digits)
+              status:
+                Record_Type_Name__c === "CSB Funding Request"
+                  ? Parent_CSB_Rebate__r?.CSB_Funding_Request_Status__c
+                  : Record_Type_Name__c === "CSB Payment Request"
+                  ? Parent_CSB_Rebate__r?.CSB_Payment_Request_Status__c
+                  : Record_Type_Name__c === "CSB Closeout Request"
+                  ? Parent_CSB_Rebate__r?.CSB_Closeout_Request_Status__c
+                  : "",
+            },
+          });
+        })
+        .catch((error) => {
+          // NOTE: logged in axiosFormio response interceptor
+          const errorStatus = error.response?.status || 500;
+          const errorMessage = `Error getting ${formName} form submission '${CSB_Form_ID__c}'.`;
+          return res.status(errorStatus).json({ message: errorMessage });
         });
-      })
-      .catch((error) => {
-        // NOTE: logged in axiosFormio response interceptor
-        const errorStatus = error.response?.status || 500;
-        const errorMessage = `Error getting Formio Application form submission '${mongoId}'.`;
-        return res.status(errorStatus).json({ message: errorMessage });
-      });
-  }
-
-  if (formType === "payment-request") {
-    const rebateId = id;
-
-    const matchedPaymentRequestFormSubmissions =
-      `${formioPaymentRequestFormUrl}/submission` +
-      `?data.hidden_bap_rebate_id=${rebateId}` +
-      `&select=_id`;
-
-    Promise.all([
-      axiosFormio(req).get(matchedPaymentRequestFormSubmissions),
-      axiosFormio(req).get(formioPaymentRequestFormUrl),
-    ])
-      .then((axiosResponses) => axiosResponses.map((axiosRes) => axiosRes.data))
-      .then(([submissions, schema]) => {
-        const mongoId = submissions[0]._id;
-
-        /** NOTE: verifyMongoObjectId */
-        if (mongoId && !ObjectId.isValid(mongoId)) {
-          const errorStatus = 400;
-          const errorMessage = `MongoDB ObjectId validation error for: '${mongoId}'.`;
-          return res.status(errorStatus).json({ message: errorMessage });
-        }
-
-        /**
-         * NOTE: We can't just use the returned submission data here because
-         * Formio returns the string literal 'YES' instead of a base64 encoded
-         * image string for signature fields when you query for all submissions
-         * matching on a field's value (`/submission?data.hidden_bap_rebate_id=${rebateId}`).
-         * We need to query for a specific submission (e.g. `/submission/${mongoId}`),
-         * to have Formio return the correct signature field data.
-         */
-        axiosFormio(req)
-          .get(`${formioPaymentRequestFormUrl}/submission/${mongoId}`)
-          .then((axiosRes) => axiosRes.data)
-          .then((submission) => {
-            return res.json({
-              formSchema: { url: formioPaymentRequestFormUrl, json: schema },
-              submission,
-            });
-          });
-      })
-      .catch((error) => {
-        // NOTE: logged in axiosFormio response interceptor
-        const errorStatus = error.response?.status || 500;
-        const errorMessage = `Error getting Formio Payment Request form submission '${rebateId}'.`;
-        return res.status(errorStatus).json({ message: errorMessage });
-      });
-  }
-
-  if (formType === "close-out") {
-    // TODO
-  }
-});
-
-// --- change a submitted Formio form's submission state back to draft
-router.post("/formio-submission/:formType/:id", (req, res) => {
-  const { formType, id } = req.params;
-  const { mail } = req.user;
-
-  if (formType === "application") {
-    if (!applicationFormOpen) {
-      const errorStatus = 400;
-      const errorMessage = `CSB Application form enrollment period is closed.`;
-      return res.status(errorStatus).json({ message: errorMessage });
     }
-
-    const mongoId = id;
-
-    /** NOTE: verifyMongoObjectId */
-    if (mongoId && !ObjectId.isValid(mongoId)) {
-      const errorStatus = 400;
-      const errorMessage = `MongoDB ObjectId validation error for: '${mongoId}'.`;
-      return res.status(errorStatus).json({ message: errorMessage });
-    }
-
-    Promise.all([
-      axiosFormio(req).get(`${formioApplicationFormUrl}/submission/${mongoId}`),
-      axiosFormio(req).get(formioApplicationFormUrl),
-    ])
-      .then((axiosResponses) => axiosResponses.map((axiosRes) => axiosRes.data))
-      .then(([submission, schema]) => {
-        axiosFormio(req)
-          .put(`${formioApplicationFormUrl}/submission/${mongoId}`, {
-            state: "draft",
-            data: { ...submission.data, last_updated_by: mail },
-            metadata: { ...submission.metadata, ...formioCsbMetadata },
-          })
-          .then((axiosRes) => axiosRes.data)
-          .then((updatedSubmission) => {
-            const logMessage = `User with email '${mail}' updated Application form submission '${mongoId}' from submitted to draft.`;
-            log({ level: "info", message: logMessage, req });
-
-            return res.json({
-              formSchema: { url: formioApplicationFormUrl, json: schema },
-              submission: updatedSubmission,
-            });
-          });
-      })
-      .catch((error) => {
-        // NOTE: logged in axiosFormio response interceptor
-        const errorStatus = error.response?.status || 500;
-        const errorMessage = `Error updating Formio Application form submission '${mongoId}'.`;
-        return res.status(errorStatus).json({ message: errorMessage });
-      });
-  }
-
-  if (formType === "payment-request") {
-    if (!paymentRequestFormOpen) {
-      const errorStatus = 400;
-      const errorMessage = `CSB Payment Request form enrollment period is closed.`;
-      return res.status(errorStatus).json({ message: errorMessage });
-    }
-
-    const rebateId = id;
-
-    const matchedPaymentRequestFormSubmissions =
-      `${formioPaymentRequestFormUrl}/submission` +
-      `?data.hidden_bap_rebate_id=${rebateId}`;
-
-    Promise.all([
-      axiosFormio(req).get(matchedPaymentRequestFormSubmissions),
-      axiosFormio(req).get(formioPaymentRequestFormUrl),
-    ])
-      .then((axiosResponses) => axiosResponses.map((axiosRes) => axiosRes.data))
-      .then(([submissions, schema]) => {
-        const submission = submissions[0];
-        const mongoId = submission._id;
-
-        /** NOTE: verifyMongoObjectId */
-        if (mongoId && !ObjectId.isValid(mongoId)) {
-          const errorStatus = 400;
-          const errorMessage = `MongoDB ObjectId validation error for: '${mongoId}'.`;
-          return res.status(errorStatus).json({ message: errorMessage });
-        }
-
-        axiosFormio(req)
-          .put(`${formioPaymentRequestFormUrl}/submission/${mongoId}`, {
-            state: "draft",
-            data: { ...submission.data, hidden_current_user_email: mail },
-            metadata: { ...submission.metadata, ...formioCsbMetadata },
-          })
-          .then((axiosRes) => axiosRes.data)
-          .then((updatedSubmission) => {
-            const logMessage = `User with email '${mail}' updated Payment Request form submission '${rebateId}' from submitted to draft.`;
-            log({ level: "info", message: logMessage, req });
-
-            return res.json({
-              formSchema: { url: formioPaymentRequestFormUrl, json: schema },
-              submission: updatedSubmission,
-            });
-          });
-      })
-      .catch((error) => {
-        // NOTE: logged in axiosFormio response interceptor
-        const errorStatus = error.response?.status || 500;
-        const errorMessage = `Error getting Formio Payment Request form submission '${rebateId}'.`;
-        return res.status(errorStatus).json({ message: errorMessage });
-      });
-  }
-
-  if (formType === "close-out") {
-    if (!closeOutFormOpen) {
-      const errorStatus = 400;
-      const errorMessage = `CSB Close Out form enrollment period is closed.`;
-      return res.status(errorStatus).json({ message: errorMessage });
-    }
-
-    // TODO
-  }
+  );
 });
 
 module.exports = router;

@@ -109,7 +109,7 @@ function ApplicationSubmission(props: { rebate: Rebate }) {
     : applicationHasBeenWithdrawn
     ? `${icons}#close` // ✕
     : applicationNotSelected
-    ? `${icons}#check` // TODO: eventually use 'cancel' icon if we show 'Not Selected'
+    ? `${icons}#cancel` // x inside a circle
     : applicationSelected
     ? `${icons}#check_circle` // check inside a circle
     : application.formio.state === "draft"
@@ -123,7 +123,7 @@ function ApplicationSubmission(props: { rebate: Rebate }) {
     : applicationHasBeenWithdrawn
     ? "Withdrawn"
     : applicationNotSelected
-    ? "Submitted" // TODO: eventually show 'Not Selected'
+    ? "Not Selected"
     : applicationSelected
     ? "Selected"
     : application.formio.state === "draft"
@@ -189,6 +189,7 @@ function ApplicationSubmission(props: { rebate: Rebate }) {
             <TextWithTooltip
               text="Needs Clarification"
               tooltip="Check your email for instructions on what needs clarification"
+              iconClassNames="text-base-darkest"
             />
           ) : (
             <>
@@ -443,7 +444,9 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
       ? "text-italic"
       : "";
 
-  const statusIconClassNames = "usa-icon";
+  const statusIconClassNames = paymentRequestFundingApproved
+    ? "usa-icon text-primary" // blue
+    : "usa-icon";
 
   const statusIcon = paymentRequestNeedsEdits
     ? `${icons}#priority_high` // !
@@ -451,6 +454,8 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
     ? `${icons}#close` // ✕
     : paymentRequestFundingNotApproved
     ? `${icons}#cancel` // ✕ inside a circle
+    : paymentRequestFundingApproved
+    ? `${icons}#check_circle` // check inside a circle
     : paymentRequest.formio.state === "draft"
     ? `${icons}#more_horiz` // three horizontal dots
     : paymentRequest.formio.state === "submitted"
@@ -463,6 +468,8 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
     ? "Withdrawn"
     : paymentRequestFundingNotApproved
     ? "Funding Not Approved"
+    : paymentRequestFundingApproved
+    ? "Funding Approved"
     : paymentRequest.formio.state === "draft"
     ? "Draft"
     : paymentRequest.formio.state === "submitted"
@@ -502,13 +509,7 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
             <TextWithTooltip
               text="Needs Clarification"
               tooltip="Check your email for instructions on what needs clarification"
-            />
-          ) : paymentRequestFundingApproved /* TODO: check if this should change now */ ? (
-            <TextWithTooltip
-              text="Funding Approved"
-              tooltip="Check your email for more details on funding"
-              iconName="check_circle" // check inside a circle
-              iconClassNames="text-primary" // blue
+              iconClassNames="text-base-darkest"
             />
           ) : (
             <>
@@ -662,10 +663,10 @@ function CloseOutSubmission(props: { rebate: Rebate }) {
   const closeOutNeedsClarification =
     closeOut.bap?.status === "Needs Clarification";
 
-  const closeOutNotApproved = closeOut.bap?.status === "Branch Director Denied";
-
   const closeOutReimbursementNeeded =
     closeOut.bap?.status === "Reimbursement Needed";
+
+  const closeOutNotApproved = closeOut.bap?.status === "Branch Director Denied";
 
   const closeOutApproved = closeOut.bap?.status === "Branch Director Approved";
 
@@ -682,8 +683,6 @@ function CloseOutSubmission(props: { rebate: Rebate }) {
     ? `${icons}#priority_high` // !
     : closeOutNotApproved
     ? `${icons}#cancel` // ✕ inside a circle
-    : closeOutReimbursementNeeded
-    ? `${icons}#priority_high` // !
     : closeOutApproved
     ? `${icons}#check_circle` // check inside a circle
     : closeOut.formio.state === "draft"
@@ -696,8 +695,6 @@ function CloseOutSubmission(props: { rebate: Rebate }) {
     ? "Edits Requested"
     : closeOutNotApproved
     ? "Close Out Not Approved"
-    : closeOutReimbursementNeeded
-    ? "Reimbursement Needed"
     : closeOutApproved
     ? "Close Out Approved"
     : closeOut.formio.state === "draft"
@@ -736,6 +733,13 @@ function CloseOutSubmission(props: { rebate: Rebate }) {
             <TextWithTooltip
               text="Needs Clarification"
               tooltip="Check your email for instructions on what needs clarification"
+              iconClassNames="text-base-darkest"
+            />
+          ) : closeOutReimbursementNeeded ? (
+            <TextWithTooltip
+              text="Reimbursement Needed"
+              tooltip="Check your email for information on reimbursement needed"
+              iconClassNames="text-base-darkest"
             />
           ) : (
             <>
@@ -768,8 +772,11 @@ function CloseOutSubmission(props: { rebate: Rebate }) {
 
 export function AllRebates() {
   const content = useContentData();
+  const bapSamData = useBapSamData();
   const submissionsQueries = useSubmissionsQueries();
   const rebates = useRebates();
+
+  if (!bapSamData) return null;
 
   if (submissionsQueries.some((query) => query.isFetching)) {
     return <Loading />;
@@ -781,6 +788,13 @@ export function AllRebates() {
 
   return (
     <>
+      {bapSamData.entities.some((e) => e.ENTITY_STATUS__c !== "Active") && (
+        <Message
+          type="warning"
+          text={messages.bapSamAtLeastOneEntityNotActive}
+        />
+      )}
+
       {rebates.length === 0 ? (
         <div className="margin-top-4">
           <Message type="info" text={messages.newApplication} />
@@ -820,7 +834,7 @@ export function AllRebates() {
                     <br />
                     <TextWithTooltip
                       text="Form Status"
-                      tooltip="Draft, Edits Requested, Submitted, Withdrawn, Selected, or Not Selected"
+                      tooltip="Draft, Edits Requested, Submitted, Withdrawn, Selected, or Not Selected" // TODO: update to reflect other statuses
                     />
                   </th>
 
