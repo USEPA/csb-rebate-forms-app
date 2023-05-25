@@ -208,6 +208,7 @@ export function Helpdesk() {
           role="search"
           onSubmit={(ev) => {
             ev.preventDefault();
+            if (searchText === "") return;
             setLastSearchedText(searchText);
             setFormDisplayed(false);
             query.refetch();
