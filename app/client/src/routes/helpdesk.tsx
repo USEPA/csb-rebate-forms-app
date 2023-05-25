@@ -94,6 +94,7 @@ export function Helpdesk() {
   const [formType, setFormType] = useState<FormType>("application");
   const [searchText, setSearchText] = useState("");
   const [lastSearchedText, setLastSearchedText] = useState("");
+  const [resultDisplayed, setResultDisplayed] = useState(false);
   const [formDisplayed, setFormDisplayed] = useState(false);
 
   useEffect(() => {
@@ -105,6 +106,7 @@ export function Helpdesk() {
   const query = useQuery({
     queryKey: ["helpdesk"],
     queryFn: () => getData<ServerResponse>(url),
+    onSuccess: (res) => setResultDisplayed(true),
     enabled: false,
   });
 
@@ -144,6 +146,7 @@ export function Helpdesk() {
               checked={formType === "application"}
               onChange={(ev) => {
                 setFormType(ev.target.value as FormType);
+                setResultDisplayed(false);
                 queryClient.resetQueries({ queryKey: ["helpdesk"] });
               }}
             />
@@ -165,6 +168,7 @@ export function Helpdesk() {
               checked={formType === "payment-request"}
               onChange={(ev) => {
                 setFormType(ev.target.value as FormType);
+                setResultDisplayed(false);
                 queryClient.resetQueries({ queryKey: ["helpdesk"] });
               }}
             />
@@ -186,6 +190,7 @@ export function Helpdesk() {
               checked={formType === "close-out"}
               onChange={(ev) => {
                 setFormType(ev.target.value as FormType);
+                setResultDisplayed(false);
                 queryClient.resetQueries({ queryKey: ["helpdesk"] });
               }}
             />
@@ -203,8 +208,8 @@ export function Helpdesk() {
           role="search"
           onSubmit={(ev) => {
             ev.preventDefault();
-            setFormDisplayed(false);
             setLastSearchedText(searchText);
+            setFormDisplayed(false);
             query.refetch();
           }}
         >
@@ -230,7 +235,7 @@ export function Helpdesk() {
         <Loading />
       ) : query.isError || mutation.isError ? (
         <Message type="error" text={messages.helpdeskSubmissionSearchError} />
-      ) : query.isSuccess && !!formSchema && !!formio && !!bap ? (
+      ) : query.isSuccess && !!formio && !!bap && resultDisplayed ? (
         <>
           <div className="usa-table-container--scrollable" tabIndex={0}>
             <table
@@ -353,7 +358,7 @@ export function Helpdesk() {
             </table>
           </div>
 
-          {formDisplayed && (
+          {formDisplayed && !!formSchema && (
             <>
               <ul className="usa-icon-list">
                 <li className="usa-icon-list__item">
