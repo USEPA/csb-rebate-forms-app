@@ -10,21 +10,23 @@ export function TextWithTooltip(props: {
   const { text, tooltip, iconName, iconClassNames } = props;
 
   const svgClassNames = iconClassNames
-    ? `usa-icon margin-right-05 text-base ${iconClassNames}`
-    : `usa-icon margin-right-05 text-base`;
+    ? `usa-icon text-base ${iconClassNames}`
+    : `usa-icon text-base`;
 
   return (
     <span className="display-inline-flex flex-align-center text-no-wrap">
       <Root delayDuration={0}>
         <Trigger asChild>
-          <svg
-            className={svgClassNames}
-            aria-hidden="true"
-            focusable="false"
-            role="img"
-          >
-            <use href={`${icons}#${iconName ? iconName : "info"}`} />
-          </svg>
+          <button className="tw-m-0 tw-flex tw-rounded-full tw-border-0 tw-bg-transparent tw-p-0">
+            <svg
+              className={svgClassNames}
+              aria-hidden="true"
+              focusable="false"
+              role="img"
+            >
+              <use href={`${icons}#${iconName ? iconName : "info"}`} />
+            </svg>
+          </button>
         </Trigger>
 
         <Portal>
@@ -43,7 +45,7 @@ export function TextWithTooltip(props: {
         </Portal>
       </Root>
 
-      {text}
+      <span className="margin-left-05">{text}</span>
     </span>
   );
 }
