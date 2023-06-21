@@ -74,6 +74,7 @@ export function UserDashboard(props: { email: string }) {
   const onHelpdeskPage = pathname === "/helpdesk";
   const onApplicationFormPage = pathname.startsWith("/rebate");
   const onPaymentRequestFormPage = pathname.startsWith("/payment-request");
+  const onCloseOutFormPage = pathname.startsWith("/close-out");
 
   const applicationFormOpen = csbData
     ? csbData.submissionPeriodOpen.application
@@ -123,6 +124,7 @@ export function UserDashboard(props: { email: string }) {
         </nav>
 
         <nav>
+          {/* --- Your Rebate Forms --- */}
           {onAllRebatesPage ? (
             <button
               className="margin-bottom-1 usa-button font-sans-2xs"
@@ -139,7 +141,11 @@ export function UserDashboard(props: { email: string }) {
               to="/"
               className="margin-bottom-1 usa-button font-sans-2xs"
               onClick={(ev) => {
-                if (onApplicationFormPage || onPaymentRequestFormPage) {
+                if (
+                  onApplicationFormPage ||
+                  onPaymentRequestFormPage ||
+                  onCloseOutFormPage
+                ) {
                   ev.preventDefault();
                   displayDialog({
                     dismissable: true,
@@ -166,8 +172,10 @@ export function UserDashboard(props: { email: string }) {
             </Link>
           )}
 
+          {/* --- New Application --- */}
           {onApplicationFormPage ||
           onPaymentRequestFormPage ||
+          onCloseOutFormPage ||
           !applicationFormOpen ? (
             <button
               className="margin-bottom-1 usa-button font-sans-2xs"
@@ -192,6 +200,7 @@ export function UserDashboard(props: { email: string }) {
             </Link>
           )}
 
+          {/* --- Helpdesk --- */}
           {helpdeskAccess === "success" && (
             <>
               {onHelpdeskPage ? (
@@ -206,7 +215,11 @@ export function UserDashboard(props: { email: string }) {
                   to="/helpdesk"
                   className="margin-bottom-1 usa-button font-sans-2xs"
                   onClick={(ev) => {
-                    if (onApplicationFormPage || onPaymentRequestFormPage) {
+                    if (
+                      onApplicationFormPage ||
+                      onPaymentRequestFormPage ||
+                      onCloseOutFormPage
+                    ) {
                       ev.preventDefault();
                       displayDialog({
                         dismissable: true,
