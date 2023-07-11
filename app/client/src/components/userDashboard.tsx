@@ -15,36 +15,35 @@ Formio.setProjectUrl(formioProjectUrl);
 Formio.use(premium);
 Formio.use(uswds);
 
-function IconText(props: {
-  order: "icon-text" | "text-icon";
-  icon: string;
-  text: string;
-}) {
-  const { order, icon, text } = props;
-
-  const alignment = order === "icon-text" ? "left" : "right";
-
-  const Icon = (
-    <svg
-      key="icon"
-      className="usa-icon"
-      aria-hidden="true"
-      focusable="false"
-      role="img"
-    >
-      <use href={`${icons}#${icon}`} />
-    </svg>
-  );
-
-  const Text = (
-    <span key="text" className={`margin-${alignment}-1 text-${alignment}`}>
-      {text}
-    </span>
-  );
-
+function DashboardIconText() {
   return (
     <span className="display-flex flex-align-center">
-      {order === "icon-text" ? [Icon, Text] : [Text, Icon]}
+      <svg className="usa-icon" aria-hidden="true" focusable="false" role="img">
+        <use href={`${icons}#list`} />
+      </svg>
+      <span className="margin-left-1 text-left">Dashboard</span>
+    </span>
+  );
+}
+
+function HelpdeskIconText() {
+  return (
+    <span className="display-flex flex-align-center">
+      <svg className="usa-icon" aria-hidden="true" focusable="false" role="img">
+        <use href={`${icons}#people`} />
+      </svg>
+      <span className="margin-left-1 text-left">Helpdesk</span>
+    </span>
+  );
+}
+
+function SignOutIconText() {
+  return (
+    <span className="display-flex flex-align-center">
+      <span className="margin-right-1 text-right">Sign out</span>
+      <svg className="usa-icon" aria-hidden="true" focusable="false" role="img">
+        <use href={`${icons}#logout`} />
+      </svg>
     </span>
   );
 }
@@ -230,7 +229,7 @@ export function UserDashboard(props: { email: string }) {
           <div className="margin-bottom-1 mobile-lg:margin-right-1">
             {onAllRebatesPage ? (
               <button className={btnClassNames} disabled>
-                <IconText order="icon-text" icon="list" text="Dashboard" />
+                <DashboardIconText />
               </button>
             ) : (
               <Link
@@ -243,7 +242,7 @@ export function UserDashboard(props: { email: string }) {
                   }
                 }}
               >
-                <IconText order="icon-text" icon="list" text="Dashboard" />
+                <DashboardIconText />
               </Link>
             )}
           </div>
@@ -252,7 +251,7 @@ export function UserDashboard(props: { email: string }) {
             <div className="margin-bottom-1 mobile-lg:margin-right-1">
               {onHelpdeskPage ? (
                 <button className={btnClassNames} disabled>
-                  <IconText order="icon-text" icon="people" text="Helpdesk" />
+                  <HelpdeskIconText />
                 </button>
               ) : (
                 <Link
@@ -265,7 +264,7 @@ export function UserDashboard(props: { email: string }) {
                     }
                   }}
                 >
-                  <IconText order="icon-text" icon="people" text="Helpdesk" />
+                  <HelpdeskIconText />
                 </Link>
               )}
             </div>
@@ -279,7 +278,7 @@ export function UserDashboard(props: { email: string }) {
 
           <div className="margin-bottom-1 mobile-lg:margin-left-1">
             <a className={btnClassNames} href={`${serverUrlForHrefs}/logout`}>
-              <IconText order="text-icon" icon="logout" text="Sign out" />
+              <SignOutIconText />
             </a>
           </div>
         </nav>
