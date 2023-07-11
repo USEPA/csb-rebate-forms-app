@@ -770,11 +770,30 @@ function CloseOutSubmission(props: { rebate: Rebate }) {
   );
 }
 
+function NewApplicationIconText() {
+  return (
+    <span className="display-flex flex-align-center">
+      <svg className="usa-icon" aria-hidden="true" focusable="false" role="img">
+        <use href={`${icons}#add_circle`} />
+      </svg>
+      <span className="margin-left-1 text-left">New Application</span>
+    </span>
+  );
+}
+
 export function AllRebates() {
   const content = useContentData();
+  const csbData = useCsbData();
   const bapSamData = useBapSamData();
   const submissionsQueries = useSubmissionsQueries();
   const rebates = useRebates();
+
+  const applicationFormOpen = csbData
+    ? csbData.submissionPeriodOpen.application
+    : false;
+
+  const btnClassNames =
+    "usa-button margin-0 padding-x-2 padding-y-1 width-full font-sans-2xs";
 
   if (!bapSamData) return null;
 
@@ -794,6 +813,39 @@ export function AllRebates() {
           text={messages.bapSamAtLeastOneEntityNotActive}
         />
       )}
+
+      <div className="margin-top-1 padding-top-1 padding-x-1 border-1px border-base-lighter bg-base-lightest">
+        <nav className="flex-align-center mobile-lg:display-flex">
+          <div className="margin-bottom-1 mobile-lg:margin-right-1">
+            <label
+              htmlFor="rebate-year"
+              className="margin-right-1 font-sans-2xs"
+            >
+              Rebate Year:
+            </label>
+            <select
+              id="rebate-year"
+              name="rebate-year"
+              className="tw-rounded-md tw-border-0 tw-text-sm tw-font-bold tw-leading-4 tw-ring-1 tw-ring-inset tw-ring-gray-300"
+            >
+              <option>2022</option>
+              <option>2023</option>
+            </select>
+          </div>
+
+          <div className="margin-bottom-1 mobile-lg:margin-right-1">
+            {!applicationFormOpen ? (
+              <button className={btnClassNames} disabled>
+                <NewApplicationIconText />
+              </button>
+            ) : (
+              <Link to="/rebate/new" className={btnClassNames}>
+                <NewApplicationIconText />
+              </Link>
+            )}
+          </div>
+        </nav>
+      </div>
 
       {rebates.length === 0 ? (
         <div className="margin-top-4">
