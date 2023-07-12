@@ -20,6 +20,7 @@ import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/tooltip";
 import { useNotificationsActions } from "contexts/notifications";
+import { RebateYear, useYearState, useYearActions } from "contexts/year";
 
 const defaultTableRowClassNames = "bg-gray-5";
 const highlightedTableRowClassNames = "bg-primary-lighter";
@@ -788,6 +789,9 @@ export function AllRebates() {
   const submissionsQueries = useSubmissionsQueries();
   const rebates = useRebates();
 
+  const { rebateYear } = useYearState();
+  const { setRebateYear } = useYearActions();
+
   const applicationFormOpen = csbData
     ? csbData.submissionPeriodOpen.application
     : false;
@@ -815,7 +819,7 @@ export function AllRebates() {
       )}
 
       <div className="margin-top-1 padding-top-1 padding-x-1 border-1px border-base-lighter bg-base-lightest">
-        <nav className="flex-align-center mobile-lg:display-flex">
+        <nav className="flex-align-center mobile-lg:display-flex mobile-lg:padding-x-1">
           <div className="margin-bottom-1 mobile-lg:margin-right-1">
             <label
               htmlFor="rebate-year"
@@ -827,6 +831,8 @@ export function AllRebates() {
               id="rebate-year"
               name="rebate-year"
               className="tw-rounded-md tw-border-0 tw-text-sm tw-font-bold tw-leading-4 tw-ring-1 tw-ring-inset tw-ring-gray-300"
+              onChange={(ev) => setRebateYear(ev.target.value as RebateYear)}
+              defaultValue={rebateYear}
             >
               <option>2022</option>
               <option>2023</option>
