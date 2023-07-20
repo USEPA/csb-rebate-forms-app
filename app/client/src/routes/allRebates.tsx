@@ -59,10 +59,11 @@ function ApplicationSubmission(props: { rebate: Rebate }) {
   const { application, paymentRequest, closeOut } = rebate;
 
   const csbData = useCsbData();
+  const { rebateYear } = useRebateYearState();
 
   if (!csbData) return null;
 
-  const applicationFormOpen = csbData.submissionPeriodOpen["2022"].frf; // TODO
+  const applicationFormOpen = csbData.submissionPeriodOpen[rebateYear].frf;
 
   const {
     applicantUEI,
@@ -316,6 +317,7 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
   const csbData = useCsbData();
   const bapSamData = useBapSamData();
   const { displayErrorNotification } = useNotificationsActions();
+  const { rebateYear } = useRebateYearState();
 
   /**
    * Stores when data is being posted to the server, so a loading indicator can
@@ -326,7 +328,7 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
 
   if (!csbData || !bapSamData) return null;
 
-  const paymentRequestFormOpen = csbData.submissionPeriodOpen["2022"].prf; // TODO
+  const paymentRequestFormOpen = csbData.submissionPeriodOpen[rebateYear].prf;
 
   const applicationSelected = application.bap?.status === "Accepted";
 
@@ -555,6 +557,7 @@ function CloseOutSubmission(props: { rebate: Rebate }) {
   const csbData = useCsbData();
   const bapSamData = useBapSamData();
   const { displayErrorNotification } = useNotificationsActions();
+  const { rebateYear } = useRebateYearState();
 
   /**
    * Stores when data is being posted to the server, so a loading indicator can
@@ -565,7 +568,7 @@ function CloseOutSubmission(props: { rebate: Rebate }) {
 
   if (!csbData || !bapSamData) return null;
 
-  const closeOutFormOpen = csbData.submissionPeriodOpen["2022"].cof; // TODO
+  const closeOutFormOpen = csbData.submissionPeriodOpen[rebateYear].cof;
 
   const paymentRequestFundingApproved =
     paymentRequest.bap?.status === "Accepted";
@@ -792,12 +795,11 @@ export function AllRebates() {
   const bapSamData = useBapSamData();
   const submissionsQueries = useSubmissionsQueries();
   const rebates = useRebates();
-
   const { rebateYear } = useRebateYearState();
   const { setRebateYear } = useRebateYearActions();
 
   const applicationFormOpen = csbData
-    ? csbData.submissionPeriodOpen["2022"].frf // TODO
+    ? csbData.submissionPeriodOpen[rebateYear].frf
     : false;
 
   const btnClassNames =
