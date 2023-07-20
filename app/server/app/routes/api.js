@@ -26,16 +26,23 @@ const log = require("../utilities/logger");
 
 const {
   NODE_ENV,
-  CSB_APPLICATION_FORM_OPEN,
-  CSB_PAYMENT_REQUEST_FORM_OPEN,
-  CSB_CLOSE_OUT_FORM_OPEN,
+  CSB_FRF_2022_OPEN,
+  CSB_PRF_2022_OPEN,
+  CSB_COF_2022_OPEN,
+  CSB_FRF_2023_OPEN,
+  CSB_PRF_2023_OPEN,
+  CSB_COF_2023_OPEN,
   S3_PUBLIC_BUCKET,
   S3_PUBLIC_REGION,
 } = process.env;
 
-const applicationFormOpen = CSB_APPLICATION_FORM_OPEN === "true";
-const paymentRequestFormOpen = CSB_PAYMENT_REQUEST_FORM_OPEN === "true";
-const closeOutFormOpen = CSB_CLOSE_OUT_FORM_OPEN === "true";
+const frf2022Open = CSB_FRF_2022_OPEN === "true";
+const prf2022Open = CSB_PRF_2022_OPEN === "true";
+const cof2022Open = CSB_COF_2022_OPEN === "true";
+
+const frf2023Open = CSB_FRF_2023_OPEN === "true";
+const prf2023Open = CSB_PRF_2023_OPEN === "true";
+const cof2023Open = CSB_COF_2023_OPEN === "true";
 
 /**
  * Returns a resolved or rejected promise, depending on if the given form's
@@ -57,9 +64,9 @@ function checkFormSubmissionPeriodAndBapStatus({
 }) {
   /** Form submission period is open, so continue. */
   if (
-    (formType === "application" && applicationFormOpen) ||
-    (formType === "payment-request" && paymentRequestFormOpen) ||
-    (formType === "close-out" && closeOutFormOpen)
+    (formType === "application" && frf2022Open) ||
+    (formType === "payment-request" && prf2022Open) ||
+    (formType === "close-out" && cof2023Open)
   ) {
     return Promise.resolve();
   }
@@ -169,9 +176,16 @@ router.get("/user", (req, res) => {
 router.get("/csb-data", (req, res) => {
   return res.json({
     submissionPeriodOpen: {
-      application: applicationFormOpen,
-      paymentRequest: paymentRequestFormOpen,
-      closeOut: closeOutFormOpen,
+      2022: {
+        frf: frf2022Open,
+        prf: prf2022Open,
+        cof: cof2022Open,
+      },
+      2023: {
+        frf: frf2023Open,
+        prf: prf2023Open,
+        cof: cof2023Open,
+      },
     },
   });
 });
@@ -348,7 +362,7 @@ router.post("/formio-application-submission", storeBapComboKeys, (req, res) => {
   const { mail } = req.user;
   const comboKey = body.data?.bap_hidden_entity_combo_key;
 
-  if (!applicationFormOpen) {
+  if (!frf2022Open) {
     const errorStatus = 400;
     const errorMessage = `CSB Application form enrollment period is closed.`;
     return res.status(errorStatus).json({ message: errorMessage });
@@ -520,7 +534,7 @@ router.post(
       applicationFormModified,
     } = body;
 
-    if (!paymentRequestFormOpen) {
+    if (!prf2022Open) {
       const errorStatus = 400;
       const errorMessage = `CSB Payment Request form enrollment period is closed.`;
       return res.status(errorStatus).json({ message: errorMessage });
@@ -870,7 +884,7 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
     paymentRequestFormModified,
   } = body;
 
-  if (!closeOutFormOpen) {
+  if (!cof2022Open) {
     const errorStatus = 400;
     const errorMessage = `CSB Close Out form enrollment period is closed.`;
     return res.status(errorStatus).json({ message: errorMessage });

@@ -26,9 +26,8 @@ type UserData = {
 
 export type CsbData = {
   submissionPeriodOpen: {
-    application: boolean;
-    paymentRequest: boolean;
-    closeOut: boolean;
+    2022: { frf: boolean; prf: boolean; cof: boolean };
+    2023: { frf: boolean; prf: boolean; cof: boolean };
   };
 };
 

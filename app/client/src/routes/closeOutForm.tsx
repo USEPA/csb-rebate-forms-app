@@ -189,7 +189,7 @@ function UserCloseOutForm(props: { email: string }) {
         bap: rebate.closeOut.bap,
       });
 
-  const closeOutFormOpen = csbData.submissionPeriodOpen.closeOut;
+  const closeOutFormOpen = csbData.submissionPeriodOpen["2022"].cof; // TODO
 
   const formIsReadOnly =
     (submission.state === "submitted" || !closeOutFormOpen) &&

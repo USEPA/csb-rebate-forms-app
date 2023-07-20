@@ -196,7 +196,7 @@ function UserPaymentRequestForm(props: { email: string }) {
         bap: rebate.paymentRequest.bap,
       });
 
-  const paymentRequestFormOpen = csbData.submissionPeriodOpen.paymentRequest;
+  const paymentRequestFormOpen = csbData.submissionPeriodOpen["2022"].prf; // TODO
 
   const formIsReadOnly =
     applicationNeedsEdits ||

@@ -58,7 +58,7 @@ function ApplicationSubmission(props: { rebate: Rebate }) {
 
   if (!csbData) return null;
 
-  const applicationFormOpen = csbData.submissionPeriodOpen.application;
+  const applicationFormOpen = csbData.submissionPeriodOpen["2022"].frf; // TODO
 
   const {
     applicantUEI,
@@ -322,7 +322,7 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
 
   if (!csbData || !bapSamData) return null;
 
-  const paymentRequestFormOpen = csbData.submissionPeriodOpen.paymentRequest;
+  const paymentRequestFormOpen = csbData.submissionPeriodOpen["2022"].prf; // TODO
 
   const applicationSelected = application.bap?.status === "Accepted";
 
@@ -561,7 +561,7 @@ function CloseOutSubmission(props: { rebate: Rebate }) {
 
   if (!csbData || !bapSamData) return null;
 
-  const closeOutFormOpen = csbData.submissionPeriodOpen.closeOut;
+  const closeOutFormOpen = csbData.submissionPeriodOpen["2022"].cof; // TODO
 
   const paymentRequestFundingApproved =
     paymentRequest.bap?.status === "Accepted";
@@ -793,7 +793,7 @@ export function AllRebates() {
   const { setRebateYear } = useYearActions();
 
   const applicationFormOpen = csbData
-    ? csbData.submissionPeriodOpen.application
+    ? csbData.submissionPeriodOpen["2022"].frf // TODO
     : false;
 
   const btnClassNames =

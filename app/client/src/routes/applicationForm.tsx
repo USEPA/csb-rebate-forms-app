@@ -314,7 +314,7 @@ function UserApplicationForm(props: { email: string }) {
     return null;
   }
 
-  const applicationFormOpen = csbData.submissionPeriodOpen.application;
+  const applicationFormOpen = csbData.submissionPeriodOpen["2022"].frf; // TODO
 
   const formIsReadOnly =
     (submission.state === "submitted" || !applicationFormOpen) &&

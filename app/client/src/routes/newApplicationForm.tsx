@@ -45,7 +45,7 @@ export function NewApplicationForm() {
     return <Loading />;
   }
 
-  const applicationFormOpen = csbData.submissionPeriodOpen.application;
+  const applicationFormOpen = csbData.submissionPeriodOpen["2022"].frf; // TODO
 
   const activeSamEntities = bapSamData.entities.filter((entity) => {
     return entity.ENTITY_STATUS__c === "Active";
@@ -83,7 +83,7 @@ export function NewApplicationForm() {
             >
               <Dialog.Panel className="tw-relative tw-transform tw-overflow-hidden tw-rounded-lg tw-bg-white tw-p-4 tw-shadow-xl tw-transition-all sm:tw-w-full sm:tw-max-w-4xl sm:tw-p-6">
                 <div className="twpf">
-                  <div className="tw-absolute tw-top-0 tw-right-0 tw-pt-4 tw-pr-4">
+                  <div className="tw-absolute tw-right-0 tw-top-0 tw-pr-4 tw-pt-4">
                     <button
                       type="button"
                       className="tw-rounded-md tw-bg-white tw-text-gray-400 tw-transition-none hover:tw-text-gray-700 focus:tw-text-gray-700"
