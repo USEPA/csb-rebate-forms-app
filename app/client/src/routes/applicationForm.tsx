@@ -25,6 +25,7 @@ import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { useDialogActions } from "contexts/dialog";
 import { useNotificationsActions } from "contexts/notifications";
+import { useRebateYearState } from "contexts/rebateYear";
 
 type ServerResponse =
   | {
@@ -129,6 +130,7 @@ function UserApplicationForm(props: { email: string }) {
     displayErrorNotification,
     dismissNotification,
   } = useNotificationsActions();
+  const { rebateYear } = useRebateYearState();
 
   const submissionsQueries = useSubmissionsQueries();
   const rebates = useRebates();
@@ -314,7 +316,7 @@ function UserApplicationForm(props: { email: string }) {
     return null;
   }
 
-  const applicationFormOpen = csbData.submissionPeriodOpen["2022"].frf; // TODO
+  const applicationFormOpen = csbData.submissionPeriodOpen[rebateYear].frf;
 
   const formIsReadOnly =
     (submission.state === "submitted" || !applicationFormOpen) &&

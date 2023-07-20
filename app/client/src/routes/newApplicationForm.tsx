@@ -17,6 +17,7 @@ import { Loading, LoadingButtonIcon } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/tooltip";
+import { useRebateYearState } from "contexts/rebateYear";
 
 export function NewApplicationForm() {
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ export function NewApplicationForm() {
   const content = useContentData();
   const csbData = useCsbData();
   const bapSamData = useBapSamData();
+  const { rebateYear } = useRebateYearState();
 
   const [errorMessage, setErrorMessage] = useState<{
     displayed: boolean;
@@ -45,7 +47,7 @@ export function NewApplicationForm() {
     return <Loading />;
   }
 
-  const applicationFormOpen = csbData.submissionPeriodOpen["2022"].frf; // TODO
+  const applicationFormOpen = csbData.submissionPeriodOpen[rebateYear].frf;
 
   const activeSamEntities = bapSamData.entities.filter((entity) => {
     return entity.ENTITY_STATUS__c === "Active";
