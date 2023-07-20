@@ -20,7 +20,11 @@ import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/tooltip";
 import { useNotificationsActions } from "contexts/notifications";
-import { RebateYear, useYearState, useYearActions } from "contexts/year";
+import {
+  RebateYear,
+  useRebateYearState,
+  useRebateYearActions,
+} from "contexts/rebateYear";
 
 const defaultTableRowClassNames = "bg-gray-5";
 const highlightedTableRowClassNames = "bg-primary-lighter";
@@ -789,8 +793,8 @@ export function AllRebates() {
   const submissionsQueries = useSubmissionsQueries();
   const rebates = useRebates();
 
-  const { rebateYear } = useYearState();
-  const { setRebateYear } = useYearActions();
+  const { rebateYear } = useRebateYearState();
+  const { setRebateYear } = useRebateYearActions();
 
   const applicationFormOpen = csbData
     ? csbData.submissionPeriodOpen["2022"].frf // TODO

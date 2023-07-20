@@ -42,7 +42,7 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-export function YearProvider({ children }: Props) {
+export function RebateYearProvider({ children }: Props) {
   const initialState: State = {
     rebateYear: "2022",
   };
@@ -59,24 +59,25 @@ export function YearProvider({ children }: Props) {
 }
 
 /**
- * Returns state stored in `YearProvider` context component.
+ * Returns state stored in `RebateYearProvider` context component.
  */
-export function useYearState() {
+export function useRebateYearState() {
   const context = useContext(StateContext);
   if (context === undefined) {
-    throw new Error("useYearState must be called within an YearProvider");
+    const message = `useRebateYearState must be called within an RebateYearProvider`;
+    throw new Error(message);
   }
   return context;
 }
 
 /**
  * Custom hook that returns `dispatch` method for dispatching actions to update
- * state stored in `DialogProvider` context component.
+ * state stored in `RebateYearProvider` context component.
  */
-function useYearDispatch() {
+function useRebateYearDispatch() {
   const context = useContext(DispatchContext);
   if (context === undefined) {
-    const message = `useYearDispatch must be used within a YearProvider`;
+    const message = `useRebateYearDispatch must be used within a RebateYearProvider`;
     throw new Error(message);
   }
   return context;
@@ -86,8 +87,8 @@ function useYearDispatch() {
  * Custom hook that returns a function to dispatch an action to set the rebate
  * year.
  */
-export function useYearActions() {
-  const dispatch = useYearDispatch();
+export function useRebateYearActions() {
+  const dispatch = useRebateYearDispatch();
 
   return {
     setRebateYear(rebateYear: RebateYear) {
