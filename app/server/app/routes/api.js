@@ -40,9 +40,21 @@ const frf2022Open = CSB_FRF_2022_OPEN === "true";
 const prf2022Open = CSB_PRF_2022_OPEN === "true";
 const cof2022Open = CSB_COF_2022_OPEN === "true";
 
-const frf2023Open = CSB_FRF_2023_OPEN === "true";
-const prf2023Open = CSB_PRF_2023_OPEN === "true";
-const cof2023Open = CSB_COF_2023_OPEN === "true";
+/**
+ * Stores whether the submission period is open for each form by rebate year.
+ */
+const submissionPeriodOpen = {
+  2022: {
+    frf: CSB_FRF_2022_OPEN === "true",
+    prf: CSB_PRF_2022_OPEN === "true",
+    cof: CSB_COF_2022_OPEN === "true",
+  },
+  2023: {
+    frf: CSB_FRF_2023_OPEN === "true",
+    prf: CSB_PRF_2023_OPEN === "true",
+    cof: CSB_COF_2023_OPEN === "true",
+  },
+};
 
 /**
  * Returns a resolved or rejected promise, depending on if the given form's
@@ -51,23 +63,21 @@ const cof2023Open = CSB_COF_2023_OPEN === "true";
  * returned from the BAP).
  *
  * @param {Object} param
- * @param {'application' | 'payment-request' | 'close-out'} param.formType
+ * @param {'2022' | '2023'} param.rebateYear
+ * @param {'frf' | 'prf' | 'cof'} param.formType
  * @param {string} param.mongoId
  * @param {string} param.comboKey
  * @param {express.Request} param.req
  */
 function checkFormSubmissionPeriodAndBapStatus({
+  rebateYear,
   formType,
   mongoId,
   comboKey,
   req,
 }) {
   /** Form submission period is open, so continue. */
-  if (
-    (formType === "application" && frf2022Open) ||
-    (formType === "payment-request" && prf2022Open) ||
-    (formType === "close-out" && cof2023Open)
-  ) {
+  if (submissionPeriodOpen[rebateYear][formType]) {
     return Promise.resolve();
   }
 
@@ -76,11 +86,11 @@ function checkFormSubmissionPeriodAndBapStatus({
     const submission = submissions.find((s) => s.CSB_Form_ID__c === mongoId);
 
     const statusField =
-      formType === "application"
+      formType === "frf"
         ? "CSB_Funding_Request_Status__c"
-        : formType === "payment-request"
+        : formType === "prf"
         ? "CSB_Payment_Request_Status__c"
-        : formType === "close-out"
+        : formType === "cof"
         ? "CSB_Closeout_Request_Status__c"
         : null;
 
@@ -174,20 +184,7 @@ router.get("/user", (req, res) => {
 
 // --- get CSB app specific data (open enrollment status, etc.)
 router.get("/csb-data", (req, res) => {
-  return res.json({
-    submissionPeriodOpen: {
-      2022: {
-        frf: frf2022Open,
-        prf: prf2022Open,
-        cof: cof2022Open,
-      },
-      2023: {
-        frf: frf2023Open,
-        prf: prf2023Open,
-        cof: cof2023Open,
-      },
-    },
-  });
+  return res.json({ submissionPeriodOpen });
 });
 
 // --- get user's SAM.gov data from EPA's Business Automation Platform (BAP)
@@ -279,8 +276,15 @@ router.post(
     const { bapComboKeys, body } = req;
     const { mail } = req.user;
     const { formType, mongoId, comboKey } = req.params;
+    const rebateYear = "2022"; // TODO
 
-    checkFormSubmissionPeriodAndBapStatus({ formType, mongoId, comboKey, req })
+    checkFormSubmissionPeriodAndBapStatus({
+      rebateYear,
+      formType,
+      mongoId,
+      comboKey,
+      req,
+    })
       .then(() => {
         if (!bapComboKeys.includes(comboKey)) {
           const logMessage = `User with email '${mail}' attempted to upload a file without a matching BAP combo key.`;
@@ -447,9 +451,16 @@ router.post(
     const { mongoId } = req.params;
     const submission = req.body;
     const comboKey = submission.data?.bap_hidden_entity_combo_key;
-    const formType = "application";
+    const formType = "frf";
+    const rebateYear = "2022"; // TODO
 
-    checkFormSubmissionPeriodAndBapStatus({ formType, mongoId, comboKey, req })
+    checkFormSubmissionPeriodAndBapStatus({
+      rebateYear,
+      formType,
+      mongoId,
+      comboKey,
+      req,
+    })
       .then(() => {
         if (!bapComboKeys.includes(comboKey)) {
           const logMessage = `User with email '${mail}' attempted to update Application form submission '${mongoId}' without a matching BAP combo key.`;
@@ -725,9 +736,16 @@ router.post(
     const { rebateId } = req.params; // CSB Rebate ID (6 digits)
     const { mongoId, submission } = body;
     const comboKey = submission.data?.bap_hidden_entity_combo_key;
-    const formType = "payment-request";
+    const formType = "prf";
+    const rebateYear = "2022"; // TODO
 
-    checkFormSubmissionPeriodAndBapStatus({ formType, mongoId, comboKey, req })
+    checkFormSubmissionPeriodAndBapStatus({
+      rebateYear,
+      formType,
+      mongoId,
+      comboKey,
+      req,
+    })
       .then(() => {
         if (!bapComboKeys.includes(comboKey)) {
           const logMessage = `User with email '${mail}' attempted to update Payment Request form submission '${rebateId}' without a matching BAP combo key.`;
@@ -1138,9 +1156,16 @@ router.post(
     const { rebateId } = req.params; // CSB Rebate ID (6 digits)
     const { mongoId, submission } = body;
     const comboKey = submission.data?.bap_hidden_entity_combo_key;
-    const formType = "close-out";
+    const formType = "cof";
+    const rebateYear = "2022"; // TODO
 
-    checkFormSubmissionPeriodAndBapStatus({ formType, mongoId, comboKey, req })
+    checkFormSubmissionPeriodAndBapStatus({
+      rebateYear,
+      formType,
+      mongoId,
+      comboKey,
+      req,
+    })
       .then(() => {
         if (!bapComboKeys.includes(comboKey)) {
           const logMessage = `User with email '${mail}' attempted to update Close Out form submission '${rebateId}' without a matching BAP combo key.`;

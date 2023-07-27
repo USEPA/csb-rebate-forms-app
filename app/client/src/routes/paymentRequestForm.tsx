@@ -65,7 +65,7 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
          */
         Formio.Providers.providers.storage.s3 = function (formio: any) {
           const s3Formio = cloneDeep(formio);
-          s3Formio.formUrl = `${serverUrl}/api/s3/payment-request/${mongoId}/${comboKey}`;
+          s3Formio.formUrl = `${serverUrl}/api/s3/prf/${mongoId}/${comboKey}`;
           return s3(s3Formio);
         };
 
@@ -398,6 +398,13 @@ function UserPaymentRequestForm(props: { email: string }) {
             // to the form (ignoring current user fields)
             const currentData = { ...data };
             const submittedData = { ...lastSuccesfullySubmittedData.current };
+
+            // NOTE: `newBusDeliveryDate` is causing the dirty check to fail
+            console.log({
+              current: (currentData.busInfo as unknown[])[0], // newBusDeliveryDate: ""
+              submitted: (submittedData.busInfo as unknown[])[0], // newBusDeliveryDate: null
+            });
+
             delete currentData.hidden_current_user_email;
             delete currentData.hidden_current_user_title;
             delete currentData.hidden_current_user_name;
