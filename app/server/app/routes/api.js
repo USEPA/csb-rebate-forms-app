@@ -182,8 +182,8 @@ router.get("/user", (req, res) => {
   return res.json({ mail, memberof, exp });
 });
 
-// --- get CSB app specific data (open enrollment status, etc.)
-router.get("/csb-data", (req, res) => {
+// --- get CSB app specific configuration (form open enrollment status, etc.)
+router.get("/config", (req, res) => {
   return res.json({ submissionPeriodOpen });
 });
 

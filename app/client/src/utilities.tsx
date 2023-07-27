@@ -254,19 +254,19 @@ export function useUserData() {
   return queryClient.getQueryData<UserData>(["user"]);
 }
 
-/** Custom hook to fetch CSB data */
-export function useCsbQuery() {
+/** Custom hook to fetch CSB config */
+export function useConfigQuery() {
   return useQuery({
-    queryKey: ["csb-data"],
-    queryFn: () => getData<CsbData>(`${serverUrl}/api/csb-data`),
+    queryKey: ["config"],
+    queryFn: () => getData<CsbData>(`${serverUrl}/api/config`),
     refetchOnWindowFocus: false,
   });
 }
 
-/** Custom hook that returns cached fetched CSB data */
-export function useCsbData() {
+/** Custom hook that returns cached fetched CSB config */
+export function useConfigData() {
   const queryClient = useQueryClient();
-  return queryClient.getQueryData<CsbData>(["csb-data"]);
+  return queryClient.getQueryData<CsbData>(["config"]);
 }
 
 /** Custom hook to fetch BAP SAM.gov data */

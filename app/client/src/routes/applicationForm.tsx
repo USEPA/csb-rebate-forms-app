@@ -13,7 +13,7 @@ import {
   getData,
   postData,
   useContentData,
-  useCsbData,
+  useConfigData,
   useBapSamData,
   useSubmissionsQueries,
   useRebates,
@@ -121,7 +121,7 @@ function UserApplicationForm(props: { email: string }) {
   const { id: mongoId } = useParams<"id">(); // MongoDB ObjectId string
 
   const content = useContentData();
-  const csbData = useCsbData();
+  const configData = useConfigData();
   const bapSamData = useBapSamData();
   const { displayDialog } = useDialogActions();
   const {
@@ -169,7 +169,7 @@ function UserApplicationForm(props: { email: string }) {
    */
   const lastSuccesfullySubmittedData = useRef<{ [field: string]: unknown }>({});
 
-  if (!csbData || !bapSamData) {
+  if (!configData || !bapSamData) {
     return <Loading />;
   }
 
@@ -316,7 +316,7 @@ function UserApplicationForm(props: { email: string }) {
     return null;
   }
 
-  const applicationFormOpen = csbData.submissionPeriodOpen[rebateYear].frf;
+  const applicationFormOpen = configData.submissionPeriodOpen[rebateYear].frf;
 
   const formIsReadOnly =
     (submission.state === "submitted" || !applicationFormOpen) &&

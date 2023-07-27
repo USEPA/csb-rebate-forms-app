@@ -8,7 +8,7 @@ import {
   Rebate,
   postData,
   useContentData,
-  useCsbData,
+  useConfigData,
   useBapSamData,
   useSubmissionsQueries,
   useRebates,
@@ -58,12 +58,12 @@ function ApplicationSubmission(props: { rebate: Rebate }) {
   const { rebate } = props;
   const { application, paymentRequest, closeOut } = rebate;
 
-  const csbData = useCsbData();
+  const configData = useConfigData();
   const { rebateYear } = useRebateYearState();
 
-  if (!csbData) return null;
+  if (!configData) return null;
 
-  const applicationFormOpen = csbData.submissionPeriodOpen[rebateYear].frf;
+  const applicationFormOpen = configData.submissionPeriodOpen[rebateYear].frf;
 
   const {
     applicantUEI,
@@ -314,7 +314,7 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
   const navigate = useNavigate();
   const { email } = useOutletContext<{ email: string }>();
 
-  const csbData = useCsbData();
+  const configData = useConfigData();
   const bapSamData = useBapSamData();
   const { displayErrorNotification } = useNotificationsActions();
   const { rebateYear } = useRebateYearState();
@@ -326,9 +326,10 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
    */
   const [dataIsPosting, setDataIsPosting] = useState(false);
 
-  if (!csbData || !bapSamData) return null;
+  if (!configData || !bapSamData) return null;
 
-  const paymentRequestFormOpen = csbData.submissionPeriodOpen[rebateYear].prf;
+  const paymentRequestFormOpen =
+    configData.submissionPeriodOpen[rebateYear].prf;
 
   const applicationSelected = application.bap?.status === "Accepted";
 
@@ -554,7 +555,7 @@ function CloseOutSubmission(props: { rebate: Rebate }) {
   const navigate = useNavigate();
   const { email } = useOutletContext<{ email: string }>();
 
-  const csbData = useCsbData();
+  const configData = useConfigData();
   const bapSamData = useBapSamData();
   const { displayErrorNotification } = useNotificationsActions();
   const { rebateYear } = useRebateYearState();
@@ -566,9 +567,9 @@ function CloseOutSubmission(props: { rebate: Rebate }) {
    */
   const [dataIsPosting, setDataIsPosting] = useState(false);
 
-  if (!csbData || !bapSamData) return null;
+  if (!configData || !bapSamData) return null;
 
-  const closeOutFormOpen = csbData.submissionPeriodOpen[rebateYear].cof;
+  const closeOutFormOpen = configData.submissionPeriodOpen[rebateYear].cof;
 
   const paymentRequestFundingApproved =
     paymentRequest.bap?.status === "Accepted";
@@ -791,15 +792,15 @@ function NewApplicationIconText() {
 
 export function AllRebates() {
   const content = useContentData();
-  const csbData = useCsbData();
+  const configData = useConfigData();
   const bapSamData = useBapSamData();
   const submissionsQueries = useSubmissionsQueries();
   const rebates = useRebates();
   const { rebateYear } = useRebateYearState();
   const { setRebateYear } = useRebateYearActions();
 
-  const applicationFormOpen = csbData
-    ? csbData.submissionPeriodOpen[rebateYear].frf
+  const applicationFormOpen = configData
+    ? configData.submissionPeriodOpen[rebateYear].frf
     : false;
 
   const btnClassNames =

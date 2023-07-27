@@ -9,7 +9,7 @@ import {
   FormioApplicationSubmission,
   postData,
   useContentData,
-  useCsbData,
+  useConfigData,
   useBapSamData,
   getUserInfo,
 } from "../utilities";
@@ -24,7 +24,7 @@ export function NewApplicationForm() {
   const { email } = useOutletContext<{ email: string }>();
 
   const content = useContentData();
-  const csbData = useCsbData();
+  const configData = useConfigData();
   const bapSamData = useBapSamData();
   const { rebateYear } = useRebateYearState();
 
@@ -43,11 +43,11 @@ export function NewApplicationForm() {
    */
   const [postingDataId, setPostingDataId] = useState("0");
 
-  if (!csbData || !bapSamData) {
+  if (!configData || !bapSamData) {
     return <Loading />;
   }
 
-  const applicationFormOpen = csbData.submissionPeriodOpen[rebateYear].frf;
+  const applicationFormOpen = configData.submissionPeriodOpen[rebateYear].frf;
 
   const activeSamEntities = bapSamData.entities.filter((entity) => {
     return entity.ENTITY_STATUS__c === "Active";

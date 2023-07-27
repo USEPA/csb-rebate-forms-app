@@ -5,7 +5,7 @@ import uswds from "@formio/uswds";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrlForHrefs, formioBaseUrl, formioProjectUrl } from "../config";
-import { useCsbQuery, useBapSamQuery, useBapSamData } from "../utilities";
+import { useConfigQuery, useBapSamQuery, useBapSamData } from "../utilities";
 import { useHelpdeskAccess } from "components/app";
 import { Loading } from "components/loading";
 import { useDialogActions } from "contexts/dialog";
@@ -54,7 +54,7 @@ export function UserDashboard(props: { email: string }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
-  useCsbQuery();
+  useConfigQuery();
   useBapSamQuery();
 
   const bapSamData = useBapSamData();
