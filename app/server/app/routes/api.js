@@ -239,7 +239,7 @@ router.get("/bap-form-submissions", storeBapComboKeys, (req, res) => {
 
 // --- download Formio S3 file metadata
 router.get(
-  "/s3/:formType/:mongoId/:comboKey/storage/s3",
+  "/s3/:rebateYear/:formType/:mongoId/:comboKey/storage/s3",
   storeBapComboKeys,
   (req, res) => {
     const { bapComboKeys, query } = req;
@@ -247,7 +247,9 @@ router.get(
     const { comboKey } = req.params;
 
     if (!bapComboKeys.includes(comboKey)) {
-      const logMessage = `User with email '${mail}' attempted to download a file without a matching BAP combo key.`;
+      const logMessage =
+        `User with email '${mail}' attempted to download a file ` +
+        `without a matching BAP combo key.`;
       log({ level: "error", message: logMessage, req });
 
       const errorStatus = 401;
@@ -270,13 +272,12 @@ router.get(
 
 // --- upload Formio S3 file metadata
 router.post(
-  "/s3/:formType/:mongoId/:comboKey/storage/s3",
+  "/s3/:rebateYear/:formType/:mongoId/:comboKey/storage/s3",
   storeBapComboKeys,
   (req, res) => {
     const { bapComboKeys, body } = req;
     const { mail } = req.user;
-    const { formType, mongoId, comboKey } = req.params;
-    const rebateYear = "2022"; // TODO
+    const { rebateYear, formType, mongoId, comboKey } = req.params;
 
     checkFormSubmissionPeriodAndBapStatus({
       rebateYear,
@@ -287,7 +288,9 @@ router.post(
     })
       .then(() => {
         if (!bapComboKeys.includes(comboKey)) {
-          const logMessage = `User with email '${mail}' attempted to upload a file without a matching BAP combo key.`;
+          const logMessage =
+            `User with email '${mail}' attempted to upload a file ` +
+            `without a matching BAP combo key.`;
           log({ level: "error", message: logMessage, req });
 
           const errorStatus = 401;
@@ -308,19 +311,21 @@ router.post(
       })
       .catch((error) => {
         const formName =
-          formType === "application"
+          formType === "frf"
             ? "CSB Application"
-            : formType === "payment-request"
+            : formType === "prf"
             ? "CSB Payment Request"
-            : formType === "close-out"
+            : formType === "cof"
             ? "CSB Close Out"
             : "CSB";
 
-        const logMessage = `User with email '${mail}' attempted to upload a file when the ${formName} form enrollment period was closed.`;
+        const logMessage =
+          `User with email '${mail}' attempted to upload a file when the ` +
+          `${rebateYear} ${formName} form enrollment period was closed.`;
         log({ level: "error", message: logMessage, req });
 
         const errorStatus = 400;
-        const errorMessage = `${formName} form enrollment period is closed.`;
+        const errorMessage = `${rebateYear} ${formName} form enrollment period is closed.`;
         return res.status(errorStatus).json({ message: errorMessage });
       });
   }
