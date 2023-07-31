@@ -41,16 +41,22 @@ jobs:
       # SAML_PRIVATE_KEY: ${{ secrets.SAML_PRIVATE_KEY }}
       JWT_PUBLIC_KEY: ${{ secrets.JWT_PUBLIC_KEY }}
       JWT_PRIVATE_KEY: ${{ secrets.JWT_PRIVATE_KEY }}
-      CSB_APPLICATION_FORM_OPEN: true
-      CSB_PAYMENT_REQUEST_FORM_OPEN: true
-      CSB_CLOSE_OUT_FORM_OPEN: true
-      FORMIO_PKG_AUTH_TOKEN: ${{ secrets.FORMIO_PKG_AUTH_TOKEN }}
+      CSB_FRF_2022_OPEN: true
+      CSB_PRF_2022_OPEN: true
+      CSB_CRF_2022_OPEN: true
+      CSB_FRF_2023_OPEN: true
+      CSB_PRF_2023_OPEN: true
+      CSB_CRF_2023_OPEN: true
+      FORMIO_FRF_2022_PATH: ${{ secrets.FORMIO_FRF_2022_PATH }}
+      FORMIO_PRF_2022_PATH: ${{ secrets.FORMIO_PRF_2022_PATH }}
+      FORMIO_CRF_2022_PATH: ${{ secrets.FORMIO_CRF_2022_PATH }}
+      FORMIO_FRF_2023_PATH: ${{ secrets.FORMIO_FRF_2023_PATH }}
+      FORMIO_PRF_2023_PATH: ${{ secrets.FORMIO_PRF_2023_PATH }}
+      FORMIO_CRF_2023_PATH: ${{ secrets.FORMIO_CRF_2023_PATH }}
       FORMIO_BASE_URL: ${{ secrets.FORMIO_BASE_URL }}
       FORMIO_PROJECT_NAME: ${{ secrets.FORMIO_PROJECT_NAME }}
-      FORMIO_APPLICATION_FORM_PATH: ${{ secrets.FORMIO_APPLICATION_FORM_PATH }}
-      FORMIO_PAYMENT_REQUEST_FORM_PATH: ${{ secrets.FORMIO_PAYMENT_REQUEST_FORM_PATH }}
-      FORMIO_CLOSE_OUT_FORM_PATH: ${{ secrets.FORMIO_CLOSE_OUT_FORM_PATH }}
       FORMIO_API_KEY: ${{ secrets.FORMIO_API_KEY }}
+      FORMIO_PKG_AUTH_TOKEN: ${{ secrets.FORMIO_PKG_AUTH_TOKEN }}
       BAP_CLIENT_ID: ${{ secrets.BAP_CLIENT_ID }}
       BAP_CLIENT_SECRET: ${{ secrets.BAP_CLIENT_SECRET }}
       BAP_URL: ${{ secrets.BAP_URL }}
@@ -124,14 +130,20 @@ jobs:
           # cf set-env $APP_NAME "SAML_PRIVATE_KEY" "$SAML_PRIVATE_KEY" > /dev/null
           cf set-env $APP_NAME "JWT_PUBLIC_KEY" "$JWT_PUBLIC_KEY" > /dev/null
           cf set-env $APP_NAME "JWT_PRIVATE_KEY" "$JWT_PRIVATE_KEY" > /dev/null
-          cf set-env $APP_NAME "CSB_APPLICATION_FORM_OPEN" "$CSB_APPLICATION_FORM_OPEN" > /dev/null
-          cf set-env $APP_NAME "CSB_PAYMENT_REQUEST_FORM_OPEN" "$CSB_PAYMENT_REQUEST_FORM_OPEN" > /dev/null
-          cf set-env $APP_NAME "CSB_CLOSE_OUT_FORM_OPEN" "$CSB_CLOSE_OUT_FORM_OPEN" > /dev/null
+          cf set-env $APP_NAME "CSB_FRF_2022_OPEN" "$CSB_FRF_2022_OPEN" > /dev/null
+          cf set-env $APP_NAME "CSB_PRF_2022_OPEN" "$CSB_PRF_2022_OPEN" > /dev/null
+          cf set-env $APP_NAME "CSB_CRF_2022_OPEN" "$CSB_CRF_2022_OPEN" > /dev/null
+          cf set-env $APP_NAME "CSB_FRF_2023_OPEN" "$CSB_FRF_2023_OPEN" > /dev/null
+          cf set-env $APP_NAME "CSB_PRF_2023_OPEN" "$CSB_PRF_2023_OPEN" > /dev/null
+          cf set-env $APP_NAME "CSB_CRF_2023_OPEN" "$CSB_CRF_2023_OPEN" > /dev/null
+          cf set-env $APP_NAME "FORMIO_FRF_2022_PATH" "$FORMIO_FRF_2022_PATH" > /dev/null
+          cf set-env $APP_NAME "FORMIO_PRF_2022_PATH" "$FORMIO_PRF_2022_PATH" > /dev/null
+          cf set-env $APP_NAME "FORMIO_CRF_2022_PATH" "$FORMIO_CRF_2022_PATH" > /dev/null
+          cf set-env $APP_NAME "FORMIO_FRF_2023_PATH" "$FORMIO_FRF_2023_PATH" > /dev/null
+          cf set-env $APP_NAME "FORMIO_PRF_2023_PATH" "$FORMIO_PRF_2023_PATH" > /dev/null
+          cf set-env $APP_NAME "FORMIO_CRF_2023_PATH" "$FORMIO_CRF_2023_PATH" > /dev/null
           cf set-env $APP_NAME "FORMIO_BASE_URL" "$FORMIO_BASE_URL" > /dev/null
           cf set-env $APP_NAME "FORMIO_PROJECT_NAME" "$FORMIO_PROJECT_NAME" > /dev/null
-          cf set-env $APP_NAME "FORMIO_APPLICATION_FORM_PATH" "$FORMIO_APPLICATION_FORM_PATH" > /dev/null
-          cf set-env $APP_NAME "FORMIO_PAYMENT_REQUEST_FORM_PATH" "$FORMIO_PAYMENT_REQUEST_FORM_PATH" > /dev/null
-          cf set-env $APP_NAME "FORMIO_CLOSE_OUT_FORM_PATH" "$FORMIO_CLOSE_OUT_FORM_PATH" > /dev/null
           cf set-env $APP_NAME "FORMIO_API_KEY" "$FORMIO_API_KEY" > /dev/null
           cf set-env $APP_NAME "BAP_CLIENT_ID" "$BAP_CLIENT_ID" > /dev/null
           cf set-env $APP_NAME "BAP_CLIENT_SECRET" "$BAP_CLIENT_SECRET" > /dev/null

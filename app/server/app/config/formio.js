@@ -8,16 +8,19 @@ const {
   SERVER_URL,
   FORMIO_BASE_URL,
   FORMIO_PROJECT_NAME,
-  FORMIO_APPLICATION_FORM_PATH,
-  FORMIO_PAYMENT_REQUEST_FORM_PATH,
-  FORMIO_CLOSE_OUT_FORM_PATH,
   FORMIO_API_KEY,
+  FORMIO_FRF_2022_PATH,
+  FORMIO_PRF_2022_PATH,
+  FORMIO_CRF_2022_PATH,
+  FORMIO_FRF_2023_PATH,
+  FORMIO_PRF_2023_PATH,
+  FORMIO_CRF_2023_PATH,
 } = process.env;
 
 const formioProjectUrl = `${FORMIO_BASE_URL}/${FORMIO_PROJECT_NAME}`;
-const formioApplicationFormUrl = `${formioProjectUrl}/${FORMIO_APPLICATION_FORM_PATH}`;
-const formioPaymentRequestFormUrl = `${formioProjectUrl}/${FORMIO_PAYMENT_REQUEST_FORM_PATH}`;
-const formioCloseOutFormUrl = `${formioProjectUrl}/${FORMIO_CLOSE_OUT_FORM_PATH}`;
+const formioApplicationFormUrl = `${formioProjectUrl}/${FORMIO_FRF_2022_PATH}`;
+const formioPaymentRequestFormUrl = `${formioProjectUrl}/${FORMIO_PRF_2022_PATH}`;
+const formioCloseOutFormUrl = `${formioProjectUrl}/${FORMIO_CRF_2022_PATH}`;
 
 /** @param {express.Request} req */
 function axiosFormio(req) {
