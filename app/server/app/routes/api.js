@@ -201,7 +201,9 @@ router.get("/bap-sam-data", (req, res) => {
        * SAM.gov data.
        */
       if (!adminOrHelpdeskUser && entities?.length === 0) {
-        const logMessage = `User with email '${mail}' tried to use app without any associated SAM records.`;
+        const logMessage =
+          `User with email '${mail}' tried to use app ` +
+          `without any associated SAM.gov records.`;
         log({ level: "error", message: logMessage, req });
 
         return res.json({
@@ -378,7 +380,9 @@ router.post("/formio-application-submission", storeBapComboKeys, (req, res) => {
   }
 
   if (!bapComboKeys.includes(comboKey)) {
-    const logMessage = `User with email '${mail}' attempted to post a new Application form submission without a matching BAP combo key.`;
+    const logMessage =
+      `User with email '${mail}' attempted to post a new Application form submission ` +
+      `without a matching BAP combo key.`;
     log({ level: "error", message: logMessage, req });
 
     const errorStatus = 401;
@@ -420,7 +424,9 @@ router.get(
         const comboKey = submission.data.bap_hidden_entity_combo_key;
 
         if (!bapComboKeys.includes(comboKey)) {
-          const logMessage = `User with email '${mail}' attempted to access Application form submission '${mongoId}' that they do not have access to.`;
+          const logMessage =
+            `User with email '${mail}' attempted to access Application form submission '${mongoId}' ` +
+            `that they do not have access to.`;
           log({ level: "warn", message: logMessage, req });
 
           return res.json({
@@ -468,7 +474,9 @@ router.post(
     })
       .then(() => {
         if (!bapComboKeys.includes(comboKey)) {
-          const logMessage = `User with email '${mail}' attempted to update Application form submission '${mongoId}' without a matching BAP combo key.`;
+          const logMessage =
+            `User with email '${mail}' attempted to update Application form submission '${mongoId}' ` +
+            `without a matching BAP combo key.`;
           log({ level: "error", message: logMessage, req });
 
           const errorStatus = 401;
@@ -494,7 +502,9 @@ router.post(
           });
       })
       .catch((error) => {
-        const logMessage = `User with email '${mail}' attempted to update Application form submission '${mongoId}' when the CSB Application form enrollment period was closed.`;
+        const logMessage =
+          `User with email '${mail}' attempted to update Application form submission '${mongoId}' ` +
+          `when the CSB Application form enrollment period was closed.`;
         log({ level: "error", message: logMessage, req });
 
         const errorStatus = 400;
@@ -557,7 +567,9 @@ router.post(
     }
 
     if (!bapComboKeys.includes(comboKey)) {
-      const logMessage = `User with email '${mail}' attempted to post a new Payment Request form submission without a matching BAP combo key.`;
+      const logMessage =
+        `User with email '${mail}' attempted to post a new Payment Request form submission ` +
+        `without a matching BAP combo key.`;
       log({ level: "error", message: logMessage, req });
 
       const errorStatus = 401;
@@ -686,7 +698,9 @@ router.get(
         const comboKey = submission.data.bap_hidden_entity_combo_key;
 
         if (!bapComboKeys.includes(comboKey)) {
-          const logMessage = `User with email '${mail}' attempted to access Payment Request form submission '${rebateId}' that they do not have access to.`;
+          const logMessage =
+            `User with email '${mail}' attempted to access Payment Request form submission '${rebateId}' ` +
+            `that they do not have access to.`;
           log({ level: "warn", message: logMessage, req });
 
           return res.json({
@@ -753,7 +767,9 @@ router.post(
     })
       .then(() => {
         if (!bapComboKeys.includes(comboKey)) {
-          const logMessage = `User with email '${mail}' attempted to update Payment Request form submission '${rebateId}' without a matching BAP combo key.`;
+          const logMessage =
+            `User with email '${mail}' attempted to update Payment Request form submission '${rebateId}' ` +
+            `without a matching BAP combo key.`;
           log({ level: "error", message: logMessage, req });
 
           const errorStatus = 401;
@@ -789,7 +805,9 @@ router.post(
           });
       })
       .catch((error) => {
-        const logMessage = `User with email '${mail}' attempted to update Payment Request form submission '${rebateId}' when the CSB Payment Request form enrollment period was closed.`;
+        const logMessage =
+          `User with email '${mail}' attempted to update Payment Request form submission '${rebateId}' ` +
+          `when the CSB Payment Request form enrollment period was closed.`;
         log({ level: "error", message: logMessage, req });
 
         const errorStatus = 400;
@@ -810,7 +828,9 @@ router.post(
 
     // verify post data includes one of user's BAP combo keys
     if (!bapComboKeys.includes(comboKey)) {
-      const logMessage = `User with email '${mail}' attempted to delete Payment Request form submission '${rebateId}' without a matching BAP combo key.`;
+      const logMessage =
+        `User with email '${mail}' attempted to delete Payment Request form submission '${rebateId}' ` +
+        `without a matching BAP combo key.`;
       log({ level: "error", message: logMessage, req });
 
       const errorStatus = 401;
@@ -914,7 +934,9 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
   }
 
   if (!bapComboKeys.includes(comboKey)) {
-    const logMessage = `User with email '${mail}' attempted to post a new Close Out form submission without a matching BAP combo key.`;
+    const logMessage =
+      `User with email '${mail}' attempted to post a new Close Out form submission ` +
+      `without a matching BAP combo key.`;
     log({ level: "error", message: logMessage, req });
 
     const errorStatus = 401;
@@ -1106,7 +1128,9 @@ router.get(
         const comboKey = submission.data.bap_hidden_entity_combo_key;
 
         if (!bapComboKeys.includes(comboKey)) {
-          const logMessage = `User with email '${mail}' attempted to access Close Out form submission '${rebateId}' that they do not have access to.`;
+          const logMessage =
+            `User with email '${mail}' attempted to access Close Out form submission '${rebateId}' ` +
+            `that they do not have access to.`;
           log({ level: "warn", message: logMessage, req });
 
           return res.json({
@@ -1173,7 +1197,9 @@ router.post(
     })
       .then(() => {
         if (!bapComboKeys.includes(comboKey)) {
-          const logMessage = `User with email '${mail}' attempted to update Close Out form submission '${rebateId}' without a matching BAP combo key.`;
+          const logMessage =
+            `User with email '${mail}' attempted to update Close Out form submission '${rebateId}' ` +
+            `without a matching BAP combo key.`;
           log({ level: "error", message: logMessage, req });
 
           const errorStatus = 401;
@@ -1206,7 +1232,9 @@ router.post(
           });
       })
       .catch((error) => {
-        const logMessage = `User with email '${mail}' attempted to update Close Out form submission '${rebateId}' when the CSB Close Out form enrollment period was closed.`;
+        const logMessage =
+          `User with email '${mail}' attempted to update Close Out form submission '${rebateId}' ` +
+          `when the CSB Close Out form enrollment period was closed.`;
         log({ level: "error", message: logMessage, req });
 
         const errorStatus = 400;
