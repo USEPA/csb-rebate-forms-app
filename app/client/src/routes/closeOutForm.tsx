@@ -65,7 +65,7 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
          */
         Formio.Providers.providers.storage.s3 = function (formio: any) {
           const s3Formio = cloneDeep(formio);
-          s3Formio.formUrl = `${serverUrl}/api/s3/2022/cof/${mongoId}/${comboKey}`;
+          s3Formio.formUrl = `${serverUrl}/api/s3/2022/crf/${mongoId}/${comboKey}`;
           return s3(s3Formio);
         };
 
@@ -191,7 +191,7 @@ function UserCloseOutForm(props: { email: string }) {
         bap: rebate.closeOut.bap,
       });
 
-  const closeOutFormOpen = configData.submissionPeriodOpen[rebateYear].cof;
+  const closeOutFormOpen = configData.submissionPeriodOpen[rebateYear].crf;
 
   const formIsReadOnly =
     (submission.state === "submitted" || !closeOutFormOpen) &&
@@ -220,9 +220,9 @@ function UserCloseOutForm(props: { email: string }) {
           className="margin-top-4"
           children={
             submission.state === "draft"
-              ? content.draftCOFIntro
+              ? content.draftCRFIntro
               : submission.state === "submitted"
-              ? content.submittedCOFIntro
+              ? content.submittedCRFIntro
               : ""
           }
         />

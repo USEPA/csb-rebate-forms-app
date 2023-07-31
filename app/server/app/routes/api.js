@@ -28,17 +28,17 @@ const {
   NODE_ENV,
   CSB_FRF_2022_OPEN,
   CSB_PRF_2022_OPEN,
-  CSB_COF_2022_OPEN,
+  CSB_CRF_2022_OPEN,
   CSB_FRF_2023_OPEN,
   CSB_PRF_2023_OPEN,
-  CSB_COF_2023_OPEN,
+  CSB_CRF_2023_OPEN,
   S3_PUBLIC_BUCKET,
   S3_PUBLIC_REGION,
 } = process.env;
 
 const frf2022Open = CSB_FRF_2022_OPEN === "true";
 const prf2022Open = CSB_PRF_2022_OPEN === "true";
-const cof2022Open = CSB_COF_2022_OPEN === "true";
+const crf2022Open = CSB_CRF_2022_OPEN === "true";
 
 /**
  * Stores whether the submission period is open for each form by rebate year.
@@ -47,12 +47,12 @@ const submissionPeriodOpen = {
   2022: {
     frf: CSB_FRF_2022_OPEN === "true",
     prf: CSB_PRF_2022_OPEN === "true",
-    cof: CSB_COF_2022_OPEN === "true",
+    crf: CSB_CRF_2022_OPEN === "true",
   },
   2023: {
     frf: CSB_FRF_2023_OPEN === "true",
     prf: CSB_PRF_2023_OPEN === "true",
-    cof: CSB_COF_2023_OPEN === "true",
+    crf: CSB_CRF_2023_OPEN === "true",
   },
 };
 
@@ -64,7 +64,7 @@ const submissionPeriodOpen = {
  *
  * @param {Object} param
  * @param {'2022' | '2023'} param.rebateYear
- * @param {'frf' | 'prf' | 'cof'} param.formType
+ * @param {'frf' | 'prf' | 'crf'} param.formType
  * @param {string} param.mongoId
  * @param {string} param.comboKey
  * @param {express.Request} param.req
@@ -90,7 +90,7 @@ function checkFormSubmissionPeriodAndBapStatus({
         ? "CSB_Funding_Request_Status__c"
         : formType === "prf"
         ? "CSB_Payment_Request_Status__c"
-        : formType === "cof"
+        : formType === "crf"
         ? "CSB_Closeout_Request_Status__c"
         : null;
 
@@ -115,8 +115,8 @@ router.get("/content", (req, res) => {
     "submitted-frf-intro.md",
     "draft-prf-intro.md",
     "submitted-prf-intro.md",
-    "draft-cof-intro.md",
-    "submitted-cof-intro.md",
+    "draft-crf-intro.md",
+    "submitted-crf-intro.md",
   ];
 
   const s3BucketUrl = `https://${S3_PUBLIC_BUCKET}.s3-${S3_PUBLIC_REGION}.amazonaws.com`;
@@ -152,8 +152,8 @@ router.get("/content", (req, res) => {
         submittedFRFIntro: data[6],
         draftPRFIntro: data[7],
         submittedPRFIntro: data[8],
-        draftCOFIntro: data[9],
-        submittedCOFIntro: data[10],
+        draftCRFIntro: data[9],
+        submittedCRFIntro: data[10],
       });
     })
     .catch((error) => {
@@ -927,7 +927,7 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
     paymentRequestFormModified,
   } = body;
 
-  if (!cof2022Open) {
+  if (!crf2022Open) {
     const errorStatus = 400;
     const errorMessage = `CSB Close Out form enrollment period is closed.`;
     return res.status(errorStatus).json({ message: errorMessage });
@@ -1185,7 +1185,7 @@ router.post(
     const { rebateId } = req.params; // CSB Rebate ID (6 digits)
     const { mongoId, submission } = body;
     const comboKey = submission.data?.bap_hidden_entity_combo_key;
-    const formType = "cof";
+    const formType = "crf";
     const rebateYear = "2022"; // TODO
 
     checkFormSubmissionPeriodAndBapStatus({

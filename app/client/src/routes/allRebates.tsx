@@ -569,7 +569,7 @@ function CloseOutSubmission(props: { rebate: Rebate }) {
 
   if (!configData || !bapSamData) return null;
 
-  const closeOutFormOpen = configData.submissionPeriodOpen[rebateYear].cof;
+  const closeOutFormOpen = configData.submissionPeriodOpen[rebateYear].crf;
 
   const paymentRequestFundingApproved =
     paymentRequest.bap?.status === "Accepted";

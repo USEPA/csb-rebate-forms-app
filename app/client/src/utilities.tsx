@@ -14,8 +14,8 @@ type Content = {
   submittedFRFIntro: string;
   draftPRFIntro: string;
   submittedPRFIntro: string;
-  draftCOFIntro: string;
-  submittedCOFIntro: string;
+  draftCRFIntro: string;
+  submittedCRFIntro: string;
 };
 
 type UserData = {
@@ -24,10 +24,10 @@ type UserData = {
   exp: number;
 };
 
-export type CsbData = {
+type ConfigData = {
   submissionPeriodOpen: {
-    2022: { frf: boolean; prf: boolean; cof: boolean };
-    2023: { frf: boolean; prf: boolean; cof: boolean };
+    2022: { frf: boolean; prf: boolean; crf: boolean };
+    2023: { frf: boolean; prf: boolean; crf: boolean };
   };
 };
 
@@ -258,7 +258,7 @@ export function useUserData() {
 export function useConfigQuery() {
   return useQuery({
     queryKey: ["config"],
-    queryFn: () => getData<CsbData>(`${serverUrl}/api/config`),
+    queryFn: () => getData<ConfigData>(`${serverUrl}/api/config`),
     refetchOnWindowFocus: false,
   });
 }
@@ -266,7 +266,7 @@ export function useConfigQuery() {
 /** Custom hook that returns cached fetched CSB config */
 export function useConfigData() {
   const queryClient = useQueryClient();
-  return queryClient.getQueryData<CsbData>(["config"]);
+  return queryClient.getQueryData<ConfigData>(["config"]);
 }
 
 /** Custom hook to fetch BAP SAM.gov data */
