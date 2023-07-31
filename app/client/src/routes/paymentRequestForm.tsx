@@ -238,9 +238,9 @@ function UserPaymentRequestForm(props: { email: string }) {
           className="margin-top-4"
           children={
             submission.state === "draft"
-              ? content.draftPaymentRequestIntro
+              ? content.draftPRFIntro
               : submission.state === "submitted"
-              ? content.submittedPaymentRequestIntro
+              ? content.submittedPRFIntro
               : ""
           }
         />

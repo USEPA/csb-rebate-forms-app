@@ -345,9 +345,9 @@ function UserApplicationForm(props: { email: string }) {
           className="margin-top-4"
           children={
             submission.state === "draft"
-              ? content.draftApplicationIntro
+              ? content.draftFRFIntro
               : submission.state === "submitted"
-              ? content.submittedApplicationIntro
+              ? content.submittedFRFIntro
               : ""
           }
         />

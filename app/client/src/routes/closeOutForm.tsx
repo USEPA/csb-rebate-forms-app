@@ -220,9 +220,9 @@ function UserCloseOutForm(props: { email: string }) {
           className="margin-top-4"
           children={
             submission.state === "draft"
-              ? content.draftCloseOutIntro
+              ? content.draftCOFIntro
               : submission.state === "submitted"
-              ? content.submittedCloseOutIntro
+              ? content.submittedCOFIntro
               : ""
           }
         />

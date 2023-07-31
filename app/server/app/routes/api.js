@@ -110,13 +110,13 @@ router.get("/content", (req, res) => {
     "helpdesk-intro.md",
     "all-rebates-intro.md",
     "all-rebates-outro.md",
-    "new-application-dialog.md",
-    "draft-application-intro.md",
-    "submitted-application-intro.md",
-    "draft-payment-request-intro.md",
-    "submitted-payment-request-intro.md",
-    "draft-close-out-intro.md",
-    "submitted-close-out-intro.md",
+    "new-frf-dialog.md",
+    "draft-frf-intro.md",
+    "submitted-frf-intro.md",
+    "draft-prf-intro.md",
+    "submitted-prf-intro.md",
+    "draft-cof-intro.md",
+    "submitted-cof-intro.md",
   ];
 
   const s3BucketUrl = `https://${S3_PUBLIC_BUCKET}.s3-${S3_PUBLIC_REGION}.amazonaws.com`;
@@ -147,13 +147,13 @@ router.get("/content", (req, res) => {
         helpdeskIntro: data[1],
         allRebatesIntro: data[2],
         allRebatesOutro: data[3],
-        newApplicationDialog: data[4],
-        draftApplicationIntro: data[5],
-        submittedApplicationIntro: data[6],
-        draftPaymentRequestIntro: data[7],
-        submittedPaymentRequestIntro: data[8],
-        draftCloseOutIntro: data[9],
-        submittedCloseOutIntro: data[10],
+        newFRFDialog: data[4],
+        draftFRFIntro: data[5],
+        submittedFRFIntro: data[6],
+        draftPRFIntro: data[7],
+        submittedPRFIntro: data[8],
+        draftCOFIntro: data[9],
+        submittedCOFIntro: data[10],
       });
     })
     .catch((error) => {

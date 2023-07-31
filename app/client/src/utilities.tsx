@@ -9,13 +9,13 @@ type Content = {
   helpdeskIntro: string;
   allRebatesIntro: string;
   allRebatesOutro: string;
-  newApplicationDialog: string;
-  draftApplicationIntro: string;
-  submittedApplicationIntro: string;
-  draftPaymentRequestIntro: string;
-  submittedPaymentRequestIntro: string;
-  draftCloseOutIntro: string;
-  submittedCloseOutIntro: string;
+  newFRFDialog: string;
+  draftFRFIntro: string;
+  submittedFRFIntro: string;
+  draftPRFIntro: string;
+  submittedPRFIntro: string;
+  draftCOFIntro: string;
+  submittedCOFIntro: string;
 };
 
 type UserData = {

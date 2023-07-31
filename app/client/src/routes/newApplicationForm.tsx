@@ -117,7 +117,7 @@ export function NewApplicationForm() {
                       {content && (
                         <MarkdownContent
                           className="tw-mt-4 tw-text-center"
-                          children={content.newApplicationDialog}
+                          children={content.newFRFDialog}
                           components={{
                             h2: (props) => (
                               <h2 className="tw-text-xl sm:tw-text-2xl md:tw-text-3xl">
