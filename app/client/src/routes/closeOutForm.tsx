@@ -184,18 +184,19 @@ function UserCloseOutForm(props: { email: string }) {
 
   const rebate = rebates.find((r) => r.rebateId === rebateId);
 
-  const closeOutNeedsEdits = !rebate
+  const crfNeedsEdits = !rebate
     ? false
     : submissionNeedsEdits({
         formio: rebate.crf.formio,
         bap: rebate.crf.bap,
       });
 
-  const closeOutFormOpen = configData.submissionPeriodOpen[rebateYear].crf;
+  const crfSubmissionPeriodOpen =
+    configData.submissionPeriodOpen[rebateYear].crf;
 
   const formIsReadOnly =
-    (submission.state === "submitted" || !closeOutFormOpen) &&
-    !closeOutNeedsEdits;
+    (submission.state === "submitted" || !crfSubmissionPeriodOpen) &&
+    !crfNeedsEdits;
 
   /** matched SAM.gov entity for the Close Out submission */
   const entity = bapSamData.entities.find((entity) => {

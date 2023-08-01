@@ -39,7 +39,7 @@ export function NewApplicationForm() {
   /**
    * Stores when data is being posted to the server, so a loading indicator can
    * be rendered inside the new application button, and we can prevent double
-   * submits/creations of new Application form submissions.
+   * submits/creations of new FRF submissions.
    */
   const [postingDataId, setPostingDataId] = useState("0");
 
@@ -103,10 +103,7 @@ export function NewApplicationForm() {
                 <div className="tw-m-auto tw-max-w-3xl tw-p-4 sm:tw-p-8">
                   {!applicationFormOpen ? (
                     <div className="-tw-mb-4">
-                      <Message
-                        type="info"
-                        text={messages.applicationFormClosed}
-                      />
+                      <Message type="info" text={messages.frfClosed} />
                     </div>
                   ) : activeSamEntities.length <= 0 ? (
                     <div className="-tw-mb-4">

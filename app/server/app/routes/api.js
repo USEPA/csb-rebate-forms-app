@@ -841,18 +841,18 @@ router.post(
      */
     getBapFormSubmissionsStatuses(req, req.bapComboKeys)
       .then((submissions) => {
-        const application = submissions.find((submission) => {
+        const frf = submissions.find((submission) => {
           return (
             submission.Parent_Rebate_ID__c === rebateId &&
             submission.Record_Type_Name__c === "CSB Funding Request"
           );
         });
 
-        const applicationNeedsEdits =
-          application?.Parent_CSB_Rebate__r.CSB_Funding_Request_Status__c ===
+        const frfNeedsEdits =
+          frf?.Parent_CSB_Rebate__r.CSB_Funding_Request_Status__c ===
           "Edits Requested";
 
-        if (!applicationNeedsEdits) {
+        if (!frfNeedsEdits) {
           const errorStatus = 400;
           const errorMessage = `Application form submission '${mongoId}' does not need edits.`;
           return res.status(errorStatus).json({ message: errorMessage });

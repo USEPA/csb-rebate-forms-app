@@ -9,9 +9,9 @@ import {
   serverUrl,
   messages,
   formioStatusMap,
-  bapApplicationStatusMap,
-  bapPaymentRequestStatusMap,
-  bapCloseOutStatusMap,
+  bapFRFStatusMap,
+  bapPRFStatusMap,
+  bapCRFStatusMap,
 } from "../config";
 import {
   FormioFRFSubmission,
@@ -70,11 +70,11 @@ function getStatus(options: {
   return submissionNeedsEdits({ formio, bap })
     ? "Edits Requested"
     : formType === "frf"
-    ? bapApplicationStatusMap.get(bapInternalStatus) || formioStatus
+    ? bapFRFStatusMap.get(bapInternalStatus) || formioStatus
     : formType === "prf"
-    ? bapPaymentRequestStatusMap.get(bapInternalStatus) || formioStatus
+    ? bapPRFStatusMap.get(bapInternalStatus) || formioStatus
     : formType === "crf"
-    ? bapCloseOutStatusMap.get(bapInternalStatus) || formioStatus
+    ? bapCRFStatusMap.get(bapInternalStatus) || formioStatus
     : "";
 }
 

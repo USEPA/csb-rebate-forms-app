@@ -191,24 +191,22 @@ function UserApplicationForm(props: { email: string }) {
 
   const rebate = rebates.find((r) => r.frf.formio._id === mongoId);
 
-  const applicationNeedsEdits = !rebate
+  const frfNeedsEdits = !rebate
     ? false
     : submissionNeedsEdits({
         formio: rebate.frf.formio,
         bap: rebate.frf.bap,
       });
 
-  const applicationNeedsEditsAndPaymentRequestExists =
-    applicationNeedsEdits && !!rebate?.prf.formio;
+  const frfNeedsEditsAndPRFExists = frfNeedsEdits && !!rebate?.prf.formio;
 
   /**
-   * NOTE: If the Application form submission needs edits and there's a
-   * corresponding Payment Request form submission, display a confirmation
-   * dialog prompting the user to delete the Payment Request form submission,
-   * as it's data will no longer valid when the Application form submission's
+   * NOTE: If the FRF submission needs edits and there's a corresponding PRF
+   * submission, display a confirmation dialog prompting the user to delete the
+   * PRF submission, as it's data will no longer valid when the FRF submission's
    * data is changed.
    */
-  if (applicationNeedsEditsAndPaymentRequestExists) {
+  if (frfNeedsEditsAndPRFExists) {
     displayDialog({
       dismissable: true,
       heading: "Submission Edits Requested",
@@ -250,9 +248,9 @@ function UserApplicationForm(props: { email: string }) {
       ),
       confirmText: "Delete Payment Request Form Submission",
       confirmedAction: () => {
-        const paymentRequest = rebate.prf.formio;
+        const prf = rebate.prf.formio;
 
-        if (!paymentRequest) {
+        if (!prf) {
           displayErrorNotification({
             id: Date.now(),
             body: (
@@ -286,9 +284,9 @@ function UserApplicationForm(props: { email: string }) {
         const url = `${serverUrl}/api/delete-formio-payment-request-submission`;
 
         postData(url, {
-          mongoId: paymentRequest._id,
-          rebateId: paymentRequest.data.hidden_bap_rebate_id,
-          comboKey: paymentRequest.data.bap_hidden_entity_combo_key,
+          mongoId: prf._id,
+          rebateId: prf.data.hidden_bap_rebate_id,
+          comboKey: prf.data.bap_hidden_entity_combo_key,
         })
           .then((res) => {
             window.location.reload();
@@ -316,11 +314,12 @@ function UserApplicationForm(props: { email: string }) {
     return null;
   }
 
-  const applicationFormOpen = configData.submissionPeriodOpen[rebateYear].frf;
+  const frfSubmissionPeriodOpen =
+    configData.submissionPeriodOpen[rebateYear].frf;
 
   const formIsReadOnly =
-    (submission.state === "submitted" || !applicationFormOpen) &&
-    !applicationNeedsEdits;
+    (submission.state === "submitted" || !frfSubmissionPeriodOpen) &&
+    !frfNeedsEdits;
 
   /** matched SAM.gov entity for the Application submission */
   const entity = bapSamData.entities.find((entity) => {

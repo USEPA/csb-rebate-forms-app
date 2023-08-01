@@ -357,10 +357,9 @@ export function useSubmissionsQueries() {
 }
 
 /**
- * Custom hook to combine FRF submissions data, Payment Request
- * form submissions data, and Close Out form submissions data from both the BAP
- * and Formio into a single `submissions` object, with the BAP assigned
- * `rebateId` as the keys.
+ * Custom hook to combine FRF submissions data, PRF submissions data, and CRF
+ * submissions data from both the BAP and Formio into a single `submissions`
+ * object, with the BAP assigned `rebateId` as the keys.
  **/
 function useCombinedRebates() {
   const queryClient = useQueryClient();

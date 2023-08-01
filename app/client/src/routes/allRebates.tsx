@@ -54,7 +54,7 @@ function ButtonLink(props: { type: "edit" | "view"; to: LinkProps["to"] }) {
   );
 }
 
-function ApplicationSubmission(props: { rebate: Rebate }) {
+function FRFSubmission(props: { rebate: Rebate }) {
   const { rebate } = props;
   const { frf, prf, crf } = rebate;
 
@@ -63,7 +63,8 @@ function ApplicationSubmission(props: { rebate: Rebate }) {
 
   if (!configData) return null;
 
-  const applicationFormOpen = configData.submissionPeriodOpen[rebateYear].frf;
+  const frfSubmissionPeriodOpen =
+    configData.submissionPeriodOpen[rebateYear].frf;
 
   const {
     applicantUEI,
@@ -77,44 +78,41 @@ function ApplicationSubmission(props: { rebate: Rebate }) {
   const date = new Date(frf.formio.modified).toLocaleDateString();
   const time = new Date(frf.formio.modified).toLocaleTimeString();
 
-  const applicationNeedsEdits = submissionNeedsEdits({
+  const frfNeedsEdits = submissionNeedsEdits({
     formio: frf.formio,
     bap: frf.bap,
   });
 
-  const applicationNeedsClarification =
-    frf.bap?.status === "Needs Clarification";
+  const frfNeedsClarification = frf.bap?.status === "Needs Clarification";
 
-  const applicationHasBeenWithdrawn = frf.bap?.status === "Withdrawn";
+  const frfHasBeenWithdrawn = frf.bap?.status === "Withdrawn";
 
-  const applicationNotSelected = frf.bap?.status === "Coordinator Denied";
+  const frfNotSelected = frf.bap?.status === "Coordinator Denied";
 
-  const applicationSelected = frf.bap?.status === "Accepted";
+  const frfSelected = frf.bap?.status === "Accepted";
 
-  const applicationSelectedButNoPaymentRequest =
-    applicationSelected && !Boolean(prf.formio);
+  const frfSelectedButNoPRF = frfSelected && !Boolean(prf.formio);
 
-  const paymentRequestFundingApproved = prf.bap?.status === "Accepted";
+  const prfFundingApproved = prf.bap?.status === "Accepted";
 
-  const paymentRequestFundingApprovedButNoCloseOut =
-    paymentRequestFundingApproved && !Boolean(crf.formio);
+  const prfFundingApprovedButNoCRF = prfFundingApproved && !Boolean(crf.formio);
 
   const statusTableCellClassNames =
-    frf.formio.state === "submitted" || !applicationFormOpen
+    frf.formio.state === "submitted" || !frfSubmissionPeriodOpen
       ? "text-italic"
       : "";
 
-  const statusIconClassNames = applicationSelected
+  const statusIconClassNames = frfSelected
     ? "usa-icon text-primary" // blue
     : "usa-icon";
 
-  const statusIcon = applicationNeedsEdits
+  const statusIcon = frfNeedsEdits
     ? `${icons}#priority_high` // !
-    : applicationHasBeenWithdrawn
+    : frfHasBeenWithdrawn
     ? `${icons}#close` // ✕
-    : applicationNotSelected
+    : frfNotSelected
     ? `${icons}#cancel` // x inside a circle
-    : applicationSelected
+    : frfSelected
     ? `${icons}#check_circle` // check inside a circle
     : frf.formio.state === "draft"
     ? `${icons}#more_horiz` // three horizontal dots
@@ -122,13 +120,13 @@ function ApplicationSubmission(props: { rebate: Rebate }) {
     ? `${icons}#check` // check
     : `${icons}#remove`; // — (fallback, not used)
 
-  const statusText = applicationNeedsEdits
+  const statusText = frfNeedsEdits
     ? "Edits Requested"
-    : applicationHasBeenWithdrawn
+    : frfHasBeenWithdrawn
     ? "Withdrawn"
-    : applicationNotSelected
+    : frfNotSelected
     ? "Not Selected"
-    : applicationSelected
+    : frfSelected
     ? "Selected"
     : frf.formio.state === "draft"
     ? "Draft"
@@ -136,7 +134,7 @@ function ApplicationSubmission(props: { rebate: Rebate }) {
     ? "Submitted"
     : ""; // fallback, not used
 
-  const applicationFormUrl = `/rebate/${frf.formio._id}`;
+  const frfUrl = `/rebate/${frf.formio._id}`;
 
   /**
    * NOTE on the usage of `TextWithTooltip` below:
@@ -155,20 +153,18 @@ function ApplicationSubmission(props: { rebate: Rebate }) {
   return (
     <tr
       className={
-        applicationNeedsEdits ||
-        applicationSelectedButNoPaymentRequest ||
-        paymentRequestFundingApprovedButNoCloseOut
+        frfNeedsEdits || frfSelectedButNoPRF || prfFundingApprovedButNoCRF
           ? highlightedTableRowClassNames
           : defaultTableRowClassNames
       }
     >
       <th scope="row" className={statusTableCellClassNames}>
-        {applicationNeedsEdits ? (
-          <ButtonLink type="edit" to={applicationFormUrl} />
-        ) : frf.formio.state === "submitted" || !applicationFormOpen ? (
-          <ButtonLink type="view" to={applicationFormUrl} />
+        {frfNeedsEdits ? (
+          <ButtonLink type="edit" to={frfUrl} />
+        ) : frf.formio.state === "submitted" || !frfSubmissionPeriodOpen ? (
+          <ButtonLink type="view" to={frfUrl} />
         ) : frf.formio.state === "draft" ? (
-          <ButtonLink type="edit" to={applicationFormUrl} />
+          <ButtonLink type="edit" to={frfUrl} />
         ) : null}
       </th>
 
@@ -189,7 +185,7 @@ function ApplicationSubmission(props: { rebate: Rebate }) {
         <span>Application</span>
         <br />
         <span className="display-flex flex-align-center font-sans-2xs">
-          {applicationNeedsClarification ? (
+          {frfNeedsClarification ? (
             <TextWithTooltip
               text="Needs Clarification"
               tooltip="Check your email for instructions on what needs clarification"
@@ -305,7 +301,7 @@ save the form for the EFT indicator to be displayed. */
   );
 }
 
-function PaymentRequestSubmission(props: { rebate: Rebate }) {
+function PRFSubmission(props: { rebate: Rebate }) {
   const { rebate } = props;
   const { frf, prf, crf } = rebate;
 
@@ -320,21 +316,20 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
   /**
    * Stores when data is being posted to the server, so a loading indicator can
    * be rendered inside the "New Payment Request" button, and we can prevent
-   * double submits/creations of new Payment Request form submissions.
+   * double submits/creations of new PRF submissions.
    */
   const [dataIsPosting, setDataIsPosting] = useState(false);
 
   if (!configData || !bapSamData) return null;
 
-  const paymentRequestFormOpen =
+  const prfSubmissionPeriodOpen =
     configData.submissionPeriodOpen[rebateYear].prf;
 
-  const applicationSelected = frf.bap?.status === "Accepted";
+  const frfSelected = frf.bap?.status === "Accepted";
 
-  const applicationSelectedButNoPaymentRequest =
-    applicationSelected && !Boolean(prf.formio);
+  const frfSelectedButNoPRF = frfSelected && !Boolean(prf.formio);
 
-  /** matched SAM.gov entity for the Application submission */
+  /** matched SAM.gov entity for the FRF submission */
   const entity = bapSamData.entities.find((entity) => {
     return (
       entity.ENTITY_STATUS__c === "Active" &&
@@ -342,7 +337,7 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
     );
   });
 
-  if (applicationSelectedButNoPaymentRequest) {
+  if (frfSelectedButNoPRF) {
     return (
       <tr className={highlightedTableRowClassNames}>
         <th scope="row" colSpan={6}>
@@ -357,7 +352,7 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
 
               const { title, name } = getUserInfo(email, entity);
 
-              // create a new draft Payment Request form submission
+              // create a new draft PRF submission
               postData(`${serverUrl}/api/formio-payment-request-submission/`, {
                 email,
                 title,
@@ -418,45 +413,42 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
   const date = new Date(prf.formio.modified).toLocaleDateString();
   const time = new Date(prf.formio.modified).toLocaleTimeString();
 
-  const applicationNeedsEdits = submissionNeedsEdits({
+  const frfNeedsEdits = submissionNeedsEdits({
     formio: frf.formio,
     bap: frf.bap,
   });
 
-  const paymentRequestNeedsEdits = submissionNeedsEdits({
+  const prfNeedsEdits = submissionNeedsEdits({
     formio: prf.formio,
     bap: prf.bap,
   });
 
-  const paymentRequestNeedsClarification =
-    prf.bap?.status === "Needs Clarification";
+  const prfNeedsClarification = prf.bap?.status === "Needs Clarification";
 
-  const paymentRequestHasBeenWithdrawn = prf.bap?.status === "Withdrawn";
+  const prfHasBeenWithdrawn = prf.bap?.status === "Withdrawn";
 
-  const paymentRequestFundingNotApproved =
-    prf.bap?.status === "Coordinator Denied";
+  const prfFundingNotApproved = prf.bap?.status === "Coordinator Denied";
 
-  const paymentRequestFundingApproved = prf.bap?.status === "Accepted";
+  const prfFundingApproved = prf.bap?.status === "Accepted";
 
-  const paymentRequestFundingApprovedButNoCloseOut =
-    paymentRequestFundingApproved && !Boolean(crf.formio);
+  const prfFundingApprovedButNoCRF = prfFundingApproved && !Boolean(crf.formio);
 
   const statusTableCellClassNames =
-    prf.formio.state === "submitted" || !paymentRequestFormOpen
+    prf.formio.state === "submitted" || !prfSubmissionPeriodOpen
       ? "text-italic"
       : "";
 
-  const statusIconClassNames = paymentRequestFundingApproved
+  const statusIconClassNames = prfFundingApproved
     ? "usa-icon text-primary" // blue
     : "usa-icon";
 
-  const statusIcon = paymentRequestNeedsEdits
+  const statusIcon = prfNeedsEdits
     ? `${icons}#priority_high` // !
-    : paymentRequestHasBeenWithdrawn
+    : prfHasBeenWithdrawn
     ? `${icons}#close` // ✕
-    : paymentRequestFundingNotApproved
+    : prfFundingNotApproved
     ? `${icons}#cancel` // ✕ inside a circle
-    : paymentRequestFundingApproved
+    : prfFundingApproved
     ? `${icons}#check_circle` // check inside a circle
     : prf.formio.state === "draft"
     ? `${icons}#more_horiz` // three horizontal dots
@@ -464,13 +456,13 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
     ? `${icons}#check` // check
     : `${icons}#remove`; // — (fallback, not used)
 
-  const statusText = paymentRequestNeedsEdits
+  const statusText = prfNeedsEdits
     ? "Edits Requested"
-    : paymentRequestHasBeenWithdrawn
+    : prfHasBeenWithdrawn
     ? "Withdrawn"
-    : paymentRequestFundingNotApproved
+    : prfFundingNotApproved
     ? "Funding Not Approved"
-    : paymentRequestFundingApproved
+    : prfFundingApproved
     ? "Funding Approved"
     : prf.formio.state === "draft"
     ? "Draft"
@@ -478,25 +470,25 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
     ? "Submitted"
     : ""; // fallback, not used
 
-  const paymentRequestFormUrl = `/payment-request/${hidden_bap_rebate_id}`;
+  const prfUrl = `/payment-request/${hidden_bap_rebate_id}`;
 
   return (
     <tr
       className={
-        paymentRequestNeedsEdits || paymentRequestFundingApprovedButNoCloseOut
+        prfNeedsEdits || prfFundingApprovedButNoCRF
           ? highlightedTableRowClassNames
           : defaultTableRowClassNames
       }
     >
       <th scope="row" className={statusTableCellClassNames}>
-        {applicationNeedsEdits ? (
-          <ButtonLink type="view" to={paymentRequestFormUrl} />
-        ) : paymentRequestNeedsEdits ? (
-          <ButtonLink type="edit" to={paymentRequestFormUrl} />
-        ) : prf.formio.state === "submitted" || !paymentRequestFormOpen ? (
-          <ButtonLink type="view" to={paymentRequestFormUrl} />
+        {frfNeedsEdits ? (
+          <ButtonLink type="view" to={prfUrl} />
+        ) : prfNeedsEdits ? (
+          <ButtonLink type="edit" to={prfUrl} />
+        ) : prf.formio.state === "submitted" || !prfSubmissionPeriodOpen ? (
+          <ButtonLink type="view" to={prfUrl} />
         ) : prf.formio.state === "draft" ? (
-          <ButtonLink type="edit" to={paymentRequestFormUrl} />
+          <ButtonLink type="edit" to={prfUrl} />
         ) : null}
       </th>
 
@@ -506,7 +498,7 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
         <span>Payment Request</span>
         <br />
         <span className="display-flex flex-align-center font-sans-2xs">
-          {paymentRequestNeedsClarification ? (
+          {prfNeedsClarification ? (
             <TextWithTooltip
               text="Needs Clarification"
               tooltip="Check your email for instructions on what needs clarification"
@@ -541,7 +533,7 @@ function PaymentRequestSubmission(props: { rebate: Rebate }) {
   );
 }
 
-function CloseOutSubmission(props: { rebate: Rebate }) {
+function CRFSubmission(props: { rebate: Rebate }) {
   const { rebate } = props;
   const { frf, prf, crf } = rebate;
 
@@ -562,14 +554,14 @@ function CloseOutSubmission(props: { rebate: Rebate }) {
 
   if (!configData || !bapSamData) return null;
 
-  const closeOutFormOpen = configData.submissionPeriodOpen[rebateYear].crf;
+  const crfSubmissionPeriodOpen =
+    configData.submissionPeriodOpen[rebateYear].crf;
 
-  const paymentRequestFundingApproved = prf.bap?.status === "Accepted";
+  const prfFundingApproved = prf.bap?.status === "Accepted";
 
-  const paymentRequestFundingApprovedButNoCloseOut =
-    paymentRequestFundingApproved && !Boolean(crf.formio);
+  const prfFundingApprovedButNoCRF = prfFundingApproved && !Boolean(crf.formio);
 
-  /** matched SAM.gov entity for the Payment Request submission */
+  /** matched SAM.gov entity for the PRF submission */
   const entity = bapSamData.entities.find((entity) => {
     return (
       entity.ENTITY_STATUS__c === "Active" &&
@@ -578,7 +570,7 @@ function CloseOutSubmission(props: { rebate: Rebate }) {
     );
   });
 
-  if (paymentRequestFundingApprovedButNoCloseOut) {
+  if (prfFundingApprovedButNoCRF) {
     return (
       <tr className={highlightedTableRowClassNames}>
         <th scope="row" colSpan={6}>
@@ -593,7 +585,7 @@ function CloseOutSubmission(props: { rebate: Rebate }) {
 
               const { title, name } = getUserInfo(email, entity);
 
-              // create a new draft Close Out form submission
+              // create a new draft CRF submission
               postData(`${serverUrl}/api/formio-close-out-submission/`, {
                 email,
                 title,
@@ -654,32 +646,33 @@ function CloseOutSubmission(props: { rebate: Rebate }) {
   const date = new Date(crf.formio.modified).toLocaleDateString();
   const time = new Date(crf.formio.modified).toLocaleTimeString();
 
-  const closeOutNeedsEdits = submissionNeedsEdits({
+  const crfNeedsEdits = submissionNeedsEdits({
     formio: crf.formio,
     bap: crf.bap,
   });
 
-  const closeOutNeedsClarification = crf.bap?.status === "Needs Clarification";
+  const crfNeedsClarification = crf.bap?.status === "Needs Clarification";
 
-  const closeOutReimbursementNeeded =
-    crf.bap?.status === "Reimbursement Needed";
+  const crfReimbursementNeeded = crf.bap?.status === "Reimbursement Needed";
 
-  const closeOutNotApproved = crf.bap?.status === "Branch Director Denied";
+  const crfNotApproved = crf.bap?.status === "Branch Director Denied";
 
-  const closeOutApproved = crf.bap?.status === "Branch Director Approved";
+  const crfApproved = crf.bap?.status === "Branch Director Approved";
 
   const statusTableCellClassNames =
-    crf.formio.state === "submitted" || !closeOutFormOpen ? "text-italic" : "";
+    crf.formio.state === "submitted" || !crfSubmissionPeriodOpen
+      ? "text-italic"
+      : "";
 
-  const statusIconClassNames = closeOutApproved
+  const statusIconClassNames = crfApproved
     ? "usa-icon text-primary" // blue
     : "usa-icon";
 
-  const statusIcon = closeOutNeedsEdits
+  const statusIcon = crfNeedsEdits
     ? `${icons}#priority_high` // !
-    : closeOutNotApproved
+    : crfNotApproved
     ? `${icons}#cancel` // ✕ inside a circle
-    : closeOutApproved
+    : crfApproved
     ? `${icons}#check_circle` // check inside a circle
     : crf.formio.state === "draft"
     ? `${icons}#more_horiz` // three horizontal dots
@@ -687,11 +680,11 @@ function CloseOutSubmission(props: { rebate: Rebate }) {
     ? `${icons}#check` // check
     : `${icons}#remove`; // — (fallback, not used)
 
-  const statusText = closeOutNeedsEdits
+  const statusText = crfNeedsEdits
     ? "Edits Requested"
-    : closeOutNotApproved
+    : crfNotApproved
     ? "Close Out Not Approved"
-    : closeOutApproved
+    : crfApproved
     ? "Close Out Approved"
     : crf.formio.state === "draft"
     ? "Draft"
@@ -699,23 +692,23 @@ function CloseOutSubmission(props: { rebate: Rebate }) {
     ? "Submitted"
     : ""; // fallback, not used
 
-  const closeOutFormUrl = `/close-out/${hidden_bap_rebate_id}`;
+  const crfUrl = `/close-out/${hidden_bap_rebate_id}`;
 
   return (
     <tr
       className={
-        closeOutNeedsEdits || paymentRequestFundingApprovedButNoCloseOut
+        crfNeedsEdits || prfFundingApprovedButNoCRF
           ? highlightedTableRowClassNames
           : defaultTableRowClassNames
       }
     >
       <th scope="row" className={statusTableCellClassNames}>
-        {closeOutNeedsEdits ? (
-          <ButtonLink type="edit" to={closeOutFormUrl} />
-        ) : crf.formio.state === "submitted" || !closeOutFormOpen ? (
-          <ButtonLink type="view" to={closeOutFormUrl} />
+        {crfNeedsEdits ? (
+          <ButtonLink type="edit" to={crfUrl} />
+        ) : crf.formio.state === "submitted" || !crfSubmissionPeriodOpen ? (
+          <ButtonLink type="view" to={crfUrl} />
         ) : crf.formio.state === "draft" ? (
-          <ButtonLink type="edit" to={closeOutFormUrl} />
+          <ButtonLink type="edit" to={crfUrl} />
         ) : null}
       </th>
 
@@ -725,13 +718,13 @@ function CloseOutSubmission(props: { rebate: Rebate }) {
         <span>Close Out</span>
         <br />
         <span className="display-flex flex-align-center font-sans-2xs">
-          {closeOutNeedsClarification ? (
+          {crfNeedsClarification ? (
             <TextWithTooltip
               text="Needs Clarification"
               tooltip="Check your email for instructions on what needs clarification"
               iconClassNames="text-base-darkest"
             />
-          ) : closeOutReimbursementNeeded ? (
+          ) : crfReimbursementNeeded ? (
             <TextWithTooltip
               text="Reimbursement Needed"
               tooltip="Check your email for information on reimbursement needed"
@@ -786,7 +779,7 @@ export function AllRebates() {
   const { rebateYear } = useRebateYearState();
   const { setRebateYear } = useRebateYearActions();
 
-  const applicationFormOpen = configData
+  const frfSubmissionPeriodOpen = configData
     ? configData.submissionPeriodOpen[rebateYear].frf
     : false;
 
@@ -834,7 +827,7 @@ export function AllRebates() {
           </div>
 
           <div className="margin-bottom-1 mobile-lg:margin-right-1">
-            {!applicationFormOpen ? (
+            {!frfSubmissionPeriodOpen ? (
               <button className={btnClassNames} disabled>
                 <NewApplicationIconText />
               </button>
@@ -931,9 +924,9 @@ export function AllRebates() {
               <tbody>
                 {rebates.map((rebate, index) => (
                   <Fragment key={rebate.rebateId}>
-                    <ApplicationSubmission rebate={rebate} />
-                    <PaymentRequestSubmission rebate={rebate} />
-                    <CloseOutSubmission rebate={rebate} />
+                    <FRFSubmission rebate={rebate} />
+                    <PRFSubmission rebate={rebate} />
+                    <CRFSubmission rebate={rebate} />
                     {/* blank row after all rebates but the last one */}
                     {index !== rebates.length - 1 && (
                       <tr className="bg-white">

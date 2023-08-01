@@ -184,27 +184,27 @@ function UserPaymentRequestForm(props: { email: string }) {
 
   const rebate = rebates.find((r) => r.rebateId === rebateId);
 
-  const applicationNeedsEdits = !rebate
+  const frfNeedsEdits = !rebate
     ? false
     : submissionNeedsEdits({
         formio: rebate.frf.formio,
         bap: rebate.frf.bap,
       });
 
-  const paymentRequestNeedsEdits = !rebate
+  const prfNeedsEdits = !rebate
     ? false
     : submissionNeedsEdits({
         formio: rebate.prf.formio,
         bap: rebate.prf.bap,
       });
 
-  const paymentRequestFormOpen =
+  const prfSubmissionPeriodOpen =
     configData.submissionPeriodOpen[rebateYear].prf;
 
   const formIsReadOnly =
-    applicationNeedsEdits ||
-    ((submission.state === "submitted" || !paymentRequestFormOpen) &&
-      !paymentRequestNeedsEdits);
+    frfNeedsEdits ||
+    ((submission.state === "submitted" || !prfSubmissionPeriodOpen) &&
+      !prfNeedsEdits);
 
   /** matched SAM.gov entity for the Payment Request submission */
   const entity = bapSamData.entities.find((entity) => {
@@ -246,11 +246,8 @@ function UserPaymentRequestForm(props: { email: string }) {
         />
       )}
 
-      {applicationNeedsEdits && (
-        <Message
-          type="warning"
-          text={messages.paymentRequestFormWillBeDeleted}
-        />
+      {frfNeedsEdits && (
+        <Message type="warning" text={messages.prfWillBeDeleted} />
       )}
 
       <ul className="usa-icon-list">
@@ -464,11 +461,8 @@ function UserPaymentRequestForm(props: { email: string }) {
         />
       </div>
 
-      {applicationNeedsEdits && (
-        <Message
-          type="warning"
-          text={messages.paymentRequestFormWillBeDeleted}
-        />
+      {frfNeedsEdits && (
+        <Message type="warning" text={messages.prfWillBeDeleted} />
       )}
     </div>
   );
