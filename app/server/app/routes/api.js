@@ -6,9 +6,9 @@ const ObjectId = require("mongodb").ObjectId;
 // ---
 const {
   axiosFormio,
-  formioApplicationFormUrl,
-  formioPaymentRequestFormUrl,
-  formioCloseOutFormUrl,
+  formioFRF2022Url,
+  formioPRF2022Url,
+  formioCRF2022Url,
   formioCsbMetadata,
 } = require("../config/formio");
 const {
@@ -260,7 +260,7 @@ router.get(
     }
 
     axiosFormio(req)
-      .get(`${formioApplicationFormUrl}/storage/s3`, { params: query })
+      .get(`${formioFRF2022Url}/storage/s3`, { params: query })
       .then((axiosRes) => axiosRes.data)
       .then((fileMetadata) => res.json(fileMetadata))
       .catch((error) => {
@@ -301,7 +301,7 @@ router.post(
         }
 
         axiosFormio(req)
-          .post(`${formioApplicationFormUrl}/storage/s3`, body)
+          .post(`${formioFRF2022Url}/storage/s3`, body)
           .then((axiosRes) => axiosRes.data)
           .then((fileMetadata) => res.json(fileMetadata))
           .catch((error) => {
@@ -349,7 +349,7 @@ router.get("/formio-application-submissions", storeBapComboKeys, (req, res) => {
   if (bapComboKeys.length === 0) return res.json([]);
 
   const userSubmissionsUrl =
-    `${formioApplicationFormUrl}/submission` +
+    `${formioFRF2022Url}/submission` +
     `?sort=-modified` +
     `&limit=1000000` +
     `&data.bap_hidden_entity_combo_key=` +
@@ -394,7 +394,7 @@ router.post("/formio-application-submission", storeBapComboKeys, (req, res) => {
   body.metadata = { ...formioCsbMetadata };
 
   axiosFormio(req)
-    .post(`${formioApplicationFormUrl}/submission`, body)
+    .post(`${formioFRF2022Url}/submission`, body)
     .then((axiosRes) => axiosRes.data)
     .then((submission) => res.json(submission))
     .catch((error) => {
@@ -416,8 +416,8 @@ router.get(
     const { mongoId } = req.params;
 
     Promise.all([
-      axiosFormio(req).get(`${formioApplicationFormUrl}/submission/${mongoId}`),
-      axiosFormio(req).get(formioApplicationFormUrl),
+      axiosFormio(req).get(`${formioFRF2022Url}/submission/${mongoId}`),
+      axiosFormio(req).get(formioFRF2022Url),
     ])
       .then((axiosResponses) => axiosResponses.map((axiosRes) => axiosRes.data))
       .then(([submission, schema]) => {
@@ -438,7 +438,7 @@ router.get(
 
         return res.json({
           userAccess: true,
-          formSchema: { url: formioApplicationFormUrl, json: schema },
+          formSchema: { url: formioFRF2022Url, json: schema },
           submission,
         });
       })
@@ -491,7 +491,7 @@ router.post(
         };
 
         axiosFormio(req)
-          .put(`${formioApplicationFormUrl}/submission/${mongoId}`, submission)
+          .put(`${formioFRF2022Url}/submission/${mongoId}`, submission)
           .then((axiosRes) => axiosRes.data)
           .then((submission) => res.json(submission))
           .catch((error) => {
@@ -522,7 +522,7 @@ router.get(
     const { bapComboKeys } = req;
 
     const userSubmissionsUrl =
-      `${formioPaymentRequestFormUrl}/submission` +
+      `${formioPRF2022Url}/submission` +
       `?sort=-modified` +
       `&limit=1000000` +
       `&data.bap_hidden_entity_combo_key=${bapComboKeys.join(
@@ -654,7 +654,7 @@ router.post(
         };
 
         axiosFormio(req)
-          .post(`${formioPaymentRequestFormUrl}/submission`, submission)
+          .post(`${formioPRF2022Url}/submission`, submission)
           .then((axiosRes) => axiosRes.data)
           .then((submission) => res.json(submission))
           .catch((error) => {
@@ -683,13 +683,13 @@ router.get(
     const { rebateId } = req.params; // CSB Rebate ID (6 digits)
 
     const matchedPaymentRequestFormSubmissions =
-      `${formioPaymentRequestFormUrl}/submission` +
+      `${formioPRF2022Url}/submission` +
       `?data.hidden_bap_rebate_id=${rebateId}` +
       `&select=_id,data.bap_hidden_entity_combo_key`;
 
     Promise.all([
       axiosFormio(req).get(matchedPaymentRequestFormSubmissions),
-      axiosFormio(req).get(formioPaymentRequestFormUrl),
+      axiosFormio(req).get(formioPRF2022Url),
     ])
       .then((axiosResponses) => axiosResponses.map((axiosRes) => axiosRes.data))
       .then(([submissions, schema]) => {
@@ -726,12 +726,12 @@ router.get(
          * to have Formio return the correct signature field data.
          */
         axiosFormio(req)
-          .get(`${formioPaymentRequestFormUrl}/submission/${mongoId}`)
+          .get(`${formioPRF2022Url}/submission/${mongoId}`)
           .then((axiosRes) => axiosRes.data)
           .then((submission) => {
             return res.json({
               userAccess: true,
-              formSchema: { url: formioPaymentRequestFormUrl, json: schema },
+              formSchema: { url: formioPRF2022Url, json: schema },
               submission,
             });
           });
@@ -791,10 +791,7 @@ router.post(
         };
 
         axiosFormio(req)
-          .put(
-            `${formioPaymentRequestFormUrl}/submission/${mongoId}`,
-            submission
-          )
+          .put(`${formioPRF2022Url}/submission/${mongoId}`, submission)
           .then((axiosRes) => axiosRes.data)
           .then((submission) => res.json(submission))
           .catch((error) => {
@@ -863,7 +860,7 @@ router.post(
         }
 
         axiosFormio(req)
-          .delete(`${formioPaymentRequestFormUrl}/submission/${mongoId}`)
+          .delete(`${formioPRF2022Url}/submission/${mongoId}`)
           .then((axiosRes) => axiosRes.data)
           .then((response) => {
             const logMessage = `User with email '${mail}' successfully deleted Payment Request form submission '${rebateId}'.`;
@@ -892,7 +889,7 @@ router.get("/formio-close-out-submissions", storeBapComboKeys, (req, res) => {
   const { bapComboKeys } = req;
 
   const userSubmissionsUrl =
-    `${formioCloseOutFormUrl}/submission` +
+    `${formioCRF2022Url}/submission` +
     `?sort=-modified` +
     `&limit=1000000` +
     `&data.bap_hidden_entity_combo_key=${bapComboKeys.join(
@@ -1084,7 +1081,7 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
         };
 
         axiosFormio(req)
-          .post(`${formioCloseOutFormUrl}/submission`, submission)
+          .post(`${formioCRF2022Url}/submission`, submission)
           .then((axiosRes) => axiosRes.data)
           .then((submission) => res.json(submission))
           .catch((error) => {
@@ -1113,13 +1110,13 @@ router.get(
     const { rebateId } = req.params; // CSB Rebate ID (6 digits)
 
     const matchedCloseOutFormSubmissions =
-      `${formioCloseOutFormUrl}/submission` +
+      `${formioCRF2022Url}/submission` +
       `?data.hidden_bap_rebate_id=${rebateId}` +
       `&select=_id,data.bap_hidden_entity_combo_key`;
 
     Promise.all([
       axiosFormio(req).get(matchedCloseOutFormSubmissions),
-      axiosFormio(req).get(formioCloseOutFormUrl),
+      axiosFormio(req).get(formioCRF2022Url),
     ])
       .then((axiosResponses) => axiosResponses.map((axiosRes) => axiosRes.data))
       .then(([submissions, schema]) => {
@@ -1156,12 +1153,12 @@ router.get(
          * to have Formio return the correct signature field data.
          */
         axiosFormio(req)
-          .get(`${formioCloseOutFormUrl}/submission/${mongoId}`)
+          .get(`${formioCRF2022Url}/submission/${mongoId}`)
           .then((axiosRes) => axiosRes.data)
           .then((submission) => {
             return res.json({
               userAccess: true,
-              formSchema: { url: formioCloseOutFormUrl, json: schema },
+              formSchema: { url: formioCRF2022Url, json: schema },
               submission,
             });
           });
@@ -1221,7 +1218,7 @@ router.post(
         };
 
         axiosFormio(req)
-          .put(`${formioCloseOutFormUrl}/submission/${mongoId}`, submission)
+          .put(`${formioCRF2022Url}/submission/${mongoId}`, submission)
           .then((axiosRes) => axiosRes.data)
           .then((submission) => res.json(submission))
           .catch((error) => {

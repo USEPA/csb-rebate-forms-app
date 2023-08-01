@@ -18,9 +18,9 @@ const {
 } = process.env;
 
 const formioProjectUrl = `${FORMIO_BASE_URL}/${FORMIO_PROJECT_NAME}`;
-const formioApplicationFormUrl = `${formioProjectUrl}/${FORMIO_FRF_2022_PATH}`;
-const formioPaymentRequestFormUrl = `${formioProjectUrl}/${FORMIO_PRF_2022_PATH}`;
-const formioCloseOutFormUrl = `${formioProjectUrl}/${FORMIO_CRF_2022_PATH}`;
+const formioFRF2022Url = `${formioProjectUrl}/${FORMIO_FRF_2022_PATH}`;
+const formioPRF2022Url = `${formioProjectUrl}/${FORMIO_PRF_2022_PATH}`;
+const formioCRF2022Url = `${formioProjectUrl}/${FORMIO_CRF_2022_PATH}`;
 
 /** @param {express.Request} req */
 function axiosFormio(req) {
@@ -85,8 +85,8 @@ const formioCsbMetadata = {
 
 module.exports = {
   axiosFormio,
-  formioApplicationFormUrl,
-  formioPaymentRequestFormUrl,
-  formioCloseOutFormUrl,
+  formioFRF2022Url,
+  formioPRF2022Url,
+  formioCRF2022Url,
   formioCsbMetadata,
 };
