@@ -14,9 +14,9 @@ import {
   bapCloseOutStatusMap,
 } from "../config";
 import {
-  FormioApplicationSubmission,
-  FormioPaymentRequestSubmission,
-  FormioCloseOutSubmission,
+  FormioFRFSubmission,
+  FormioPRFSubmission,
+  FormioCRFSubmission,
   BapSubmission,
   getData,
   postData,
@@ -39,10 +39,7 @@ type ServerResponse =
     }
   | {
       formSchema: { url: string; json: object };
-      formio:
-        | FormioApplicationSubmission
-        | FormioPaymentRequestSubmission
-        | FormioCloseOutSubmission;
+      formio: FormioFRFSubmission | FormioPRFSubmission | FormioCRFSubmission;
       bap: BapSubmission;
     };
 
@@ -61,10 +58,7 @@ function formatTime(dateTimeString: string | null) {
  */
 function getStatus(options: {
   formType: FormType;
-  formio:
-    | FormioApplicationSubmission
-    | FormioPaymentRequestSubmission
-    | FormioCloseOutSubmission;
+  formio: FormioFRFSubmission | FormioPRFSubmission | FormioCRFSubmission;
   bap: BapSubmission;
 }) {
   const { formType, formio, bap } = options;

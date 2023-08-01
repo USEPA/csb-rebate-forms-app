@@ -6,7 +6,7 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages } from "../config";
 import {
-  FormioApplicationSubmission,
+  FormioFRFSubmission,
   postData,
   useContentData,
   useConfigData,
@@ -195,7 +195,7 @@ export function NewApplicationForm() {
                                           entity
                                         );
 
-                                        postData<FormioApplicationSubmission>(
+                                        postData<FormioFRFSubmission>(
                                           `${serverUrl}/api/formio-application-submission/`,
                                           {
                                             data: {

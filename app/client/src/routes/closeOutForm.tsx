@@ -9,7 +9,7 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages } from "../config";
 import {
-  FormioCloseOutSubmission,
+  FormioCRFSubmission,
   getData,
   postData,
   useContentData,
@@ -35,7 +35,7 @@ type ServerResponse =
   | {
       userAccess: true;
       formSchema: { url: string; json: object };
-      submission: FormioCloseOutSubmission;
+      submission: FormioCRFSubmission;
     };
 
 /** Custom hook to fetch Formio submission data */
@@ -84,7 +84,7 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
         state: "submitted" | "draft";
       };
     }) => {
-      return postData<FormioCloseOutSubmission>(url, updatedSubmission);
+      return postData<FormioCRFSubmission>(url, updatedSubmission);
     },
     onSuccess: (res) => {
       return queryClient.setQueryData<ServerResponse>(
@@ -187,8 +187,8 @@ function UserCloseOutForm(props: { email: string }) {
   const closeOutNeedsEdits = !rebate
     ? false
     : submissionNeedsEdits({
-        formio: rebate.closeOut.formio,
-        bap: rebate.closeOut.bap,
+        formio: rebate.crf.formio,
+        bap: rebate.crf.bap,
       });
 
   const closeOutFormOpen = configData.submissionPeriodOpen[rebateYear].crf;

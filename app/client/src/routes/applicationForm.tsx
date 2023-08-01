@@ -9,7 +9,7 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages } from "../config";
 import {
-  FormioApplicationSubmission,
+  FormioFRFSubmission,
   getData,
   postData,
   useContentData,
@@ -36,7 +36,7 @@ type ServerResponse =
   | {
       userAccess: true;
       formSchema: { url: string; json: object };
-      submission: FormioApplicationSubmission;
+      submission: FormioFRFSubmission;
     };
 
 /** Custom hook to fetch Formio submission data */
@@ -89,7 +89,7 @@ function useFormioSubmissionQueryAndMutation(mongoId: string | undefined) {
       metadata: { [field: string]: unknown };
       state: "submitted" | "draft";
     }) => {
-      return postData<FormioApplicationSubmission>(url, updatedSubmission);
+      return postData<FormioFRFSubmission>(url, updatedSubmission);
     },
     onSuccess: (res) => {
       return queryClient.setQueryData<ServerResponse>(
@@ -189,17 +189,17 @@ function UserApplicationForm(props: { email: string }) {
     return <Message type="error" text={messages.formSubmissionError} />;
   }
 
-  const rebate = rebates.find((r) => r.application.formio._id === mongoId);
+  const rebate = rebates.find((r) => r.frf.formio._id === mongoId);
 
   const applicationNeedsEdits = !rebate
     ? false
     : submissionNeedsEdits({
-        formio: rebate.application.formio,
-        bap: rebate.application.bap,
+        formio: rebate.frf.formio,
+        bap: rebate.frf.bap,
       });
 
   const applicationNeedsEditsAndPaymentRequestExists =
-    applicationNeedsEdits && !!rebate?.paymentRequest.formio;
+    applicationNeedsEdits && !!rebate?.prf.formio;
 
   /**
    * NOTE: If the Application form submission needs edits and there's a
@@ -250,7 +250,7 @@ function UserApplicationForm(props: { email: string }) {
       ),
       confirmText: "Delete Payment Request Form Submission",
       confirmedAction: () => {
-        const paymentRequest = rebate.paymentRequest.formio;
+        const paymentRequest = rebate.prf.formio;
 
         if (!paymentRequest) {
           displayErrorNotification({
@@ -365,7 +365,7 @@ function UserApplicationForm(props: { email: string }) {
           </div>
         </li>
 
-        {rebate?.application.bap?.rebateId && (
+        {rebate?.frf.bap?.rebateId && (
           <li className="usa-icon-list__item">
             <div className="usa-icon-list__icon text-primary">
               <svg className="usa-icon" aria-hidden="true" role="img">
@@ -373,7 +373,7 @@ function UserApplicationForm(props: { email: string }) {
               </svg>
             </div>
             <div className="usa-icon-list__content">
-              <strong>Rebate ID:</strong> {rebate.application.bap.rebateId}
+              <strong>Rebate ID:</strong> {rebate.frf.bap.rebateId}
             </div>
           </li>
         )}

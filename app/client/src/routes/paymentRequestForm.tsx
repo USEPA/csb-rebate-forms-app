@@ -9,7 +9,7 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages } from "../config";
 import {
-  FormioPaymentRequestSubmission,
+  FormioPRFSubmission,
   getData,
   postData,
   useContentData,
@@ -35,7 +35,7 @@ type ServerResponse =
   | {
       userAccess: true;
       formSchema: { url: string; json: object };
-      submission: FormioPaymentRequestSubmission;
+      submission: FormioPRFSubmission;
     };
 
 /** Custom hook to fetch Formio submission data */
@@ -84,7 +84,7 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
         state: "submitted" | "draft";
       };
     }) => {
-      return postData<FormioPaymentRequestSubmission>(url, updatedSubmission);
+      return postData<FormioPRFSubmission>(url, updatedSubmission);
     },
     onSuccess: (res) => {
       return queryClient.setQueryData<ServerResponse>(
@@ -187,15 +187,15 @@ function UserPaymentRequestForm(props: { email: string }) {
   const applicationNeedsEdits = !rebate
     ? false
     : submissionNeedsEdits({
-        formio: rebate.application.formio,
-        bap: rebate.application.bap,
+        formio: rebate.frf.formio,
+        bap: rebate.frf.bap,
       });
 
   const paymentRequestNeedsEdits = !rebate
     ? false
     : submissionNeedsEdits({
-        formio: rebate.paymentRequest.formio,
-        bap: rebate.paymentRequest.bap,
+        formio: rebate.prf.formio,
+        bap: rebate.prf.bap,
       });
 
   const paymentRequestFormOpen =

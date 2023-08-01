@@ -86,7 +86,7 @@ type BapFormSubmission = {
   attributes: { type: string; url: string };
 };
 
-export type FormioApplicationSubmission = {
+export type FormioFRFSubmission = {
   [field: string]: unknown;
   _id: string; // MongoDB ObjectId string
   state: "submitted" | "draft";
@@ -122,7 +122,7 @@ export type FormioApplicationSubmission = {
   };
 };
 
-export type FormioPaymentRequestSubmission = {
+export type FormioPRFSubmission = {
   [field: string]: unknown;
   _id: string; // MongoDB ObjectId string
   state: "submitted" | "draft";
@@ -142,7 +142,7 @@ export type FormioPaymentRequestSubmission = {
   };
 };
 
-export type FormioCloseOutSubmission = {
+export type FormioCRFSubmission = {
   [field: string]: unknown;
   _id: string; // MongoDB ObjectId string
   state: "submitted" | "draft";
@@ -172,16 +172,16 @@ export type BapSubmission = {
 };
 
 export type Rebate = {
-  application: {
-    formio: FormioApplicationSubmission;
+  frf: {
+    formio: FormioFRFSubmission;
     bap: BapSubmission | null;
   };
-  paymentRequest: {
-    formio: FormioPaymentRequestSubmission | null;
+  prf: {
+    formio: FormioPRFSubmission | null;
     bap: BapSubmission | null;
   };
-  closeOut: {
-    formio: FormioCloseOutSubmission | null;
+  crf: {
+    formio: FormioCRFSubmission | null;
     bap: BapSubmission | null;
   };
 };
@@ -305,11 +305,11 @@ export function useSubmissionsQueries() {
               (object, submission) => {
                 const formType =
                   submission.Record_Type_Name__c === "CSB Funding Request"
-                    ? "applications"
+                    ? "frfs"
                     : submission.Record_Type_Name__c === "CSB Payment Request"
-                    ? "paymentRequests"
+                    ? "prfs"
                     : submission.Record_Type_Name__c === "CSB Closeout Request"
-                    ? "closeOuts"
+                    ? "crfs"
                     : null;
 
                 if (formType) object[formType].push(submission);
@@ -317,9 +317,9 @@ export function useSubmissionsQueries() {
                 return object;
               },
               {
-                applications: [] as BapFormSubmission[],
-                paymentRequests: [] as BapFormSubmission[],
-                closeOuts: [] as BapFormSubmission[],
+                frfs: [] as BapFormSubmission[],
+                prfs: [] as BapFormSubmission[],
+                crfs: [] as BapFormSubmission[],
               }
             );
 
@@ -329,26 +329,26 @@ export function useSubmissionsQueries() {
         refetchOnWindowFocus: false,
       },
       {
-        queryKey: ["formio-application-submissions"],
+        queryKey: ["formio-frf-submissions"],
         queryFn: () => {
           const url = `${serverUrl}/api/formio-application-submissions`;
-          return getData<FormioApplicationSubmission[]>(url);
+          return getData<FormioFRFSubmission[]>(url);
         },
         refetchOnWindowFocus: false,
       },
       {
-        queryKey: ["formio-payment-request-submissions"],
+        queryKey: ["formio-prf-submissions"],
         queryFn: () => {
           const url = `${serverUrl}/api/formio-payment-request-submissions`;
-          return getData<FormioPaymentRequestSubmission[]>(url);
+          return getData<FormioPRFSubmission[]>(url);
         },
         refetchOnWindowFocus: false,
       },
       {
-        queryKey: ["formio-close-out-submissions"],
+        queryKey: ["formio-crf-submissions"],
         queryFn: () => {
           const url = `${serverUrl}/api/formio-close-out-submissions`;
-          return getData<FormioCloseOutSubmission[]>(url);
+          return getData<FormioCRFSubmission[]>(url);
         },
         refetchOnWindowFocus: false,
       },
@@ -357,7 +357,7 @@ export function useSubmissionsQueries() {
 }
 
 /**
- * Custom hook to combine Application form submissions data, Payment Request
+ * Custom hook to combine FRF submissions data, Payment Request
  * form submissions data, and Close Out form submissions data from both the BAP
  * and Formio into a single `submissions` object, with the BAP assigned
  * `rebateId` as the keys.
@@ -366,29 +366,29 @@ function useCombinedRebates() {
   const queryClient = useQueryClient();
 
   const bapFormSubmissions = queryClient.getQueryData<{
-    applications: BapFormSubmission[];
-    paymentRequests: BapFormSubmission[];
-    closeOuts: BapFormSubmission[];
+    frfs: BapFormSubmission[];
+    prfs: BapFormSubmission[];
+    crfs: BapFormSubmission[];
   }>(["bap-form-submissions"]);
 
-  const formioApplicationSubmissions = queryClient.getQueryData<
-    FormioApplicationSubmission[]
-  >(["formio-application-submissions"]);
+  const formioFRFSubmissions = queryClient.getQueryData<FormioFRFSubmission[]>([
+    "formio-frf-submissions",
+  ]);
 
-  const formioPaymentRequestSubmissions = queryClient.getQueryData<
-    FormioPaymentRequestSubmission[]
-  >(["formio-payment-request-submissions"]);
+  const formioPRFSubmissions = queryClient.getQueryData<FormioPRFSubmission[]>([
+    "formio-prf-submissions",
+  ]);
 
-  const formioCloseOutSubmissions = queryClient.getQueryData<
-    FormioCloseOutSubmission[]
-  >(["formio-close-out-submissions"]);
+  const formioCRFSubmissions = queryClient.getQueryData<FormioCRFSubmission[]>([
+    "formio-crf-submissions",
+  ]);
 
   // ensure form submissions data has been fetched from both the BAP and Formio
   if (
     !bapFormSubmissions ||
-    !formioApplicationSubmissions ||
-    !formioPaymentRequestSubmissions ||
-    !formioCloseOutSubmissions
+    !formioFRFSubmissions ||
+    !formioPRFSubmissions ||
+    !formioCRFSubmissions
   ) {
     return {};
   }
@@ -396,14 +396,14 @@ function useCombinedRebates() {
   const rebates: { [rebateId: string]: Rebate } = {};
 
   /**
-   * Iterate over Formio Application form submissions, matching them with
-   * submissions returned from the BAP, so we can build up each rebate object
-   * with the Application form submission data and initialize Payment Request
-   * form and Close-out Form submission data structure (both to be updated).
+   * Iterate over Formio FRF submissions, matching them with submissions
+   * returned from the BAP, so we can build up each rebate object with the FRF
+   * submission data and initialize PRF and CRF submission data structure (both
+   * to be updated).
    */
-  for (const formioSubmission of formioApplicationSubmissions) {
-    const bapMatch = bapFormSubmissions.applications.find((bapSub) => {
-      return bapSub.CSB_Form_ID__c === formioSubmission._id;
+  for (const formioFRFSubmission of formioFRFSubmissions) {
+    const bapMatch = bapFormSubmissions.frfs.find((bapFRFSubmission) => {
+      return bapFRFSubmission.CSB_Form_ID__c === formioFRFSubmission._id;
     });
 
     const modified = bapMatch?.CSB_Modified_Full_String__c || null;
@@ -414,43 +414,42 @@ function useCombinedRebates() {
     const status = bapMatch?.Parent_CSB_Rebate__r?.CSB_Funding_Request_Status__c || null; // prettier-ignore
 
     /**
-     * NOTE: If new Application form submissions have been reciently created in
-     * Formio and the BAP's ETL process has not yet run to pickup those new
-     * Formio submissions, all of the fields above will be null, so instead of
+     * NOTE: If new FRF submissions have been reciently created in Formio and
+     * the BAP's ETL process has not yet run to pickup those new Formio
+     * submissions, all of the fields above will be null, so instead of
      * assigning the submission's key as `rebateId` (which will be null), we'll
      * assign it to be an underscore concatenated with the Formio submission's
      * mongoDB ObjectID – just so each submission object still has a unique ID.
      */
-    rebates[rebateId || `_${formioSubmission._id}`] = {
-      application: {
-        formio: { ...formioSubmission },
+    rebates[rebateId || `_${formioFRFSubmission._id}`] = {
+      frf: {
+        formio: { ...formioFRFSubmission },
         bap: { modified, comboKey, mongoId, rebateId, reviewItemId, status },
       },
-      paymentRequest: { formio: null, bap: null },
-      closeOut: { formio: null, bap: null },
+      prf: { formio: null, bap: null },
+      crf: { formio: null, bap: null },
     };
   }
 
   /**
-   * Iterate over Formio Payment Request form submissions, matching them with
-   * submissions returned from the BAP, so we can set the Payment Request form
-   * submission data.
+   * Iterate over Formio PRF submissions, matching them with submissions
+   * returned from the BAP, so we can set the PRF submission data.
    *
-   * NOTE: For there to be any Formio Payment Request form submissions at all,
-   * the BAP's ETL process must be running, as the `hidden_bap_rebate_id` field
-   * of a Payment Request form submission is injected in the creation of a brand
-   * new submission in the `/api/formio-payment-request-submission` POST request
-   * where he BAP Rebate ID (along with other fields) are fetched from the BAP
-   * and then posted to Formio in a new Payment Request form submission.
+   * NOTE: For there to be any Formio PRF submissions at all, the BAP's ETL
+   * process must be running, as the `hidden_bap_rebate_id` field of a PRF
+   * submission is injected in the creation of a brand new submission in the
+   * `/api/formio-payment-request-submission` POST request where he BAP Rebate
+   * ID (along with other fields) are fetched from the BAP and then posted to
+   * Formio in a new PRF submission.
    *
    * That said, if the BAP ETL isn't returning data, we should make sure we
    * handle that situation gracefully (see NOTE below).
    */
-  for (const formioSubmission of formioPaymentRequestSubmissions) {
-    const formioBapRebateId = formioSubmission.data.hidden_bap_rebate_id;
+  for (const formioPRFSubmission of formioPRFSubmissions) {
+    const formioBapRebateId = formioPRFSubmission.data.hidden_bap_rebate_id;
 
-    const bapMatch = bapFormSubmissions.paymentRequests.find((bapSub) => {
-      return bapSub.Parent_Rebate_ID__c === formioBapRebateId;
+    const bapMatch = bapFormSubmissions.prfs.find((bapPRFSubmission) => {
+      return bapPRFSubmission.Parent_Rebate_ID__c === formioBapRebateId;
     });
 
     const modified = bapMatch?.CSB_Modified_Full_String__c || null;
@@ -462,30 +461,28 @@ function useCombinedRebates() {
 
     /**
      * NOTE: If the BAP ETL is running, there should be a submission with a
-     * `formioBapRebateId` key for each Formio Payment Request form submission
-     * (as it would have been set in the `formioApplicationSubmissions` loop
-     * above). That said, we should first check that it exists before assigning
-     * the Payment Request data to it, so if the BAP ETL process isn't returning
-     * data, it won't break our app.
+     * `formioBapRebateId` key for each Formio PRF submission (as it would have
+     * been set in the `formioFRFSubmissions` loop above). That said, we should
+     * first check that it exists before assigning the PRF data to it, so if the
+     * BAP ETL process isn't returning data, it won't break our app.
      */
     if (rebates[formioBapRebateId]) {
-      rebates[formioBapRebateId].paymentRequest = {
-        formio: { ...formioSubmission },
+      rebates[formioBapRebateId].prf = {
+        formio: { ...formioPRFSubmission },
         bap: { modified, comboKey, mongoId, rebateId, reviewItemId, status },
       };
     }
   }
 
   /**
-   * Iterate over Formio Close Out form submissions, matching them with
-   * submissions returned from the BAP, so we can set the Close Out form
-   * submission data.
+   * Iterate over Formio CRF submissions, matching them with submissions
+   * returned from the BAP, so we can set the CRF submission data.
    */
-  for (const formioSubmission of formioCloseOutSubmissions) {
-    const formioBapRebateId = formioSubmission.data.hidden_bap_rebate_id;
+  for (const formioCRFSubmission of formioCRFSubmissions) {
+    const formioBapRebateId = formioCRFSubmission.data.hidden_bap_rebate_id;
 
-    const bapMatch = bapFormSubmissions.closeOuts.find((bapSub) => {
-      return bapSub.Parent_Rebate_ID__c === formioBapRebateId;
+    const bapMatch = bapFormSubmissions.crfs.find((bapCRFSubmission) => {
+      return bapCRFSubmission.Parent_Rebate_ID__c === formioBapRebateId;
     });
 
     const modified = bapMatch?.CSB_Modified_Full_String__c || null;
@@ -496,8 +493,8 @@ function useCombinedRebates() {
     const status = bapMatch?.Parent_CSB_Rebate__r?.CSB_Closeout_Request_Status__c || null; // prettier-ignore
 
     if (rebates[formioBapRebateId]) {
-      rebates[formioBapRebateId].closeOut = {
-        formio: { ...formioSubmission },
+      rebates[formioBapRebateId].crf = {
+        formio: { ...formioCRFSubmission },
         bap: { modified, comboKey, mongoId, rebateId, reviewItemId, status },
       };
     }
@@ -508,30 +505,27 @@ function useCombinedRebates() {
 
 /**
  * Custom hook that sorts rebates by:
- * - Most recient Formio modified date, regardless of form type
- *   (Application, Payment Request, or Close Out)
+ * - Most recient Formio modified date, regardless of form type (FRF, PRF, CRF)
  * - Submissions needing edits, regardless of form type
- * - Selected Application form submissions without a corresponding Payment
- *   Request form submission
- * - Funding Approved Payment Request form submissions without a corresponding
- *   Close Out form submission
+ * - Selected FRF submissions without a corresponding PRF submission
+ * - Funding Approved PRF submissions without a corresponding CRF submission
  **/
 function useSortedRebates(rebates: { [rebateId: string]: Rebate }) {
   return Object.entries(rebates)
     .map(([rebateId, rebate]) => ({ rebateId, ...rebate }))
     .sort((r1, r2) => {
       const mostRecientR1Modified = [
-        Date.parse(r1.application.formio.modified),
-        Date.parse(r1.paymentRequest.formio?.modified || ""),
-        Date.parse(r1.closeOut.formio?.modified || ""),
+        Date.parse(r1.frf.formio.modified),
+        Date.parse(r1.prf.formio?.modified || ""),
+        Date.parse(r1.crf.formio?.modified || ""),
       ].reduce((previous, current) => {
         return current > previous ? current : previous;
       });
 
       const mostRecientR2Modified = [
-        Date.parse(r2.application.formio.modified),
-        Date.parse(r2.paymentRequest.formio?.modified || ""),
-        Date.parse(r2.closeOut.formio?.modified || ""),
+        Date.parse(r2.frf.formio.modified),
+        Date.parse(r2.prf.formio?.modified || ""),
+        Date.parse(r2.crf.formio?.modified || ""),
       ].reduce((previous, current) => {
         return current > previous ? current : previous;
       });
@@ -539,37 +533,35 @@ function useSortedRebates(rebates: { [rebateId: string]: Rebate }) {
       return mostRecientR2Modified - mostRecientR1Modified;
     })
     .sort((r1, _r2) => {
-      const r1ApplicationNeedsEdits = submissionNeedsEdits({
-        formio: r1.application.formio,
-        bap: r1.application.bap,
+      const r1FRFNeedsEdits = submissionNeedsEdits({
+        formio: r1.frf.formio,
+        bap: r1.frf.bap,
       });
 
-      const r1PaymentRequestNeedsEdits = submissionNeedsEdits({
-        formio: r1.paymentRequest.formio,
-        bap: r1.paymentRequest.bap,
+      const r1PRFNeedsEdits = submissionNeedsEdits({
+        formio: r1.prf.formio,
+        bap: r1.prf.bap,
       });
 
-      const r1CloseOutNeedsEdits = submissionNeedsEdits({
-        formio: r1.closeOut.formio,
-        bap: r1.closeOut.bap,
+      const r1CRFNeedsEdits = submissionNeedsEdits({
+        formio: r1.crf.formio,
+        bap: r1.crf.bap,
       });
 
-      const r1ApplicationSelected = r1.application.bap?.status === "Accepted";
+      const r1FRFSelected = r1.frf.bap?.status === "Accepted";
 
-      const r1ApplicationSelectedButNoPaymentRequest =
-        r1ApplicationSelected && !Boolean(r1.paymentRequest.formio);
+      const r1FRFSelectedButNoPRF = r1FRFSelected && !Boolean(r1.prf.formio);
 
-      const r1PaymentRequestFundingApproved =
-        r1.paymentRequest.bap?.status === "Accepted";
+      const r1PRFFundingApproved = r1.prf.bap?.status === "Accepted";
 
-      const r1PaymentRequestFundingApprovedButNoCloseOut =
-        r1PaymentRequestFundingApproved && !Boolean(r1.closeOut.formio);
+      const r1PRFFundingApprovedButNoCRF =
+        r1PRFFundingApproved && !Boolean(r1.crf.formio);
 
-      return r1ApplicationNeedsEdits ||
-        r1PaymentRequestNeedsEdits ||
-        r1CloseOutNeedsEdits ||
-        r1ApplicationSelectedButNoPaymentRequest ||
-        r1PaymentRequestFundingApprovedButNoCloseOut
+      return r1FRFNeedsEdits ||
+        r1PRFNeedsEdits ||
+        r1CRFNeedsEdits ||
+        r1FRFSelectedButNoPRF ||
+        r1PRFFundingApprovedButNoCRF
         ? -1
         : 0;
     });
@@ -604,9 +596,9 @@ export function useRebates() {
  */
 export function submissionNeedsEdits(options: {
   formio:
-    | FormioApplicationSubmission
-    | FormioPaymentRequestSubmission
-    | FormioCloseOutSubmission
+    | FormioFRFSubmission
+    | FormioPRFSubmission
+    | FormioCRFSubmission
     | null;
   bap: BapSubmission | null;
 }) {
