@@ -333,7 +333,7 @@ router.post(
   }
 );
 
-// --- get user's Application form submissions from Formio
+// --- get user's FRF submissions from Formio
 router.get("/formio-application-submissions", storeBapComboKeys, (req, res) => {
   const { bapComboKeys } = req;
 
@@ -367,7 +367,7 @@ router.get("/formio-application-submissions", storeBapComboKeys, (req, res) => {
     });
 });
 
-// --- post a new Application form submission to Formio
+// --- post a new FRF submission to Formio
 router.post("/formio-application-submission", storeBapComboKeys, (req, res) => {
   const { bapComboKeys, body } = req;
   const { mail } = req.user;
@@ -381,7 +381,7 @@ router.post("/formio-application-submission", storeBapComboKeys, (req, res) => {
 
   if (!bapComboKeys.includes(comboKey)) {
     const logMessage =
-      `User with email '${mail}' attempted to post a new Application form submission ` +
+      `User with email '${mail}' attempted to post a new FRF submission ` +
       `without a matching BAP combo key.`;
     log({ level: "error", message: logMessage, req });
 
@@ -405,7 +405,7 @@ router.post("/formio-application-submission", storeBapComboKeys, (req, res) => {
     });
 });
 
-// --- get an existing Application form's schema and submission data from Formio
+// --- get an existing FRF's schema and submission data from Formio
 router.get(
   "/formio-application-submission/:mongoId",
   verifyMongoObjectId,
@@ -425,7 +425,7 @@ router.get(
 
         if (!bapComboKeys.includes(comboKey)) {
           const logMessage =
-            `User with email '${mail}' attempted to access Application form submission '${mongoId}' ` +
+            `User with email '${mail}' attempted to access FRF submission '${mongoId}' ` +
             `that they do not have access to.`;
           log({ level: "warn", message: logMessage, req });
 
@@ -451,7 +451,7 @@ router.get(
   }
 );
 
-// --- post an update to an existing draft Application form submission to Formio
+// --- post an update to an existing draft FRF submission to Formio
 router.post(
   "/formio-application-submission/:mongoId",
   verifyMongoObjectId,
@@ -475,7 +475,7 @@ router.post(
       .then(() => {
         if (!bapComboKeys.includes(comboKey)) {
           const logMessage =
-            `User with email '${mail}' attempted to update Application form submission '${mongoId}' ` +
+            `User with email '${mail}' attempted to update FRF submission '${mongoId}' ` +
             `without a matching BAP combo key.`;
           log({ level: "error", message: logMessage, req });
 
@@ -503,8 +503,8 @@ router.post(
       })
       .catch((error) => {
         const logMessage =
-          `User with email '${mail}' attempted to update Application form submission '${mongoId}' ` +
-          `when the CSB Application form enrollment period was closed.`;
+          `User with email '${mail}' attempted to update FRF submission '${mongoId}' ` +
+          `when the CSB FRF enrollment period was closed.`;
         log({ level: "error", message: logMessage, req });
 
         const errorStatus = 400;
@@ -514,7 +514,7 @@ router.post(
   }
 );
 
-// --- get user's Payment Request form submissions from Formio
+// --- get user's PRF submissions from Formio
 router.get(
   "/formio-payment-request-submissions",
   storeBapComboKeys,
@@ -542,7 +542,7 @@ router.get(
   }
 );
 
-// --- post a new Payment Request form submission to Formio
+// --- post a new PRF submission to Formio
 router.post(
   "/formio-payment-request-submission",
   storeBapComboKeys,
@@ -568,7 +568,7 @@ router.post(
 
     if (!bapComboKeys.includes(comboKey)) {
       const logMessage =
-        `User with email '${mail}' attempted to post a new Payment Request form submission ` +
+        `User with email '${mail}' attempted to post a new PRF submission ` +
         `without a matching BAP combo key.`;
       log({ level: "error", message: logMessage, req });
 
@@ -673,7 +673,7 @@ router.post(
   }
 );
 
-// --- get an existing Payment Request form's schema and submission data from Formio
+// --- get an existing PRF's schema and submission data from Formio
 router.get(
   "/formio-payment-request-submission/:rebateId",
   storeBapComboKeys,
@@ -699,7 +699,7 @@ router.get(
 
         if (!bapComboKeys.includes(comboKey)) {
           const logMessage =
-            `User with email '${mail}' attempted to access Payment Request form submission '${rebateId}' ` +
+            `User with email '${mail}' attempted to access PRF submission '${rebateId}' ` +
             `that they do not have access to.`;
           log({ level: "warn", message: logMessage, req });
 
@@ -745,7 +745,7 @@ router.get(
   }
 );
 
-// --- post an update to an existing draft Payment Request form submission to Formio
+// --- post an update to an existing draft PRF submission to Formio
 router.post(
   "/formio-payment-request-submission/:rebateId",
   storeBapComboKeys,
@@ -768,7 +768,7 @@ router.post(
       .then(() => {
         if (!bapComboKeys.includes(comboKey)) {
           const logMessage =
-            `User with email '${mail}' attempted to update Payment Request form submission '${rebateId}' ` +
+            `User with email '${mail}' attempted to update PRF submission '${rebateId}' ` +
             `without a matching BAP combo key.`;
           log({ level: "error", message: logMessage, req });
 
@@ -803,8 +803,8 @@ router.post(
       })
       .catch((error) => {
         const logMessage =
-          `User with email '${mail}' attempted to update Payment Request form submission '${rebateId}' ` +
-          `when the CSB Payment Request form enrollment period was closed.`;
+          `User with email '${mail}' attempted to update PRF submission '${rebateId}' ` +
+          `when the CSB PRF enrollment period was closed.`;
         log({ level: "error", message: logMessage, req });
 
         const errorStatus = 400;
@@ -814,7 +814,7 @@ router.post(
   }
 );
 
-// --- delete an existing Payment Request form submission from Formio
+// --- delete an existing PRF submission from Formio
 router.post(
   "/delete-formio-payment-request-submission",
   storeBapComboKeys,
@@ -826,7 +826,7 @@ router.post(
     // verify post data includes one of user's BAP combo keys
     if (!bapComboKeys.includes(comboKey)) {
       const logMessage =
-        `User with email '${mail}' attempted to delete Payment Request form submission '${rebateId}' ` +
+        `User with email '${mail}' attempted to delete PRF submission '${rebateId}' ` +
         `without a matching BAP combo key.`;
       log({ level: "error", message: logMessage, req });
 
@@ -836,9 +836,8 @@ router.post(
     }
 
     /**
-     * ensure the BAP status of the corresponding Application form submission
-     * is "Edits Requested" before deleting the Payment Request form submission
-     * from Formio
+     * ensure the BAP status of the corresponding FRF submission is "Edits
+     * Requested" before deleting the FRF submission from Formio
      */
     getBapFormSubmissionsStatuses(req, req.bapComboKeys)
       .then((submissions) => {
@@ -863,7 +862,7 @@ router.post(
           .delete(`${formioPRF2022Url}/submission/${mongoId}`)
           .then((axiosRes) => axiosRes.data)
           .then((response) => {
-            const logMessage = `User with email '${mail}' successfully deleted Payment Request form submission '${rebateId}'.`;
+            const logMessage = `User with email '${mail}' successfully deleted PRF submission '${rebateId}'.`;
             log({ level: "info", message: logMessage, req });
 
             res.json(response);
@@ -884,7 +883,7 @@ router.post(
   }
 );
 
-// --- get user's Close Out form submissions from Formio
+// --- get user's CRF submissions from Formio
 router.get("/formio-close-out-submissions", storeBapComboKeys, (req, res) => {
   const { bapComboKeys } = req;
 
@@ -908,7 +907,7 @@ router.get("/formio-close-out-submissions", storeBapComboKeys, (req, res) => {
     });
 });
 
-// --- post a new Close Out form submission to Formio
+// --- post a new CRF submission to Formio
 router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
   const { bapComboKeys, body } = req;
   const { mail } = req.user;
@@ -932,7 +931,7 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
 
   if (!bapComboKeys.includes(comboKey)) {
     const logMessage =
-      `User with email '${mail}' attempted to post a new Close Out form submission ` +
+      `User with email '${mail}' attempted to post a new CRF submission ` +
       `without a matching BAP combo key.`;
     log({ level: "error", message: logMessage, req });
 
@@ -1100,7 +1099,7 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
     });
 });
 
-// --- get an existing Close Out form's schema and submission data from Formio
+// --- get an existing CRF's schema and submission data from Formio
 router.get(
   "/formio-close-out-submission/:rebateId",
   storeBapComboKeys,
@@ -1126,7 +1125,7 @@ router.get(
 
         if (!bapComboKeys.includes(comboKey)) {
           const logMessage =
-            `User with email '${mail}' attempted to access Close Out form submission '${rebateId}' ` +
+            `User with email '${mail}' attempted to access CRF submission '${rebateId}' ` +
             `that they do not have access to.`;
           log({ level: "warn", message: logMessage, req });
 
@@ -1172,7 +1171,7 @@ router.get(
   }
 );
 
-// --- post an update to an existing draft Close Out form submission to Formio
+// --- post an update to an existing draft CRF submission to Formio
 router.post(
   "/formio-close-out-submission/:rebateId",
   storeBapComboKeys,
@@ -1195,7 +1194,7 @@ router.post(
       .then(() => {
         if (!bapComboKeys.includes(comboKey)) {
           const logMessage =
-            `User with email '${mail}' attempted to update Close Out form submission '${rebateId}' ` +
+            `User with email '${mail}' attempted to update CRF submission '${rebateId}' ` +
             `without a matching BAP combo key.`;
           log({ level: "error", message: logMessage, req });
 
@@ -1230,8 +1229,8 @@ router.post(
       })
       .catch((error) => {
         const logMessage =
-          `User with email '${mail}' attempted to update Close Out form submission '${rebateId}' ` +
-          `when the CSB Close Out form enrollment period was closed.`;
+          `User with email '${mail}' attempted to update CRF submission '${rebateId}' ` +
+          `when the CSB CRF enrollment period was closed.`;
         log({ level: "error", message: logMessage, req });
 
         const errorStatus = 400;
