@@ -313,34 +313,25 @@ async function queryForSamEntities(req, email) {
  * statuses and related metadata.
  *
  * @param {express.Request} req
- * @param {'application' | 'payment-request' | 'close-out'} formType
+ * @param {'frf' | 'prf' | 'crf'} formType
  * @param {string | null} rebateId
  * @param {string | null} mongoId
  * @returns {Promise<BapFormSubmission | null>} fields associated a form submission
  */
 async function queryForBapFormSubmissionData(req, formType, rebateId, mongoId) {
-  const formName =
-    formType === "application"
-      ? "CSB Application"
-      : formType === "payment-request"
-      ? "CSB Payment Request"
-      : formType === "close-out"
-      ? "CSB Close Out"
-      : "CSB";
-
   const logId = rebateId ? `rebateId: '${rebateId}'` : `mongoId: '${mongoId}'`;
-  const logMessage = `Querying the BAP for ${formName} form submission data associated with ${logId}.`;
+  const logMessage = `Querying the BAP for ${formType.toUpperCase()} submission data associated with ${logId}.`;
   log({ level: "info", message: logMessage });
 
   /** @type {jsforce.Connection} */
   const { bapConnection } = req.app.locals;
 
   const developername =
-    formType === "application"
+    formType === "frf"
       ? "CSB_Funding_Request"
-      : formType === "payment-request"
+      : formType === "prf"
       ? "CSB_Payment_Request"
-      : formType === "close-out"
+      : formType === "crf"
       ? "CSB_Closeout_Request"
       : null; // fallback
 

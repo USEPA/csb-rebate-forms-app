@@ -31,20 +31,20 @@ router.get("/formio-submission/:formType/:id", (req, res) => {
   }
 
   const formName =
-    formType === "application"
+    formType === "frf"
       ? "CSB Application"
-      : formType === "payment-request"
+      : formType === "prf"
       ? "CSB Payment Request"
-      : formType === "close-out"
+      : formType === "crf"
       ? "CSB Close Out"
       : "CSB";
 
   const formUrl =
-    formType === "application"
+    formType === "frf"
       ? formioFRF2022Url
-      : formType === "payment-request"
+      : formType === "prf"
       ? formioPRF2022Url
-      : formType === "close-out"
+      : formType === "crf"
       ? formioCRF2022Url
       : null; // fallback
 
@@ -53,7 +53,7 @@ router.get("/formio-submission/:formType/:id", (req, res) => {
       if (!bapSubmission || !formUrl) {
         const logId = rebateId || mongoId;
         const errorStatus = 500;
-        const errorMessage = `Error getting ${formName} form submission '${logId}' from the BAP.`;
+        const errorMessage = `Error getting ${formName} submission '${logId}' from the BAP.`;
         return res.status(errorStatus).json({ message: errorMessage });
       }
 
@@ -96,7 +96,7 @@ router.get("/formio-submission/:formType/:id", (req, res) => {
         .catch((error) => {
           // NOTE: logged in axiosFormio response interceptor
           const errorStatus = error.response?.status || 500;
-          const errorMessage = `Error getting ${formName} form submission '${CSB_Form_ID__c}'.`;
+          const errorMessage = `Error getting ${formName} submission '${CSB_Form_ID__c}'.`;
           return res.status(errorStatus).json({ message: errorMessage });
         });
     }
