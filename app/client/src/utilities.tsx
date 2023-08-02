@@ -329,25 +329,25 @@ export function useSubmissionsQueries() {
         refetchOnWindowFocus: false,
       },
       {
-        queryKey: ["formio-frf-submissions"],
+        queryKey: ["formio-2022-frf-submissions"],
         queryFn: () => {
-          const url = `${serverUrl}/api/formio-application-submissions`;
+          const url = `${serverUrl}/api/formio-2022-frf-submissions`;
           return getData<FormioFRFSubmission[]>(url);
         },
         refetchOnWindowFocus: false,
       },
       {
-        queryKey: ["formio-prf-submissions"],
+        queryKey: ["formio-2022-prf-submissions"],
         queryFn: () => {
-          const url = `${serverUrl}/api/formio-payment-request-submissions`;
+          const url = `${serverUrl}/api/formio-2022-prf-submissions`;
           return getData<FormioPRFSubmission[]>(url);
         },
         refetchOnWindowFocus: false,
       },
       {
-        queryKey: ["formio-crf-submissions"],
+        queryKey: ["formio-2022-crf-submissions"],
         queryFn: () => {
-          const url = `${serverUrl}/api/formio-close-out-submissions`;
+          const url = `${serverUrl}/api/formio-2022-crf-submissions`;
           return getData<FormioCRFSubmission[]>(url);
         },
         refetchOnWindowFocus: false,
@@ -371,15 +371,15 @@ function useCombinedRebates() {
   }>(["bap-form-submissions"]);
 
   const formioFRFSubmissions = queryClient.getQueryData<FormioFRFSubmission[]>([
-    "formio-frf-submissions",
+    "formio-2022-frf-submissions",
   ]);
 
   const formioPRFSubmissions = queryClient.getQueryData<FormioPRFSubmission[]>([
-    "formio-prf-submissions",
+    "formio-2022-prf-submissions",
   ]);
 
   const formioCRFSubmissions = queryClient.getQueryData<FormioCRFSubmission[]>([
-    "formio-crf-submissions",
+    "formio-2022-crf-submissions",
   ]);
 
   // ensure form submissions data has been fetched from both the BAP and Formio

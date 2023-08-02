@@ -329,8 +329,8 @@ router.post(
   }
 );
 
-// --- get user's FRF submissions from Formio
-router.get("/formio-application-submissions", storeBapComboKeys, (req, res) => {
+// --- get user's 2022 FRF submissions from Formio
+router.get("/formio-2022-frf-submissions", storeBapComboKeys, (req, res) => {
   const { bapComboKeys } = req;
 
   /**
@@ -510,33 +510,29 @@ router.post(
   }
 );
 
-// --- get user's PRF submissions from Formio
-router.get(
-  "/formio-payment-request-submissions",
-  storeBapComboKeys,
-  (req, res) => {
-    const { bapComboKeys } = req;
+// --- get user's 2022 PRF submissions from Formio
+router.get("/formio-2022-prf-submissions", storeBapComboKeys, (req, res) => {
+  const { bapComboKeys } = req;
 
-    const userSubmissionsUrl =
-      `${formio2022PRFUrl}/submission` +
-      `?sort=-modified` +
-      `&limit=1000000` +
-      `&data.bap_hidden_entity_combo_key=${bapComboKeys.join(
-        "&data.bap_hidden_entity_combo_key="
-      )}`;
+  const userSubmissionsUrl =
+    `${formio2022PRFUrl}/submission` +
+    `?sort=-modified` +
+    `&limit=1000000` +
+    `&data.bap_hidden_entity_combo_key=${bapComboKeys.join(
+      "&data.bap_hidden_entity_combo_key="
+    )}`;
 
-    axiosFormio(req)
-      .get(userSubmissionsUrl)
-      .then((axiosRes) => axiosRes.data)
-      .then((submissions) => res.json(submissions))
-      .catch((error) => {
-        // NOTE: logged in axiosFormio response interceptor
-        const errorStatus = error.response?.status || 500;
-        const errorMessage = `Error getting Formio Payment Request form submissions.`;
-        return res.status(errorStatus).json({ message: errorMessage });
-      });
-  }
-);
+  axiosFormio(req)
+    .get(userSubmissionsUrl)
+    .then((axiosRes) => axiosRes.data)
+    .then((submissions) => res.json(submissions))
+    .catch((error) => {
+      // NOTE: logged in axiosFormio response interceptor
+      const errorStatus = error.response?.status || 500;
+      const errorMessage = `Error getting Formio Payment Request form submissions.`;
+      return res.status(errorStatus).json({ message: errorMessage });
+    });
+});
 
 // --- post a new PRF submission to Formio
 router.post(
@@ -879,8 +875,8 @@ router.post(
   }
 );
 
-// --- get user's CRF submissions from Formio
-router.get("/formio-close-out-submissions", storeBapComboKeys, (req, res) => {
+// --- get user's 2022 CRF submissions from Formio
+router.get("/formio-2022-crf-submissions", storeBapComboKeys, (req, res) => {
   const { bapComboKeys } = req;
 
   const userSubmissionsUrl =
