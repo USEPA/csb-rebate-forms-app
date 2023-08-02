@@ -9,18 +9,18 @@ const {
   FORMIO_BASE_URL,
   FORMIO_PROJECT_NAME,
   FORMIO_API_KEY,
-  FORMIO_FRF_2022_PATH,
-  FORMIO_PRF_2022_PATH,
-  FORMIO_CRF_2022_PATH,
-  FORMIO_FRF_2023_PATH,
-  FORMIO_PRF_2023_PATH,
-  FORMIO_CRF_2023_PATH,
+  FORMIO_2022_FRF_PATH,
+  FORMIO_2022_PRF_PATH,
+  FORMIO_2022_CRF_PATH,
+  FORMIO_2023_FRF_PATH,
+  FORMIO_2023_PRF_PATH,
+  FORMIO_2023_CRF_PATH,
 } = process.env;
 
 const formioProjectUrl = `${FORMIO_BASE_URL}/${FORMIO_PROJECT_NAME}`;
-const formioFRF2022Url = `${formioProjectUrl}/${FORMIO_FRF_2022_PATH}`;
-const formioPRF2022Url = `${formioProjectUrl}/${FORMIO_PRF_2022_PATH}`;
-const formioCRF2022Url = `${formioProjectUrl}/${FORMIO_CRF_2022_PATH}`;
+const formio2022FRFUrl = `${formioProjectUrl}/${FORMIO_2022_FRF_PATH}`;
+const formio2022PRFUrl = `${formioProjectUrl}/${FORMIO_2022_PRF_PATH}`;
+const formio2022CRFUrl = `${formioProjectUrl}/${FORMIO_2022_CRF_PATH}`;
 
 /** @param {express.Request} req */
 function axiosFormio(req) {
@@ -85,8 +85,8 @@ const formioCSBMetadata = {
 
 module.exports = {
   axiosFormio,
-  formioFRF2022Url,
-  formioPRF2022Url,
-  formioCRF2022Url,
+  formio2022FRFUrl,
+  formio2022PRFUrl,
+  formio2022CRFUrl,
   formioCSBMetadata,
 };

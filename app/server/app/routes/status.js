@@ -2,9 +2,9 @@ const express = require("express");
 // ---
 const {
   axiosFormio,
-  formioFRF2022Url,
-  formioPRF2022Url,
-  formioCRF2022Url,
+  formio2022FRFUrl,
+  formio2022PRFUrl,
+  formio2022CRFUrl,
 } = require("../config/formio");
 const { getSamEntities } = require("../utilities/bap");
 
@@ -31,7 +31,7 @@ router.get("/bap-sam-data", (req, res) => {
 
 router.get("/formio-application-schema", (req, res) => {
   axiosFormio(req)
-    .get(formioFRF2022Url)
+    .get(formio2022FRFUrl)
     .then((axiosRes) => axiosRes.data)
     .then((schema) => {
       /**
@@ -48,7 +48,7 @@ router.get("/formio-application-schema", (req, res) => {
 
 router.get("/formio-payment-request-schema", (req, res) => {
   axiosFormio(req)
-    .get(formioPRF2022Url)
+    .get(formio2022PRFUrl)
     .then((axiosRes) => axiosRes.data)
     .then((schema) => {
       /**
@@ -65,7 +65,7 @@ router.get("/formio-payment-request-schema", (req, res) => {
 
 router.get("/formio-close-out-schema", (req, res) => {
   axiosFormio(req)
-    .get(formioCRF2022Url)
+    .get(formio2022CRFUrl)
     .then((axiosRes) => axiosRes.data)
     .then((schema) => {
       /**

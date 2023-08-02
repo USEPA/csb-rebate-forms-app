@@ -3,9 +3,9 @@ const ObjectId = require("mongodb").ObjectId;
 // ---
 const {
   axiosFormio,
-  formioFRF2022Url,
-  formioPRF2022Url,
-  formioCRF2022Url,
+  formio2022FRFUrl,
+  formio2022PRFUrl,
+  formio2022CRFUrl,
 } = require("../config/formio");
 const { ensureAuthenticated, ensureHelpdesk } = require("../middleware");
 const { getBapFormSubmissionData } = require("../utilities/bap");
@@ -41,11 +41,11 @@ router.get("/formio-submission/:formType/:id", (req, res) => {
 
   const formUrl =
     formType === "frf"
-      ? formioFRF2022Url
+      ? formio2022FRFUrl
       : formType === "prf"
-      ? formioPRF2022Url
+      ? formio2022PRFUrl
       : formType === "crf"
-      ? formioCRF2022Url
+      ? formio2022CRFUrl
       : null; // fallback
 
   return getBapFormSubmissionData(req, formType, rebateId, mongoId).then(
