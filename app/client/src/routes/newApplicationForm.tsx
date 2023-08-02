@@ -47,7 +47,8 @@ export function NewApplicationForm() {
     return <Loading />;
   }
 
-  const applicationFormOpen = configData.submissionPeriodOpen[rebateYear].frf;
+  const frfSubmissionPeriodOpen =
+    configData.submissionPeriodOpen[rebateYear].frf;
 
   const activeSamEntities = bapSamData.entities.filter((entity) => {
     return entity.ENTITY_STATUS__c === "Active";
@@ -101,7 +102,7 @@ export function NewApplicationForm() {
                 </div>
 
                 <div className="tw-m-auto tw-max-w-3xl tw-p-4 sm:tw-p-8">
-                  {!applicationFormOpen ? (
+                  {!frfSubmissionPeriodOpen ? (
                     <div className="-tw-mb-4">
                       <Message type="info" text={messages.frfClosed} />
                     </div>
