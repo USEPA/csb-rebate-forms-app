@@ -36,10 +36,6 @@ const {
   S3_PUBLIC_REGION,
 } = process.env;
 
-const frf2022Open = CSB_FRF_2022_OPEN === "true";
-const prf2022Open = CSB_PRF_2022_OPEN === "true";
-const crf2022Open = CSB_CRF_2022_OPEN === "true";
-
 /**
  * Stores whether the submission period is open for each form by rebate year.
  */
@@ -373,7 +369,7 @@ router.post("/formio-application-submission", storeBapComboKeys, (req, res) => {
   const { mail } = req.user;
   const comboKey = body.data?.bap_hidden_entity_combo_key;
 
-  if (!frf2022Open) {
+  if (!submissionPeriodOpen["2022"].frf) {
     const errorStatus = 400;
     const errorMessage = `CSB Application form enrollment period is closed.`;
     return res.status(errorStatus).json({ message: errorMessage });
@@ -560,7 +556,7 @@ router.post(
       frfFormModified,
     } = body;
 
-    if (!prf2022Open) {
+    if (!submissionPeriodOpen["2022"].prf) {
       const errorStatus = 400;
       const errorMessage = `CSB Payment Request form enrollment period is closed.`;
       return res.status(errorStatus).json({ message: errorMessage });
@@ -923,7 +919,7 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
     prfModified,
   } = body;
 
-  if (!crf2022Open) {
+  if (!submissionPeriodOpen["2022"].crf) {
     const errorStatus = 400;
     const errorMessage = `CSB Close Out form enrollment period is closed.`;
     return res.status(errorStatus).json({ message: errorMessage });
