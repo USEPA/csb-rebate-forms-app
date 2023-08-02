@@ -353,7 +353,7 @@ function PRFSubmission(props: { rebate: Rebate }) {
               const { title, name } = getUserInfo(email, entity);
 
               // create a new draft PRF submission
-              postData(`${serverUrl}/api/formio-payment-request-submission/`, {
+              postData(`${serverUrl}/api/formio-2022-prf-submission/`, {
                 email,
                 title,
                 name,
@@ -586,7 +586,7 @@ function CRFSubmission(props: { rebate: Rebate }) {
               const { title, name } = getUserInfo(email, entity);
 
               // create a new draft CRF submission
-              postData(`${serverUrl}/api/formio-close-out-submission/`, {
+              postData(`${serverUrl}/api/formio-2022-crf-submission/`, {
                 email,
                 title,
                 name,

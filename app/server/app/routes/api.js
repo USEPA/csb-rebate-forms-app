@@ -363,8 +363,8 @@ router.get("/formio-2022-frf-submissions", storeBapComboKeys, (req, res) => {
     });
 });
 
-// --- post a new FRF submission to Formio
-router.post("/formio-application-submission", storeBapComboKeys, (req, res) => {
+// --- post a new 2022 FRF submission to Formio
+router.post("/formio-2022-frf-submission", storeBapComboKeys, (req, res) => {
   const { bapComboKeys, body } = req;
   const { mail } = req.user;
   const comboKey = body.data?.bap_hidden_entity_combo_key;
@@ -401,9 +401,9 @@ router.post("/formio-application-submission", storeBapComboKeys, (req, res) => {
     });
 });
 
-// --- get an existing FRF's schema and submission data from Formio
+// --- get an existing 2022 FRF's schema and submission data from Formio
 router.get(
-  "/formio-application-submission/:mongoId",
+  "/formio-2022-frf-submission/:mongoId",
   verifyMongoObjectId,
   storeBapComboKeys,
   (req, res) => {
@@ -447,9 +447,9 @@ router.get(
   }
 );
 
-// --- post an update to an existing draft FRF submission to Formio
+// --- post an update to an existing draft 2022 FRF submission to Formio
 router.post(
-  "/formio-application-submission/:mongoId",
+  "/formio-2022-frf-submission/:mongoId",
   verifyMongoObjectId,
   storeBapComboKeys,
   (req, res) => {
@@ -458,12 +458,10 @@ router.post(
     const { mongoId } = req.params;
     const submission = req.body;
     const comboKey = submission.data?.bap_hidden_entity_combo_key;
-    const formType = "frf";
-    const rebateYear = "2022"; // TODO
 
     checkFormSubmissionPeriodAndBapStatus({
-      rebateYear,
-      formType,
+      rebateYear: "2022",
+      formType: "frf",
       mongoId,
       comboKey,
       req,
@@ -534,140 +532,136 @@ router.get("/formio-2022-prf-submissions", storeBapComboKeys, (req, res) => {
     });
 });
 
-// --- post a new PRF submission to Formio
-router.post(
-  "/formio-payment-request-submission",
-  storeBapComboKeys,
-  (req, res) => {
-    const { bapComboKeys, body } = req;
-    const { mail } = req.user;
-    const {
-      email,
-      title,
-      name,
-      entity,
-      comboKey,
-      rebateId,
-      frfReviewItemId,
-      frfFormModified,
-    } = body;
+// --- post a new 2022 PRF submission to Formio
+router.post("/formio-2022-prf-submission", storeBapComboKeys, (req, res) => {
+  const { bapComboKeys, body } = req;
+  const { mail } = req.user;
+  const {
+    email,
+    title,
+    name,
+    entity,
+    comboKey,
+    rebateId,
+    frfReviewItemId,
+    frfFormModified,
+  } = body;
 
-    if (!submissionPeriodOpen["2022"].prf) {
-      const errorStatus = 400;
-      const errorMessage = `CSB Payment Request form enrollment period is closed.`;
-      return res.status(errorStatus).json({ message: errorMessage });
-    }
-
-    if (!bapComboKeys.includes(comboKey)) {
-      const logMessage =
-        `User with email '${mail}' attempted to post a new PRF submission ` +
-        `without a matching BAP combo key.`;
-      log({ level: "error", message: logMessage, req });
-
-      const errorStatus = 401;
-      const errorMessage = `Unauthorized.`;
-      return res.status(errorStatus).json({ message: errorMessage });
-    }
-
-    const {
-      UNIQUE_ENTITY_ID__c,
-      ENTITY_EFT_INDICATOR__c,
-      ELEC_BUS_POC_EMAIL__c,
-      ALT_ELEC_BUS_POC_EMAIL__c,
-      GOVT_BUS_POC_EMAIL__c,
-      ALT_GOVT_BUS_POC_EMAIL__c,
-    } = entity;
-
-    return getBapDataForPRF(req, frfReviewItemId)
-      .then(({ frfRecordQuery, busRecordsQuery }) => {
-        const {
-          CSB_NCES_ID__c,
-          Primary_Applicant__r,
-          Alternate_Applicant__r,
-          Applicant_Organization__r,
-          CSB_School_District__r,
-          Fleet_Name__c,
-          School_District_Prioritized__c,
-          Total_Rebate_Funds_Requested__c,
-          Total_Infrastructure_Funds__c,
-        } = frfRecordQuery[0];
-
-        const busInfo = busRecordsQuery.map((record) => ({
-          busNum: record.Rebate_Item_num__c,
-          oldBusNcesDistrictId: CSB_NCES_ID__c,
-          oldBusVin: record.CSB_VIN__c,
-          oldBusModelYear: record.CSB_Model_Year__c,
-          oldBusFuelType: record.CSB_Fuel_Type__c,
-          newBusFuelType: record.CSB_Replacement_Fuel_Type__c,
-          hidden_bap_max_rebate: record.CSB_Funds_Requested__c,
-        }));
-
-        /**
-         * NOTE: `purchaseOrders` is initialized as an empty array to fix some
-         * issue with the field being changed to an object when the form loads
-         */
-        const submission = {
-          data: {
-            bap_hidden_entity_combo_key: comboKey,
-            hidden_application_form_modified: frfFormModified,
-            hidden_current_user_email: email,
-            hidden_current_user_title: title,
-            hidden_current_user_name: name,
-            hidden_sam_uei: UNIQUE_ENTITY_ID__c,
-            hidden_sam_efti: ENTITY_EFT_INDICATOR__c || "0000",
-            hidden_sam_elec_bus_poc_email: ELEC_BUS_POC_EMAIL__c,
-            hidden_sam_alt_elec_bus_poc_email: ALT_ELEC_BUS_POC_EMAIL__c,
-            hidden_sam_govt_bus_poc_email: GOVT_BUS_POC_EMAIL__c,
-            hidden_sam_alt_govt_bus_poc_email: ALT_GOVT_BUS_POC_EMAIL__c,
-            hidden_bap_rebate_id: rebateId,
-            hidden_bap_district_id: CSB_NCES_ID__c,
-            hidden_bap_primary_name: Primary_Applicant__r?.Name,
-            hidden_bap_primary_title: Primary_Applicant__r?.Title,
-            hidden_bap_primary_phone_number: Primary_Applicant__r?.Phone,
-            hidden_bap_primary_email: Primary_Applicant__r?.Email,
-            hidden_bap_alternate_name: Alternate_Applicant__r?.Name || "",
-            hidden_bap_alternate_title: Alternate_Applicant__r?.Title || "",
-            hidden_bap_alternate_phone_number: Alternate_Applicant__r?.Phone || "", // prettier-ignore
-            hidden_bap_alternate_email: Alternate_Applicant__r?.Email || "",
-            hidden_bap_org_name: Applicant_Organization__r?.Name,
-            hidden_bap_district_name: CSB_School_District__r?.Name,
-            hidden_bap_fleet_name: Fleet_Name__c,
-            hidden_bap_prioritized: School_District_Prioritized__c,
-            hidden_bap_requested_funds: Total_Rebate_Funds_Requested__c,
-            hidden_bap_infra_max_rebate: Total_Infrastructure_Funds__c,
-            busInfo,
-            purchaseOrders: [],
-          },
-          /** Add custom metadata to track formio submissions from wrapper. */
-          metadata: {
-            ...formioCSBMetadata,
-          },
-          state: "draft",
-        };
-
-        axiosFormio(req)
-          .post(`${formio2022PRFUrl}/submission`, submission)
-          .then((axiosRes) => axiosRes.data)
-          .then((submission) => res.json(submission))
-          .catch((error) => {
-            // NOTE: logged in axiosFormio response interceptor
-            const errorStatus = error.response?.status || 500;
-            const errorMessage = `Error posting Formio Payment Request form submission.`;
-            return res.status(errorStatus).json({ message: errorMessage });
-          });
-      })
-      .catch((error) => {
-        // NOTE: logged in bap verifyBapConnection
-        const errorStatus = 500;
-        const errorMessage = `Error getting data for a new Payment Request form submission from the BAP.`;
-        return res.status(errorStatus).json({ message: errorMessage });
-      });
+  if (!submissionPeriodOpen["2022"].prf) {
+    const errorStatus = 400;
+    const errorMessage = `CSB Payment Request form enrollment period is closed.`;
+    return res.status(errorStatus).json({ message: errorMessage });
   }
-);
 
-// --- get an existing PRF's schema and submission data from Formio
+  if (!bapComboKeys.includes(comboKey)) {
+    const logMessage =
+      `User with email '${mail}' attempted to post a new PRF submission ` +
+      `without a matching BAP combo key.`;
+    log({ level: "error", message: logMessage, req });
+
+    const errorStatus = 401;
+    const errorMessage = `Unauthorized.`;
+    return res.status(errorStatus).json({ message: errorMessage });
+  }
+
+  const {
+    UNIQUE_ENTITY_ID__c,
+    ENTITY_EFT_INDICATOR__c,
+    ELEC_BUS_POC_EMAIL__c,
+    ALT_ELEC_BUS_POC_EMAIL__c,
+    GOVT_BUS_POC_EMAIL__c,
+    ALT_GOVT_BUS_POC_EMAIL__c,
+  } = entity;
+
+  return getBapDataForPRF(req, frfReviewItemId)
+    .then(({ frfRecordQuery, busRecordsQuery }) => {
+      const {
+        CSB_NCES_ID__c,
+        Primary_Applicant__r,
+        Alternate_Applicant__r,
+        Applicant_Organization__r,
+        CSB_School_District__r,
+        Fleet_Name__c,
+        School_District_Prioritized__c,
+        Total_Rebate_Funds_Requested__c,
+        Total_Infrastructure_Funds__c,
+      } = frfRecordQuery[0];
+
+      const busInfo = busRecordsQuery.map((record) => ({
+        busNum: record.Rebate_Item_num__c,
+        oldBusNcesDistrictId: CSB_NCES_ID__c,
+        oldBusVin: record.CSB_VIN__c,
+        oldBusModelYear: record.CSB_Model_Year__c,
+        oldBusFuelType: record.CSB_Fuel_Type__c,
+        newBusFuelType: record.CSB_Replacement_Fuel_Type__c,
+        hidden_bap_max_rebate: record.CSB_Funds_Requested__c,
+      }));
+
+      /**
+       * NOTE: `purchaseOrders` is initialized as an empty array to fix some
+       * issue with the field being changed to an object when the form loads
+       */
+      const submission = {
+        data: {
+          bap_hidden_entity_combo_key: comboKey,
+          hidden_application_form_modified: frfFormModified,
+          hidden_current_user_email: email,
+          hidden_current_user_title: title,
+          hidden_current_user_name: name,
+          hidden_sam_uei: UNIQUE_ENTITY_ID__c,
+          hidden_sam_efti: ENTITY_EFT_INDICATOR__c || "0000",
+          hidden_sam_elec_bus_poc_email: ELEC_BUS_POC_EMAIL__c,
+          hidden_sam_alt_elec_bus_poc_email: ALT_ELEC_BUS_POC_EMAIL__c,
+          hidden_sam_govt_bus_poc_email: GOVT_BUS_POC_EMAIL__c,
+          hidden_sam_alt_govt_bus_poc_email: ALT_GOVT_BUS_POC_EMAIL__c,
+          hidden_bap_rebate_id: rebateId,
+          hidden_bap_district_id: CSB_NCES_ID__c,
+          hidden_bap_primary_name: Primary_Applicant__r?.Name,
+          hidden_bap_primary_title: Primary_Applicant__r?.Title,
+          hidden_bap_primary_phone_number: Primary_Applicant__r?.Phone,
+          hidden_bap_primary_email: Primary_Applicant__r?.Email,
+          hidden_bap_alternate_name: Alternate_Applicant__r?.Name || "",
+          hidden_bap_alternate_title: Alternate_Applicant__r?.Title || "",
+          hidden_bap_alternate_phone_number: Alternate_Applicant__r?.Phone || "", // prettier-ignore
+          hidden_bap_alternate_email: Alternate_Applicant__r?.Email || "",
+          hidden_bap_org_name: Applicant_Organization__r?.Name,
+          hidden_bap_district_name: CSB_School_District__r?.Name,
+          hidden_bap_fleet_name: Fleet_Name__c,
+          hidden_bap_prioritized: School_District_Prioritized__c,
+          hidden_bap_requested_funds: Total_Rebate_Funds_Requested__c,
+          hidden_bap_infra_max_rebate: Total_Infrastructure_Funds__c,
+          busInfo,
+          purchaseOrders: [],
+        },
+        /** Add custom metadata to track formio submissions from wrapper. */
+        metadata: {
+          ...formioCSBMetadata,
+        },
+        state: "draft",
+      };
+
+      axiosFormio(req)
+        .post(`${formio2022PRFUrl}/submission`, submission)
+        .then((axiosRes) => axiosRes.data)
+        .then((submission) => res.json(submission))
+        .catch((error) => {
+          // NOTE: logged in axiosFormio response interceptor
+          const errorStatus = error.response?.status || 500;
+          const errorMessage = `Error posting Formio Payment Request form submission.`;
+          return res.status(errorStatus).json({ message: errorMessage });
+        });
+    })
+    .catch((error) => {
+      // NOTE: logged in bap verifyBapConnection
+      const errorStatus = 500;
+      const errorMessage = `Error getting data for a new Payment Request form submission from the BAP.`;
+      return res.status(errorStatus).json({ message: errorMessage });
+    });
+});
+
+// --- get an existing 2022 PRF's schema and submission data from Formio
 router.get(
-  "/formio-payment-request-submission/:rebateId",
+  "/formio-2022-prf-submission/:rebateId",
   storeBapComboKeys,
   async (req, res) => {
     const { bapComboKeys } = req;
@@ -737,9 +731,9 @@ router.get(
   }
 );
 
-// --- post an update to an existing draft PRF submission to Formio
+// --- post an update to an existing draft 2022 PRF submission to Formio
 router.post(
-  "/formio-payment-request-submission/:rebateId",
+  "/formio-2022-prf-submission/:rebateId",
   storeBapComboKeys,
   (req, res) => {
     const { bapComboKeys, body } = req;
@@ -747,12 +741,10 @@ router.post(
     const { rebateId } = req.params; // CSB Rebate ID (6 digits)
     const { mongoId, submission } = body;
     const comboKey = submission.data?.bap_hidden_entity_combo_key;
-    const formType = "prf";
-    const rebateYear = "2022"; // TODO
 
     checkFormSubmissionPeriodAndBapStatus({
-      rebateYear,
-      formType,
+      rebateYear: "2022",
+      formType: "prf",
       mongoId,
       comboKey,
       req,
@@ -806,9 +798,9 @@ router.post(
   }
 );
 
-// --- delete an existing PRF submission from Formio
+// --- delete an existing 2022 PRF submission from Formio
 router.post(
-  "/delete-formio-payment-request-submission",
+  "/delete-formio-2022-prf-submission",
   storeBapComboKeys,
   (req, res) => {
     const { bapComboKeys, body } = req;
@@ -899,8 +891,8 @@ router.get("/formio-2022-crf-submissions", storeBapComboKeys, (req, res) => {
     });
 });
 
-// --- post a new CRF submission to Formio
-router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
+// --- post a new 2022 CRF submission to Formio
+router.post("/formio-2022-crf-submission", storeBapComboKeys, (req, res) => {
   const { bapComboKeys, body } = req;
   const { mail } = req.user;
   const {
@@ -1081,9 +1073,9 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
     });
 });
 
-// --- get an existing CRF's schema and submission data from Formio
+// --- get an existing 2022 CRF's schema and submission data from Formio
 router.get(
-  "/formio-close-out-submission/:rebateId",
+  "/formio-2022-crf-submission/:rebateId",
   storeBapComboKeys,
   async (req, res) => {
     const { bapComboKeys } = req;
@@ -1153,9 +1145,9 @@ router.get(
   }
 );
 
-// --- post an update to an existing draft CRF submission to Formio
+// --- post an update to an existing draft 2022 CRF submission to Formio
 router.post(
-  "/formio-close-out-submission/:rebateId",
+  "/formio-2022-crf-submission/:rebateId",
   storeBapComboKeys,
   (req, res) => {
     const { bapComboKeys, body } = req;
@@ -1163,12 +1155,10 @@ router.post(
     const { rebateId } = req.params; // CSB Rebate ID (6 digits)
     const { mongoId, submission } = body;
     const comboKey = submission.data?.bap_hidden_entity_combo_key;
-    const formType = "crf";
-    const rebateYear = "2022"; // TODO
 
     checkFormSubmissionPeriodAndBapStatus({
-      rebateYear,
-      formType,
+      rebateYear: "2022",
+      formType: "crf",
       mongoId,
       comboKey,
       req,

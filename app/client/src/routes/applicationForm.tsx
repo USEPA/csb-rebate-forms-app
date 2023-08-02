@@ -47,7 +47,7 @@ function useFormioSubmissionQueryAndMutation(mongoId: string | undefined) {
     queryClient.resetQueries({ queryKey: ["application"] });
   }, [queryClient]);
 
-  const url = `${serverUrl}/api/formio-application-submission/${mongoId}`;
+  const url = `${serverUrl}/api/formio-2022-frf-submission/${mongoId}`;
 
   const query = useQuery({
     queryKey: ["application", { id: mongoId }],
@@ -281,7 +281,7 @@ function UserApplicationForm(props: { email: string }) {
           ),
         });
 
-        const url = `${serverUrl}/api/delete-formio-payment-request-submission`;
+        const url = `${serverUrl}/api/delete-formio-2022-prf-submission`;
 
         postData(url, {
           mongoId: prf._id,

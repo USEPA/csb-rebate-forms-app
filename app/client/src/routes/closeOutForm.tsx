@@ -46,7 +46,7 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
     queryClient.resetQueries({ queryKey: ["close-out"] });
   }, [queryClient]);
 
-  const url = `${serverUrl}/api/formio-close-out-submission/${rebateId}`;
+  const url = `${serverUrl}/api/formio-2022-crf-submission/${rebateId}`;
 
   const query = useQuery({
     queryKey: ["close-out", { id: rebateId }],

@@ -46,7 +46,7 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
     queryClient.resetQueries({ queryKey: ["payment-request"] });
   }, [queryClient]);
 
-  const url = `${serverUrl}/api/formio-payment-request-submission/${rebateId}`;
+  const url = `${serverUrl}/api/formio-2022-prf-submission/${rebateId}`;
 
   const query = useQuery({
     queryKey: ["payment-request", { id: rebateId }],

@@ -514,9 +514,9 @@
         "parameters": [{ "$ref": "#/components/parameters/scan" }]
       }
     },
-    "/api/formio-application-submission": {
+    "/api/formio-2022-frf-submission": {
       "post": {
-        "summary": "/api/formio-application-submission",
+        "summary": "/api/formio-2022-frf-submission",
         "responses": {
           "200": {
             "description": "OK",
@@ -536,9 +536,9 @@
         "parameters": [{ "$ref": "#/components/parameters/scan" }]
       }
     },
-    "/api/formio-application-submission/{mongoId}": {
+    "/api/formio-2022-frf-submission/{mongoId}": {
       "get": {
-        "summary": "/api/formio-application-submission/{mongoId}",
+        "summary": "/api/formio-2022-frf-submission/{mongoId}",
         "parameters": [
           {
             "name": "mongoId",
@@ -586,7 +586,7 @@
         "tags": []
       },
       "post": {
-        "summary": "/api/formio-application-submission/{mongoId}",
+        "summary": "/api/formio-2022-frf-submission/{mongoId}",
         "parameters": [
           {
             "name": "mongoId",
@@ -635,9 +635,9 @@
         "parameters": [{ "$ref": "#/components/parameters/scan" }]
       }
     },
-    "/api/formio-payment-request-submission": {
+    "/api/formio-2022-prf-submission": {
       "post": {
-        "summary": "/api/formio-payment-request-submission",
+        "summary": "/api/formio-2022-prf-submission",
         "responses": {
           "200": {
             "description": "OK",
@@ -657,9 +657,9 @@
         "parameters": [{ "$ref": "#/components/parameters/scan" }]
       }
     },
-    "/api/formio-payment-request-submission/{rebateId}": {
+    "/api/formio-2022-prf-submission/{rebateId}": {
       "get": {
-        "summary": "/api/formio-payment-request-submission/{rebateId}",
+        "summary": "/api/formio-2022-prf-submission/{rebateId}",
         "parameters": [
           {
             "name": "rebateId",
@@ -707,7 +707,7 @@
         "tags": []
       },
       "post": {
-        "summary": "/api/formio-payment-request-submission/{rebateId}",
+        "summary": "/api/formio-2022-prf-submission/{rebateId}",
         "parameters": [
           {
             "name": "rebateId",
@@ -734,9 +734,9 @@
         "tags": []
       }
     },
-    "/api/delete-formio-payment-request-submission": {
+    "/api/delete-formio-2022-prf-submission": {
       "post": {
-        "summary": "/api/delete-formio-payment-request-submission",
+        "summary": "/api/delete-formio-2022-prf-submission",
         "responses": {
           "200": {
             "description": "OK",
@@ -775,9 +775,9 @@
         "parameters": [{ "$ref": "#/components/parameters/scan" }]
       }
     },
-    "/api/formio-close-out-submission": {
+    "/api/formio-2022-crf-submission": {
       "post": {
-        "summary": "/api/formio-close-out-submission",
+        "summary": "/api/formio-2022-crf-submission",
         "responses": {
           "200": {
             "description": "OK",
@@ -797,9 +797,9 @@
         "parameters": [{ "$ref": "#/components/parameters/scan" }]
       }
     },
-    "/api/formio-close-out-submission/{rebateId}": {
+    "/api/formio-2022-crf-submission/{rebateId}": {
       "get": {
-        "summary": "/api/formio-close-out-submission/{rebateId}",
+        "summary": "/api/formio-2022-crf-submission/{rebateId}",
         "parameters": [
           {
             "name": "rebateId",
@@ -847,7 +847,7 @@
         "tags": []
       },
       "post": {
-        "summary": "/api/formio-close-out-submission/{rebateId}",
+        "summary": "/api/formio-2022-crf-submission/{rebateId}",
         "parameters": [
           {
             "name": "rebateId",

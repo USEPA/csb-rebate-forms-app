@@ -437,8 +437,8 @@ function useCombinedRebates() {
    * NOTE: For there to be any Formio PRF submissions at all, the BAP's ETL
    * process must be running, as the `hidden_bap_rebate_id` field of a PRF
    * submission is injected in the creation of a brand new submission in the
-   * `/api/formio-payment-request-submission` POST request where he BAP Rebate
-   * ID (along with other fields) are fetched from the BAP and then posted to
+   * `/api/formio-2022-prf-submission` POST request where he BAP Rebate ID
+   * (along with other fields) are fetched from the BAP and then posted to
    * Formio in a new PRF submission.
    *
    * That said, if the BAP ETL isn't returning data, we should make sure we

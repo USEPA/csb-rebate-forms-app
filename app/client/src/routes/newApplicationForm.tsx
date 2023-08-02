@@ -194,7 +194,7 @@ export function NewApplicationForm() {
                                         );
 
                                         postData<FormioFRFSubmission>(
-                                          `${serverUrl}/api/formio-application-submission/`,
+                                          `${serverUrl}/api/formio-2022-frf-submission/`,
                                           {
                                             data: {
                                               last_updated_by: email,
