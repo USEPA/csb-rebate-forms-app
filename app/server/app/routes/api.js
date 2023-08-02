@@ -9,7 +9,7 @@ const {
   formioFRF2022Url,
   formioPRF2022Url,
   formioCRF2022Url,
-  formioCsbMetadata,
+  formioCSBMetadata,
 } = require("../config/formio");
 const {
   ensureAuthenticated,
@@ -391,7 +391,7 @@ router.post("/formio-application-submission", storeBapComboKeys, (req, res) => {
   }
 
   /** Add custom metadata to track formio submissions from wrapper. */
-  body.metadata = { ...formioCsbMetadata };
+  body.metadata = { ...formioCSBMetadata };
 
   axiosFormio(req)
     .post(`${formioFRF2022Url}/submission`, body)
@@ -487,7 +487,7 @@ router.post(
         /** Add custom metadata to track formio submissions from wrapper. */
         submission.metadata = {
           ...submission.metadata,
-          ...formioCsbMetadata,
+          ...formioCSBMetadata,
         };
 
         axiosFormio(req)
@@ -648,7 +648,7 @@ router.post(
           },
           /** Add custom metadata to track formio submissions from wrapper. */
           metadata: {
-            ...formioCsbMetadata,
+            ...formioCSBMetadata,
           },
           state: "draft",
         };
@@ -787,7 +787,7 @@ router.post(
         /** Add custom metadata to track formio submissions from wrapper. */
         submission.metadata = {
           ...submission.metadata,
-          ...formioCsbMetadata,
+          ...formioCSBMetadata,
         };
 
         axiosFormio(req)
@@ -1065,7 +1065,7 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
         },
         /** Add custom metadata to track formio submissions from wrapper. */
         metadata: {
-          ...formioCsbMetadata,
+          ...formioCSBMetadata,
         },
         state: "draft",
       };
@@ -1203,7 +1203,7 @@ router.post(
         /**  Add custom metadata to track formio submissions from wrapper. */
         submission.metadata = {
           ...submission.metadata,
-          ...formioCsbMetadata,
+          ...formioCSBMetadata,
         };
 
         axiosFormio(req)

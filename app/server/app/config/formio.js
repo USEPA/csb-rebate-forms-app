@@ -78,7 +78,7 @@ function axiosFormio(req) {
   return instance;
 }
 
-const formioCsbMetadata = {
+const formioCSBMetadata = {
   "csb-app-cloud-space": `env-${CLOUD_SPACE || "local"}`,
   "csb-app-cloud-origin": SERVER_URL || "localhost",
 };
@@ -88,5 +88,5 @@ module.exports = {
   formioFRF2022Url,
   formioPRF2022Url,
   formioCRF2022Url,
-  formioCsbMetadata,
+  formioCSBMetadata,
 };
