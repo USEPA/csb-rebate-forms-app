@@ -556,8 +556,8 @@ router.post(
       entity,
       comboKey,
       rebateId,
-      applicationReviewItemId,
-      applicationFormModified,
+      frfReviewItemId,
+      frfFormModified,
     } = body;
 
     if (!prf2022Open) {
@@ -586,7 +586,7 @@ router.post(
       ALT_GOVT_BUS_POC_EMAIL__c,
     } = entity;
 
-    return getBapDataForPaymentRequest(req, applicationReviewItemId)
+    return getBapDataForPaymentRequest(req, frfReviewItemId)
       .then(({ applicationRecordQuery, busRecordsQuery }) => {
         const {
           CSB_NCES_ID__c,
@@ -617,7 +617,7 @@ router.post(
         const submission = {
           data: {
             bap_hidden_entity_combo_key: comboKey,
-            hidden_application_form_modified: applicationFormModified,
+            hidden_application_form_modified: frfFormModified,
             hidden_current_user_email: email,
             hidden_current_user_title: title,
             hidden_current_user_name: name,
@@ -918,9 +918,9 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
     entity,
     comboKey,
     rebateId,
-    applicationReviewItemId,
-    paymentRequestReviewItemId,
-    paymentRequestFormModified,
+    frfReviewItemId,
+    prfReviewItemId,
+    prfModified,
   } = body;
 
   if (!crf2022Open) {
@@ -949,11 +949,7 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
     ALT_GOVT_BUS_POC_EMAIL__c,
   } = entity;
 
-  return getBapDataForCloseOut(
-    req,
-    applicationReviewItemId,
-    paymentRequestReviewItemId
-  )
+  return getBapDataForCloseOut(req, frfReviewItemId, prfReviewItemId)
     .then(
       ({
         applicationRecordQuery,
@@ -1023,7 +1019,7 @@ router.post("/formio-close-out-submission", storeBapComboKeys, (req, res) => {
         const submission = {
           data: {
             bap_hidden_entity_combo_key: comboKey,
-            hidden_prf_modified: paymentRequestFormModified,
+            hidden_prf_modified: prfModified,
             hidden_current_user_email: email,
             hidden_current_user_title: title,
             hidden_current_user_name: name,

@@ -498,17 +498,17 @@ async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
 }
 
 /**
- * Uses cached JSforce connection to query the BAP for Application form
- * submission data, for use in a brand new Payment Request form submission.
+ * Uses cached JSforce connection to query the BAP for FRF submission data, for
+ * use in a brand new PRF submission.
  *
  * @param {express.Request} req
- * @param {string} applicationReviewItemId CSB Rebate ID with the form/version ID (9 digits)
- * @returns {Promise<BapDataForPaymentRequest>} Application form submission fields
+ * @param {string} frfReviewItemId CSB Rebate ID with the form/version ID (9 digits)
+ * @returns {Promise<BapDataForPaymentRequest>} FRF submission fields
  */
-async function queryBapForPaymentRequestData(req, applicationReviewItemId) {
+async function queryBapForPaymentRequestData(req, frfReviewItemId) {
   const logMessage =
-    `Querying the BAP for Application form submission associated with ` +
-    `Application Review Item ID: '${applicationReviewItemId}'.`;
+    `Querying the BAP for FRF submission associated with ` +
+    `FRF Review Item ID: '${frfReviewItemId}'.`;
   log({ level: "info", message: logMessage });
 
   /** @type {jsforce.Connection} */
@@ -562,7 +562,7 @@ async function queryBapForPaymentRequestData(req, applicationReviewItemId) {
   //   ${BAP_FORMS_TABLE}
   // WHERE
   //   recordtypeid = '${applicationRecordTypeId}' AND
-  //   CSB_Review_Item_ID__c = '${applicationReviewItemId}' AND
+  //   CSB_Review_Item_ID__c = '${frfReviewItemId}' AND
   //   Latest_Version__c = TRUE`
 
   const applicationRecordQuery = await bapConnection
@@ -570,7 +570,7 @@ async function queryBapForPaymentRequestData(req, applicationReviewItemId) {
     .find(
       {
         recordtypeid: applicationRecordTypeId,
-        CSB_Review_Item_ID__c: applicationReviewItemId,
+        CSB_Review_Item_ID__c: frfReviewItemId,
         Latest_Version__c: true,
       },
       {
@@ -662,25 +662,19 @@ async function queryBapForPaymentRequestData(req, applicationReviewItemId) {
 }
 
 /**
- * Uses cached JSforce connection to query the BAP for Application form
- * submission data and Payment Request form submission data, for use in a brand
- * new Close-out form submission.
+ * Uses cached JSforce connection to query the BAP for FRF submission data and
+ * PRF submission data, for use in a brand new CRF submission.
  *
  * @param {express.Request} req
- * @param {string} applicationReviewItemId CSB Rebate ID with the form/version ID (9 digits)
- * @param {string} paymentRequestReviewItemId CSB Rebate ID with the form/version ID (9 digits)
- * @returns {Promise<BapDataForForCloseOut>} Application form and Payment Request form submission fields
+ * @param {string} frfReviewItemId CSB Rebate ID with the form/version ID (9 digits)
+ * @param {string} prfReviewItemId CSB Rebate ID with the form/version ID (9 digits)
+ * @returns {Promise<BapDataForForCloseOut>} FRF and PRF submission fields
  */
-async function queryBapForCloseOutData(
-  req,
-  applicationReviewItemId,
-  paymentRequestReviewItemId
-) {
+async function queryBapForCloseOutData(req, frfReviewItemId, prfReviewItemId) {
   const logMessage =
-    `Querying the BAP for Application form submission associated with ` +
-    `Application Review Item ID: '${applicationReviewItemId}' and ` +
-    `Payment Request form submission associated with ` +
-    `Payment Request Review Item ID: '${paymentRequestReviewItemId}'.`;
+    `Querying the BAP for FRF submission associated with ` +
+    `FRF Review Item ID: '${frfReviewItemId}' and PRF submission associated with ` +
+    `PRF Review Item ID: '${prfReviewItemId}'.`;
   log({ level: "info", message: logMessage });
 
   /** @type {jsforce.Connection} */
@@ -728,7 +722,7 @@ async function queryBapForCloseOutData(
   //   ${BAP_FORMS_TABLE}
   // WHERE
   //   recordtypeid = '${applicationRecordTypeId}' AND
-  //   CSB_Review_Item_ID__c = '${applicationReviewItemId}' AND
+  //   CSB_Review_Item_ID__c = '${frfReviewItemId}' AND
   //   Latest_Version__c = TRUE`
 
   const applicationRecordQuery = await bapConnection
@@ -736,7 +730,7 @@ async function queryBapForCloseOutData(
     .find(
       {
         recordtypeid: applicationRecordTypeId,
-        CSB_Review_Item_ID__c: applicationReviewItemId,
+        CSB_Review_Item_ID__c: frfReviewItemId,
         Latest_Version__c: true,
       },
       {
@@ -814,7 +808,7 @@ async function queryBapForCloseOutData(
   //   ${BAP_FORMS_TABLE}
   // WHERE
   //   recordtypeid = '${paymentRequestRecordTypeId}' AND
-  //   CSB_Review_Item_ID__c = '${paymentRequestReviewItemId}' AND
+  //   CSB_Review_Item_ID__c = '${prfReviewItemId}' AND
   //   Latest_Version__c = TRUE`
 
   const paymentRequestRecordQuery = await bapConnection
@@ -822,7 +816,7 @@ async function queryBapForCloseOutData(
     .find(
       {
         recordtypeid: paymentRequestRecordTypeId,
-        CSB_Review_Item_ID__c: paymentRequestReviewItemId,
+        CSB_Review_Item_ID__c: prfReviewItemId,
         Latest_Version__c: true,
       },
       {
@@ -1043,38 +1037,32 @@ function getBapFormSubmissionsStatuses(req, comboKeys) {
 }
 
 /**
- * Fetches Application form submission data associated with an Application
- * Review Item ID.
+ * Fetches FRF submission data associated with a FRF Review Item ID.
  *
  * @param {express.Request} req
- * @param {string} applicationReviewItemId
+ * @param {string} frfReviewItemId
  * @returns {ReturnType<queryBapForPaymentRequestData>}
  */
-function getBapDataForPaymentRequest(req, applicationReviewItemId) {
+function getBapDataForPaymentRequest(req, frfReviewItemId) {
   return verifyBapConnection(req, {
     name: queryBapForPaymentRequestData,
-    args: [req, applicationReviewItemId],
+    args: [req, frfReviewItemId],
   });
 }
 
 /**
- * Fetches Application form submission data and Payment Request form submission
- * data associated with an Application Review Item ID and a Payment Request
- * Review Item ID.
+ * Fetches FRF submission data and PRF submission data associated with a FRF
+ * Review Item ID and a PRF Review Item ID.
  *
  * @param {express.Request} req
- * @param {string} applicationReviewItemId
- * @param {string} paymentRequestReviewItemId
+ * @param {string} frfReviewItemId
+ * @param {string} prfReviewItemId
  * @returns {ReturnType<queryBapForCloseOutData>}
  */
-function getBapDataForCloseOut(
-  req,
-  applicationReviewItemId,
-  paymentRequestReviewItemId
-) {
+function getBapDataForCloseOut(req, frfReviewItemId, prfReviewItemId) {
   return verifyBapConnection(req, {
     name: queryBapForCloseOutData,
-    args: [req, applicationReviewItemId, paymentRequestReviewItemId],
+    args: [req, frfReviewItemId, prfReviewItemId],
   });
 }
 

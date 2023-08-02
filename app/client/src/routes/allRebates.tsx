@@ -360,8 +360,8 @@ function PRFSubmission(props: { rebate: Rebate }) {
                 entity,
                 comboKey: frf.bap.comboKey,
                 rebateId: frf.bap.rebateId, // CSB Rebate ID (6 digits)
-                applicationReviewItemId: frf.bap.reviewItemId, // CSB Rebate ID with form/version ID (9 digits)
-                applicationFormModified: frf.bap.modified,
+                frfReviewItemId: frf.bap.reviewItemId, // CSB Rebate ID with form/version ID (9 digits)
+                frfFormModified: frf.bap.modified,
               })
                 .then((res) => {
                   navigate(`/payment-request/${frf.bap?.rebateId}`);
@@ -593,9 +593,9 @@ function CRFSubmission(props: { rebate: Rebate }) {
                 entity,
                 comboKey: prf.bap.comboKey,
                 rebateId: prf.bap.rebateId, // CSB Rebate ID (6 digits)
-                applicationReviewItemId: frf.bap.reviewItemId, // CSB Rebate ID with form/version ID (9 digits)
-                paymentRequestReviewItemId: prf.bap.reviewItemId, // CSB Rebate ID with form/version ID (9 digits)
-                paymentRequestFormModified: prf.bap.modified,
+                frfReviewItemId: frf.bap.reviewItemId, // CSB Rebate ID with form/version ID (9 digits)
+                prfReviewItemId: prf.bap.reviewItemId, // CSB Rebate ID with form/version ID (9 digits)
+                prfModified: prf.bap.modified,
               })
                 .then((res) => {
                   navigate(`/close-out/${prf.bap?.rebateId}`);
