@@ -71,7 +71,7 @@ router.use(ensureAuthenticated);
 
 // --- download Formio S3 file metadata
 router.get(
-  "/s3/:rebateYear/:formType/:mongoId/:comboKey/storage/s3",
+  "/s3/:formType/:mongoId/:comboKey/storage/s3",
   storeBapComboKeys,
   (req, res) => {
     const { bapComboKeys, query } = req;
@@ -104,15 +104,15 @@ router.get(
 
 // --- upload Formio S3 file metadata
 router.post(
-  "/s3/:rebateYear/:formType/:mongoId/:comboKey/storage/s3",
+  "/s3/:formType/:mongoId/:comboKey/storage/s3",
   storeBapComboKeys,
   (req, res) => {
     const { bapComboKeys, body } = req;
     const { mail } = req.user;
-    const { rebateYear, formType, mongoId, comboKey } = req.params;
+    const { formType, mongoId, comboKey } = req.params;
 
     checkFormSubmissionPeriodAndBapStatus({
-      rebateYear,
+      rebateYear: "2022",
       formType,
       mongoId,
       comboKey,

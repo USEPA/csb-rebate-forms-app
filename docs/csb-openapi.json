@@ -402,9 +402,9 @@
         "parameters": [{ "$ref": "#/components/parameters/scan" }]
       }
     },
-    "/api/s3/{rebateYear}/{formType}/{mongoId}/{comboKey}/storage/s3": {
+    "/api/formio/2022/s3/{formType}/{mongoId}/{comboKey}/storage/s3": {
       "get": {
-        "summary": "/api/s3/{rebateYear}/{formType}/{mongoId}/{comboKey}/storage/s3",
+        "summary": "/api/formio/2022/s3/{formType}/{mongoId}/{comboKey}/storage/s3",
         "responses": {
           "200": {
             "description": "OK"
@@ -412,14 +412,6 @@
         },
         "tags": [],
         "parameters": [
-          {
-            "name": "rebateYear",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "formType",
             "in": "path",
@@ -448,7 +440,7 @@
         ]
       },
       "post": {
-        "summary": "/api/s3/{rebateYear}/{formType}/{mongoId}/{comboKey}/storage/s3",
+        "summary": "/api/formio/2022/s3/{formType}/{mongoId}/{comboKey}/storage/s3",
         "responses": {
           "200": {
             "description": "OK"
@@ -456,14 +448,6 @@
         },
         "tags": [],
         "parameters": [
-          {
-            "name": "rebateYear",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "formType",
             "in": "path",
