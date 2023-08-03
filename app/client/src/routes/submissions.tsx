@@ -364,7 +364,7 @@ function PRFSubmission(props: { rebate: Rebate }) {
                 frfFormModified: frf.bap.modified,
               })
                 .then((res) => {
-                  navigate(`/payment-request/${frf.bap?.rebateId}`);
+                  navigate(`/prf/2022/${frf.bap?.rebateId}`);
                 })
                 .catch((err) => {
                   displayErrorNotification({
@@ -598,7 +598,7 @@ function CRFSubmission(props: { rebate: Rebate }) {
                 prfModified: prf.bap.modified,
               })
                 .then((res) => {
-                  navigate(`/close-out/${prf.bap?.rebateId}`);
+                  navigate(`/crf/2022/${prf.bap?.rebateId}`);
                 })
                 .catch((err) => {
                   displayErrorNotification({

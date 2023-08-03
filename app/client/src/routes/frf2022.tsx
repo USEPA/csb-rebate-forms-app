@@ -308,7 +308,7 @@ function FundingRequestForm(props: { email: string }) {
             });
           });
       },
-      dismissedAction: () => navigate(`/payment-request/${rebate.rebateId}`),
+      dismissedAction: () => navigate(`/prf/2022/${rebate.rebateId}`),
     });
 
     return null;

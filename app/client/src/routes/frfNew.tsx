@@ -218,7 +218,7 @@ export function FRFNew() {
                                           }
                                         )
                                           .then((res) => {
-                                            navigate(`/rebate/${res._id}`);
+                                            navigate(`/frf/2022/${res._id}`);
                                           })
                                           .catch((err) => {
                                             setErrorMessage({
