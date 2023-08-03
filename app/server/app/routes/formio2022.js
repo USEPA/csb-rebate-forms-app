@@ -20,6 +20,10 @@ const {
   getBapDataForCRF,
   checkFormSubmissionPeriodAndBapStatus,
 } = require("../utilities/bap");
+const {
+  uploadS3FileMetadata,
+  downloadS3FileMetadata,
+} = require("../utilities/formio");
 const log = require("../utilities/logger");
 
 const router = express.Router();
@@ -31,31 +35,11 @@ router.get(
   "/s3/:formType/:mongoId/:comboKey/storage/s3",
   storeBapComboKeys,
   (req, res) => {
-    const { bapComboKeys, query } = req;
-    const { mail } = req.user;
-    const { comboKey } = req.params;
-
-    if (!bapComboKeys.includes(comboKey)) {
-      const logMessage =
-        `User with email '${mail}' attempted to download a file ` +
-        `without a matching BAP combo key.`;
-      log({ level: "error", message: logMessage, req });
-
-      const errorStatus = 401;
-      const errorMessage = `Unauthorized.`;
-      return res.status(errorStatus).json({ message: errorMessage });
-    }
-
-    axiosFormio(req)
-      .get(`${formio2022FRFUrl}/storage/s3`, { params: query })
-      .then((axiosRes) => axiosRes.data)
-      .then((fileMetadata) => res.json(fileMetadata))
-      .catch((error) => {
-        // NOTE: logged in axiosFormio response interceptor
-        const errorStatus = error.response?.status || 500;
-        const errorMessage = `Error downloading file from S3.`;
-        return res.status(errorStatus).json({ message: errorMessage });
-      });
+    downloadS3FileMetadata({
+      formioFormUrl: formio2022FRFUrl,
+      req,
+      res,
+    });
   }
 );
 
@@ -64,59 +48,12 @@ router.post(
   "/s3/:formType/:mongoId/:comboKey/storage/s3",
   storeBapComboKeys,
   (req, res) => {
-    const { bapComboKeys, body } = req;
-    const { mail } = req.user;
-    const { formType, mongoId, comboKey } = req.params;
-
-    checkFormSubmissionPeriodAndBapStatus({
+    uploadS3FileMetadata({
       rebateYear: "2022",
-      formType,
-      mongoId,
-      comboKey,
+      formioFormUrl: formio2022FRFUrl,
       req,
-    })
-      .then(() => {
-        if (!bapComboKeys.includes(comboKey)) {
-          const logMessage =
-            `User with email '${mail}' attempted to upload a file ` +
-            `without a matching BAP combo key.`;
-          log({ level: "error", message: logMessage, req });
-
-          const errorStatus = 401;
-          const errorMessage = `Unauthorized.`;
-          return res.status(errorStatus).json({ message: errorMessage });
-        }
-
-        axiosFormio(req)
-          .post(`${formio2022FRFUrl}/storage/s3`, body)
-          .then((axiosRes) => axiosRes.data)
-          .then((fileMetadata) => res.json(fileMetadata))
-          .catch((error) => {
-            // NOTE: logged in axiosFormio response interceptor
-            const errorStatus = error.response?.status || 500;
-            const errorMessage = `Error uploading file to S3.`;
-            return res.status(errorStatus).json({ message: errorMessage });
-          });
-      })
-      .catch((error) => {
-        const formName =
-          formType === "frf"
-            ? "CSB Application"
-            : formType === "prf"
-            ? "CSB Payment Request"
-            : formType === "cof"
-            ? "CSB Close Out"
-            : "CSB";
-
-        const logMessage =
-          `User with email '${mail}' attempted to upload a file when the ` +
-          `${rebateYear} ${formName} form enrollment period was closed.`;
-        log({ level: "error", message: logMessage, req });
-
-        const errorStatus = 400;
-        const errorMessage = `${rebateYear} ${formName} form enrollment period is closed.`;
-        return res.status(errorStatus).json({ message: errorMessage });
-      });
+      res,
+    });
   }
 );
 
