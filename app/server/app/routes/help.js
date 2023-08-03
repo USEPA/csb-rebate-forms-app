@@ -17,7 +17,7 @@ router.use(ensureAuthenticated);
 router.use(ensureHelpdesk);
 
 // --- get an existing form's submission data from Formio
-router.get("/formio-submission/:formType/:id", (req, res) => {
+router.get("/formio/submission/:formType/:id", (req, res) => {
   const { formType, id } = req.params;
 
   const rebateId = id.length === 6 ? id : null;

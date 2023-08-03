@@ -95,7 +95,7 @@ export function Helpdesk() {
     queryClient.resetQueries({ queryKey: ["helpdesk"] });
   }, [queryClient]);
 
-  const url = `${serverUrl}/help/formio-submission/${formType}/${searchText}`;
+  const url = `${serverUrl}/api/help/formio/submission/${formType}/${searchText}`;
 
   const query = useQuery({
     queryKey: ["helpdesk"],
