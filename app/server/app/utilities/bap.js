@@ -1016,7 +1016,7 @@ function getBapComboKeys(req, email) {
  * Fetches data associated with a provided form submission.
  *
  * @param {express.Request} req
- * @param {'application' | 'payment-request' | 'close-out'} formType
+ * @param {'frf' | 'prf' | 'crf'} formType
  * @param {string | null} rebateId
  * @param {string | null} mongoId
  * @returns {ReturnType<queryForBapFormSubmissionData>}
