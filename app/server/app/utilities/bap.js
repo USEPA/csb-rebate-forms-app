@@ -3,6 +3,8 @@
 const jsforce = require("jsforce");
 const express = require("express");
 const log = require("../utilities/logger");
+// ---
+const { submissionPeriodOpen } = require("../config/formio");
 
 /**
  * @typedef {Object} BapSamEntity
@@ -1070,6 +1072,50 @@ function getBapDataForCRF(req, frfReviewItemId, prfReviewItemId) {
   });
 }
 
+/**
+ * Returns a resolved or rejected promise, depending on if the given form's
+ * submission period is open (as set via environment variables), and if the form
+ * submission has the status of "Edits Requested" or not (as stored in and
+ * returned from the BAP).
+ *
+ * @param {Object} param
+ * @param {'2022' | '2023'} param.rebateYear
+ * @param {'frf' | 'prf' | 'crf'} param.formType
+ * @param {string} param.mongoId
+ * @param {string} param.comboKey
+ * @param {express.Request} param.req
+ */
+function checkFormSubmissionPeriodAndBapStatus({
+  rebateYear,
+  formType,
+  mongoId,
+  comboKey,
+  req,
+}) {
+  /** Form submission period is open, so continue. */
+  if (submissionPeriodOpen[rebateYear][formType]) {
+    return Promise.resolve();
+  }
+
+  /** Form submission period is closed, so only continue if edits are requested. */
+  return getBapFormSubmissionsStatuses(req, [comboKey]).then((submissions) => {
+    const submission = submissions.find((s) => s.CSB_Form_ID__c === mongoId);
+
+    const statusField =
+      formType === "frf"
+        ? "CSB_Funding_Request_Status__c"
+        : formType === "prf"
+        ? "CSB_Payment_Request_Status__c"
+        : formType === "crf"
+        ? "CSB_Closeout_Request_Status__c"
+        : null;
+
+    return submission?.Parent_CSB_Rebate__r?.[statusField] === "Edits Requested"
+      ? Promise.resolve()
+      : Promise.reject();
+  });
+}
+
 module.exports = {
   getSamEntities,
   getBapComboKeys,
@@ -1077,4 +1123,5 @@ module.exports = {
   getBapFormSubmissionsStatuses,
   getBapDataForPRF,
   getBapDataForCRF,
+  checkFormSubmissionPeriodAndBapStatus,
 };
