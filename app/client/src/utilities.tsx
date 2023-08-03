@@ -272,8 +272,8 @@ export function useConfigData() {
 /** Custom hook to fetch BAP SAM.gov data */
 export function useBapSamQuery() {
   return useQuery({
-    queryKey: ["bap-sam-data"],
-    queryFn: () => getData<BapSamData>(`${serverUrl}/api/bap-sam-data`),
+    queryKey: ["bap/sam"],
+    queryFn: () => getData<BapSamData>(`${serverUrl}/api/bap/sam`),
     onSuccess: (res) => {
       if (!res.results) {
         window.location.href = `${serverUrlForHrefs}/logout?RelayState=/welcome?info=bap-sam-results`;
@@ -289,7 +289,7 @@ export function useBapSamQuery() {
 /** Custom hook that returns cached fetched BAP SAM.gov data */
 export function useBapSamData() {
   const queryClient = useQueryClient();
-  return queryClient.getQueryData<BapSamData>(["bap-sam-data"]);
+  return queryClient.getQueryData<BapSamData>(["bap/sam"]);
 }
 
 /** Custom hook to fetch submissions from the BAP and Formio */
@@ -297,9 +297,9 @@ export function useSubmissionsQueries() {
   return useQueries({
     queries: [
       {
-        queryKey: ["bap-form-submissions"],
+        queryKey: ["bap/submissions"],
         queryFn: () => {
-          const url = `${serverUrl}/api/bap-form-submissions`;
+          const url = `${serverUrl}/api/bap/submissions`;
           return getData<BapFormSubmission[]>(url).then((res) => {
             const submissions = res.reduce(
               (object, submission) => {
@@ -368,7 +368,7 @@ function useCombinedRebates() {
     frfs: BapFormSubmission[];
     prfs: BapFormSubmission[];
     crfs: BapFormSubmission[];
-  }>(["bap-form-submissions"]);
+  }>(["bap/submissions"]);
 
   const formioFRFSubmissions = queryClient.getQueryData<FormioFRFSubmission[]>([
     "formio/2022/frf-submissions",

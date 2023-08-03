@@ -12,7 +12,7 @@ const router = express.Router();
 router.use(ensureAuthenticated);
 
 // --- get user's SAM.gov data from EPA's Business Automation Platform (BAP)
-router.get("/bap-sam-data", (req, res) => {
+router.get("/sam", (req, res) => {
   const { mail, memberof } = req.user;
   const userRoles = memberof.split(",");
   const adminOrHelpdeskUser =
@@ -50,7 +50,7 @@ router.get("/bap-sam-data", (req, res) => {
 });
 
 // --- get user's form submissions statuses from EPA's BAP
-router.get("/bap-form-submissions", storeBapComboKeys, (req, res) => {
+router.get("/submissions", storeBapComboKeys, (req, res) => {
   const { bapComboKeys } = req;
 
   return getBapFormSubmissionsStatuses(req, bapComboKeys)
