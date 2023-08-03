@@ -101,7 +101,7 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
   return { query, mutation };
 }
 
-export function PRF() {
+export function PRF2022() {
   const { email } = useOutletContext<{ email: string }>();
   /* ensure user verification (JWT refresh) doesn't cause form to re-render */
   return useMemo(() => {

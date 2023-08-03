@@ -40,10 +40,10 @@ import { ConfirmationDialog } from "components/confirmationDialog";
 import { Notifications } from "components/notifications";
 import { Helpdesk } from "routes/helpdesk";
 import { Submissions } from "routes/submissions";
-import { NewFRF } from "routes/newFRF";
-import { FRF } from "routes/frf";
-import { PRF } from "routes/prf";
-import { CRF } from "routes/crf";
+import { FRFNew } from "routes/frfNew";
+import { FRF2022 } from "routes/frf2022";
+import { PRF2022 } from "routes/prf2022";
+import { CRF2022 } from "routes/crf2022";
 import { useDialogState, useDialogActions } from "contexts/dialog";
 
 /** Custom hook to display a site-wide alert banner */
@@ -258,10 +258,10 @@ export function App() {
           path="close-out/:id"
           loader={({ params }) => redirect(`/crf/2022/${params.id}`)}
         />
-        <Route path="frf/new" element={<NewFRF />} />
-        <Route path="frf/2022/:id" element={<FRF />} />
-        <Route path="prf/2022/:id" element={<PRF />} />
-        <Route path="crf/2022/:id" element={<CRF />} />
+        <Route path="frf/new" element={<FRFNew />} />
+        <Route path="frf/2022/:id" element={<FRF2022 />} />
+        <Route path="prf/2022/:id" element={<PRF2022 />} />
+        <Route path="crf/2022/:id" element={<CRF2022 />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Route>
