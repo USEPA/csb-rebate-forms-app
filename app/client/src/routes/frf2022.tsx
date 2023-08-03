@@ -93,7 +93,7 @@ function useFormioSubmissionQueryAndMutation(mongoId: string | undefined) {
     },
     onSuccess: (res) => {
       return queryClient.setQueryData<ServerResponse>(
-        ["application", { id: mongoId }],
+        ["formio/2022/frf-submission", { id: mongoId }],
         (prevData) => {
           return prevData?.submission
             ? { ...prevData, submission: res }

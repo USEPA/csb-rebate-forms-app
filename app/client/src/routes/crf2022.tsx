@@ -88,7 +88,7 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
     },
     onSuccess: (res) => {
       return queryClient.setQueryData<ServerResponse>(
-        ["close-out", { id: rebateId }],
+        ["formio/2022/crf-submission", { id: rebateId }],
         (prevData) => {
           return prevData?.submission
             ? { ...prevData, submission: res }
