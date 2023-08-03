@@ -44,13 +44,13 @@ function useFormioSubmissionQueryAndMutation(mongoId: string | undefined) {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    queryClient.resetQueries({ queryKey: ["application"] });
+    queryClient.resetQueries({ queryKey: ["formio/2022/frf-submission"] });
   }, [queryClient]);
 
-  const url = `${serverUrl}/api/formio-2022-frf-submission/${mongoId}`;
+  const url = `${serverUrl}/api/formio/2022/frf-submission/${mongoId}`;
 
   const query = useQuery({
-    queryKey: ["application", { id: mongoId }],
+    queryKey: ["formio/2022/frf-submission", { id: mongoId }],
     queryFn: () => {
       return getData<ServerResponse>(url).then((res) => {
         const comboKey = res.submission?.data.bap_hidden_entity_combo_key;
@@ -281,7 +281,7 @@ function UserApplicationForm(props: { email: string }) {
           ),
         });
 
-        const url = `${serverUrl}/api/delete-formio-2022-prf-submission`;
+        const url = `${serverUrl}/api/formio/2022/delete-prf-submission`;
 
         postData(url, {
           mongoId: prf._id,

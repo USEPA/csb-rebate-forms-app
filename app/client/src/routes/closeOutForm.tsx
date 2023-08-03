@@ -43,13 +43,13 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    queryClient.resetQueries({ queryKey: ["close-out"] });
+    queryClient.resetQueries({ queryKey: ["formio/2022/crf-submission"] });
   }, [queryClient]);
 
-  const url = `${serverUrl}/api/formio-2022-crf-submission/${rebateId}`;
+  const url = `${serverUrl}/api/formio/2022/crf-submission/${rebateId}`;
 
   const query = useQuery({
-    queryKey: ["close-out", { id: rebateId }],
+    queryKey: ["formio/2022/crf-submission", { id: rebateId }],
     queryFn: () => {
       return getData<ServerResponse>(url).then((res) => {
         const mongoId = res.submission?._id;

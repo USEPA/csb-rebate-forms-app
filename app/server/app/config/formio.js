@@ -6,6 +6,12 @@ const log = require("../utilities/logger");
 const {
   CLOUD_SPACE,
   SERVER_URL,
+  CSB_2022_FRF_OPEN,
+  CSB_2022_PRF_OPEN,
+  CSB_2022_CRF_OPEN,
+  CSB_2023_FRF_OPEN,
+  CSB_2023_PRF_OPEN,
+  CSB_2023_CRF_OPEN,
   FORMIO_BASE_URL,
   FORMIO_PROJECT_NAME,
   FORMIO_API_KEY,
@@ -16,6 +22,22 @@ const {
   FORMIO_2023_PRF_PATH,
   FORMIO_2023_CRF_PATH,
 } = process.env;
+
+/**
+ * Stores whether the submission period is open for each form by rebate year.
+ */
+const submissionPeriodOpen = {
+  2022: {
+    frf: CSB_2022_FRF_OPEN === "true",
+    prf: CSB_2022_PRF_OPEN === "true",
+    crf: CSB_2022_CRF_OPEN === "true",
+  },
+  2023: {
+    frf: CSB_2023_FRF_OPEN === "true",
+    prf: CSB_2023_PRF_OPEN === "true",
+    crf: CSB_2023_CRF_OPEN === "true",
+  },
+};
 
 const formioProjectUrl = `${FORMIO_BASE_URL}/${FORMIO_PROJECT_NAME}`;
 const formio2022FRFUrl = `${formioProjectUrl}/${FORMIO_2022_FRF_PATH}`;
@@ -85,6 +107,7 @@ const formioCSBMetadata = {
 
 module.exports = {
   axiosFormio,
+  submissionPeriodOpen,
   formio2022FRFUrl,
   formio2022PRFUrl,
   formio2022CRFUrl,

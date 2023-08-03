@@ -329,25 +329,25 @@ export function useSubmissionsQueries() {
         refetchOnWindowFocus: false,
       },
       {
-        queryKey: ["formio-2022-frf-submissions"],
+        queryKey: ["formio/2022/frf-submissions"],
         queryFn: () => {
-          const url = `${serverUrl}/api/formio-2022-frf-submissions`;
+          const url = `${serverUrl}/api/formio/2022/frf-submissions`;
           return getData<FormioFRFSubmission[]>(url);
         },
         refetchOnWindowFocus: false,
       },
       {
-        queryKey: ["formio-2022-prf-submissions"],
+        queryKey: ["formio/2022/prf-submissions"],
         queryFn: () => {
-          const url = `${serverUrl}/api/formio-2022-prf-submissions`;
+          const url = `${serverUrl}/api/formio/2022/prf-submissions`;
           return getData<FormioPRFSubmission[]>(url);
         },
         refetchOnWindowFocus: false,
       },
       {
-        queryKey: ["formio-2022-crf-submissions"],
+        queryKey: ["formio/2022/crf-submissions"],
         queryFn: () => {
-          const url = `${serverUrl}/api/formio-2022-crf-submissions`;
+          const url = `${serverUrl}/api/formio/2022/crf-submissions`;
           return getData<FormioCRFSubmission[]>(url);
         },
         refetchOnWindowFocus: false,
@@ -371,15 +371,15 @@ function useCombinedRebates() {
   }>(["bap-form-submissions"]);
 
   const formioFRFSubmissions = queryClient.getQueryData<FormioFRFSubmission[]>([
-    "formio-2022-frf-submissions",
+    "formio/2022/frf-submissions",
   ]);
 
   const formioPRFSubmissions = queryClient.getQueryData<FormioPRFSubmission[]>([
-    "formio-2022-prf-submissions",
+    "formio/2022/prf-submissions",
   ]);
 
   const formioCRFSubmissions = queryClient.getQueryData<FormioCRFSubmission[]>([
-    "formio-2022-crf-submissions",
+    "formio/2022/crf-submissions",
   ]);
 
   // ensure form submissions data has been fetched from both the BAP and Formio
@@ -437,7 +437,7 @@ function useCombinedRebates() {
    * NOTE: For there to be any Formio PRF submissions at all, the BAP's ETL
    * process must be running, as the `hidden_bap_rebate_id` field of a PRF
    * submission is injected in the creation of a brand new submission in the
-   * `/api/formio-2022-prf-submission` POST request where he BAP Rebate ID
+   * `/api/formio/2022/prf-submission` POST request where he BAP Rebate ID
    * (along with other fields) are fetched from the BAP and then posted to
    * Formio in a new PRF submission.
    *
