@@ -62,7 +62,7 @@ export function UserDashboard(props: { email: string }) {
   const { displayDialog } = useDialogActions();
   const helpdeskAccess = useHelpdeskAccess();
 
-  const onAllRebatesPage = pathname === "/";
+  const onSubmissionsPage = pathname === "/";
   const onHelpdeskPage = pathname === "/helpdesk";
 
   const onApplicationFormPage = pathname.startsWith("/rebate");
@@ -123,7 +123,7 @@ export function UserDashboard(props: { email: string }) {
       <div className="flex-justify border-bottom tablet:display-flex ">
         <nav className="flex-align-center mobile-lg:display-flex">
           <div className="margin-bottom-1 mobile-lg:margin-right-1">
-            {onAllRebatesPage ? (
+            {onSubmissionsPage ? (
               <button className={btnClassNames} disabled>
                 <DashboardIconText />
               </button>

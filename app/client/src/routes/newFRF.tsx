@@ -19,7 +19,7 @@ import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/tooltip";
 import { useRebateYearState } from "contexts/rebateYear";
 
-export function NewApplicationForm() {
+export function NewFRF() {
   const navigate = useNavigate();
   const { email } = useOutletContext<{ email: string }>();
 

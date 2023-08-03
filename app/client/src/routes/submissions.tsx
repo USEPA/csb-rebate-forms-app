@@ -770,7 +770,7 @@ function NewApplicationIconText() {
   );
 }
 
-export function AllRebates() {
+export function Submissions() {
   const content = useContentData();
   const configData = useConfigData();
   const bapSamData = useBapSamData();

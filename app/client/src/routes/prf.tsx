@@ -9,7 +9,7 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages } from "../config";
 import {
-  FormioCRFSubmission,
+  FormioPRFSubmission,
   getData,
   postData,
   useContentData,
@@ -35,7 +35,7 @@ type ServerResponse =
   | {
       userAccess: true;
       formSchema: { url: string; json: object };
-      submission: FormioCRFSubmission;
+      submission: FormioPRFSubmission;
     };
 
 /** Custom hook to fetch Formio submission data */
@@ -43,13 +43,13 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    queryClient.resetQueries({ queryKey: ["formio/2022/crf-submission"] });
+    queryClient.resetQueries({ queryKey: ["formio/2022/prf-submission"] });
   }, [queryClient]);
 
-  const url = `${serverUrl}/api/formio/2022/crf-submission/${rebateId}`;
+  const url = `${serverUrl}/api/formio/2022/prf-submission/${rebateId}`;
 
   const query = useQuery({
-    queryKey: ["formio/2022/crf-submission", { id: rebateId }],
+    queryKey: ["formio/2022/prf-submission", { id: rebateId }],
     queryFn: () => {
       return getData<ServerResponse>(url).then((res) => {
         const mongoId = res.submission?._id;
@@ -65,7 +65,7 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
          */
         Formio.Providers.providers.storage.s3 = function (formio: any) {
           const s3Formio = cloneDeep(formio);
-          s3Formio.formUrl = `${serverUrl}/api/formio/2022/s3/crf/${mongoId}/${comboKey}`;
+          s3Formio.formUrl = `${serverUrl}/api/formio/2022/s3/prf/${mongoId}/${comboKey}`;
           return s3(s3Formio);
         };
 
@@ -84,11 +84,11 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
         state: "submitted" | "draft";
       };
     }) => {
-      return postData<FormioCRFSubmission>(url, updatedSubmission);
+      return postData<FormioPRFSubmission>(url, updatedSubmission);
     },
     onSuccess: (res) => {
       return queryClient.setQueryData<ServerResponse>(
-        ["close-out", { id: rebateId }],
+        ["payment-request", { id: rebateId }],
         (prevData) => {
           return prevData?.submission
             ? { ...prevData, submission: res }
@@ -101,15 +101,15 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
   return { query, mutation };
 }
 
-export function CloseOutForm() {
+export function PRF() {
   const { email } = useOutletContext<{ email: string }>();
   /* ensure user verification (JWT refresh) doesn't cause form to re-render */
   return useMemo(() => {
-    return <UserCloseOutForm email={email} />;
+    return <PaymentRequestForm email={email} />;
   }, [email]);
 }
 
-function UserCloseOutForm(props: { email: string }) {
+function PaymentRequestForm(props: { email: string }) {
   const { email } = props;
 
   const navigate = useNavigate();
@@ -184,21 +184,29 @@ function UserCloseOutForm(props: { email: string }) {
 
   const rebate = rebates.find((r) => r.rebateId === rebateId);
 
-  const crfNeedsEdits = !rebate
+  const frfNeedsEdits = !rebate
     ? false
     : submissionNeedsEdits({
-        formio: rebate.crf.formio,
-        bap: rebate.crf.bap,
+        formio: rebate.frf.formio,
+        bap: rebate.frf.bap,
       });
 
-  const crfSubmissionPeriodOpen =
-    configData.submissionPeriodOpen[rebateYear].crf;
+  const prfNeedsEdits = !rebate
+    ? false
+    : submissionNeedsEdits({
+        formio: rebate.prf.formio,
+        bap: rebate.prf.bap,
+      });
+
+  const prfSubmissionPeriodOpen =
+    configData.submissionPeriodOpen[rebateYear].prf;
 
   const formIsReadOnly =
-    (submission.state === "submitted" || !crfSubmissionPeriodOpen) &&
-    !crfNeedsEdits;
+    frfNeedsEdits ||
+    ((submission.state === "submitted" || !prfSubmissionPeriodOpen) &&
+      !prfNeedsEdits);
 
-  /** matched SAM.gov entity for the Close Out submission */
+  /** matched SAM.gov entity for the Payment Request submission */
   const entity = bapSamData.entities.find((entity) => {
     const { ENTITY_COMBO_KEY__c } = entity;
     return ENTITY_COMBO_KEY__c === submission.data.bap_hidden_entity_combo_key;
@@ -212,6 +220,15 @@ function UserCloseOutForm(props: { email: string }) {
     return <Message type="error" text={messages.bapSamEntityNotActive} />;
   }
 
+  const {
+    UNIQUE_ENTITY_ID__c,
+    ENTITY_EFT_INDICATOR__c,
+    ELEC_BUS_POC_EMAIL__c,
+    ALT_ELEC_BUS_POC_EMAIL__c,
+    GOVT_BUS_POC_EMAIL__c,
+    ALT_GOVT_BUS_POC_EMAIL__c,
+  } = entity;
+
   const { title, name } = getUserInfo(email, entity);
 
   return (
@@ -221,12 +238,16 @@ function UserCloseOutForm(props: { email: string }) {
           className="margin-top-4"
           children={
             submission.state === "draft"
-              ? content.draftCRFIntro
+              ? content.draftPRFIntro
               : submission.state === "submitted"
-              ? content.submittedCRFIntro
+              ? content.submittedPRFIntro
               : ""
           }
         />
+      )}
+
+      {frfNeedsEdits && (
+        <Message type="warning" text={messages.prfWillBeDeleted} />
       )}
 
       <ul className="usa-icon-list">
@@ -264,6 +285,12 @@ function UserCloseOutForm(props: { email: string }) {
               hidden_current_user_email: email,
               hidden_current_user_title: title,
               hidden_current_user_name: name,
+              hidden_sam_uei: UNIQUE_ENTITY_ID__c,
+              hidden_sam_efti: ENTITY_EFT_INDICATOR__c || "0000",
+              hidden_sam_elec_bus_poc_email: ELEC_BUS_POC_EMAIL__c,
+              hidden_sam_alt_elec_bus_poc_email: ALT_ELEC_BUS_POC_EMAIL__c,
+              hidden_sam_govt_bus_poc_email: GOVT_BUS_POC_EMAIL__c,
+              hidden_sam_alt_govt_bus_poc_email: ALT_GOVT_BUS_POC_EMAIL__c,
               ...pendingSubmissionData.current,
             },
           }}
@@ -312,7 +339,8 @@ function UserCloseOutForm(props: { email: string }) {
                     <p className="tw-text-sm tw-font-medium tw-text-gray-900">
                       {onSubmitSubmission.state === "submitted" ? (
                         <>
-                          Close Out <em>{rebateId}</em> submitted successfully.
+                          Payment Request <em>{rebateId}</em> submitted
+                          successfully.
                         </>
                       ) : (
                         <>Draft saved successfully.</>
@@ -339,7 +367,7 @@ function UserCloseOutForm(props: { email: string }) {
                   body: (
                     <p className="tw-text-sm tw-font-medium tw-text-gray-900">
                       {onSubmitSubmission.state === "submitted" ? (
-                        <>Error submitting Close Out form.</>
+                        <>Error submitting Payment Request form.</>
                       ) : (
                         <>Error saving draft.</>
                       )}
@@ -368,6 +396,13 @@ function UserCloseOutForm(props: { email: string }) {
             // to the form (ignoring current user fields)
             const currentData = { ...data };
             const submittedData = { ...lastSuccesfullySubmittedData.current };
+
+            // NOTE: `newBusDeliveryDate` is causing the dirty check to fail
+            console.log({
+              current: (currentData.busInfo as unknown[])[0], // newBusDeliveryDate: ""
+              submitted: (submittedData.busInfo as unknown[])[0], // newBusDeliveryDate: null
+            });
+
             delete currentData.hidden_current_user_email;
             delete currentData.hidden_current_user_title;
             delete currentData.hidden_current_user_name;
@@ -425,6 +460,10 @@ function UserCloseOutForm(props: { email: string }) {
           }}
         />
       </div>
+
+      {frfNeedsEdits && (
+        <Message type="warning" text={messages.prfWillBeDeleted} />
+      )}
     </div>
   );
 }

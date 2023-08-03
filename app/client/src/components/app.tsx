@@ -38,11 +38,11 @@ import { UserDashboard } from "components/userDashboard";
 import { ConfirmationDialog } from "components/confirmationDialog";
 import { Notifications } from "components/notifications";
 import { Helpdesk } from "routes/helpdesk";
-import { AllRebates } from "routes/allRebates";
-import { NewApplicationForm } from "routes/newApplicationForm";
-import { ApplicationForm } from "routes/applicationForm";
-import { PaymentRequestForm } from "routes/paymentRequestForm";
-import { CloseOutForm } from "routes/closeOutForm";
+import { Submissions } from "routes/submissions";
+import { NewFRF } from "routes/newFRF";
+import { FRF } from "routes/frf";
+import { PRF } from "routes/prf";
+import { CRF } from "routes/crf";
 import { useDialogState, useDialogActions } from "contexts/dialog";
 
 /** Custom hook to display a site-wide alert banner */
@@ -238,12 +238,12 @@ export function App() {
     <Route errorElement={<Message type="error" text={messages.genericError} />}>
       <Route path="/welcome" element={<Welcome />} />
       <Route path="/" element={<ProtectedRoute />}>
-        <Route index element={<AllRebates />} />
+        <Route index element={<Submissions />} />
         <Route path="helpdesk" element={<Helpdesk />} />
-        <Route path="rebate/new" element={<NewApplicationForm />} />
-        <Route path="rebate/:id" element={<ApplicationForm />} />
-        <Route path="payment-request/:id" element={<PaymentRequestForm />} />
-        <Route path="close-out/:id" element={<CloseOutForm />} />
+        <Route path="rebate/new" element={<NewFRF />} />
+        <Route path="rebate/:id" element={<FRF />} />
+        <Route path="payment-request/:id" element={<PRF />} />
+        <Route path="close-out/:id" element={<CRF />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Route>
