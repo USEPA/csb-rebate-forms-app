@@ -1,6 +1,5 @@
 const express = require("express");
 // ---
-const { submissionPeriodOpen } = require("../config/formio");
 const { ensureAuthenticated, storeBapComboKeys } = require("../middleware");
 const {
   getSamEntities,
@@ -11,17 +10,6 @@ const log = require("../utilities/logger");
 const router = express.Router();
 
 router.use(ensureAuthenticated);
-
-// --- get user data from EPA Gateway/Login.gov
-router.get("/user", (req, res) => {
-  const { mail, memberof, exp } = req.user;
-  return res.json({ mail, memberof, exp });
-});
-
-// --- get CSB app specific configuration (form open enrollment status, etc.)
-router.get("/config", (req, res) => {
-  return res.json({ submissionPeriodOpen });
-});
 
 // --- get user's SAM.gov data from EPA's Business Automation Platform (BAP)
 router.get("/bap-sam-data", (req, res) => {
