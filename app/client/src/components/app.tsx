@@ -3,6 +3,7 @@ import { render } from "react-dom";
 import {
   createBrowserRouter,
   createRoutesFromElements,
+  redirect,
   Navigate,
   Route,
   RouterProvider,
@@ -240,10 +241,27 @@ export function App() {
       <Route path="/" element={<ProtectedRoute />}>
         <Route index element={<Submissions />} />
         <Route path="helpdesk" element={<Helpdesk />} />
-        <Route path="rebate/new" element={<NewFRF />} />
-        <Route path="rebate/:id" element={<FRF />} />
-        <Route path="payment-request/:id" element={<PRF />} />
-        <Route path="close-out/:id" element={<CRF />} />
+        {/* Redirect pre-v4 routes to use post-v4 routes */}
+        <Route
+          path="rebate/new"
+          loader={({ params }) => redirect(`/frf/new`)}
+        />
+        <Route
+          path="rebate/:id"
+          loader={({ params }) => redirect(`/frf/2022/${params.id}`)}
+        />
+        <Route
+          path="payment-request/:id"
+          loader={({ params }) => redirect(`/prf/2022/${params.id}`)}
+        />
+        <Route
+          path="close-out/:id"
+          loader={({ params }) => redirect(`/crf/2022/${params.id}`)}
+        />
+        <Route path="frf/new" element={<NewFRF />} />
+        <Route path="frf/2022/:id" element={<FRF />} />
+        <Route path="prf/2022/:id" element={<PRF />} />
+        <Route path="crf/2022/:id" element={<CRF />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Route>
