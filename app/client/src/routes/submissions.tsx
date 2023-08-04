@@ -134,7 +134,7 @@ function FRFSubmission(props: { rebate: Rebate }) {
     ? "Submitted"
     : ""; // fallback, not used
 
-  const frfUrl = `/rebate/${frf.formio._id}`;
+  const frfUrl = `/frf/2022/${frf.formio._id}`;
 
   /**
    * NOTE on the usage of `TextWithTooltip` below:
@@ -470,7 +470,7 @@ function PRFSubmission(props: { rebate: Rebate }) {
     ? "Submitted"
     : ""; // fallback, not used
 
-  const prfUrl = `/payment-request/${hidden_bap_rebate_id}`;
+  const prfUrl = `/prf/2022/${hidden_bap_rebate_id}`;
 
   return (
     <tr
@@ -692,7 +692,7 @@ function CRFSubmission(props: { rebate: Rebate }) {
     ? "Submitted"
     : ""; // fallback, not used
 
-  const crfUrl = `/close-out/${hidden_bap_rebate_id}`;
+  const crfUrl = `/crf/2022/${hidden_bap_rebate_id}`;
 
   return (
     <tr
@@ -832,7 +832,7 @@ export function Submissions() {
                 <NewApplicationIconText />
               </button>
             ) : (
-              <Link to="/rebate/new" className={btnClassNames}>
+              <Link to="/frf/new" className={btnClassNames}>
                 <NewApplicationIconText />
               </Link>
             )}
