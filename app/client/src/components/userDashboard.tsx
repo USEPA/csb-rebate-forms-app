@@ -64,13 +64,10 @@ export function UserDashboard(props: { email: string }) {
 
   const onSubmissionsPage = pathname === "/";
   const onHelpdeskPage = pathname === "/helpdesk";
-
-  const onApplicationFormPage = pathname.startsWith("/rebate");
-  const onPaymentRequestFormPage = pathname.startsWith("/payment-request");
-  const onCloseOutFormPage = pathname.startsWith("/close-out");
-
   const onFormPage =
-    onApplicationFormPage || onPaymentRequestFormPage || onCloseOutFormPage;
+    pathname.startsWith("/frf") ||
+    pathname.startsWith("/prf") ||
+    pathname.startsWith("/crf");
 
   const btnClassNames =
     "usa-button margin-0 padding-x-2 padding-y-1 width-full font-sans-2xs";
