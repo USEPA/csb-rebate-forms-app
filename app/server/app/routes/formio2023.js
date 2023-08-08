@@ -3,10 +3,8 @@ const ObjectId = require("mongodb").ObjectId;
 // ---
 const {
   axiosFormio,
+  formUrl,
   submissionPeriodOpen,
-  formio2023FRFUrl,
-  formio2023PRFUrl,
-  formio2023CRFUrl,
   formioCSBMetadata,
 } = require("../config/formio");
 const {

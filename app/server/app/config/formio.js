@@ -57,14 +57,6 @@ const submissionPeriodOpen = {
   },
 };
 
-const formio2022FRFUrl = `${formioProjectUrl}/${FORMIO_2022_FRF_PATH}`;
-const formio2022PRFUrl = `${formioProjectUrl}/${FORMIO_2022_PRF_PATH}`;
-const formio2022CRFUrl = `${formioProjectUrl}/${FORMIO_2022_CRF_PATH}`;
-
-const formio2023FRFUrl = `${formioProjectUrl}/${FORMIO_2023_FRF_PATH}`;
-const formio2023PRFUrl = `${formioProjectUrl}/${FORMIO_2023_PRF_PATH}`;
-const formio2023CRFUrl = `${formioProjectUrl}/${FORMIO_2023_CRF_PATH}`;
-
 /** @param {express.Request} req */
 function axiosFormio(req) {
   const instance = axios.create();
@@ -130,11 +122,5 @@ module.exports = {
   axiosFormio,
   formUrl,
   submissionPeriodOpen,
-  formio2022FRFUrl,
-  formio2022PRFUrl,
-  formio2022CRFUrl,
-  formio2023FRFUrl,
-  formio2023PRFUrl,
-  formio2023CRFUrl,
   formioCSBMetadata,
 };
