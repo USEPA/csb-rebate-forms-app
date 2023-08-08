@@ -23,6 +23,24 @@ const {
   FORMIO_2023_CRF_PATH,
 } = process.env;
 
+const formioProjectUrl = `${FORMIO_BASE_URL}/${FORMIO_PROJECT_NAME}`;
+
+/**
+ * Stores form url for each form by rebate year.
+ */
+const formUrl = {
+  2022: {
+    frf: `${formioProjectUrl}/${FORMIO_2022_FRF_PATH}`,
+    prf: `${formioProjectUrl}/${FORMIO_2022_PRF_PATH}`,
+    crf: `${formioProjectUrl}/${FORMIO_2022_CRF_PATH}`,
+  },
+  2023: {
+    frf: `${formioProjectUrl}/${FORMIO_2023_FRF_PATH}`,
+    prf: `${formioProjectUrl}/${FORMIO_2023_PRF_PATH}`,
+    crf: `${formioProjectUrl}/${FORMIO_2023_CRF_PATH}`,
+  },
+};
+
 /**
  * Stores whether the submission period is open for each form by rebate year.
  */
@@ -38,8 +56,6 @@ const submissionPeriodOpen = {
     crf: CSB_2023_CRF_OPEN === "true",
   },
 };
-
-const formioProjectUrl = `${FORMIO_BASE_URL}/${FORMIO_PROJECT_NAME}`;
 
 const formio2022FRFUrl = `${formioProjectUrl}/${FORMIO_2022_FRF_PATH}`;
 const formio2022PRFUrl = `${formioProjectUrl}/${FORMIO_2022_PRF_PATH}`;
@@ -112,6 +128,7 @@ const formioCSBMetadata = {
 
 module.exports = {
   axiosFormio,
+  formUrl,
   submissionPeriodOpen,
   formio2022FRFUrl,
   formio2022PRFUrl,

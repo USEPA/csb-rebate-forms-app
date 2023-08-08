@@ -1,20 +1,27 @@
 const express = require("express");
 // ---
-const { axiosFormio } = require("../config/formio");
+const { axiosFormio, formUrl } = require("../config/formio");
 const { checkFormSubmissionPeriodAndBapStatus } = require("./bap");
 const log = require("./logger");
 
 /**
  * @param {Object} param
  * @param {'2022' | '2023'} param.rebateYear
- * @param {string} param.formioFormUrl
  * @param {express.Request} param.req
  * @param {express.Response} param.res
  */
-function uploadS3FileMetadata({ rebateYear, formioFormUrl, req, res }) {
+function uploadS3FileMetadata({ rebateYear, req, res }) {
   const { bapComboKeys, body } = req;
   const { mail } = req.user;
   const { formType, mongoId, comboKey } = req.params;
+
+  const formioFormUrl = formUrl[rebateYear][formType];
+
+  if (!formioFormUrl) {
+    const errorStatus = 400;
+    const errorMessage = `Formio form URL does not exist for ${rebateYear} ${formType}.`;
+    return res.status(errorStatus).json({ message: errorMessage });
+  }
 
   checkFormSubmissionPeriodAndBapStatus({
     rebateYear,
@@ -69,14 +76,22 @@ function uploadS3FileMetadata({ rebateYear, formioFormUrl, req, res }) {
 
 /**
  * @param {Object} param
- * @param {string} param.formioFormUrl
+ * @param {'2022' | '2023'} param.rebateYear
  * @param {express.Request} param.req
  * @param {express.Response} param.res
  */
-function downloadS3FileMetadata({ formioFormUrl, req, res }) {
+function downloadS3FileMetadata({ rebateYear, req, res }) {
   const { bapComboKeys, query } = req;
   const { mail } = req.user;
-  const { comboKey } = req.params;
+  const { formType, comboKey } = req.params;
+
+  const formioFormUrl = formUrl[rebateYear][formType];
+
+  if (!formioFormUrl) {
+    const errorStatus = 400;
+    const errorMessage = `Formio form URL does not exist for ${rebateYear} ${formType}.`;
+    return res.status(errorStatus).json({ message: errorMessage });
+  }
 
   if (!bapComboKeys.includes(comboKey)) {
     const logMessage =

@@ -35,11 +35,7 @@ router.get(
   "/s3/:formType/:mongoId/:comboKey/storage/s3",
   storeBapComboKeys,
   (req, res) => {
-    downloadS3FileMetadata({
-      formioFormUrl: formio2022FRFUrl,
-      req,
-      res,
-    });
+    downloadS3FileMetadata({ rebateYear: "2022", req, res });
   }
 );
 
@@ -48,12 +44,7 @@ router.post(
   "/s3/:formType/:mongoId/:comboKey/storage/s3",
   storeBapComboKeys,
   (req, res) => {
-    uploadS3FileMetadata({
-      rebateYear: "2022",
-      formioFormUrl: formio2022FRFUrl,
-      req,
-      res,
-    });
+    uploadS3FileMetadata({ rebateYear: "2022", req, res });
   }
 );
 
