@@ -21,6 +21,7 @@ const {
 const {
   uploadS3FileMetadata,
   downloadS3FileMetadata,
+  fetchFRFSubmissions,
 } = require("../utilities/formio");
 const log = require("../utilities/logger");
 
@@ -52,36 +53,7 @@ router.post(
 
 // --- get user's 2022 FRF submissions from Formio
 router.get("/frf-submissions", storeBapComboKeys, (req, res) => {
-  const { bapComboKeys } = req;
-
-  /**
-   * NOTE: Helpdesk users might not have any SAM.gov records associated with
-   * their email address so we should not return any submissions to those users.
-   * The only reason we explicitly need to do this is because there could be
-   * some submissions without `bap_hidden_entity_combo_key` field values in the
-   * Formio database – that will never be the case for submissions created from
-   * this app, but there could be submissions created externally if someone is
-   * testing posting data (e.g. from a REST client, or the Formio Viewer).
-   */
-  if (bapComboKeys.length === 0) return res.json([]);
-
-  const userSubmissionsUrl =
-    `${formioFRFUrl}/submission` +
-    `?sort=-modified` +
-    `&limit=1000000` +
-    `&data.bap_hidden_entity_combo_key=` +
-    `${bapComboKeys.join("&data.bap_hidden_entity_combo_key=")}`;
-
-  axiosFormio(req)
-    .get(userSubmissionsUrl)
-    .then((axiosRes) => axiosRes.data)
-    .then((submissions) => res.json(submissions))
-    .catch((error) => {
-      // NOTE: logged in axiosFormio response interceptor
-      const errorStatus = error.response?.status || 500;
-      const errorMessage = `Error getting Formio Application form submissions.`;
-      return res.status(errorStatus).json({ message: errorMessage });
-    });
+  fetchFRFSubmissions({ rebateYear: "2022", req, res });
 });
 
 // --- post a new 2022 FRF submission to Formio

@@ -19,7 +19,7 @@ function uploadS3FileMetadata({ rebateYear, req, res }) {
 
   if (!formioFormUrl) {
     const errorStatus = 400;
-    const errorMessage = `Formio form URL does not exist for ${rebateYear} ${formType}.`;
+    const errorMessage = `Formio form URL does not exist for ${rebateYear} ${formType.toUpperCase()}.`;
     return res.status(errorStatus).json({ message: errorMessage });
   }
 
@@ -89,7 +89,7 @@ function downloadS3FileMetadata({ rebateYear, req, res }) {
 
   if (!formioFormUrl) {
     const errorStatus = 400;
-    const errorMessage = `Formio form URL does not exist for ${rebateYear} ${formType}.`;
+    const errorMessage = `Formio form URL does not exist for ${rebateYear} ${formType.toUpperCase()}.`;
     return res.status(errorStatus).json({ message: errorMessage });
   }
 
@@ -116,7 +116,44 @@ function downloadS3FileMetadata({ rebateYear, req, res }) {
     });
 }
 
+/**
+ * @param {Object} param
+ * @param {'2022' | '2023'} param.rebateYear
+ * @param {express.Request} param.req
+ * @param {express.Response} param.res
+ */
+function fetchFRFSubmissions({ rebateYear, req, res }) {
+  const { bapComboKeys } = req;
+
+  const formioFormUrl = formUrl[rebateYear].frf;
+
+  if (!formioFormUrl) {
+    const errorStatus = 400;
+    const errorMessage = `Formio form URL does not exist for ${rebateYear} FRF.`;
+    return res.status(errorStatus).json({ message: errorMessage });
+  }
+
+  const submissionsUrl =
+    `${formioFormUrl}/submission` +
+    `?sort=-modified` +
+    `&limit=1000000` +
+    `&data.bap_hidden_entity_combo_key=` +
+    `${bapComboKeys.join("&data.bap_hidden_entity_combo_key=")}`;
+
+  axiosFormio(req)
+    .get(submissionsUrl)
+    .then((axiosRes) => axiosRes.data)
+    .then((submissions) => res.json(submissions))
+    .catch((error) => {
+      // NOTE: error is logged in axiosFormio response interceptor
+      const errorStatus = error.response?.status || 500;
+      const errorMessage = `Error getting Formio ${rebateYear} Application form submissions.`;
+      return res.status(errorStatus).json({ message: errorMessage });
+    });
+}
+
 module.exports = {
   uploadS3FileMetadata,
   downloadS3FileMetadata,
+  fetchFRFSubmissions,
 };
