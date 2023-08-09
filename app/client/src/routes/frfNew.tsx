@@ -6,6 +6,7 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages } from "../config";
 import {
+  BapSamEntity,
   FormioFRFSubmission,
   postData,
   useContentData,
@@ -18,6 +19,67 @@ import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/tooltip";
 import { useRebateYearState } from "contexts/rebateYear";
+
+/**
+ * Creates the initial FRF submission data for a given rebate year
+ */
+function createInitialSubmissionData(options: {
+  rebateYear: "2022" | "2023";
+  email: string;
+  entity: BapSamEntity;
+}) {
+  const { rebateYear, email, entity } = options;
+
+  const { title, name } = getUserInfo(email, entity);
+  const comboKey = entity.ENTITY_COMBO_KEY__c;
+  const uei = entity.UNIQUE_ENTITY_ID__c;
+  const efti = entity.ENTITY_EFT_INDICATOR__c;
+  const orgName = entity.LEGAL_BUSINESS_NAME__c;
+  const address1 = entity.PHYSICAL_ADDRESS_LINE_1__c;
+  const address2 = entity.PHYSICAL_ADDRESS_LINE_2__c;
+  const city = entity.PHYSICAL_ADDRESS_CITY__c;
+  const state = entity.PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c;
+  const zip = entity.PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c;
+
+  return rebateYear === "2022"
+    ? {
+        last_updated_by: email,
+        hidden_current_user_email: email,
+        hidden_current_user_title: title,
+        hidden_current_user_name: name,
+        bap_hidden_entity_combo_key: comboKey,
+        sam_hidden_applicant_email: email,
+        sam_hidden_applicant_title: title,
+        sam_hidden_applicant_name: name,
+        sam_hidden_applicant_efti: efti,
+        sam_hidden_applicant_uei: uei,
+        sam_hidden_applicant_organization_name: orgName,
+        sam_hidden_applicant_street_address_1: address1,
+        sam_hidden_applicant_street_address_2: address2,
+        sam_hidden_applicant_city: city,
+        sam_hidden_applicant_state: state,
+        sam_hidden_applicant_zip_code: zip,
+      }
+    : rebateYear === "2023"
+    ? {
+        _user_email: email,
+        _user_title: title,
+        _user_name: name,
+        _bap_entity_combo_key: comboKey,
+        _bap_applicant_email: email,
+        _bap_applicant_title: title,
+        _bap_applicant_name: name,
+        _bap_applicant_efti: efti,
+        _bap_applicant_uei: uei,
+        _bap_applicant_organization_name: orgName,
+        _bap_applicant_street_address_1: address1,
+        _bap_applicant_street_address_2: address2,
+        _bap_applicant_city: city,
+        _bap_applicant_state: state,
+        _bap_applicant_zip: zip,
+      }
+    : null;
+}
 
 export function FRFNew() {
   const navigate = useNavigate();
@@ -188,37 +250,20 @@ export function FRFNew() {
                                         if (postingDataId !== "0") return;
                                         setPostingDataId(comboKey);
 
-                                        const { title, name } = getUserInfo(
-                                          email,
-                                          entity
-                                        );
+                                        const data =
+                                          createInitialSubmissionData({
+                                            rebateYear,
+                                            email,
+                                            entity,
+                                          });
 
                                         postData<FormioFRFSubmission>(
-                                          `${serverUrl}/api/formio/2022/frf-submission/`,
-                                          {
-                                            data: {
-                                              last_updated_by: email,
-                                              hidden_current_user_email: email,
-                                              hidden_current_user_title: title,
-                                              hidden_current_user_name: name,
-                                              bap_hidden_entity_combo_key: comboKey, // prettier-ignore
-                                              sam_hidden_applicant_email: email,
-                                              sam_hidden_applicant_title: title,
-                                              sam_hidden_applicant_name: name,
-                                              sam_hidden_applicant_efti: efti,
-                                              sam_hidden_applicant_uei: uei,
-                                              sam_hidden_applicant_organization_name: orgName, // prettier-ignore
-                                              sam_hidden_applicant_street_address_1: entity.PHYSICAL_ADDRESS_LINE_1__c, // prettier-ignore
-                                              sam_hidden_applicant_street_address_2: entity.PHYSICAL_ADDRESS_LINE_2__c, // prettier-ignore
-                                              sam_hidden_applicant_city: entity.PHYSICAL_ADDRESS_CITY__c, // prettier-ignore
-                                              sam_hidden_applicant_state: entity.PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c, // prettier-ignore
-                                              sam_hidden_applicant_zip_code: entity.PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c, // prettier-ignore
-                                            },
-                                            state: "draft",
-                                          }
+                                          `${serverUrl}/api/formio/${rebateYear}/frf-submission/`,
+                                          { data, state: "draft" }
                                         )
                                           .then((res) => {
-                                            navigate(`/frf/2022/${res._id}`);
+                                            const url = `/frf/${rebateYear}/${res._id}`;
+                                            navigate(url);
                                           })
                                           .catch((err) => {
                                             setErrorMessage({
