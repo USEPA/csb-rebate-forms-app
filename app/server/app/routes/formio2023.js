@@ -22,6 +22,7 @@ const {
   uploadS3FileMetadata,
   downloadS3FileMetadata,
   fetchFRFSubmissions,
+  createFRFSubmission,
 } = require("../utilities/formio");
 const log = require("../utilities/logger");
 
@@ -50,6 +51,11 @@ router.post(
 // --- get user's 2023 FRF submissions from Formio
 router.get("/frf-submissions", storeBapComboKeys, (req, res) => {
   fetchFRFSubmissions({ rebateYear: "2023", req, res });
+});
+
+// --- post a new 2023 FRF submission to Formio
+router.post("/frf-submission", storeBapComboKeys, (req, res) => {
+  createFRFSubmission({ rebateYear: "2023", req, res });
 });
 
 module.exports = router;

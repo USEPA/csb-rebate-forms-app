@@ -22,6 +22,7 @@ const {
   uploadS3FileMetadata,
   downloadS3FileMetadata,
   fetchFRFSubmissions,
+  createFRFSubmission,
 } = require("../utilities/formio");
 const log = require("../utilities/logger");
 
@@ -58,40 +59,7 @@ router.get("/frf-submissions", storeBapComboKeys, (req, res) => {
 
 // --- post a new 2022 FRF submission to Formio
 router.post("/frf-submission", storeBapComboKeys, (req, res) => {
-  const { bapComboKeys, body } = req;
-  const { mail } = req.user;
-  const comboKey = body.data?.bap_hidden_entity_combo_key;
-
-  if (!submissionPeriodOpen["2022"].frf) {
-    const errorStatus = 400;
-    const errorMessage = `CSB Application form enrollment period is closed.`;
-    return res.status(errorStatus).json({ message: errorMessage });
-  }
-
-  if (!bapComboKeys.includes(comboKey)) {
-    const logMessage =
-      `User with email '${mail}' attempted to post a new FRF submission ` +
-      `without a matching BAP combo key.`;
-    log({ level: "error", message: logMessage, req });
-
-    const errorStatus = 401;
-    const errorMessage = `Unauthorized.`;
-    return res.status(errorStatus).json({ message: errorMessage });
-  }
-
-  /** Add custom metadata to track formio submissions from wrapper. */
-  body.metadata = { ...formioCSBMetadata };
-
-  axiosFormio(req)
-    .post(`${formioFRFUrl}/submission`, body)
-    .then((axiosRes) => axiosRes.data)
-    .then((submission) => res.json(submission))
-    .catch((error) => {
-      // NOTE: logged in axiosFormio response interceptor
-      const errorStatus = error.response?.status || 500;
-      const errorMessage = `Error posting Formio Application form submission.`;
-      return res.status(errorStatus).json({ message: errorMessage });
-    });
+  createFRFSubmission({ rebateYear: "2022", req, res });
 });
 
 // --- get an existing 2022 FRF's schema and submission data from Formio
