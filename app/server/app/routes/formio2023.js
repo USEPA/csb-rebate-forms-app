@@ -23,6 +23,7 @@ const {
   downloadS3FileMetadata,
   fetchFRFSubmissions,
   createFRFSubmission,
+  fetchFRFSubmission,
 } = require("../utilities/formio");
 const log = require("../utilities/logger");
 
@@ -57,5 +58,15 @@ router.get("/frf-submissions", storeBapComboKeys, (req, res) => {
 router.post("/frf-submission", storeBapComboKeys, (req, res) => {
   createFRFSubmission({ rebateYear: "2023", req, res });
 });
+
+// --- get an existing 2023 FRF's schema and submission data from Formio
+router.get(
+  "/frf-submission/:mongoId",
+  verifyMongoObjectId,
+  storeBapComboKeys,
+  (req, res) => {
+    fetchFRFSubmission({ rebateYear: "2023", req, res });
+  }
+);
 
 module.exports = router;

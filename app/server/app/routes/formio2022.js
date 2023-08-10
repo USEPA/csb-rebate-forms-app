@@ -23,6 +23,7 @@ const {
   downloadS3FileMetadata,
   fetchFRFSubmissions,
   createFRFSubmission,
+  fetchFRFSubmission,
 } = require("../utilities/formio");
 const log = require("../utilities/logger");
 
@@ -68,43 +69,7 @@ router.get(
   verifyMongoObjectId,
   storeBapComboKeys,
   (req, res) => {
-    const { bapComboKeys } = req;
-    const { mail } = req.user;
-    const { mongoId } = req.params;
-
-    Promise.all([
-      axiosFormio(req).get(`${formioFRFUrl}/submission/${mongoId}`),
-      axiosFormio(req).get(formioFRFUrl),
-    ])
-      .then((axiosResponses) => axiosResponses.map((axiosRes) => axiosRes.data))
-      .then(([submission, schema]) => {
-        const comboKey = submission.data.bap_hidden_entity_combo_key;
-
-        if (!bapComboKeys.includes(comboKey)) {
-          const logMessage =
-            `User with email '${mail}' attempted to access FRF submission '${mongoId}' ` +
-            `that they do not have access to.`;
-          log({ level: "warn", message: logMessage, req });
-
-          return res.json({
-            userAccess: false,
-            formSchema: null,
-            submission: null,
-          });
-        }
-
-        return res.json({
-          userAccess: true,
-          formSchema: { url: formioFRFUrl, json: schema },
-          submission,
-        });
-      })
-      .catch((error) => {
-        // NOTE: logged in axiosFormio response interceptor
-        const errorStatus = error.response?.status || 500;
-        const errorMessage = `Error getting Formio Application form submission '${mongoId}'.`;
-        return res.status(errorStatus).json({ message: errorMessage });
-      });
+    fetchFRFSubmission({ rebateYear: "2022", req, res });
   }
 );
 

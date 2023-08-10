@@ -213,9 +213,69 @@ function createFRFSubmission({ rebateYear, req, res }) {
     });
 }
 
+/**
+ * @param {Object} param
+ * @param {'2022' | '2023'} param.rebateYear
+ * @param {express.Request} param.req
+ * @param {express.Response} param.res
+ */
+function fetchFRFSubmission({ rebateYear, req, res }) {
+  const { bapComboKeys } = req;
+  const { mail } = req.user;
+  const { mongoId } = req.params;
+
+  const formioFormUrl = formUrl[rebateYear].frf;
+
+  if (!formioFormUrl) {
+    const errorStatus = 400;
+    const errorMessage = `Formio form URL does not exist for ${rebateYear} FRF.`;
+    return res.status(errorStatus).json({ message: errorMessage });
+  }
+
+  Promise.all([
+    axiosFormio(req).get(`${formioFormUrl}/submission/${mongoId}`),
+    axiosFormio(req).get(formioFormUrl),
+  ])
+    .then((axiosResponses) => axiosResponses.map((axiosRes) => axiosRes.data))
+    .then(([submission, schema]) => {
+      const comboKey =
+        rebateYear === "2022"
+          ? submission.data.bap_hidden_entity_combo_key
+          : rebateYear === "2023"
+          ? submission.data._bap_entity_combo_key
+          : null;
+
+      if (!bapComboKeys.includes(comboKey)) {
+        const logMessage =
+          `User with email '${mail}' attempted to access ${rebateYear} ` +
+          `FRF submission '${mongoId}' that they do not have access to.`;
+        log({ level: "warn", message: logMessage, req });
+
+        return res.json({
+          userAccess: false,
+          formSchema: null,
+          submission: null,
+        });
+      }
+
+      return res.json({
+        userAccess: true,
+        formSchema: { url: formioFormUrl, json: schema },
+        submission,
+      });
+    })
+    .catch((error) => {
+      // NOTE: error is logged in axiosFormio response interceptor
+      const errorStatus = error.response?.status || 500;
+      const errorMessage = `Error getting Formio ${rebateYear} Application form submission '${mongoId}'.`;
+      return res.status(errorStatus).json({ message: errorMessage });
+    });
+}
+
 module.exports = {
   uploadS3FileMetadata,
   downloadS3FileMetadata,
   fetchFRFSubmissions,
   createFRFSubmission,
+  fetchFRFSubmission,
 };
