@@ -183,7 +183,7 @@ function createFRFSubmission({ rebateYear, req, res }) {
 
   if (!submissionPeriodOpen[rebateYear].frf) {
     const errorStatus = 400;
-    const errorMessage = `CSB Application form enrollment period is closed.`;
+    const errorMessage = `${rebateYear} CSB Application form enrollment period is closed.`;
     return res.status(errorStatus).json({ message: errorMessage });
   }
 
@@ -272,10 +272,85 @@ function fetchFRFSubmission({ rebateYear, req, res }) {
     });
 }
 
+/**
+ * @param {Object} param
+ * @param {'2022' | '2023'} param.rebateYear
+ * @param {express.Request} param.req
+ * @param {express.Response} param.res
+ */
+function updateFRFSubmission({ rebateYear, req, res }) {
+  const { bapComboKeys } = req;
+  const { mail } = req.user;
+  const { mongoId } = req.params;
+  const submission = req.body;
+  const comboKey =
+    rebateYear === "2022"
+      ? submission.data?.bap_hidden_entity_combo_key
+      : rebateYear === "2023"
+      ? submission.data?._bap_entity_combo_key
+      : null;
+
+  const formioFormUrl = formUrl[rebateYear].frf;
+
+  if (!formioFormUrl) {
+    const errorStatus = 400;
+    const errorMessage = `Formio form URL does not exist for ${rebateYear} FRF.`;
+    return res.status(errorStatus).json({ message: errorMessage });
+  }
+
+  checkFormSubmissionPeriodAndBapStatus({
+    rebateYear,
+    formType: "frf",
+    mongoId,
+    comboKey,
+    req,
+  })
+    .then(() => {
+      if (!bapComboKeys.includes(comboKey)) {
+        const logMessage =
+          `User with email '${mail}' attempted to update ${rebateYear} FRF ` +
+          `submission '${mongoId}' without a matching BAP combo key.`;
+        log({ level: "error", message: logMessage, req });
+
+        const errorStatus = 401;
+        const errorMessage = `Unauthorized.`;
+        return res.status(errorStatus).json({ message: errorMessage });
+      }
+
+      /** Add custom metadata to track formio submissions from wrapper. */
+      submission.metadata = {
+        ...submission.metadata,
+        ...formioCSBMetadata,
+      };
+
+      axiosFormio(req)
+        .put(`${formioFormUrl}/submission/${mongoId}`, submission)
+        .then((axiosRes) => axiosRes.data)
+        .then((submission) => res.json(submission))
+        .catch((error) => {
+          // NOTE: error is logged in axiosFormio response interceptor
+          const errorStatus = error.response?.status || 500;
+          const errorMessage = `Error updating Formio ${rebateYear} Application form submission '${mongoId}'.`;
+          return res.status(errorStatus).json({ message: errorMessage });
+        });
+    })
+    .catch((error) => {
+      const logMessage =
+        `User with email '${mail}' attempted to update ${rebateYear} FRF ` +
+        `submission '${mongoId}' when the CSB FRF enrollment period was closed.`;
+      log({ level: "error", message: logMessage, req });
+
+      const errorStatus = 400;
+      const errorMessage = `${rebateYear} CSB Application form enrollment period is closed.`;
+      return res.status(errorStatus).json({ message: errorMessage });
+    });
+}
+
 module.exports = {
   uploadS3FileMetadata,
   downloadS3FileMetadata,
   fetchFRFSubmissions,
   createFRFSubmission,
   fetchFRFSubmission,
+  updateFRFSubmission,
 };

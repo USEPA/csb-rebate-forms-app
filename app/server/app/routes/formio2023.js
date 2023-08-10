@@ -24,6 +24,7 @@ const {
   fetchFRFSubmissions,
   createFRFSubmission,
   fetchFRFSubmission,
+  updateFRFSubmission,
 } = require("../utilities/formio");
 const log = require("../utilities/logger");
 
@@ -66,6 +67,16 @@ router.get(
   storeBapComboKeys,
   (req, res) => {
     fetchFRFSubmission({ rebateYear: "2023", req, res });
+  }
+);
+
+// --- post an update to an existing draft 2023 FRF submission to Formio
+router.post(
+  "/frf-submission/:mongoId",
+  verifyMongoObjectId,
+  storeBapComboKeys,
+  (req, res) => {
+    updateFRFSubmission({ rebateYear: "2023", req, res });
   }
 );
 

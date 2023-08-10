@@ -24,10 +24,10 @@ const {
   fetchFRFSubmissions,
   createFRFSubmission,
   fetchFRFSubmission,
+  updateFRFSubmission,
 } = require("../utilities/formio");
 const log = require("../utilities/logger");
 
-const formioFRFUrl = formUrl["2022"].frf;
 const formioPRFUrl = formUrl["2022"].prf;
 const formioCRFUrl = formUrl["2022"].crf;
 
@@ -79,58 +79,7 @@ router.post(
   verifyMongoObjectId,
   storeBapComboKeys,
   (req, res) => {
-    const { bapComboKeys } = req;
-    const { mail } = req.user;
-    const { mongoId } = req.params;
-    const submission = req.body;
-    const comboKey = submission.data?.bap_hidden_entity_combo_key;
-
-    checkFormSubmissionPeriodAndBapStatus({
-      rebateYear: "2022",
-      formType: "frf",
-      mongoId,
-      comboKey,
-      req,
-    })
-      .then(() => {
-        if (!bapComboKeys.includes(comboKey)) {
-          const logMessage =
-            `User with email '${mail}' attempted to update FRF submission '${mongoId}' ` +
-            `without a matching BAP combo key.`;
-          log({ level: "error", message: logMessage, req });
-
-          const errorStatus = 401;
-          const errorMessage = `Unauthorized.`;
-          return res.status(errorStatus).json({ message: errorMessage });
-        }
-
-        /** Add custom metadata to track formio submissions from wrapper. */
-        submission.metadata = {
-          ...submission.metadata,
-          ...formioCSBMetadata,
-        };
-
-        axiosFormio(req)
-          .put(`${formioFRFUrl}/submission/${mongoId}`, submission)
-          .then((axiosRes) => axiosRes.data)
-          .then((submission) => res.json(submission))
-          .catch((error) => {
-            // NOTE: logged in axiosFormio response interceptor
-            const errorStatus = error.response?.status || 500;
-            const errorMessage = `Error updating Formio Application form submission '${mongoId}'.`;
-            return res.status(errorStatus).json({ message: errorMessage });
-          });
-      })
-      .catch((error) => {
-        const logMessage =
-          `User with email '${mail}' attempted to update FRF submission '${mongoId}' ` +
-          `when the CSB FRF enrollment period was closed.`;
-        log({ level: "error", message: logMessage, req });
-
-        const errorStatus = 400;
-        const errorMessage = `CSB Application form enrollment period is closed.`;
-        return res.status(errorStatus).json({ message: errorMessage });
-      });
+    updateFRFSubmission({ rebateYear: "2022", req, res });
   }
 );
 
