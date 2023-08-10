@@ -15,9 +15,9 @@ import {
   useContentData,
   useConfigData,
   useBapSamData,
-  useSubmissionsQueries,
-  useRebates,
-  submissionNeedsEdits,
+  // useSubmissionsQueries,
+  // useRebates,
+  // submissionNeedsEdits,
   getUserInfo,
 } from "../utilities";
 import { Loading } from "components/loading";
@@ -121,8 +121,8 @@ function FundingRequestForm(props: { email: string }) {
   } = useNotificationsActions();
   const { rebateYear } = useRebateYearState();
 
-  const submissionsQueries = useSubmissionsQueries();
-  const rebates = useRebates();
+  // const submissionsQueries = useSubmissionsQueries();
+  // const rebates = useRebates();
 
   const { query, mutation } = useFormioSubmissionQueryAndMutation(mongoId);
   const { userAccess, formSchema, submission } = query.data ?? {};
@@ -162,13 +162,13 @@ function FundingRequestForm(props: { email: string }) {
     return <Loading />;
   }
 
-  if (submissionsQueries.some((query) => query.isFetching)) {
-    return <Loading />;
-  }
+  // if (submissionsQueries.some((query) => query.isFetching)) {
+  //   return <Loading />;
+  // }
 
-  if (submissionsQueries.some((query) => query.isError)) {
-    return <Message type="error" text={messages.formSubmissionsError} />;
-  }
+  // if (submissionsQueries.some((query) => query.isError)) {
+  //   return <Message type="error" text={messages.formSubmissionsError} />;
+  // }
 
   if (query.isInitialLoading) {
     return <Loading />;
@@ -178,14 +178,16 @@ function FundingRequestForm(props: { email: string }) {
     return <Message type="error" text={messages.formSubmissionError} />;
   }
 
-  const rebate = rebates.find((r) => r.frf.formio._id === mongoId);
+  // const rebate = rebates.find((r) => r.frf.formio._id === mongoId);
 
-  const frfNeedsEdits = !rebate
-    ? false
-    : submissionNeedsEdits({
-        formio: rebate.frf.formio,
-        bap: rebate.frf.bap,
-      });
+  // const frfNeedsEdits = !rebate
+  //   ? false
+  //   : submissionNeedsEdits({
+  //       formio: rebate.frf.formio,
+  //       bap: rebate.frf.bap,
+  //     });
+
+  const frfNeedsEdits = false; // TODO: update when BAP FRF work is completed
 
   const frfSubmissionPeriodOpen =
     configData.submissionPeriodOpen[rebateYear].frf;
