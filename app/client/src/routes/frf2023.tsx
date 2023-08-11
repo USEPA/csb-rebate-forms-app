@@ -121,8 +121,8 @@ function FundingRequestForm(props: { email: string }) {
   } = useNotificationsActions();
   const { rebateYear } = useRebateYearState();
 
-  // const submissionsQueries = use2022SubmissionsQueries();
-  // const rebates = use2022Rebates();
+  // const submissions2022Queries = use2022SubmissionsQueries();
+  // const rebates2022 = use2022Rebates();
 
   const { query, mutation } = useFormioSubmissionQueryAndMutation(mongoId);
   const { userAccess, formSchema, submission } = query.data ?? {};
@@ -162,11 +162,11 @@ function FundingRequestForm(props: { email: string }) {
     return <Loading />;
   }
 
-  // if (submissionsQueries.some((query) => query.isFetching)) {
+  // if (submissions2022Queries.some((query) => query.isFetching)) {
   //   return <Loading />;
   // }
 
-  // if (submissionsQueries.some((query) => query.isError)) {
+  // if (submissions2022Queries.some((query) => query.isError)) {
   //   return <Message type="error" text={messages.formSubmissionsError} />;
   // }
 
@@ -178,7 +178,7 @@ function FundingRequestForm(props: { email: string }) {
     return <Message type="error" text={messages.formSubmissionError} />;
   }
 
-  // const rebate = rebates.find((r) => r.frf.formio._id === mongoId);
+  // const rebate = rebates2022.find((r) => r.frf.formio._id === mongoId);
 
   // const frfNeedsEdits = !rebate
   //   ? false

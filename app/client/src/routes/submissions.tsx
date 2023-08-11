@@ -774,8 +774,8 @@ export function Submissions() {
   const content = useContentData();
   const configData = useConfigData();
   const bapSamData = useBapSamData();
-  const submissionsQueries = use2022SubmissionsQueries();
-  const rebates = use2022Rebates();
+  const submissions2022Queries = use2022SubmissionsQueries();
+  const rebates2022 = use2022Rebates();
   const { rebateYear } = useRebateYearState();
   const { setRebateYear } = useRebateYearActions();
 
@@ -788,11 +788,11 @@ export function Submissions() {
 
   if (!bapSamData) return null;
 
-  if (submissionsQueries.some((query) => query.isFetching)) {
+  if (submissions2022Queries.some((query) => query.isFetching)) {
     return <Loading />;
   }
 
-  if (submissionsQueries.some((query) => query.isError)) {
+  if (submissions2022Queries.some((query) => query.isError)) {
     return <Message type="error" text={messages.formSubmissionsError} />;
   }
 
@@ -840,7 +840,7 @@ export function Submissions() {
         </nav>
       </div>
 
-      {rebates.length === 0 ? (
+      {rebates2022.length === 0 ? (
         <div className="margin-top-4">
           <Message type="info" text={messages.newApplication} />
         </div>
@@ -922,13 +922,13 @@ export function Submissions() {
               </thead>
 
               <tbody>
-                {rebates.map((rebate, index) => (
+                {rebates2022.map((rebate, index) => (
                   <Fragment key={rebate.rebateId}>
                     <FRF2022Submission rebate={rebate} />
                     <PRF2022Submission rebate={rebate} />
                     <CRF2022Submission rebate={rebate} />
                     {/* blank row after all rebates but the last one */}
-                    {index !== rebates.length - 1 && (
+                    {index !== rebates2022.length - 1 && (
                       <tr className="bg-white">
                         <th className="p-0" scope="row" colSpan={6}>
                           &nbsp;
