@@ -15,8 +15,8 @@ import {
   useContentData,
   useConfigData,
   useBapSamData,
-  useSubmissionsQueries,
-  useRebates,
+  use2022SubmissionsQueries,
+  use2022Rebates,
   submissionNeedsEdits,
   getUserInfo,
 } from "../utilities";
@@ -125,8 +125,8 @@ function PaymentRequestForm(props: { email: string }) {
   } = useNotificationsActions();
   const { rebateYear } = useRebateYearState();
 
-  const submissionsQueries = useSubmissionsQueries();
-  const rebates = useRebates();
+  const submissionsQueries = use2022SubmissionsQueries();
+  const rebates = use2022Rebates();
 
   const { query, mutation } = useFormioSubmissionQueryAndMutation(rebateId);
   const { userAccess, formSchema, submission } = query.data ?? {};

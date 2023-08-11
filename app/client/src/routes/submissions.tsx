@@ -5,13 +5,13 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages } from "../config";
 import {
-  Rebate,
+  Rebate2022,
   postData,
   useContentData,
   useConfigData,
   useBapSamData,
-  useSubmissionsQueries,
-  useRebates,
+  use2022SubmissionsQueries,
+  use2022Rebates,
   submissionNeedsEdits,
   getUserInfo,
 } from "../utilities";
@@ -54,7 +54,7 @@ function ButtonLink(props: { type: "edit" | "view"; to: LinkProps["to"] }) {
   );
 }
 
-function FRFSubmission(props: { rebate: Rebate }) {
+function FRF2022Submission(props: { rebate: Rebate2022 }) {
   const { rebate } = props;
   const { frf, prf, crf } = rebate;
 
@@ -301,7 +301,7 @@ save the form for the EFT indicator to be displayed. */
   );
 }
 
-function PRFSubmission(props: { rebate: Rebate }) {
+function PRF2022Submission(props: { rebate: Rebate2022 }) {
   const { rebate } = props;
   const { frf, prf, crf } = rebate;
 
@@ -533,7 +533,7 @@ function PRFSubmission(props: { rebate: Rebate }) {
   );
 }
 
-function CRFSubmission(props: { rebate: Rebate }) {
+function CRF2022Submission(props: { rebate: Rebate2022 }) {
   const { rebate } = props;
   const { frf, prf, crf } = rebate;
 
@@ -774,8 +774,8 @@ export function Submissions() {
   const content = useContentData();
   const configData = useConfigData();
   const bapSamData = useBapSamData();
-  const submissionsQueries = useSubmissionsQueries();
-  const rebates = useRebates();
+  const submissionsQueries = use2022SubmissionsQueries();
+  const rebates = use2022Rebates();
   const { rebateYear } = useRebateYearState();
   const { setRebateYear } = useRebateYearActions();
 
@@ -924,9 +924,9 @@ export function Submissions() {
               <tbody>
                 {rebates.map((rebate, index) => (
                   <Fragment key={rebate.rebateId}>
-                    <FRFSubmission rebate={rebate} />
-                    <PRFSubmission rebate={rebate} />
-                    <CRFSubmission rebate={rebate} />
+                    <FRF2022Submission rebate={rebate} />
+                    <PRF2022Submission rebate={rebate} />
+                    <CRF2022Submission rebate={rebate} />
                     {/* blank row after all rebates but the last one */}
                     {index !== rebates.length - 1 && (
                       <tr className="bg-white">

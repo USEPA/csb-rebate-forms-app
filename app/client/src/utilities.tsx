@@ -193,7 +193,7 @@ export type BapSubmission = {
   status: string | null;
 };
 
-export type Rebate = {
+export type Rebate2022 = {
   frf: {
     formio: FormioFRF2022Submission;
     bap: BapSubmission | null;
@@ -314,8 +314,8 @@ export function useBapSamData() {
   return queryClient.getQueryData<BapSamData>(["bap/sam"]);
 }
 
-/** Custom hook to fetch submissions from the BAP and Formio */
-export function useSubmissionsQueries() {
+/** Custom hook to fetch all 2022 submissions from the BAP and Formio */
+export function use2022SubmissionsQueries() {
   return useQueries({
     queries: [
       {
@@ -378,12 +378,28 @@ export function useSubmissionsQueries() {
   });
 }
 
+/** Custom hook to fetch all 2023 submissions from Formio */
+export function use2023SubmissionsQueries() {
+  return useQueries({
+    queries: [
+      {
+        queryKey: ["formio/2023/frf-submissions"],
+        queryFn: () => {
+          const url = `${serverUrl}/api/formio/2023/frf-submissions`;
+          return getData<FormioFRF2023Submission[]>(url);
+        },
+        refetchOnWindowFocus: false,
+      },
+    ],
+  });
+}
+
 /**
- * Custom hook to combine FRF submissions data, PRF submissions data, and CRF
- * submissions data from both the BAP and Formio into a single `submissions`
- * object, with the BAP assigned `rebateId` as the keys.
+ * Custom hook to combine 2022 FRF submissions data, PRF submissions data, and
+ * CRF submissions data from both the BAP and Formio into a single object, with
+ * the BAP assigned `rebateId` as the keys.
  **/
-function useCombinedRebates() {
+function useCombined2022Rebates() {
   const queryClient = useQueryClient();
 
   const bapFormSubmissions = queryClient.getQueryData<{
@@ -414,7 +430,7 @@ function useCombinedRebates() {
     return {};
   }
 
-  const rebates: { [rebateId: string]: Rebate } = {};
+  const rebates: { [rebateId: string]: Rebate2022 } = {};
 
   /**
    * Iterate over Formio FRF submissions, matching them with submissions
@@ -531,7 +547,7 @@ function useCombinedRebates() {
  * - Selected FRF submissions without a corresponding PRF submission
  * - Funding Approved PRF submissions without a corresponding CRF submission
  **/
-function useSortedRebates(rebates: { [rebateId: string]: Rebate }) {
+function useSortedRebates(rebates: { [rebateId: string]: Rebate2022 }) {
   return Object.entries(rebates)
     .map(([rebateId, rebate]) => ({ rebateId, ...rebate }))
     .sort((r1, r2) => {
@@ -589,23 +605,23 @@ function useSortedRebates(rebates: { [rebateId: string]: Rebate }) {
 }
 
 /**
- * Custom hook that returns sorted rebates, and logs them if 'debug' search
+ * Custom hook that returns sorted 2022 rebates, and logs them if 'debug' search
  * parameter exists.
  */
-export function useRebates() {
+export function use2022Rebates() {
   const [searchParams] = useSearchParams();
 
-  const combinedRebates = useCombinedRebates();
-  const sortedRebates = useSortedRebates(combinedRebates);
+  const combined2022Rebates = useCombined2022Rebates();
+  const sorted2022Rebates = useSortedRebates(combined2022Rebates);
 
-  // log combined 'sortedRebates' array if 'debug' search parameter exists
+  // log combined 'sorted2022Rebates' array if 'debug' search parameter exists
   useEffect(() => {
-    if (searchParams.has("debug") && sortedRebates.length > 0) {
-      console.log(sortedRebates);
+    if (searchParams.has("debug") && sorted2022Rebates.length > 0) {
+      console.log(sorted2022Rebates);
     }
-  }, [searchParams, sortedRebates]);
+  }, [searchParams, sorted2022Rebates]);
 
-  return sortedRebates;
+  return sorted2022Rebates;
 }
 
 /**
