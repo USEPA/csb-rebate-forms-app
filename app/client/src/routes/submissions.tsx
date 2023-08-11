@@ -11,6 +11,7 @@ import {
   useConfigData,
   useBapSamData,
   use2022SubmissionsQueries,
+  use2023SubmissionsQueries,
   use2022Rebates,
   submissionNeedsEdits,
   getUserInfo,
@@ -59,12 +60,10 @@ function FRF2022Submission(props: { rebate: Rebate2022 }) {
   const { frf, prf, crf } = rebate;
 
   const configData = useConfigData();
-  const { rebateYear } = useRebateYearState();
 
   if (!configData) return null;
 
-  const frfSubmissionPeriodOpen =
-    configData.submissionPeriodOpen[rebateYear].frf;
+  const frfSubmissionPeriodOpen = configData.submissionPeriodOpen["2022"].frf;
 
   const {
     applicantUEI,
@@ -311,7 +310,6 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
   const configData = useConfigData();
   const bapSamData = useBapSamData();
   const { displayErrorNotification } = useNotificationsActions();
-  const { rebateYear } = useRebateYearState();
 
   /**
    * Stores when data is being posted to the server, so a loading indicator can
@@ -322,8 +320,7 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
 
   if (!configData || !bapSamData) return null;
 
-  const prfSubmissionPeriodOpen =
-    configData.submissionPeriodOpen[rebateYear].prf;
+  const prfSubmissionPeriodOpen = configData.submissionPeriodOpen["2022"].prf;
 
   const frfSelected = frf.bap?.status === "Accepted";
 
@@ -543,7 +540,6 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
   const configData = useConfigData();
   const bapSamData = useBapSamData();
   const { displayErrorNotification } = useNotificationsActions();
-  const { rebateYear } = useRebateYearState();
 
   /**
    * Stores when data is being posted to the server, so a loading indicator can
@@ -554,8 +550,7 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
 
   if (!configData || !bapSamData) return null;
 
-  const crfSubmissionPeriodOpen =
-    configData.submissionPeriodOpen[rebateYear].crf;
+  const crfSubmissionPeriodOpen = configData.submissionPeriodOpen["2022"].crf;
 
   const prfFundingApproved = prf.bap?.status === "Accepted";
 
@@ -770,12 +765,166 @@ function NewApplicationIconText() {
   );
 }
 
+function Submissions2022() {
+  const content = useContentData();
+  const submissionsQueries = use2022SubmissionsQueries();
+  const rebates = use2022Rebates();
+
+  if (submissionsQueries.some((query) => query.isFetching)) {
+    return <Loading />;
+  }
+
+  if (submissionsQueries.some((query) => query.isError)) {
+    return <Message type="error" text={messages.formSubmissionsError} />;
+  }
+
+  if (rebates.length === 0) {
+    return (
+      <div className="margin-top-4">
+        <Message type="info" text={messages.newApplication} />
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {content && (
+        <MarkdownContent
+          className="margin-top-4"
+          children={content.allRebatesIntro}
+        />
+      )}
+
+      <div className="usa-table-container--scrollable" tabIndex={0}>
+        <table
+          aria-label="Your Rebate Forms"
+          className="usa-table usa-table--stacked usa-table--borderless width-full"
+        >
+          <thead>
+            <tr className="font-sans-2xs text-no-wrap text-bottom">
+              <th scope="col">
+                <span className="usa-sr-only">Open</span>
+              </th>
+
+              <th scope="col">
+                <TextWithTooltip
+                  text="Rebate ID"
+                  tooltip="Unique Clean School Bus Rebate ID"
+                />
+              </th>
+
+              <th scope="col">
+                <TextWithTooltip
+                  text="Form Type"
+                  tooltip="Application, Payment Request, or Close Out form"
+                />
+                <br />
+                <TextWithTooltip
+                  text="Form Status"
+                  tooltip="Draft, Edits Requested, Submitted, Withdrawn, Selected, or Not Selected" // TODO: update to reflect other statuses
+                />
+              </th>
+
+              <th scope="col">
+                <TextWithTooltip
+                  text="UEI"
+                  tooltip="Unique Entity ID from SAM.gov"
+                />
+                <br />
+                <TextWithTooltip
+                  text="EFT Indicator"
+                  tooltip="Electronic Funds Transfer Indicator listing the associated bank account from SAM.gov"
+                />
+              </th>
+
+              <th scope="col">
+                <TextWithTooltip
+                  text="Applicant"
+                  tooltip="Legal Business Name from SAM.gov for this UEI"
+                />
+                <br />
+                <TextWithTooltip
+                  text="School District"
+                  tooltip="School district represented by applicant"
+                />
+              </th>
+
+              <th scope="col">
+                <TextWithTooltip
+                  text="Updated By"
+                  tooltip="Last person that updated this form"
+                />
+                <br />
+                <TextWithTooltip
+                  text="Date Updated"
+                  tooltip="Last date this form was updated"
+                />
+              </th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {rebates.map((rebate, index) => (
+              <Fragment key={rebate.rebateId}>
+                <FRF2022Submission rebate={rebate} />
+                <PRF2022Submission rebate={rebate} />
+                <CRF2022Submission rebate={rebate} />
+                {/* blank row after all rebates but the last one */}
+                {index !== rebates.length - 1 && (
+                  <tr className="bg-white">
+                    <th className="p-0" scope="row" colSpan={6}>
+                      &nbsp;
+                    </th>
+                  </tr>
+                )}
+              </Fragment>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
+  );
+}
+
+function Submissions2023() {
+  // const content = useContentData();
+  const submissionsQueries = use2023SubmissionsQueries();
+  // const rebates = use2022Rebates();
+
+  if (submissionsQueries.some((query) => query.isFetching)) {
+    return <Loading />;
+  }
+
+  if (submissionsQueries.some((query) => query.isError)) {
+    return <Message type="error" text={messages.formSubmissionsError} />;
+  }
+
+  // if (rebates.length === 0) {
+  //   return (
+  //     <div className="margin-top-4">
+  //       <Message type="info" text={messages.newApplication} />
+  //     </div>
+  //   );
+  // }
+
+  return (
+    <>
+      {/* {content && (
+        <MarkdownContent
+          className="margin-top-4"
+          children={content.allRebatesIntro}
+        />
+      )} */}
+
+      <p>(2023 submissions)</p>
+    </>
+  );
+}
+
 export function Submissions() {
   const content = useContentData();
   const configData = useConfigData();
   const bapSamData = useBapSamData();
-  const submissions2022Queries = use2022SubmissionsQueries();
-  const rebates2022 = use2022Rebates();
   const { rebateYear } = useRebateYearState();
   const { setRebateYear } = useRebateYearActions();
 
@@ -787,14 +936,6 @@ export function Submissions() {
     "usa-button margin-0 padding-x-2 padding-y-1 width-full font-sans-2xs";
 
   if (!bapSamData) return null;
-
-  if (submissions2022Queries.some((query) => query.isFetching)) {
-    return <Loading />;
-  }
-
-  if (submissions2022Queries.some((query) => query.isError)) {
-    return <Message type="error" text={messages.formSubmissionsError} />;
-  }
 
   return (
     <>
@@ -840,108 +981,8 @@ export function Submissions() {
         </nav>
       </div>
 
-      {rebates2022.length === 0 ? (
-        <div className="margin-top-4">
-          <Message type="info" text={messages.newApplication} />
-        </div>
-      ) : (
-        <>
-          {content && (
-            <MarkdownContent
-              className="margin-top-4"
-              children={content.allRebatesIntro}
-            />
-          )}
-
-          <div className="usa-table-container--scrollable" tabIndex={0}>
-            <table
-              aria-label="Your Rebate Forms"
-              className="usa-table usa-table--stacked usa-table--borderless width-full"
-            >
-              <thead>
-                <tr className="font-sans-2xs text-no-wrap text-bottom">
-                  <th scope="col">
-                    <span className="usa-sr-only">Open</span>
-                  </th>
-
-                  <th scope="col">
-                    <TextWithTooltip
-                      text="Rebate ID"
-                      tooltip="Unique Clean School Bus Rebate ID"
-                    />
-                  </th>
-
-                  <th scope="col">
-                    <TextWithTooltip
-                      text="Form Type"
-                      tooltip="Application, Payment Request, or Close Out form"
-                    />
-                    <br />
-                    <TextWithTooltip
-                      text="Form Status"
-                      tooltip="Draft, Edits Requested, Submitted, Withdrawn, Selected, or Not Selected" // TODO: update to reflect other statuses
-                    />
-                  </th>
-
-                  <th scope="col">
-                    <TextWithTooltip
-                      text="UEI"
-                      tooltip="Unique Entity ID from SAM.gov"
-                    />
-                    <br />
-                    <TextWithTooltip
-                      text="EFT Indicator"
-                      tooltip="Electronic Funds Transfer Indicator listing the associated bank account from SAM.gov"
-                    />
-                  </th>
-
-                  <th scope="col">
-                    <TextWithTooltip
-                      text="Applicant"
-                      tooltip="Legal Business Name from SAM.gov for this UEI"
-                    />
-                    <br />
-                    <TextWithTooltip
-                      text="School District"
-                      tooltip="School district represented by applicant"
-                    />
-                  </th>
-
-                  <th scope="col">
-                    <TextWithTooltip
-                      text="Updated By"
-                      tooltip="Last person that updated this form"
-                    />
-                    <br />
-                    <TextWithTooltip
-                      text="Date Updated"
-                      tooltip="Last date this form was updated"
-                    />
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {rebates2022.map((rebate, index) => (
-                  <Fragment key={rebate.rebateId}>
-                    <FRF2022Submission rebate={rebate} />
-                    <PRF2022Submission rebate={rebate} />
-                    <CRF2022Submission rebate={rebate} />
-                    {/* blank row after all rebates but the last one */}
-                    {index !== rebates2022.length - 1 && (
-                      <tr className="bg-white">
-                        <th className="p-0" scope="row" colSpan={6}>
-                          &nbsp;
-                        </th>
-                      </tr>
-                    )}
-                  </Fragment>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </>
-      )}
+      {rebateYear === "2022" && <Submissions2022 />}
+      {rebateYear === "2023" && <Submissions2023 />}
 
       {content && (
         <MarkdownContent
