@@ -12,6 +12,18 @@ const log = require("./logger");
 /**
  * @param {Object} param
  * @param {'2022' | '2023'} param.rebateYear
+ */
+function getComboKeyFieldName({ rebateYear }) {
+  return rebateYear === "2022"
+    ? "bap_hidden_entity_combo_key"
+    : rebateYear === "2023"
+    ? "_bap_entity_combo_key"
+    : "";
+}
+
+/**
+ * @param {Object} param
+ * @param {'2022' | '2023'} param.rebateYear
  * @param {express.Request} param.req
  * @param {express.Response} param.res
  */
@@ -130,6 +142,9 @@ function downloadS3FileMetadata({ rebateYear, req, res }) {
 function fetchFRFSubmissions({ rebateYear, req, res }) {
   const { bapComboKeys } = req;
 
+  const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
+  const comboKeySearchParam = `&data.${comboKeyFieldName}=`;
+
   const formioFormUrl = formUrl[rebateYear].frf;
 
   if (!formioFormUrl) {
@@ -142,8 +157,8 @@ function fetchFRFSubmissions({ rebateYear, req, res }) {
     `${formioFormUrl}/submission` +
     `?sort=-modified` +
     `&limit=1000000` +
-    `&data.bap_hidden_entity_combo_key=` +
-    `${bapComboKeys.join("&data.bap_hidden_entity_combo_key=")}`;
+    comboKeySearchParam +
+    `${bapComboKeys.join(comboKeySearchParam)}`;
 
   axiosFormio(req)
     .get(submissionsUrl)
@@ -166,12 +181,9 @@ function fetchFRFSubmissions({ rebateYear, req, res }) {
 function createFRFSubmission({ rebateYear, req, res }) {
   const { bapComboKeys, body } = req;
   const { mail } = req.user;
-  const comboKey =
-    rebateYear === "2022"
-      ? body.data?.bap_hidden_entity_combo_key
-      : rebateYear === "2023"
-      ? body.data?._bap_entity_combo_key
-      : null;
+
+  const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
+  const comboKey = body.data?.[comboKeyFieldName];
 
   const formioFormUrl = formUrl[rebateYear].frf;
 
@@ -224,6 +236,8 @@ function fetchFRFSubmission({ rebateYear, req, res }) {
   const { mail } = req.user;
   const { mongoId } = req.params;
 
+  const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
+
   const formioFormUrl = formUrl[rebateYear].frf;
 
   if (!formioFormUrl) {
@@ -238,12 +252,7 @@ function fetchFRFSubmission({ rebateYear, req, res }) {
   ])
     .then((axiosResponses) => axiosResponses.map((axiosRes) => axiosRes.data))
     .then(([submission, schema]) => {
-      const comboKey =
-        rebateYear === "2022"
-          ? submission.data.bap_hidden_entity_combo_key
-          : rebateYear === "2023"
-          ? submission.data._bap_entity_combo_key
-          : null;
+      const comboKey = submission.data?.[comboKeyFieldName];
 
       if (!bapComboKeys.includes(comboKey)) {
         const logMessage =
@@ -283,12 +292,9 @@ function updateFRFSubmission({ rebateYear, req, res }) {
   const { mail } = req.user;
   const { mongoId } = req.params;
   const submission = req.body;
-  const comboKey =
-    rebateYear === "2022"
-      ? submission.data?.bap_hidden_entity_combo_key
-      : rebateYear === "2023"
-      ? submission.data?._bap_entity_combo_key
-      : null;
+
+  const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
+  const comboKey = submission.data?.[comboKeyFieldName];
 
   const formioFormUrl = formUrl[rebateYear].frf;
 
