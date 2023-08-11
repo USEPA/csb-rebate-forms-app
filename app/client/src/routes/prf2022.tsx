@@ -397,10 +397,26 @@ function PaymentRequestForm(props: { email: string }) {
             const currentData = { ...data };
             const submittedData = { ...lastSuccesfullySubmittedData.current };
 
-            // NOTE: `newBusDeliveryDate` is causing the dirty check to fail
-            console.log({
-              current: (currentData.busInfo as unknown[])[0], // newBusDeliveryDate: ""
-              submitted: (submittedData.busInfo as unknown[])[0], // newBusDeliveryDate: null
+            /**
+             * NOTE: if a user hasn't yet filled out the bus info fields, the
+             * `newBusDeliveryDate` field is returned as null from Formio, but
+             * is converted to an empty string when rendered by the Formio Form
+             * component, so we need to account for that in the dirty check by
+             * omitting that field from being checked.
+             */
+            type BusInfo = Record<string, unknown>[] | undefined;
+
+            const currentDataBusInfo = currentData?.busInfo as BusInfo;
+            const submittedDataBusInfo = submittedData?.busInfo as BusInfo;
+
+            currentDataBusInfo?.forEach((currentDataBusFields, index) => {
+              if (
+                currentDataBusFields?.newBusDeliveryDate === "" &&
+                submittedDataBusInfo?.[index]?.newBusDeliveryDate === null
+              ) {
+                delete currentDataBusFields.newBusDeliveryDate;
+                delete submittedDataBusInfo[index].newBusDeliveryDate;
+              }
             });
 
             delete currentData.hidden_current_user_email;
