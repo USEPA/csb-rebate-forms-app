@@ -7,7 +7,8 @@ import icons from "uswds/img/sprite.svg";
 import { serverUrl, messages } from "../config";
 import {
   BapSamEntity,
-  FormioFRFSubmission,
+  FormioFRF2022Submission,
+  FormioFRF2023Submission,
   postData,
   useContentData,
   useConfigData,
@@ -257,7 +258,10 @@ export function FRFNew() {
                                             entity,
                                           });
 
-                                        postData<FormioFRFSubmission>(
+                                        postData<
+                                          | FormioFRF2022Submission
+                                          | FormioFRF2023Submission
+                                        >(
                                           `${serverUrl}/api/formio/${rebateYear}/frf-submission/`,
                                           { data, state: "draft" }
                                         )

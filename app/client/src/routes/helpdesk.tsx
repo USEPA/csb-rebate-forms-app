@@ -14,9 +14,9 @@ import {
   bapCRFStatusMap,
 } from "../config";
 import {
-  FormioFRFSubmission,
-  FormioPRFSubmission,
-  FormioCRFSubmission,
+  FormioFRF2022Submission,
+  FormioPRF2022Submission,
+  FormioCRF2022Submission,
   BapSubmission,
   getData,
   postData,
@@ -39,7 +39,10 @@ type ServerResponse =
     }
   | {
       formSchema: { url: string; json: object };
-      formio: FormioFRFSubmission | FormioPRFSubmission | FormioCRFSubmission;
+      formio:
+        | FormioFRF2022Submission
+        | FormioPRF2022Submission
+        | FormioCRF2022Submission;
       bap: BapSubmission;
     };
 
@@ -58,7 +61,10 @@ function formatTime(dateTimeString: string | null) {
  */
 function getStatus(options: {
   formType: FormType;
-  formio: FormioFRFSubmission | FormioPRFSubmission | FormioCRFSubmission;
+  formio:
+    | FormioFRF2022Submission
+    | FormioPRF2022Submission
+    | FormioCRF2022Submission;
   bap: BapSubmission;
 }) {
   const { formType, formio, bap } = options;

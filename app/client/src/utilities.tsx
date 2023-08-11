@@ -31,7 +31,7 @@ type ConfigData = {
   };
 };
 
-type BapSamEntity = {
+export type BapSamEntity = {
   ENTITY_COMBO_KEY__c: string;
   UNIQUE_ENTITY_ID__c: string;
   ENTITY_EFT_INDICATOR__c: string;
@@ -86,7 +86,7 @@ type BapFormSubmission = {
   attributes: { type: string; url: string };
 };
 
-export type FormioFRFSubmission = {
+type FormioSubmission = {
   [field: string]: unknown;
   _id: string; // MongoDB ObjectId string
   state: "submitted" | "draft";
@@ -96,70 +96,92 @@ export type FormioFRFSubmission = {
   };
   data: {
     [field: string]: unknown;
-    // fields injected upon new draft Application submission creation:
-    last_updated_by: string;
-    hidden_current_user_email: string;
-    hidden_current_user_title: string;
-    hidden_current_user_name: string;
-    bap_hidden_entity_combo_key: string;
-    sam_hidden_applicant_email: string;
-    sam_hidden_applicant_title: string;
-    sam_hidden_applicant_name: string;
-    sam_hidden_applicant_efti: string;
-    sam_hidden_applicant_uei: string;
-    sam_hidden_applicant_organization_name: string;
-    sam_hidden_applicant_street_address_1: string;
-    sam_hidden_applicant_street_address_2: string;
-    sam_hidden_applicant_city: string;
-    sam_hidden_applicant_state: string;
-    sam_hidden_applicant_zip_code: string;
-    // fields set by form definition (among others):
-    applicantUEI: string;
-    applicantEfti: string;
-    applicantEfti_display: string;
-    applicantOrganizationName: string;
-    schoolDistrictName: string;
   };
 };
 
-export type FormioPRFSubmission = {
+type FormioFRF2022Data = {
   [field: string]: unknown;
-  _id: string; // MongoDB ObjectId string
-  state: "submitted" | "draft";
-  modified: string; // ISO 8601 date time string
-  metadata: {
-    [field: string]: unknown;
-  };
-  data: {
-    [field: string]: unknown;
-    // fields injected upon new draft Payment Request submission creation:
-    bap_hidden_entity_combo_key: string;
-    hidden_application_form_modified: string; // ISO 8601 date time string
-    hidden_current_user_email: string;
-    hidden_current_user_title: string;
-    hidden_current_user_name: string;
-    hidden_bap_rebate_id: string;
-  };
+  // fields injected upon a new draft FRF submission creation:
+  last_updated_by: string;
+  hidden_current_user_email: string;
+  hidden_current_user_title: string;
+  hidden_current_user_name: string;
+  bap_hidden_entity_combo_key: string;
+  sam_hidden_applicant_email: string;
+  sam_hidden_applicant_title: string;
+  sam_hidden_applicant_name: string;
+  sam_hidden_applicant_efti: string;
+  sam_hidden_applicant_uei: string;
+  sam_hidden_applicant_organization_name: string;
+  sam_hidden_applicant_street_address_1: string;
+  sam_hidden_applicant_street_address_2: string;
+  sam_hidden_applicant_city: string;
+  sam_hidden_applicant_state: string;
+  sam_hidden_applicant_zip_code: string;
+  // fields set by form definition (among others):
+  applicantUEI: string;
+  applicantEfti: string;
+  applicantEfti_display: string;
+  applicantOrganizationName: string;
+  schoolDistrictName: string;
 };
 
-export type FormioCRFSubmission = {
+type FormioPRF2022Data = {
   [field: string]: unknown;
-  _id: string; // MongoDB ObjectId string
-  state: "submitted" | "draft";
-  modified: string; // ISO 8601 date time string
-  metadata: {
-    [field: string]: unknown;
-  };
-  data: {
-    [field: string]: unknown;
-    // fields injected upon new draft Payment Request submission creation:
-    bap_hidden_entity_combo_key: string;
-    hidden_prf_modified: string; // ISO 8601 date time string
-    hidden_current_user_email: string;
-    hidden_current_user_title: string;
-    hidden_current_user_name: string;
-    hidden_bap_rebate_id: string;
-  };
+  // fields injected upon a new draft PRF submission creation:
+  bap_hidden_entity_combo_key: string;
+  hidden_application_form_modified: string; // ISO 8601 date time string
+  hidden_current_user_email: string;
+  hidden_current_user_title: string;
+  hidden_current_user_name: string;
+  hidden_bap_rebate_id: string;
+};
+
+type FormioCRF2022Data = {
+  [field: string]: unknown;
+  // fields injected upon a new draft CRF submission creation:
+  bap_hidden_entity_combo_key: string;
+  hidden_prf_modified: string; // ISO 8601 date time string
+  hidden_current_user_email: string;
+  hidden_current_user_title: string;
+  hidden_current_user_name: string;
+  hidden_bap_rebate_id: string;
+};
+
+type FormioFRF2023Data = {
+  [field: string]: unknown;
+  // fields injected upon a new draft FRF submission creation:
+  _user_email: string;
+  _user_title: string;
+  _user_name: string;
+  _bap_entity_combo_key: string;
+  _bap_applicant_email: string;
+  _bap_applicant_title: string;
+  _bap_applicant_name: string;
+  _bap_applicant_efti: string;
+  _bap_applicant_uei: string;
+  _bap_applicant_organization_name: string;
+  _bap_applicant_street_address_1: string;
+  _bap_applicant_street_address_2: string;
+  _bap_applicant_city: string;
+  _bap_applicant_state: string;
+  _bap_applicant_zip: string;
+};
+
+export type FormioFRF2022Submission = FormioSubmission & {
+  data: FormioFRF2022Data;
+};
+
+export type FormioPRF2022Submission = FormioSubmission & {
+  data: FormioPRF2022Data;
+};
+
+export type FormioCRF2022Submission = FormioSubmission & {
+  data: FormioCRF2022Data;
+};
+
+export type FormioFRF2023Submission = FormioSubmission & {
+  data: FormioFRF2023Data;
 };
 
 export type BapSubmission = {
@@ -173,15 +195,15 @@ export type BapSubmission = {
 
 export type Rebate = {
   frf: {
-    formio: FormioFRFSubmission;
+    formio: FormioFRF2022Submission;
     bap: BapSubmission | null;
   };
   prf: {
-    formio: FormioPRFSubmission | null;
+    formio: FormioPRF2022Submission | null;
     bap: BapSubmission | null;
   };
   crf: {
-    formio: FormioCRFSubmission | null;
+    formio: FormioCRF2022Submission | null;
     bap: BapSubmission | null;
   };
 };
@@ -332,7 +354,7 @@ export function useSubmissionsQueries() {
         queryKey: ["formio/2022/frf-submissions"],
         queryFn: () => {
           const url = `${serverUrl}/api/formio/2022/frf-submissions`;
-          return getData<FormioFRFSubmission[]>(url);
+          return getData<FormioFRF2022Submission[]>(url);
         },
         refetchOnWindowFocus: false,
       },
@@ -340,7 +362,7 @@ export function useSubmissionsQueries() {
         queryKey: ["formio/2022/prf-submissions"],
         queryFn: () => {
           const url = `${serverUrl}/api/formio/2022/prf-submissions`;
-          return getData<FormioPRFSubmission[]>(url);
+          return getData<FormioPRF2022Submission[]>(url);
         },
         refetchOnWindowFocus: false,
       },
@@ -348,7 +370,7 @@ export function useSubmissionsQueries() {
         queryKey: ["formio/2022/crf-submissions"],
         queryFn: () => {
           const url = `${serverUrl}/api/formio/2022/crf-submissions`;
-          return getData<FormioCRFSubmission[]>(url);
+          return getData<FormioCRF2022Submission[]>(url);
         },
         refetchOnWindowFocus: false,
       },
@@ -370,17 +392,17 @@ function useCombinedRebates() {
     crfs: BapFormSubmission[];
   }>(["bap/submissions"]);
 
-  const formioFRFSubmissions = queryClient.getQueryData<FormioFRFSubmission[]>([
-    "formio/2022/frf-submissions",
-  ]);
+  const formioFRFSubmissions = queryClient.getQueryData<
+    FormioFRF2022Submission[]
+  >(["formio/2022/frf-submissions"]);
 
-  const formioPRFSubmissions = queryClient.getQueryData<FormioPRFSubmission[]>([
-    "formio/2022/prf-submissions",
-  ]);
+  const formioPRFSubmissions = queryClient.getQueryData<
+    FormioPRF2022Submission[]
+  >(["formio/2022/prf-submissions"]);
 
-  const formioCRFSubmissions = queryClient.getQueryData<FormioCRFSubmission[]>([
-    "formio/2022/crf-submissions",
-  ]);
+  const formioCRFSubmissions = queryClient.getQueryData<
+    FormioCRF2022Submission[]
+  >(["formio/2022/crf-submissions"]);
 
   // ensure form submissions data has been fetched from both the BAP and Formio
   if (
@@ -595,9 +617,9 @@ export function useRebates() {
  */
 export function submissionNeedsEdits(options: {
   formio:
-    | FormioFRFSubmission
-    | FormioPRFSubmission
-    | FormioCRFSubmission
+    | FormioFRF2022Submission
+    | FormioPRF2022Submission
+    | FormioCRF2022Submission
     | null;
   bap: BapSubmission | null;
 }) {

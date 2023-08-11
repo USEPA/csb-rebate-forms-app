@@ -72,7 +72,7 @@ export function UserDashboard(props: { email: string }) {
   const btnClassNames =
     "usa-button margin-0 padding-x-2 padding-y-1 width-full font-sans-2xs";
 
-  function confirmationNavigation(destination: string) {
+  function confirmationNavigation(url: string) {
     displayDialog({
       dismissable: true,
       heading: "Are you sure you want to navigate away from this page?",
@@ -84,7 +84,7 @@ export function UserDashboard(props: { email: string }) {
       ),
       confirmText: "Yes",
       dismissText: "Cancel",
-      confirmedAction: () => navigate(destination),
+      confirmedAction: () => navigate(url),
     });
   }
 

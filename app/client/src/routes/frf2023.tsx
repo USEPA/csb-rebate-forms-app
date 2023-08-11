@@ -9,7 +9,7 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages } from "../config";
 import {
-  FormioFRFSubmission,
+  FormioFRF2022Submission,
   getData,
   postData,
   useContentData,
@@ -35,7 +35,7 @@ type ServerResponse =
   | {
       userAccess: true;
       formSchema: { url: string; json: object };
-      submission: FormioFRFSubmission; // TODO: account for differences between 2022 and 2023 forms
+      submission: FormioFRF2022Submission; // TODO: account for differences between 2022 and 2023 forms
     };
 
 /** Custom hook to fetch Formio submission data */
@@ -80,7 +80,7 @@ function useFormioSubmissionQueryAndMutation(mongoId: string | undefined) {
       metadata: { [field: string]: unknown };
       state: "submitted" | "draft";
     }) => {
-      return postData<FormioFRFSubmission>(url, updatedSubmission);
+      return postData<FormioFRF2022Submission>(url, updatedSubmission);
     },
     onSuccess: (res) => {
       return queryClient.setQueryData<ServerResponse>(

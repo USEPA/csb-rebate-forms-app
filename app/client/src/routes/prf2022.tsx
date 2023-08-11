@@ -9,7 +9,7 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages } from "../config";
 import {
-  FormioPRFSubmission,
+  FormioPRF2022Submission,
   getData,
   postData,
   useContentData,
@@ -35,7 +35,7 @@ type ServerResponse =
   | {
       userAccess: true;
       formSchema: { url: string; json: object };
-      submission: FormioPRFSubmission;
+      submission: FormioPRF2022Submission;
     };
 
 /** Custom hook to fetch Formio submission data */
@@ -84,7 +84,7 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
         state: "submitted" | "draft";
       };
     }) => {
-      return postData<FormioPRFSubmission>(url, updatedSubmission);
+      return postData<FormioPRF2022Submission>(url, updatedSubmission);
     },
     onSuccess: (res) => {
       return queryClient.setQueryData<ServerResponse>(
