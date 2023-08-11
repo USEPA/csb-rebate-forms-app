@@ -87,7 +87,7 @@ router.post(
 router.get("/prf-submissions", storeBapComboKeys, (req, res) => {
   const { bapComboKeys } = req;
 
-  const userSubmissionsUrl =
+  const submissionsUrl =
     `${formioPRFUrl}/submission` +
     `?sort=-modified` +
     `&limit=1000000` +
@@ -96,11 +96,11 @@ router.get("/prf-submissions", storeBapComboKeys, (req, res) => {
     )}`;
 
   axiosFormio(req)
-    .get(userSubmissionsUrl)
+    .get(submissionsUrl)
     .then((axiosRes) => axiosRes.data)
     .then((submissions) => res.json(submissions))
     .catch((error) => {
-      // NOTE: logged in axiosFormio response interceptor
+      // NOTE: error is logged in axiosFormio response interceptor
       const errorStatus = error.response?.status || 500;
       const errorMessage = `Error getting Formio Payment Request form submissions.`;
       return res.status(errorStatus).json({ message: errorMessage });
@@ -220,7 +220,7 @@ router.post("/prf-submission", storeBapComboKeys, (req, res) => {
         .then((axiosRes) => axiosRes.data)
         .then((submission) => res.json(submission))
         .catch((error) => {
-          // NOTE: logged in axiosFormio response interceptor
+          // NOTE: error is logged in axiosFormio response interceptor
           const errorStatus = error.response?.status || 500;
           const errorMessage = `Error posting Formio Payment Request form submission.`;
           return res.status(errorStatus).json({ message: errorMessage });
@@ -295,7 +295,7 @@ router.get("/prf-submission/:rebateId", storeBapComboKeys, async (req, res) => {
         });
     })
     .catch((error) => {
-      // NOTE: logged in axiosFormio response interceptor
+      // NOTE: error is logged in axiosFormio response interceptor
       const errorStatus = error.response?.status || 500;
       const errorMessage = `Error getting Formio Payment Request form submission '${rebateId}'.`;
       return res.status(errorStatus).json({ message: errorMessage });
@@ -347,7 +347,7 @@ router.post("/prf-submission/:rebateId", storeBapComboKeys, (req, res) => {
         .then((axiosRes) => axiosRes.data)
         .then((submission) => res.json(submission))
         .catch((error) => {
-          // NOTE: logged in axiosFormio response interceptor
+          // NOTE: error is logged in axiosFormio response interceptor
           const errorStatus = error.response?.status || 500;
           const errorMessage = `Error updating Formio Payment Request form submission '${rebateId}'.`;
           return res.status(errorStatus).json({ message: errorMessage });
@@ -416,7 +416,7 @@ router.post("/delete-prf-submission", storeBapComboKeys, (req, res) => {
           res.json(response);
         })
         .catch((error) => {
-          // NOTE: logged in axiosFormio response interceptor
+          // NOTE: error is logged in axiosFormio response interceptor
           const errorStatus = error.response?.status || 500;
           const errorMessage = `Error deleting Formio Payment Request form submission '${rebateId}'.`;
           return res.status(errorStatus).json({ message: errorMessage });
@@ -434,7 +434,7 @@ router.post("/delete-prf-submission", storeBapComboKeys, (req, res) => {
 router.get("/crf-submissions", storeBapComboKeys, (req, res) => {
   const { bapComboKeys } = req;
 
-  const userSubmissionsUrl =
+  const submissionsUrl =
     `${formioCRFUrl}/submission` +
     `?sort=-modified` +
     `&limit=1000000` +
@@ -443,11 +443,11 @@ router.get("/crf-submissions", storeBapComboKeys, (req, res) => {
     )}`;
 
   axiosFormio(req)
-    .get(userSubmissionsUrl)
+    .get(submissionsUrl)
     .then((axiosRes) => axiosRes.data)
     .then((submissions) => res.json(submissions))
     .catch((error) => {
-      // NOTE: logged in axiosFormio response interceptor
+      // NOTE: error is logged in axiosFormio response interceptor
       const errorStatus = error.response?.status || 500;
       const errorMessage = `Error getting Formio Close Out form submissions.`;
       return res.status(errorStatus).json({ message: errorMessage });
@@ -622,7 +622,7 @@ router.post("/crf-submission", storeBapComboKeys, (req, res) => {
         .then((axiosRes) => axiosRes.data)
         .then((submission) => res.json(submission))
         .catch((error) => {
-          // NOTE: logged in axiosFormio response interceptor
+          // NOTE: error is logged in axiosFormio response interceptor
           const errorStatus = error.response?.status || 500;
           const errorMessage = `Error posting Formio Close Out form submission.`;
           return res.status(errorStatus).json({ message: errorMessage });
@@ -697,7 +697,7 @@ router.get("/crf-submission/:rebateId", storeBapComboKeys, async (req, res) => {
         });
     })
     .catch((error) => {
-      // NOTE: logged in axiosFormio response interceptor
+      // NOTE: error is logged in axiosFormio response interceptor
       const errorStatus = error.response?.status || 500;
       const errorMessage = `Error getting Formio Close Out form submission '${rebateId}'.`;
       return res.status(errorStatus).json({ message: errorMessage });
@@ -749,7 +749,7 @@ router.post("/crf-submission/:rebateId", storeBapComboKeys, (req, res) => {
         .then((axiosRes) => axiosRes.data)
         .then((submission) => res.json(submission))
         .catch((error) => {
-          // NOTE: logged in axiosFormio response interceptor
+          // NOTE: error is logged in axiosFormio response interceptor
           const errorStatus = error.response?.status || 500;
           const errorMessage = `Error updating Formio Close Out form submission '${rebateId}'.`;
           return res.status(errorStatus).json({ message: errorMessage });

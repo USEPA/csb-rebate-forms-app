@@ -82,7 +82,7 @@ router.get("/formio/submission/:formType/:id", (req, res) => {
           });
         })
         .catch((error) => {
-          // NOTE: logged in axiosFormio response interceptor
+          // NOTE: error is logged in axiosFormio response interceptor
           const errorStatus = error.response?.status || 500;
           const errorMessage = `Error getting ${formName} submission '${CSB_Form_ID__c}'.`;
           return res.status(errorStatus).json({ message: errorMessage });
