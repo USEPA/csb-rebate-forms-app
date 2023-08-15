@@ -16,7 +16,7 @@ import {
   useConfigData,
   useBapSamData,
   useSubmissionsQueries,
-  use2022Rebates,
+  useSubmissions,
   submissionNeedsEdits,
   getUserInfo,
 } from "../utilities";
@@ -133,7 +133,7 @@ function FundingRequestForm(props: { email: string }) {
   const { rebateYear } = useRebateYearState();
 
   const submissionsQueries = useSubmissionsQueries("2022");
-  const rebates2022 = use2022Rebates();
+  const submissions = useSubmissions("2022");
 
   const { query, mutation } = useFormioSubmissionQueryAndMutation(mongoId);
   const { userAccess, formSchema, submission } = query.data ?? {};
@@ -189,7 +189,7 @@ function FundingRequestForm(props: { email: string }) {
     return <Message type="error" text={messages.formSubmissionError} />;
   }
 
-  const rebate = rebates2022.find((r) => r.frf.formio._id === mongoId);
+  const rebate = submissions.find((r) => r.frf.formio._id === mongoId);
 
   const frfNeedsEdits = !rebate
     ? false

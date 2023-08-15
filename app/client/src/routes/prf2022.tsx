@@ -16,7 +16,7 @@ import {
   useConfigData,
   useBapSamData,
   useSubmissionsQueries,
-  use2022Rebates,
+  useSubmissions,
   submissionNeedsEdits,
   getUserInfo,
 } from "../utilities";
@@ -126,7 +126,7 @@ function PaymentRequestForm(props: { email: string }) {
   const { rebateYear } = useRebateYearState();
 
   const submissionsQueries = useSubmissionsQueries("2022");
-  const rebates2022 = use2022Rebates();
+  const submissions = useSubmissions("2022");
 
   const { query, mutation } = useFormioSubmissionQueryAndMutation(rebateId);
   const { userAccess, formSchema, submission } = query.data ?? {};
@@ -182,7 +182,7 @@ function PaymentRequestForm(props: { email: string }) {
     return <Message type="error" text={messages.formSubmissionError} />;
   }
 
-  const rebate = rebates2022.find((r) => r.rebateId === rebateId);
+  const rebate = submissions.find((r) => r.rebateId === rebateId);
 
   const frfNeedsEdits = !rebate
     ? false

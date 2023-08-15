@@ -5,13 +5,13 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages } from "../config";
 import {
-  Rebate2022,
+  Rebate,
   postData,
   useContentData,
   useConfigData,
   useBapSamData,
   useSubmissionsQueries,
-  use2022Rebates,
+  useSubmissions,
   submissionNeedsEdits,
   getUserInfo,
 } from "../utilities";
@@ -54,7 +54,9 @@ function ButtonLink(props: { type: "edit" | "view"; to: LinkProps["to"] }) {
   );
 }
 
-function FRF2022Submission(props: { rebate: Rebate2022 }) {
+function FRF2022Submission(props: {
+  rebate: Extract<Rebate, { rebateYear: "2022" }>;
+}) {
   const { rebate } = props;
   const { frf, prf, crf } = rebate;
 
@@ -299,7 +301,9 @@ save the form for the EFT indicator to be displayed. */
   );
 }
 
-function PRF2022Submission(props: { rebate: Rebate2022 }) {
+function PRF2022Submission(props: {
+  rebate: Extract<Rebate, { rebateYear: "2022" }>;
+}) {
   const { rebate } = props;
   const { frf, prf, crf } = rebate;
 
@@ -529,7 +533,9 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
   );
 }
 
-function CRF2022Submission(props: { rebate: Rebate2022 }) {
+function CRF2022Submission(props: {
+  rebate: Extract<Rebate, { rebateYear: "2022" }>;
+}) {
   const { rebate } = props;
   const { frf, prf, crf } = rebate;
 
@@ -767,7 +773,7 @@ function NewApplicationIconText() {
 function Submissions2022() {
   const content = useContentData();
   const submissionsQueries = useSubmissionsQueries("2022");
-  const rebates = use2022Rebates();
+  const submissions = useSubmissions("2022");
 
   if (submissionsQueries.some((query) => query.isFetching)) {
     return <Loading />;
@@ -777,7 +783,7 @@ function Submissions2022() {
     return <Message type="error" text={messages.formSubmissionsError} />;
   }
 
-  if (rebates.length === 0) {
+  if (submissions.length === 0) {
     return (
       <div className="margin-top-4">
         <Message type="info" text={messages.newApplication} />
@@ -863,21 +869,23 @@ function Submissions2022() {
           </thead>
 
           <tbody>
-            {rebates.map((rebate, index) => (
-              <Fragment key={rebate.rebateId}>
-                <FRF2022Submission rebate={rebate} />
-                <PRF2022Submission rebate={rebate} />
-                <CRF2022Submission rebate={rebate} />
-                {/* blank row after all rebates but the last one */}
-                {index !== rebates.length - 1 && (
-                  <tr className="bg-white">
-                    <th className="p-0" scope="row" colSpan={6}>
-                      &nbsp;
-                    </th>
-                  </tr>
-                )}
-              </Fragment>
-            ))}
+            {submissions.map((rebate, index) => {
+              return rebate.rebateYear === "2022" ? (
+                <Fragment key={rebate.rebateId}>
+                  <FRF2022Submission rebate={rebate} />
+                  <PRF2022Submission rebate={rebate} />
+                  <CRF2022Submission rebate={rebate} />
+                  {/* blank row after all submissions but the last one */}
+                  {index !== submissions.length - 1 && (
+                    <tr className="bg-white">
+                      <th className="p-0" scope="row" colSpan={6}>
+                        &nbsp;
+                      </th>
+                    </tr>
+                  )}
+                </Fragment>
+              ) : null;
+            })}
           </tbody>
         </table>
       </div>
@@ -886,9 +894,9 @@ function Submissions2022() {
 }
 
 function Submissions2023() {
-  // const content = useContentData();
+  const content = useContentData();
   const submissionsQueries = useSubmissionsQueries("2023");
-  // const rebates = use2022Rebates();
+  const submissions = useSubmissions("2023");
 
   if (submissionsQueries.some((query) => query.isFetching)) {
     return <Loading />;
@@ -898,22 +906,22 @@ function Submissions2023() {
     return <Message type="error" text={messages.formSubmissionsError} />;
   }
 
-  // if (rebates.length === 0) {
-  //   return (
-  //     <div className="margin-top-4">
-  //       <Message type="info" text={messages.newApplication} />
-  //     </div>
-  //   );
-  // }
+  if (submissions.length === 0) {
+    return (
+      <div className="margin-top-4">
+        <Message type="info" text={messages.newApplication} />
+      </div>
+    );
+  }
 
   return (
     <>
-      {/* {content && (
+      {content && (
         <MarkdownContent
           className="margin-top-4"
           children={content.allRebatesIntro}
         />
-      )} */}
+      )}
 
       <p>(2023 submissions)</p>
     </>

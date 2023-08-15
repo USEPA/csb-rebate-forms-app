@@ -4,6 +4,8 @@ import { useSearchParams } from "react-router-dom";
 // ---
 import { serverUrl, serverUrlForHrefs } from "./config";
 
+type RebateYear = "2022" | "2023";
+
 type Content = {
   siteAlert: string;
   helpdeskIntro: string;
@@ -193,20 +195,37 @@ export type BapSubmission = {
   status: string | null;
 };
 
-export type Rebate2022 = {
-  frf: {
-    formio: FormioFRF2022Submission;
-    bap: BapSubmission | null;
-  };
-  prf: {
-    formio: FormioPRF2022Submission | null;
-    bap: BapSubmission | null;
-  };
-  crf: {
-    formio: FormioCRF2022Submission | null;
-    bap: BapSubmission | null;
-  };
-};
+export type Rebate =
+  | {
+      rebateYear: "2022";
+      frf: {
+        formio: FormioFRF2022Submission;
+        bap: BapSubmission | null;
+      };
+      prf: {
+        formio: FormioPRF2022Submission | null;
+        bap: BapSubmission | null;
+      };
+      crf: {
+        formio: FormioCRF2022Submission | null;
+        bap: BapSubmission | null;
+      };
+    }
+  | {
+      rebateYear: "2023";
+      frf: {
+        formio: FormioFRF2023Submission;
+        bap: null;
+      };
+      prf: {
+        formio: null;
+        bap: null;
+      };
+      crf: {
+        formio: null;
+        bap: null;
+      };
+    };
 
 async function fetchData<T = any>(url: string, options: RequestInit) {
   try {
@@ -410,31 +429,24 @@ export function useSubmissionsQueries(rebateYear: RebateYear) {
   return useQueries({ queries });
 }
 
-/**
- * Custom hook to combine 2022 FRF submissions data, PRF submissions data, and
- * CRF submissions data from both the BAP and Formio into a single object, with
- * the BAP assigned `rebateId` as the keys.
- **/
-function useCombined2022Rebates() {
-  const queryClient = useQueryClient();
-
-  const bapFormSubmissions = queryClient.getQueryData<{
-    frfs: BapFormSubmission[];
-    prfs: BapFormSubmission[];
-    crfs: BapFormSubmission[];
-  }>(["bap/submissions"]);
-
-  const formioFRFSubmissions = queryClient.getQueryData<
-    FormioFRF2022Submission[]
-  >(["formio/2022/frf-submissions"]);
-
-  const formioPRFSubmissions = queryClient.getQueryData<
-    FormioPRF2022Submission[]
-  >(["formio/2022/prf-submissions"]);
-
-  const formioCRFSubmissions = queryClient.getQueryData<
-    FormioCRF2022Submission[]
-  >(["formio/2022/crf-submissions"]);
+function combine2022Submissions(options: {
+  bapFormSubmissions:
+    | {
+        frfs: BapFormSubmission[];
+        prfs: BapFormSubmission[];
+        crfs: BapFormSubmission[];
+      }
+    | undefined;
+  formioFRFSubmissions: FormioFRF2022Submission[] | undefined;
+  formioPRFSubmissions: FormioPRF2022Submission[] | undefined;
+  formioCRFSubmissions: FormioCRF2022Submission[] | undefined;
+}) {
+  const {
+    bapFormSubmissions,
+    formioFRFSubmissions,
+    formioPRFSubmissions,
+    formioCRFSubmissions,
+  } = options;
 
   // ensure form submissions data has been fetched from both the BAP and Formio
   if (
@@ -446,7 +458,9 @@ function useCombined2022Rebates() {
     return {};
   }
 
-  const rebates: { [rebateId: string]: Rebate2022 } = {};
+  const rebates: {
+    [rebateId: string]: Extract<Rebate, { rebateYear: "2022" }>;
+  } = {};
 
   /**
    * Iterate over Formio FRF submissions, matching them with submissions
@@ -475,6 +489,7 @@ function useCombined2022Rebates() {
      * mongoDB ObjectID – just so each submission object still has a unique ID.
      */
     rebates[rebateId || `_${formioFRFSubmission._id}`] = {
+      rebateYear: "2022",
       frf: {
         formio: { ...formioFRFSubmission },
         bap: { modified, comboKey, mongoId, rebateId, reviewItemId, status },
@@ -556,14 +571,80 @@ function useCombined2022Rebates() {
   return rebates;
 }
 
+function combine2023Submissions(options: {
+  formioFRFSubmissions: FormioFRF2023Submission[] | undefined;
+}) {
+  const { formioFRFSubmissions } = options;
+
+  // ensure form submissions data has been fetched from Formio
+  if (!formioFRFSubmissions) {
+    return {};
+  }
+
+  const rebates: {
+    [rebateId: string]: Extract<Rebate, { rebateYear: "2023" }>;
+  } = {};
+
+  // TODO
+
+  return rebates;
+}
+
 /**
- * Custom hook that sorts rebates by:
+ * Custom hook to combine FRF submissions, PRF submissions, and CRF submissions
+ * from both the BAP and Formio into a single object, with the BAP assigned
+ * rebateId as the object's keys.
+ **/
+function useCombinedSubmissions(rebateYear: RebateYear) {
+  const queryClient = useQueryClient();
+
+  const bapFormSubmissions = queryClient.getQueryData<{
+    frfs: BapFormSubmission[];
+    prfs: BapFormSubmission[];
+    crfs: BapFormSubmission[];
+  }>(["bap/submissions"]);
+
+  const formioFRF2022Submissions = queryClient.getQueryData<
+    FormioFRF2022Submission[]
+  >(["formio/2022/frf-submissions"]);
+
+  const formioPRF2022Submissions = queryClient.getQueryData<
+    FormioPRF2022Submission[]
+  >(["formio/2022/prf-submissions"]);
+
+  const formioCRF2022Submissions = queryClient.getQueryData<
+    FormioCRF2022Submission[]
+  >(["formio/2022/crf-submissions"]);
+
+  const formioFRF2023Submissions = queryClient.getQueryData<
+    FormioFRF2023Submission[]
+  >(["formio/2023/frf-submissions"]);
+
+  const submissions =
+    rebateYear === "2022"
+      ? combine2022Submissions({
+          bapFormSubmissions,
+          formioFRFSubmissions: formioFRF2022Submissions,
+          formioPRFSubmissions: formioPRF2022Submissions,
+          formioCRFSubmissions: formioCRF2022Submissions,
+        })
+      : rebateYear === "2023"
+      ? combine2023Submissions({
+          formioFRFSubmissions: formioFRF2023Submissions,
+        })
+      : {};
+
+  return submissions;
+}
+
+/**
+ * Custom hook that sorts submissions by:
  * - Most recient Formio modified date, regardless of form type (FRF, PRF, CRF)
  * - Submissions needing edits, regardless of form type
  * - Selected FRF submissions without a corresponding PRF submission
  * - Funding Approved PRF submissions without a corresponding CRF submission
  **/
-function useSortedRebates(rebates: { [rebateId: string]: Rebate2022 }) {
+function useSortedSubmissions(rebates: { [rebateId: string]: Rebate }) {
   return Object.entries(rebates)
     .map(([rebateId, rebate]) => ({ rebateId, ...rebate }))
     .sort((r1, r2) => {
@@ -621,23 +702,23 @@ function useSortedRebates(rebates: { [rebateId: string]: Rebate2022 }) {
 }
 
 /**
- * Custom hook that returns sorted 2022 rebates, and logs them if 'debug' search
+ * Custom hook that returns sorted submissions, and logs them if 'debug' search
  * parameter exists.
  */
-export function use2022Rebates() {
+export function useSubmissions(rebateYear: RebateYear) {
   const [searchParams] = useSearchParams();
 
-  const combined2022Rebates = useCombined2022Rebates();
-  const sorted2022Rebates = useSortedRebates(combined2022Rebates);
+  const combinedSubmissions = useCombinedSubmissions(rebateYear);
+  const sortedSubmissions = useSortedSubmissions(combinedSubmissions);
 
-  // log combined 'sorted2022Rebates' array if 'debug' search parameter exists
+  // log combined 'sortedSubmissions' array if 'debug' search parameter exists
   useEffect(() => {
-    if (searchParams.has("debug") && sorted2022Rebates.length > 0) {
-      console.log(sorted2022Rebates);
+    if (searchParams.has("debug") && sortedSubmissions.length > 0) {
+      console.log(sortedSubmissions);
     }
-  }, [searchParams, sorted2022Rebates]);
+  }, [searchParams, sortedSubmissions]);
 
-  return sorted2022Rebates;
+  return sortedSubmissions;
 }
 
 /**
@@ -652,6 +733,7 @@ export function submissionNeedsEdits(options: {
     | FormioFRF2022Submission
     | FormioPRF2022Submission
     | FormioCRF2022Submission
+    | FormioFRF2023Submission
     | null;
   bap: BapSubmission | null;
 }) {
