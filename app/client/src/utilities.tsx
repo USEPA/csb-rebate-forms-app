@@ -314,84 +314,100 @@ export function useBapSamData() {
   return queryClient.getQueryData<BapSamData>(["bap/sam"]);
 }
 
-/** Custom hook to fetch all 2022 submissions from the BAP and Formio */
-export function use2022SubmissionsQueries() {
-  return useQueries({
-    queries: [
-      {
-        queryKey: ["bap/submissions"],
-        queryFn: () => {
-          const url = `${serverUrl}/api/bap/submissions`;
-          return getData<BapFormSubmission[]>(url).then((res) => {
-            const submissions = res.reduce(
-              (object, submission) => {
-                const formType =
-                  submission.Record_Type_Name__c === "CSB Funding Request"
-                    ? "frfs"
-                    : submission.Record_Type_Name__c === "CSB Payment Request"
-                    ? "prfs"
-                    : submission.Record_Type_Name__c === "CSB Closeout Request"
-                    ? "crfs"
-                    : null;
+/** Custom hook to fetch submissions from the BAP and Formio */
+export function useSubmissionsQueries(rebateYear: RebateYear) {
+  const bapQuery = {
+    queryKey: ["bap/submissions"],
+    queryFn: () => {
+      const url = `${serverUrl}/api/bap/submissions`;
+      return getData<BapFormSubmission[]>(url).then((res) => {
+        const submissions = res.reduce(
+          (object, submission) => {
+            const formType =
+              submission.Record_Type_Name__c === "CSB Funding Request"
+                ? "frfs"
+                : submission.Record_Type_Name__c === "CSB Payment Request"
+                ? "prfs"
+                : submission.Record_Type_Name__c === "CSB Closeout Request"
+                ? "crfs"
+                : null;
 
-                if (formType) object[formType].push(submission);
+            if (formType) object[formType].push(submission);
 
-                return object;
-              },
-              {
-                frfs: [] as BapFormSubmission[],
-                prfs: [] as BapFormSubmission[],
-                crfs: [] as BapFormSubmission[],
-              }
-            );
+            return object;
+          },
+          {
+            frfs: [] as BapFormSubmission[],
+            prfs: [] as BapFormSubmission[],
+            crfs: [] as BapFormSubmission[],
+          }
+        );
 
-            return Promise.resolve(submissions);
-          });
-        },
-        refetchOnWindowFocus: false,
-      },
-      {
-        queryKey: ["formio/2022/frf-submissions"],
-        queryFn: () => {
-          const url = `${serverUrl}/api/formio/2022/frf-submissions`;
-          return getData<FormioFRF2022Submission[]>(url);
-        },
-        refetchOnWindowFocus: false,
-      },
-      {
-        queryKey: ["formio/2022/prf-submissions"],
-        queryFn: () => {
-          const url = `${serverUrl}/api/formio/2022/prf-submissions`;
-          return getData<FormioPRF2022Submission[]>(url);
-        },
-        refetchOnWindowFocus: false,
-      },
-      {
-        queryKey: ["formio/2022/crf-submissions"],
-        queryFn: () => {
-          const url = `${serverUrl}/api/formio/2022/crf-submissions`;
-          return getData<FormioCRF2022Submission[]>(url);
-        },
-        refetchOnWindowFocus: false,
-      },
-    ],
-  });
-}
+        return Promise.resolve(submissions);
+      });
+    },
+    refetchOnWindowFocus: false,
+  };
 
-/** Custom hook to fetch all 2023 submissions from Formio */
-export function use2023SubmissionsQueries() {
-  return useQueries({
-    queries: [
-      {
-        queryKey: ["formio/2023/frf-submissions"],
-        queryFn: () => {
-          const url = `${serverUrl}/api/formio/2023/frf-submissions`;
-          return getData<FormioFRF2023Submission[]>(url);
-        },
-        refetchOnWindowFocus: false,
-      },
-    ],
-  });
+  const formioFRF2022Query = {
+    queryKey: ["formio/2022/frf-submissions"],
+    queryFn: () => {
+      const url = `${serverUrl}/api/formio/2022/frf-submissions`;
+      return getData<FormioFRF2022Submission[]>(url);
+    },
+    refetchOnWindowFocus: false,
+  };
+
+  const formioPRF2022Query = {
+    queryKey: ["formio/2022/prf-submissions"],
+    queryFn: () => {
+      const url = `${serverUrl}/api/formio/2022/prf-submissions`;
+      return getData<FormioPRF2022Submission[]>(url);
+    },
+    refetchOnWindowFocus: false,
+  };
+
+  const formioCRF2022Query = {
+    queryKey: ["formio/2022/crf-submissions"],
+    queryFn: () => {
+      const url = `${serverUrl}/api/formio/2022/crf-submissions`;
+      return getData<FormioCRF2022Submission[]>(url);
+    },
+    refetchOnWindowFocus: false,
+  };
+
+  const formioFRF2023Query = {
+    queryKey: ["formio/2023/frf-submissions"],
+    queryFn: () => {
+      const url = `${serverUrl}/api/formio/2023/frf-submissions`;
+      return getData<FormioFRF2023Submission[]>(url);
+    },
+    refetchOnWindowFocus: false,
+  };
+
+  type Query = {
+    queryKey: string[];
+    queryFn: () =>
+      | Promise<{
+          frfs: BapFormSubmission[];
+          prfs: BapFormSubmission[];
+          crfs: BapFormSubmission[];
+        }>
+      | Promise<FormioFRF2022Submission[]>
+      | Promise<FormioPRF2022Submission[]>
+      | Promise<FormioCRF2022Submission[]>
+      | Promise<FormioFRF2023Submission[]>;
+    refetchOnWindowFocus: boolean;
+  };
+
+  const queries: Query[] =
+    rebateYear === "2022"
+      ? [bapQuery, formioFRF2022Query, formioPRF2022Query, formioCRF2022Query]
+      : rebateYear === "2023"
+      ? [formioFRF2023Query]
+      : [];
+
+  return useQueries({ queries });
 }
 
 /**

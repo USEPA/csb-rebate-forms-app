@@ -15,7 +15,7 @@ import {
   useContentData,
   useConfigData,
   useBapSamData,
-  // use2022SubmissionsQueries,
+  useSubmissionsQueries,
   // use2022Rebates,
   // submissionNeedsEdits,
   getUserInfo,
@@ -121,7 +121,7 @@ function FundingRequestForm(props: { email: string }) {
   } = useNotificationsActions();
   const { rebateYear } = useRebateYearState();
 
-  // const submissions2022Queries = use2022SubmissionsQueries();
+  const submissionsQueries = useSubmissionsQueries("2023");
   // const rebates2022 = use2022Rebates();
 
   const { query, mutation } = useFormioSubmissionQueryAndMutation(mongoId);
@@ -162,13 +162,13 @@ function FundingRequestForm(props: { email: string }) {
     return <Loading />;
   }
 
-  // if (submissions2022Queries.some((query) => query.isFetching)) {
-  //   return <Loading />;
-  // }
+  if (submissionsQueries.some((query) => query.isFetching)) {
+    return <Loading />;
+  }
 
-  // if (submissions2022Queries.some((query) => query.isError)) {
-  //   return <Message type="error" text={messages.formSubmissionsError} />;
-  // }
+  if (submissionsQueries.some((query) => query.isError)) {
+    return <Message type="error" text={messages.formSubmissionsError} />;
+  }
 
   if (query.isInitialLoading) {
     return <Loading />;

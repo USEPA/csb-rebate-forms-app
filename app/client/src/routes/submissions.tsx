@@ -10,8 +10,7 @@ import {
   useContentData,
   useConfigData,
   useBapSamData,
-  use2022SubmissionsQueries,
-  use2023SubmissionsQueries,
+  useSubmissionsQueries,
   use2022Rebates,
   submissionNeedsEdits,
   getUserInfo,
@@ -767,7 +766,7 @@ function NewApplicationIconText() {
 
 function Submissions2022() {
   const content = useContentData();
-  const submissionsQueries = use2022SubmissionsQueries();
+  const submissionsQueries = useSubmissionsQueries("2022");
   const rebates = use2022Rebates();
 
   if (submissionsQueries.some((query) => query.isFetching)) {
@@ -888,7 +887,7 @@ function Submissions2022() {
 
 function Submissions2023() {
   // const content = useContentData();
-  const submissionsQueries = use2023SubmissionsQueries();
+  const submissionsQueries = useSubmissionsQueries("2023");
   // const rebates = use2022Rebates();
 
   if (submissionsQueries.some((query) => query.isFetching)) {
