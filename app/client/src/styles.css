@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 /* --- EPA/USWDS --- */
+.usa-menu-btn.button--dark {
+  background-color: #1a4480;
+}
+
 .usa-site-alert .usa-alert {
   max-width: 1400px;
 }
