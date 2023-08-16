@@ -168,6 +168,10 @@ type FormioFRF2023Data = {
   _bap_applicant_city: string;
   _bap_applicant_state: string;
   _bap_applicant_zip: string;
+  // fields set by form definition (among others):
+  appInfo_uei: string;
+  appInfo_efti: string;
+  appInfo_orgName: string;
 };
 
 export type FormioFRF2022Submission = FormioSubmission & {
@@ -585,7 +589,22 @@ function combine2023Submissions(options: {
     [rebateId: string]: Extract<Rebate, { rebateYear: "2023" }>;
   } = {};
 
-  // TODO
+  /**
+   * Iterate over Formio FRF submissions so we can build up each rebate object
+   * with the FRF submission data and initialize PRF and CRF submission data
+   * structure (both to be updated).
+   */
+  for (const formioFRFSubmission of formioFRFSubmissions) {
+    rebates[`_${formioFRFSubmission._id}`] = {
+      rebateYear: "2023",
+      frf: {
+        formio: { ...formioFRFSubmission },
+        bap: null,
+      },
+      prf: { formio: null, bap: null },
+      crf: { formio: null, bap: null },
+    };
+  }
 
   return rebates;
 }

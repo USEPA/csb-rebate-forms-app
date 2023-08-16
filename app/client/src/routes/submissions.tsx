@@ -54,6 +54,81 @@ function ButtonLink(props: { type: "edit" | "view"; to: LinkProps["to"] }) {
   );
 }
 
+function NewApplicationIconText() {
+  return (
+    <span className="display-flex flex-align-center">
+      <svg className="usa-icon" aria-hidden="true" focusable="false" role="img">
+        <use href={`${icons}#add_circle`} />
+      </svg>
+      <span className="margin-left-1 text-left">New Application</span>
+    </span>
+  );
+}
+
+function SubmissionsTableHeader() {
+  return (
+    <thead>
+      <tr className="font-sans-2xs text-no-wrap text-bottom">
+        <th scope="col">
+          <span className="usa-sr-only">Open</span>
+        </th>
+
+        <th scope="col">
+          <TextWithTooltip
+            text="Rebate ID"
+            tooltip="Unique Clean School Bus Rebate ID"
+          />
+        </th>
+
+        <th scope="col">
+          <TextWithTooltip
+            text="Form Type"
+            tooltip="Application, Payment Request, or Close Out form"
+          />
+          <br />
+          <TextWithTooltip
+            text="Form Status"
+            tooltip="Draft, Edits Requested, Submitted, Withdrawn, Selected, or Not Selected" // TODO: update to reflect other statuses
+          />
+        </th>
+
+        <th scope="col">
+          <TextWithTooltip text="UEI" tooltip="Unique Entity ID from SAM.gov" />
+          <br />
+          <TextWithTooltip
+            text="EFT Indicator"
+            tooltip="Electronic Funds Transfer Indicator listing the associated bank account from SAM.gov"
+          />
+        </th>
+
+        <th scope="col">
+          <TextWithTooltip
+            text="Applicant"
+            tooltip="Legal Business Name from SAM.gov for this UEI"
+          />
+          <br />
+          <TextWithTooltip
+            text="School District"
+            tooltip="School district represented by applicant"
+          />
+        </th>
+
+        <th scope="col">
+          <TextWithTooltip
+            text="Updated By"
+            tooltip="Last person that updated this form"
+          />
+          <br />
+          <TextWithTooltip
+            text="Date Updated"
+            tooltip="Last date this form was updated"
+          />
+        </th>
+      </tr>
+    </thead>
+  );
+}
+
 function FRF2022Submission(props: {
   rebate: Extract<Rebate, { rebateYear: "2022" }>;
 }) {
@@ -759,14 +834,210 @@ function CRF2022Submission(props: {
   );
 }
 
-function NewApplicationIconText() {
+function FRF2023Submission(props: {
+  rebate: Extract<Rebate, { rebateYear: "2023" }>;
+}) {
+  const { rebate } = props;
+  const { frf } = rebate;
+
+  const configData = useConfigData();
+
+  if (!configData) return null;
+
+  const frfSubmissionPeriodOpen = configData.submissionPeriodOpen["2023"].frf;
+
+  const {
+    appInfo_uei,
+    appInfo_efti,
+    appInfo_orgName,
+    // TODO: (school district name field)
+    _user_email,
+  } = frf.formio.data;
+
+  const appInfo_schoolDistrictName = null; // TODO: temporary
+
+  const date = new Date(frf.formio.modified).toLocaleDateString();
+  const time = new Date(frf.formio.modified).toLocaleTimeString();
+
+  const frfNeedsEdits = submissionNeedsEdits({
+    formio: frf.formio,
+    bap: frf.bap,
+  });
+
+  /**
+   * NOTE:
+   * Setting of the statuses below will occur once the BAP's 2023 FRF work has
+   * been completed, so the code below will be updated in the future.
+   */
+
+  const frfNeedsClarification = false; // frf.bap?.status === "Needs Clarification";
+
+  const frfHasBeenWithdrawn = false; // frf.bap?.status === "Withdrawn";
+
+  const frfNotSelected = false; // frf.bap?.status === "Coordinator Denied";
+
+  const frfSelected = false; // frf.bap?.status === "Accepted";
+
+  const frfSelectedButNoPRF = false; // frfSelected && !Boolean(prf.formio);
+
+  const prfFundingApproved = false; // prf.bap?.status === "Accepted";
+
+  const prfFundingApprovedButNoCRF = prfFundingApproved; // prfFundingApproved && !Boolean(crf.formio);
+
+  const statusTableCellClassNames =
+    frf.formio.state === "submitted" || !frfSubmissionPeriodOpen
+      ? "text-italic"
+      : "";
+
+  const statusIconClassNames = frfSelected
+    ? "usa-icon text-primary" // blue
+    : "usa-icon";
+
+  const statusIcon = frfNeedsEdits
+    ? `${icons}#priority_high` // !
+    : frfHasBeenWithdrawn
+    ? `${icons}#close` // ✕
+    : frfNotSelected
+    ? `${icons}#cancel` // x inside a circle
+    : frfSelected
+    ? `${icons}#check_circle` // check inside a circle
+    : frf.formio.state === "draft"
+    ? `${icons}#more_horiz` // three horizontal dots
+    : frf.formio.state === "submitted"
+    ? `${icons}#check` // check
+    : `${icons}#remove`; // — (fallback, not used)
+
+  const statusText = frfNeedsEdits
+    ? "Edits Requested"
+    : frfHasBeenWithdrawn
+    ? "Withdrawn"
+    : frfNotSelected
+    ? "Not Selected"
+    : frfSelected
+    ? "Selected"
+    : frf.formio.state === "draft"
+    ? "Draft"
+    : frf.formio.state === "submitted"
+    ? "Submitted"
+    : ""; // fallback, not used
+
+  const frfUrl = `/frf/2023/${frf.formio._id}`;
+
+  /**
+   * NOTE on the usage of `TextWithTooltip` below:
+   * When a form is first initially created, and the user has not yet clicked
+   * the "Next" or "Save" buttons, any fields that the Formio form definition
+   * sets automatically (based on hidden fields we inject on form creation) will
+   * not yet be part of the form submission data. As soon as the user clicks the
+   * "Next" or "Save" buttons the first time, those fields will be set and
+   * stored in the submission. Since we display some of those fields in the
+   * table below, we need to check if their values exist, and if they don't (for
+   * cases where the user has not yet advanced past the first screen of the
+   * form...which we believe is a bit of an edge case, as most users will likely
+   * do that after starting a new application), indicate to the user they need
+   * to first save the form for the fields to be displayed.
+   */
   return (
-    <span className="display-flex flex-align-center">
-      <svg className="usa-icon" aria-hidden="true" focusable="false" role="img">
-        <use href={`${icons}#add_circle`} />
-      </svg>
-      <span className="margin-left-1 text-left">New Application</span>
-    </span>
+    <tr
+      className={
+        frfNeedsEdits || frfSelectedButNoPRF || prfFundingApprovedButNoCRF
+          ? highlightedTableRowClassNames
+          : defaultTableRowClassNames
+      }
+    >
+      <th scope="row" className={statusTableCellClassNames}>
+        {frfNeedsEdits ? (
+          <ButtonLink type="edit" to={frfUrl} />
+        ) : frf.formio.state === "submitted" || !frfSubmissionPeriodOpen ? (
+          <ButtonLink type="view" to={frfUrl} />
+        ) : frf.formio.state === "draft" ? (
+          <ButtonLink type="edit" to={frfUrl} />
+        ) : null}
+      </th>
+
+      <td className={statusTableCellClassNames}>
+        <TextWithTooltip
+          text=" "
+          tooltip="Rebate ID will be displayed at a later date"
+        />
+      </td>
+
+      <td className={statusTableCellClassNames}>
+        <span>Application</span>
+        <br />
+        <span className="display-flex flex-align-center font-sans-2xs">
+          {frfNeedsClarification ? (
+            <TextWithTooltip
+              text="Needs Clarification"
+              tooltip="Check your email for instructions on what needs clarification"
+              iconClassNames="text-base-darkest"
+            />
+          ) : (
+            <>
+              <svg
+                className={statusIconClassNames}
+                aria-hidden="true"
+                focusable="false"
+                role="img"
+              >
+                <use href={statusIcon} />
+              </svg>
+              <span className="margin-left-05">{statusText}</span>
+            </>
+          )}
+        </span>
+      </td>
+
+      <td className={statusTableCellClassNames}>
+        <>
+          {Boolean(appInfo_uei) ? (
+            appInfo_uei
+          ) : (
+            <TextWithTooltip
+              text=" "
+              tooltip="Please edit and save the form and the UEI will be displayed"
+            />
+          )}
+          <br />
+          {Boolean(appInfo_efti) ? (
+            appInfo_efti
+          ) : (
+            <TextWithTooltip
+              text=" "
+              tooltip="Please edit and save the form and the EFT Indicator will be displayed"
+            />
+          )}
+        </>
+      </td>
+
+      <td className={statusTableCellClassNames}>
+        <>
+          {Boolean(appInfo_orgName) ? (
+            appInfo_orgName
+          ) : (
+            <TextWithTooltip
+              text=" "
+              tooltip="Please edit and save the form and the Applicant will be displayed"
+            />
+          )}
+          <br />
+          {Boolean(appInfo_schoolDistrictName) ? (
+            appInfo_schoolDistrictName
+          ) : (
+            <TextWithTooltip
+              text=" "
+              tooltip="School District will be displayed after that field has been entered in the form"
+            />
+          )}
+        </>
+      </td>
+
+      <td className={statusTableCellClassNames}>
+        {_user_email}
+        <br />
+        <span title={`${date} ${time}`}>{date}</span>
+      </td>
+    </tr>
   );
 }
 
@@ -802,72 +1073,10 @@ function Submissions2022() {
 
       <div className="usa-table-container--scrollable" tabIndex={0}>
         <table
-          aria-label="Your Rebate Forms"
+          aria-label="Your 2022 Rebate Forms"
           className="usa-table usa-table--stacked usa-table--borderless width-full"
         >
-          <thead>
-            <tr className="font-sans-2xs text-no-wrap text-bottom">
-              <th scope="col">
-                <span className="usa-sr-only">Open</span>
-              </th>
-
-              <th scope="col">
-                <TextWithTooltip
-                  text="Rebate ID"
-                  tooltip="Unique Clean School Bus Rebate ID"
-                />
-              </th>
-
-              <th scope="col">
-                <TextWithTooltip
-                  text="Form Type"
-                  tooltip="Application, Payment Request, or Close Out form"
-                />
-                <br />
-                <TextWithTooltip
-                  text="Form Status"
-                  tooltip="Draft, Edits Requested, Submitted, Withdrawn, Selected, or Not Selected" // TODO: update to reflect other statuses
-                />
-              </th>
-
-              <th scope="col">
-                <TextWithTooltip
-                  text="UEI"
-                  tooltip="Unique Entity ID from SAM.gov"
-                />
-                <br />
-                <TextWithTooltip
-                  text="EFT Indicator"
-                  tooltip="Electronic Funds Transfer Indicator listing the associated bank account from SAM.gov"
-                />
-              </th>
-
-              <th scope="col">
-                <TextWithTooltip
-                  text="Applicant"
-                  tooltip="Legal Business Name from SAM.gov for this UEI"
-                />
-                <br />
-                <TextWithTooltip
-                  text="School District"
-                  tooltip="School district represented by applicant"
-                />
-              </th>
-
-              <th scope="col">
-                <TextWithTooltip
-                  text="Updated By"
-                  tooltip="Last person that updated this form"
-                />
-                <br />
-                <TextWithTooltip
-                  text="Date Updated"
-                  tooltip="Last date this form was updated"
-                />
-              </th>
-            </tr>
-          </thead>
-
+          <SubmissionsTableHeader />
           <tbody>
             {submissions.map((rebate, index) => {
               return rebate.rebateYear === "2022" ? (
@@ -923,7 +1132,31 @@ function Submissions2023() {
         />
       )}
 
-      <p>(2023 submissions)</p>
+      <div className="usa-table-container--scrollable" tabIndex={0}>
+        <table
+          aria-label="Your 2023 Rebate Forms"
+          className="usa-table usa-table--stacked usa-table--borderless width-full"
+        >
+          <SubmissionsTableHeader />
+          <tbody>
+            {submissions.map((rebate, index) => {
+              return rebate.rebateYear === "2023" ? (
+                <Fragment key={rebate.rebateId}>
+                  <FRF2023Submission rebate={rebate} />
+                  {/* blank row after all submissions but the last one */}
+                  {index !== submissions.length - 1 && (
+                    <tr className="bg-white">
+                      <th className="p-0" scope="row" colSpan={6}>
+                        &nbsp;
+                      </th>
+                    </tr>
+                  )}
+                </Fragment>
+              ) : null;
+            })}
+          </tbody>
+        </table>
+      </div>
     </>
   );
 }
