@@ -6,10 +6,12 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages } from "../config";
 import {
-  FormioApplicationSubmission,
+  BapSamEntity,
+  FormioFRF2022Submission,
+  FormioFRF2023Submission,
   postData,
   useContentData,
-  useCsbData,
+  useConfigData,
   useBapSamData,
   getUserInfo,
 } from "../utilities";
@@ -17,14 +19,77 @@ import { Loading, LoadingButtonIcon } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/tooltip";
+import { useRebateYearState } from "contexts/rebateYear";
 
-export function NewApplicationForm() {
+/**
+ * Creates the initial FRF submission data for a given rebate year
+ */
+function createInitialSubmissionData(options: {
+  rebateYear: "2022" | "2023";
+  email: string;
+  entity: BapSamEntity;
+}) {
+  const { rebateYear, email, entity } = options;
+
+  const { title, name } = getUserInfo(email, entity);
+  const comboKey = entity.ENTITY_COMBO_KEY__c;
+  const uei = entity.UNIQUE_ENTITY_ID__c;
+  const efti = entity.ENTITY_EFT_INDICATOR__c;
+  const orgName = entity.LEGAL_BUSINESS_NAME__c;
+  const address1 = entity.PHYSICAL_ADDRESS_LINE_1__c;
+  const address2 = entity.PHYSICAL_ADDRESS_LINE_2__c;
+  const city = entity.PHYSICAL_ADDRESS_CITY__c;
+  const state = entity.PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c;
+  const zip = entity.PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c;
+
+  return rebateYear === "2022"
+    ? {
+        last_updated_by: email,
+        hidden_current_user_email: email,
+        hidden_current_user_title: title,
+        hidden_current_user_name: name,
+        bap_hidden_entity_combo_key: comboKey,
+        sam_hidden_applicant_email: email,
+        sam_hidden_applicant_title: title,
+        sam_hidden_applicant_name: name,
+        sam_hidden_applicant_efti: efti,
+        sam_hidden_applicant_uei: uei,
+        sam_hidden_applicant_organization_name: orgName,
+        sam_hidden_applicant_street_address_1: address1,
+        sam_hidden_applicant_street_address_2: address2,
+        sam_hidden_applicant_city: city,
+        sam_hidden_applicant_state: state,
+        sam_hidden_applicant_zip_code: zip,
+      }
+    : rebateYear === "2023"
+    ? {
+        _user_email: email,
+        _user_title: title,
+        _user_name: name,
+        _bap_entity_combo_key: comboKey,
+        _bap_applicant_email: email,
+        _bap_applicant_title: title,
+        _bap_applicant_name: name,
+        _bap_applicant_efti: efti,
+        _bap_applicant_uei: uei,
+        _bap_applicant_organization_name: orgName,
+        _bap_applicant_street_address_1: address1,
+        _bap_applicant_street_address_2: address2,
+        _bap_applicant_city: city,
+        _bap_applicant_state: state,
+        _bap_applicant_zip: zip,
+      }
+    : null;
+}
+
+export function FRFNew() {
   const navigate = useNavigate();
   const { email } = useOutletContext<{ email: string }>();
 
   const content = useContentData();
-  const csbData = useCsbData();
+  const configData = useConfigData();
   const bapSamData = useBapSamData();
+  const { rebateYear } = useRebateYearState();
 
   const [errorMessage, setErrorMessage] = useState<{
     displayed: boolean;
@@ -37,15 +102,16 @@ export function NewApplicationForm() {
   /**
    * Stores when data is being posted to the server, so a loading indicator can
    * be rendered inside the new application button, and we can prevent double
-   * submits/creations of new Application form submissions.
+   * submits/creations of new FRF submissions.
    */
   const [postingDataId, setPostingDataId] = useState("0");
 
-  if (!csbData || !bapSamData) {
+  if (!configData || !bapSamData) {
     return <Loading />;
   }
 
-  const applicationFormOpen = csbData.submissionPeriodOpen.application;
+  const frfSubmissionPeriodOpen =
+    configData.submissionPeriodOpen[rebateYear].frf;
 
   const activeSamEntities = bapSamData.entities.filter((entity) => {
     return entity.ENTITY_STATUS__c === "Active";
@@ -83,7 +149,7 @@ export function NewApplicationForm() {
             >
               <Dialog.Panel className="tw-relative tw-transform tw-overflow-hidden tw-rounded-lg tw-bg-white tw-p-4 tw-shadow-xl tw-transition-all sm:tw-w-full sm:tw-max-w-4xl sm:tw-p-6">
                 <div className="twpf">
-                  <div className="tw-absolute tw-top-0 tw-right-0 tw-pt-4 tw-pr-4">
+                  <div className="tw-absolute tw-right-0 tw-top-0 tw-pr-4 tw-pt-4">
                     <button
                       type="button"
                       className="tw-rounded-md tw-bg-white tw-text-gray-400 tw-transition-none hover:tw-text-gray-700 focus:tw-text-gray-700"
@@ -99,12 +165,9 @@ export function NewApplicationForm() {
                 </div>
 
                 <div className="tw-m-auto tw-max-w-3xl tw-p-4 sm:tw-p-8">
-                  {!applicationFormOpen ? (
+                  {!frfSubmissionPeriodOpen ? (
                     <div className="-tw-mb-4">
-                      <Message
-                        type="info"
-                        text={messages.applicationFormClosed}
-                      />
+                      <Message type="info" text={messages.frfClosed} />
                     </div>
                   ) : activeSamEntities.length <= 0 ? (
                     <div className="-tw-mb-4">
@@ -115,7 +178,7 @@ export function NewApplicationForm() {
                       {content && (
                         <MarkdownContent
                           className="tw-mt-4 tw-text-center"
-                          children={content.newApplicationDialog}
+                          children={content.newFRFDialog}
                           components={{
                             h2: (props) => (
                               <h2 className="tw-text-xl sm:tw-text-2xl md:tw-text-3xl">
@@ -188,37 +251,23 @@ export function NewApplicationForm() {
                                         if (postingDataId !== "0") return;
                                         setPostingDataId(comboKey);
 
-                                        const { title, name } = getUserInfo(
-                                          email,
-                                          entity
-                                        );
+                                        const data =
+                                          createInitialSubmissionData({
+                                            rebateYear,
+                                            email,
+                                            entity,
+                                          });
 
-                                        postData<FormioApplicationSubmission>(
-                                          `${serverUrl}/api/formio-application-submission/`,
-                                          {
-                                            data: {
-                                              last_updated_by: email,
-                                              hidden_current_user_email: email,
-                                              hidden_current_user_title: title,
-                                              hidden_current_user_name: name,
-                                              bap_hidden_entity_combo_key: comboKey, // prettier-ignore
-                                              sam_hidden_applicant_email: email,
-                                              sam_hidden_applicant_title: title,
-                                              sam_hidden_applicant_name: name,
-                                              sam_hidden_applicant_efti: efti,
-                                              sam_hidden_applicant_uei: uei,
-                                              sam_hidden_applicant_organization_name: orgName, // prettier-ignore
-                                              sam_hidden_applicant_street_address_1: entity.PHYSICAL_ADDRESS_LINE_1__c, // prettier-ignore
-                                              sam_hidden_applicant_street_address_2: entity.PHYSICAL_ADDRESS_LINE_2__c, // prettier-ignore
-                                              sam_hidden_applicant_city: entity.PHYSICAL_ADDRESS_CITY__c, // prettier-ignore
-                                              sam_hidden_applicant_state: entity.PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c, // prettier-ignore
-                                              sam_hidden_applicant_zip_code: entity.PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c, // prettier-ignore
-                                            },
-                                            state: "draft",
-                                          }
+                                        postData<
+                                          | FormioFRF2022Submission
+                                          | FormioFRF2023Submission
+                                        >(
+                                          `${serverUrl}/api/formio/${rebateYear}/frf-submission/`,
+                                          { data, state: "draft" }
                                         )
                                           .then((res) => {
-                                            navigate(`/rebate/${res._id}`);
+                                            const url = `/frf/${rebateYear}/${res._id}`;
+                                            navigate(url);
                                           })
                                           .catch((err) => {
                                             setErrorMessage({

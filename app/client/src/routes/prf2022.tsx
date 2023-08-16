@@ -9,14 +9,14 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages } from "../config";
 import {
-  FormioPaymentRequestSubmission,
+  FormioPRF2022Submission,
   getData,
   postData,
   useContentData,
-  useCsbData,
+  useConfigData,
   useBapSamData,
   useSubmissionsQueries,
-  useRebates,
+  useSubmissions,
   submissionNeedsEdits,
   getUserInfo,
 } from "../utilities";
@@ -24,6 +24,7 @@ import { Loading } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { useNotificationsActions } from "contexts/notifications";
+import { useRebateYearState } from "contexts/rebateYear";
 
 type ServerResponse =
   | {
@@ -34,7 +35,7 @@ type ServerResponse =
   | {
       userAccess: true;
       formSchema: { url: string; json: object };
-      submission: FormioPaymentRequestSubmission;
+      submission: FormioPRF2022Submission;
     };
 
 /** Custom hook to fetch Formio submission data */
@@ -42,13 +43,13 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    queryClient.resetQueries({ queryKey: ["payment-request"] });
+    queryClient.resetQueries({ queryKey: ["formio/2022/prf-submission"] });
   }, [queryClient]);
 
-  const url = `${serverUrl}/api/formio-payment-request-submission/${rebateId}`;
+  const url = `${serverUrl}/api/formio/2022/prf-submission/${rebateId}`;
 
   const query = useQuery({
-    queryKey: ["payment-request", { id: rebateId }],
+    queryKey: ["formio/2022/prf-submission", { id: rebateId }],
     queryFn: () => {
       return getData<ServerResponse>(url).then((res) => {
         const mongoId = res.submission?._id;
@@ -64,7 +65,7 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
          */
         Formio.Providers.providers.storage.s3 = function (formio: any) {
           const s3Formio = cloneDeep(formio);
-          s3Formio.formUrl = `${serverUrl}/api/s3/payment-request/${mongoId}/${comboKey}`;
+          s3Formio.formUrl = `${serverUrl}/api/formio/2022/s3/prf/${mongoId}/${comboKey}`;
           return s3(s3Formio);
         };
 
@@ -83,11 +84,11 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
         state: "submitted" | "draft";
       };
     }) => {
-      return postData<FormioPaymentRequestSubmission>(url, updatedSubmission);
+      return postData<FormioPRF2022Submission>(url, updatedSubmission);
     },
     onSuccess: (res) => {
       return queryClient.setQueryData<ServerResponse>(
-        ["payment-request", { id: rebateId }],
+        ["formio/2022/prf-submission", { id: rebateId }],
         (prevData) => {
           return prevData?.submission
             ? { ...prevData, submission: res }
@@ -100,31 +101,32 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
   return { query, mutation };
 }
 
-export function PaymentRequestForm() {
+export function PRF2022() {
   const { email } = useOutletContext<{ email: string }>();
   /* ensure user verification (JWT refresh) doesn't cause form to re-render */
   return useMemo(() => {
-    return <UserPaymentRequestForm email={email} />;
+    return <PaymentRequestForm email={email} />;
   }, [email]);
 }
 
-function UserPaymentRequestForm(props: { email: string }) {
+function PaymentRequestForm(props: { email: string }) {
   const { email } = props;
 
   const navigate = useNavigate();
   const { id: rebateId } = useParams<"id">(); // CSB Rebate ID (6 digits)
 
   const content = useContentData();
-  const csbData = useCsbData();
+  const configData = useConfigData();
   const bapSamData = useBapSamData();
   const {
     displaySuccessNotification,
     displayErrorNotification,
     dismissNotification,
   } = useNotificationsActions();
+  const { rebateYear } = useRebateYearState();
 
-  const submissionsQueries = useSubmissionsQueries();
-  const rebates = useRebates();
+  const submissionsQueries = useSubmissionsQueries("2022");
+  const submissions = useSubmissions("2022");
 
   const { query, mutation } = useFormioSubmissionQueryAndMutation(rebateId);
   const { userAccess, formSchema, submission } = query.data ?? {};
@@ -160,7 +162,7 @@ function UserPaymentRequestForm(props: { email: string }) {
    */
   const lastSuccesfullySubmittedData = useRef<{ [field: string]: unknown }>({});
 
-  if (!csbData || !bapSamData) {
+  if (!configData || !bapSamData) {
     return <Loading />;
   }
 
@@ -180,28 +182,29 @@ function UserPaymentRequestForm(props: { email: string }) {
     return <Message type="error" text={messages.formSubmissionError} />;
   }
 
-  const rebate = rebates.find((r) => r.rebateId === rebateId);
+  const rebate = submissions.find((r) => r.rebateId === rebateId);
 
-  const applicationNeedsEdits = !rebate
+  const frfNeedsEdits = !rebate
     ? false
     : submissionNeedsEdits({
-        formio: rebate.application.formio,
-        bap: rebate.application.bap,
+        formio: rebate.frf.formio,
+        bap: rebate.frf.bap,
       });
 
-  const paymentRequestNeedsEdits = !rebate
+  const prfNeedsEdits = !rebate
     ? false
     : submissionNeedsEdits({
-        formio: rebate.paymentRequest.formio,
-        bap: rebate.paymentRequest.bap,
+        formio: rebate.prf.formio,
+        bap: rebate.prf.bap,
       });
 
-  const paymentRequestFormOpen = csbData.submissionPeriodOpen.paymentRequest;
+  const prfSubmissionPeriodOpen =
+    configData.submissionPeriodOpen[rebateYear].prf;
 
   const formIsReadOnly =
-    applicationNeedsEdits ||
-    ((submission.state === "submitted" || !paymentRequestFormOpen) &&
-      !paymentRequestNeedsEdits);
+    frfNeedsEdits ||
+    ((submission.state === "submitted" || !prfSubmissionPeriodOpen) &&
+      !prfNeedsEdits);
 
   /** matched SAM.gov entity for the Payment Request submission */
   const entity = bapSamData.entities.find((entity) => {
@@ -235,19 +238,16 @@ function UserPaymentRequestForm(props: { email: string }) {
           className="margin-top-4"
           children={
             submission.state === "draft"
-              ? content.draftPaymentRequestIntro
+              ? content.draftPRFIntro
               : submission.state === "submitted"
-              ? content.submittedPaymentRequestIntro
+              ? content.submittedPRFIntro
               : ""
           }
         />
       )}
 
-      {applicationNeedsEdits && (
-        <Message
-          type="warning"
-          text={messages.paymentRequestFormWillBeDeleted}
-        />
+      {frfNeedsEdits && (
+        <Message type="warning" text={messages.prfWillBeDeleted} />
       )}
 
       <ul className="usa-icon-list">
@@ -396,6 +396,29 @@ function UserPaymentRequestForm(props: { email: string }) {
             // to the form (ignoring current user fields)
             const currentData = { ...data };
             const submittedData = { ...lastSuccesfullySubmittedData.current };
+
+            /**
+             * NOTE: if a user hasn't yet filled out the bus info fields, the
+             * `newBusDeliveryDate` field is returned as null from Formio, but
+             * is converted to an empty string when rendered by the Formio Form
+             * component, so we need to account for that in the dirty check by
+             * omitting that field from being checked.
+             */
+            type BusInfo = Record<string, unknown>[] | undefined;
+
+            const currentDataBusInfo = currentData?.busInfo as BusInfo;
+            const submittedDataBusInfo = submittedData?.busInfo as BusInfo;
+
+            currentDataBusInfo?.forEach((currentDataBusFields, index) => {
+              if (
+                currentDataBusFields?.newBusDeliveryDate === "" &&
+                submittedDataBusInfo?.[index]?.newBusDeliveryDate === null
+              ) {
+                delete currentDataBusFields.newBusDeliveryDate;
+                delete submittedDataBusInfo[index].newBusDeliveryDate;
+              }
+            });
+
             delete currentData.hidden_current_user_email;
             delete currentData.hidden_current_user_title;
             delete currentData.hidden_current_user_name;
@@ -454,11 +477,8 @@ function UserPaymentRequestForm(props: { email: string }) {
         />
       </div>
 
-      {applicationNeedsEdits && (
-        <Message
-          type="warning"
-          text={messages.paymentRequestFormWillBeDeleted}
-        />
+      {frfNeedsEdits && (
+        <Message type="warning" text={messages.prfWillBeDeleted} />
       )}
     </div>
   );

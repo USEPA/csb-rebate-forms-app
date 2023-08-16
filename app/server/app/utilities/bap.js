@@ -3,6 +3,8 @@
 const jsforce = require("jsforce");
 const express = require("express");
 const log = require("../utilities/logger");
+// ---
+const { submissionPeriodOpen } = require("../config/formio");
 
 /**
  * @typedef {Object} BapSamEntity
@@ -55,7 +57,7 @@ const log = require("../utilities/logger");
  */
 
 /**
- * @typedef {Object} BapDataForPaymentRequest
+ * @typedef {Object} BapDataForPRF
  * @property {{
  *  Id: string
  *  UEI_EFTI_Combo_Key__c: string
@@ -82,7 +84,7 @@ const log = require("../utilities/logger");
  *  School_District_Prioritized__c: string
  *  Total_Rebate_Funds_Requested__c: string
  *  Total_Infrastructure_Funds__c: string
- * }[]} applicationRecordQuery
+ * }[]} frfRecordQuery
  * @property {{
  *  Rebate_Item_num__c: string
  *  CSB_VIN__c: string
@@ -98,7 +100,7 @@ const log = require("../utilities/logger");
  */
 
 /**
- * @typedef {Object} BapDataForForCloseOut
+ * @typedef {Object} BapDataForForCRF
  * @property {{
  *  Fleet_Name__c: string
  *  Fleet_Street_Address__c: string
@@ -113,7 +115,7 @@ const log = require("../utilities/logger");
  *    FirstName: string
  *    LastName: string
  *  }
- * }[]} applicationRecordQuery
+ * }[]} frfRecordQuery
  * @property {{
  *  Id: string
  *  UEI_EFTI_Combo_Key__c: string
@@ -150,7 +152,7 @@ const log = require("../utilities/logger");
  *  Total_Level_2_Charger_Costs__c: string
  *  Total_DC_Fast_Charger_Costs__c: string
  *  Total_Other_Infrastructure_Costs__c: string
- * }[]} paymentRequestRecordQuery
+ * }[]} prfRecordQuery
  * @property {{
  *  Rebate_Item_num__c: string
  *  CSB_VIN__c: string
@@ -313,34 +315,27 @@ async function queryForSamEntities(req, email) {
  * statuses and related metadata.
  *
  * @param {express.Request} req
- * @param {'application' | 'payment-request' | 'close-out'} formType
+ * @param {'frf' | 'prf' | 'crf'} formType
  * @param {string | null} rebateId
  * @param {string | null} mongoId
  * @returns {Promise<BapFormSubmission | null>} fields associated a form submission
  */
 async function queryForBapFormSubmissionData(req, formType, rebateId, mongoId) {
-  const formName =
-    formType === "application"
-      ? "CSB Application"
-      : formType === "payment-request"
-      ? "CSB Payment Request"
-      : formType === "close-out"
-      ? "CSB Close Out"
-      : "CSB";
-
   const logId = rebateId ? `rebateId: '${rebateId}'` : `mongoId: '${mongoId}'`;
-  const logMessage = `Querying the BAP for ${formName} form submission data associated with ${logId}.`;
+  const logMessage =
+    `Querying the BAP for ${formType.toUpperCase()} submission data ` +
+    `associated with ${logId}.`;
   log({ level: "info", message: logMessage });
 
   /** @type {jsforce.Connection} */
   const { bapConnection } = req.app.locals;
 
   const developername =
-    formType === "application"
+    formType === "frf"
       ? "CSB_Funding_Request"
-      : formType === "payment-request"
+      : formType === "prf"
       ? "CSB_Payment_Request"
-      : formType === "close-out"
+      : formType === "crf"
       ? "CSB_Closeout_Request"
       : null; // fallback
 
@@ -423,7 +418,9 @@ async function queryForBapFormSubmissionData(req, formType, rebateId, mongoId) {
  * @returns {Promise<BapFormSubmission[]>} collection of fields associated with each form submission
  */
 async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
-  const logMessage = `Querying the BAP for form submissions statuses associated with combokeys: '${comboKeys}'.`;
+  const logMessage =
+    `Querying the BAP for form submissions statuses associated with ` +
+    `combokeys: '${comboKeys}'.`;
   log({ level: "info", message: logMessage });
 
   /** @type {jsforce.Connection} */
@@ -507,17 +504,17 @@ async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
 }
 
 /**
- * Uses cached JSforce connection to query the BAP for Application form
- * submission data, for use in a brand new Payment Request form submission.
+ * Uses cached JSforce connection to query the BAP for FRF submission data, for
+ * use in a brand new PRF submission.
  *
  * @param {express.Request} req
- * @param {string} applicationReviewItemId CSB Rebate ID with the form/version ID (9 digits)
- * @returns {Promise<BapDataForPaymentRequest>} Application form submission fields
+ * @param {string} frfReviewItemId CSB Rebate ID with the form/version ID (9 digits)
+ * @returns {Promise<BapDataForPRF>} FRF submission fields
  */
-async function queryBapForPaymentRequestData(req, applicationReviewItemId) {
+async function queryBapForPRFData(req, frfReviewItemId) {
   const logMessage =
-    `Querying the BAP for Application form submission associated with ` +
-    `Application Review Item ID: '${applicationReviewItemId}'.`;
+    `Querying the BAP for FRF submission associated with ` +
+    `FRF Review Item ID: '${frfReviewItemId}'.`;
   log({ level: "info", message: logMessage });
 
   /** @type {jsforce.Connection} */
@@ -532,7 +529,7 @@ async function queryBapForPaymentRequestData(req, applicationReviewItemId) {
   //   sobjecttype = '${BAP_FORMS_TABLE}'
   // LIMIT 1`
 
-  const applicationRecordTypeIdQuery = await bapConnection
+  const frfRecordTypeIdQuery = await bapConnection
     .sobject("recordtype")
     .find(
       {
@@ -547,7 +544,7 @@ async function queryBapForPaymentRequestData(req, applicationReviewItemId) {
     .limit(1)
     .execute(async (err, records) => ((await err) ? err : records));
 
-  const applicationRecordTypeId = applicationRecordTypeIdQuery["0"].Id;
+  const frfRecordTypeId = frfRecordTypeIdQuery["0"].Id;
 
   // `SELECT
   //   Id,
@@ -570,16 +567,16 @@ async function queryBapForPaymentRequestData(req, applicationReviewItemId) {
   // FROM
   //   ${BAP_FORMS_TABLE}
   // WHERE
-  //   recordtypeid = '${applicationRecordTypeId}' AND
-  //   CSB_Review_Item_ID__c = '${applicationReviewItemId}' AND
+  //   recordtypeid = '${frfRecordTypeId}' AND
+  //   CSB_Review_Item_ID__c = '${frfReviewItemId}' AND
   //   Latest_Version__c = TRUE`
 
-  const applicationRecordQuery = await bapConnection
+  const frfRecordQuery = await bapConnection
     .sobject(BAP_FORMS_TABLE)
     .find(
       {
-        recordtypeid: applicationRecordTypeId,
-        CSB_Review_Item_ID__c: applicationReviewItemId,
+        recordtypeid: frfRecordTypeId,
+        CSB_Review_Item_ID__c: frfReviewItemId,
         Latest_Version__c: true,
       },
       {
@@ -605,7 +602,7 @@ async function queryBapForPaymentRequestData(req, applicationReviewItemId) {
     )
     .execute(async (err, records) => ((await err) ? err : records));
 
-  const applicationRecordId = applicationRecordQuery["0"].Id;
+  const frfRecordId = frfRecordQuery["0"].Id;
 
   // `SELECT
   //   Id
@@ -644,7 +641,7 @@ async function queryBapForPaymentRequestData(req, applicationReviewItemId) {
   //   ${BAP_BUS_TABLE}
   // WHERE
   //   recordtypeid = '${busRecordTypeId}' AND
-  //   Related_Order_Request__c = '${applicationRecordId}' AND
+  //   Related_Order_Request__c = '${frfRecordId}' AND
   //   CSB_Rebate_Item_Type__c = 'Old Bus'`
 
   const busRecordsQuery = await bapConnection
@@ -652,7 +649,7 @@ async function queryBapForPaymentRequestData(req, applicationReviewItemId) {
     .find(
       {
         recordtypeid: busRecordTypeId,
-        Related_Order_Request__c: applicationRecordId,
+        Related_Order_Request__c: frfRecordId,
         CSB_Rebate_Item_Type__c: "Old Bus",
       },
       {
@@ -667,29 +664,23 @@ async function queryBapForPaymentRequestData(req, applicationReviewItemId) {
     )
     .execute(async (err, records) => ((await err) ? err : records));
 
-  return { applicationRecordQuery, busRecordsQuery };
+  return { frfRecordQuery, busRecordsQuery };
 }
 
 /**
- * Uses cached JSforce connection to query the BAP for Application form
- * submission data and Payment Request form submission data, for use in a brand
- * new Close-out form submission.
+ * Uses cached JSforce connection to query the BAP for FRF submission data and
+ * PRF submission data, for use in a brand new CRF submission.
  *
  * @param {express.Request} req
- * @param {string} applicationReviewItemId CSB Rebate ID with the form/version ID (9 digits)
- * @param {string} paymentRequestReviewItemId CSB Rebate ID with the form/version ID (9 digits)
- * @returns {Promise<BapDataForForCloseOut>} Application form and Payment Request form submission fields
+ * @param {string} frfReviewItemId CSB Rebate ID with the form/version ID (9 digits)
+ * @param {string} prfReviewItemId CSB Rebate ID with the form/version ID (9 digits)
+ * @returns {Promise<BapDataForForCRF>} FRF and PRF submission fields
  */
-async function queryBapForCloseOutData(
-  req,
-  applicationReviewItemId,
-  paymentRequestReviewItemId
-) {
+async function queryBapForCRFData(req, frfReviewItemId, prfReviewItemId) {
   const logMessage =
-    `Querying the BAP for Application form submission associated with ` +
-    `Application Review Item ID: '${applicationReviewItemId}' and ` +
-    `Payment Request form submission associated with ` +
-    `Payment Request Review Item ID: '${paymentRequestReviewItemId}'.`;
+    `Querying the BAP for FRF submission associated with ` +
+    `FRF Review Item ID: '${frfReviewItemId}' and PRF submission associated with ` +
+    `PRF Review Item ID: '${prfReviewItemId}'.`;
   log({ level: "info", message: logMessage });
 
   /** @type {jsforce.Connection} */
@@ -704,7 +695,7 @@ async function queryBapForCloseOutData(
   //   sobjecttype = '${BAP_FORMS_TABLE}'
   // LIMIT 1`
 
-  const applicationRecordTypeIdQuery = await bapConnection
+  const frfRecordTypeIdQuery = await bapConnection
     .sobject("recordtype")
     .find(
       {
@@ -719,7 +710,7 @@ async function queryBapForCloseOutData(
     .limit(1)
     .execute(async (err, records) => ((await err) ? err : records));
 
-  const applicationRecordTypeId = applicationRecordTypeIdQuery["0"].Id;
+  const frfRecordTypeId = frfRecordTypeIdQuery["0"].Id;
 
   // `SELECT
   //   Fleet_Name__c,
@@ -736,16 +727,16 @@ async function queryBapForCloseOutData(
   // FROM
   //   ${BAP_FORMS_TABLE}
   // WHERE
-  //   recordtypeid = '${applicationRecordTypeId}' AND
-  //   CSB_Review_Item_ID__c = '${applicationReviewItemId}' AND
+  //   recordtypeid = '${frfRecordTypeId}' AND
+  //   CSB_Review_Item_ID__c = '${frfReviewItemId}' AND
   //   Latest_Version__c = TRUE`
 
-  const applicationRecordQuery = await bapConnection
+  const frfRecordQuery = await bapConnection
     .sobject(BAP_FORMS_TABLE)
     .find(
       {
-        recordtypeid: applicationRecordTypeId,
-        CSB_Review_Item_ID__c: applicationReviewItemId,
+        recordtypeid: frfRecordTypeId,
+        CSB_Review_Item_ID__c: frfReviewItemId,
         Latest_Version__c: true,
       },
       {
@@ -774,7 +765,7 @@ async function queryBapForCloseOutData(
   //   sobjecttype = '${BAP_FORMS_TABLE}'
   // LIMIT 1`
 
-  const paymentRequestRecordTypeIdQuery = await bapConnection
+  const prfRecordTypeIdQuery = await bapConnection
     .sobject("recordtype")
     .find(
       {
@@ -789,7 +780,7 @@ async function queryBapForCloseOutData(
     .limit(1)
     .execute(async (err, records) => ((await err) ? err : records));
 
-  const paymentRequestRecordTypeId = paymentRequestRecordTypeIdQuery["0"].Id;
+  const prfRecordTypeId = prfRecordTypeIdQuery["0"].Id;
 
   // `SELECT
   //   Id,
@@ -822,16 +813,16 @@ async function queryBapForCloseOutData(
   // FROM
   //   ${BAP_FORMS_TABLE}
   // WHERE
-  //   recordtypeid = '${paymentRequestRecordTypeId}' AND
-  //   CSB_Review_Item_ID__c = '${paymentRequestReviewItemId}' AND
+  //   recordtypeid = '${prfRecordTypeId}' AND
+  //   CSB_Review_Item_ID__c = '${prfReviewItemId}' AND
   //   Latest_Version__c = TRUE`
 
-  const paymentRequestRecordQuery = await bapConnection
+  const prfRecordQuery = await bapConnection
     .sobject(BAP_FORMS_TABLE)
     .find(
       {
-        recordtypeid: paymentRequestRecordTypeId,
-        CSB_Review_Item_ID__c: paymentRequestReviewItemId,
+        recordtypeid: prfRecordTypeId,
+        CSB_Review_Item_ID__c: prfReviewItemId,
         Latest_Version__c: true,
       },
       {
@@ -867,7 +858,7 @@ async function queryBapForCloseOutData(
     )
     .execute(async (err, records) => ((await err) ? err : records));
 
-  const paymentRequestRecordId = paymentRequestRecordQuery["0"].Id;
+  const prfRecordId = prfRecordQuery["0"].Id;
 
   // `SELECT
   //   Id
@@ -916,7 +907,7 @@ async function queryBapForCloseOutData(
   //   ${BAP_BUS_TABLE}
   // WHERE
   //   recordtypeid = '${busRecordTypeId}' AND
-  //   Related_Order_Request__c = '${paymentRequestRecordId}' AND
+  //   Related_Order_Request__c = '${prfRecordId}' AND
   //   CSB_Rebate_Item_Type__c = 'New Bus'`
 
   const busRecordsQuery = await bapConnection
@@ -924,7 +915,7 @@ async function queryBapForCloseOutData(
     .find(
       {
         recordtypeid: busRecordTypeId,
-        Related_Order_Request__c: paymentRequestRecordId,
+        Related_Order_Request__c: prfRecordId,
         CSB_Rebate_Item_Type__c: "New Bus",
       },
       {
@@ -949,7 +940,7 @@ async function queryBapForCloseOutData(
     )
     .execute(async (err, records) => ((await err) ? err : records));
 
-  return { applicationRecordQuery, paymentRequestRecordQuery, busRecordsQuery };
+  return { frfRecordQuery, prfRecordQuery, busRecordsQuery };
 }
 
 /**
@@ -1025,7 +1016,7 @@ function getBapComboKeys(req, email) {
  * Fetches data associated with a provided form submission.
  *
  * @param {express.Request} req
- * @param {'application' | 'payment-request' | 'close-out'} formType
+ * @param {'frf' | 'prf' | 'crf'} formType
  * @param {string | null} rebateId
  * @param {string | null} mongoId
  * @returns {ReturnType<queryForBapFormSubmissionData>}
@@ -1052,38 +1043,76 @@ function getBapFormSubmissionsStatuses(req, comboKeys) {
 }
 
 /**
- * Fetches Application form submission data associated with an Application
- * Review Item ID.
+ * Fetches FRF submission data associated with a FRF Review Item ID.
  *
  * @param {express.Request} req
- * @param {string} applicationReviewItemId
- * @returns {ReturnType<queryBapForPaymentRequestData>}
+ * @param {string} frfReviewItemId
+ * @returns {ReturnType<queryBapForPRFData>}
  */
-function getBapDataForPaymentRequest(req, applicationReviewItemId) {
+function getBapDataForPRF(req, frfReviewItemId) {
   return verifyBapConnection(req, {
-    name: queryBapForPaymentRequestData,
-    args: [req, applicationReviewItemId],
+    name: queryBapForPRFData,
+    args: [req, frfReviewItemId],
   });
 }
 
 /**
- * Fetches Application form submission data and Payment Request form submission
- * data associated with an Application Review Item ID and a Payment Request
- * Review Item ID.
+ * Fetches FRF submission data and PRF submission data associated with a FRF
+ * Review Item ID and a PRF Review Item ID.
  *
  * @param {express.Request} req
- * @param {string} applicationReviewItemId
- * @param {string} paymentRequestReviewItemId
- * @returns {ReturnType<queryBapForCloseOutData>}
+ * @param {string} frfReviewItemId
+ * @param {string} prfReviewItemId
+ * @returns {ReturnType<queryBapForCRFData>}
  */
-function getBapDataForCloseOut(
-  req,
-  applicationReviewItemId,
-  paymentRequestReviewItemId
-) {
+function getBapDataForCRF(req, frfReviewItemId, prfReviewItemId) {
   return verifyBapConnection(req, {
-    name: queryBapForCloseOutData,
-    args: [req, applicationReviewItemId, paymentRequestReviewItemId],
+    name: queryBapForCRFData,
+    args: [req, frfReviewItemId, prfReviewItemId],
+  });
+}
+
+/**
+ * Returns a resolved or rejected promise, depending on if the given form's
+ * submission period is open (as set via environment variables), and if the form
+ * submission has the status of "Edits Requested" or not (as stored in and
+ * returned from the BAP).
+ *
+ * @param {Object} param
+ * @param {'2022' | '2023'} param.rebateYear
+ * @param {'frf' | 'prf' | 'crf'} param.formType
+ * @param {string} param.mongoId
+ * @param {string} param.comboKey
+ * @param {express.Request} param.req
+ */
+function checkFormSubmissionPeriodAndBapStatus({
+  rebateYear,
+  formType,
+  mongoId,
+  comboKey,
+  req,
+}) {
+  /** Form submission period is open, so continue. */
+  if (submissionPeriodOpen[rebateYear][formType]) {
+    return Promise.resolve();
+  }
+
+  /** Form submission period is closed, so only continue if edits are requested. */
+  return getBapFormSubmissionsStatuses(req, [comboKey]).then((submissions) => {
+    const submission = submissions.find((s) => s.CSB_Form_ID__c === mongoId);
+
+    const statusField =
+      formType === "frf"
+        ? "CSB_Funding_Request_Status__c"
+        : formType === "prf"
+        ? "CSB_Payment_Request_Status__c"
+        : formType === "crf"
+        ? "CSB_Closeout_Request_Status__c"
+        : null;
+
+    return submission?.Parent_CSB_Rebate__r?.[statusField] === "Edits Requested"
+      ? Promise.resolve()
+      : Promise.reject();
   });
 }
 
@@ -1092,6 +1121,7 @@ module.exports = {
   getBapComboKeys,
   getBapFormSubmissionData,
   getBapFormSubmissionsStatuses,
-  getBapDataForPaymentRequest,
-  getBapDataForCloseOut,
+  getBapDataForPRF,
+  getBapDataForCRF,
+  checkFormSubmissionPeriodAndBapStatus,
 };

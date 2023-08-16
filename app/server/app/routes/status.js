@@ -1,11 +1,6 @@
 const express = require("express");
 // ---
-const {
-  axiosFormio,
-  formioApplicationFormUrl,
-  formioPaymentRequestFormUrl,
-  formioCloseOutFormUrl,
-} = require("../config/formio");
+const { axiosFormio, formUrl } = require("../config/formio");
 const { getSamEntities } = require("../utilities/bap");
 
 const router = express.Router();
@@ -31,7 +26,7 @@ router.get("/bap-sam-data", (req, res) => {
 
 router.get("/formio-application-schema", (req, res) => {
   axiosFormio(req)
-    .get(formioApplicationFormUrl)
+    .get(formUrl["2022"].frf)
     .then((axiosRes) => axiosRes.data)
     .then((schema) => {
       /**
@@ -41,14 +36,14 @@ router.get("/formio-application-schema", (req, res) => {
       return res.json({ status: schema.type === "form" && !!schema.title });
     })
     .catch((error) => {
-      // NOTE: logged in axiosFormio response interceptor
+      // NOTE: error is logged in axiosFormio response interceptor
       return res.json({ status: false });
     });
 });
 
 router.get("/formio-payment-request-schema", (req, res) => {
   axiosFormio(req)
-    .get(formioPaymentRequestFormUrl)
+    .get(formUrl["2022"].prf)
     .then((axiosRes) => axiosRes.data)
     .then((schema) => {
       /**
@@ -58,14 +53,14 @@ router.get("/formio-payment-request-schema", (req, res) => {
       return res.json({ status: schema.type === "form" && !!schema.title });
     })
     .catch((error) => {
-      // NOTE: logged in axiosFormio response interceptor
+      // NOTE: error is logged in axiosFormio response interceptor
       return res.json({ status: false });
     });
 });
 
 router.get("/formio-close-out-schema", (req, res) => {
   axiosFormio(req)
-    .get(formioCloseOutFormUrl)
+    .get(formUrl["2022"].crf)
     .then((axiosRes) => axiosRes.data)
     .then((schema) => {
       /**
@@ -75,7 +70,7 @@ router.get("/formio-close-out-schema", (req, res) => {
       return res.json({ status: schema.type === "form" && !!schema.title });
     })
     .catch((error) => {
-      // NOTE: logged in axiosFormio response interceptor
+      // NOTE: error is logged in axiosFormio response interceptor
       return res.json({ status: false });
     });
 });

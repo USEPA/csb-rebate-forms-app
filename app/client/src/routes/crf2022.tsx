@@ -9,14 +9,14 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages } from "../config";
 import {
-  FormioCloseOutSubmission,
+  FormioCRF2022Submission,
   getData,
   postData,
   useContentData,
-  useCsbData,
+  useConfigData,
   useBapSamData,
   useSubmissionsQueries,
-  useRebates,
+  useSubmissions,
   submissionNeedsEdits,
   getUserInfo,
 } from "../utilities";
@@ -24,6 +24,7 @@ import { Loading } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { useNotificationsActions } from "contexts/notifications";
+import { useRebateYearState } from "contexts/rebateYear";
 
 type ServerResponse =
   | {
@@ -34,7 +35,7 @@ type ServerResponse =
   | {
       userAccess: true;
       formSchema: { url: string; json: object };
-      submission: FormioCloseOutSubmission;
+      submission: FormioCRF2022Submission;
     };
 
 /** Custom hook to fetch Formio submission data */
@@ -42,13 +43,13 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    queryClient.resetQueries({ queryKey: ["close-out"] });
+    queryClient.resetQueries({ queryKey: ["formio/2022/crf-submission"] });
   }, [queryClient]);
 
-  const url = `${serverUrl}/api/formio-close-out-submission/${rebateId}`;
+  const url = `${serverUrl}/api/formio/2022/crf-submission/${rebateId}`;
 
   const query = useQuery({
-    queryKey: ["close-out", { id: rebateId }],
+    queryKey: ["formio/2022/crf-submission", { id: rebateId }],
     queryFn: () => {
       return getData<ServerResponse>(url).then((res) => {
         const mongoId = res.submission?._id;
@@ -64,7 +65,7 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
          */
         Formio.Providers.providers.storage.s3 = function (formio: any) {
           const s3Formio = cloneDeep(formio);
-          s3Formio.formUrl = `${serverUrl}/api/s3/close-out/${mongoId}/${comboKey}`;
+          s3Formio.formUrl = `${serverUrl}/api/formio/2022/s3/crf/${mongoId}/${comboKey}`;
           return s3(s3Formio);
         };
 
@@ -83,11 +84,11 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
         state: "submitted" | "draft";
       };
     }) => {
-      return postData<FormioCloseOutSubmission>(url, updatedSubmission);
+      return postData<FormioCRF2022Submission>(url, updatedSubmission);
     },
     onSuccess: (res) => {
       return queryClient.setQueryData<ServerResponse>(
-        ["close-out", { id: rebateId }],
+        ["formio/2022/crf-submission", { id: rebateId }],
         (prevData) => {
           return prevData?.submission
             ? { ...prevData, submission: res }
@@ -100,31 +101,32 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
   return { query, mutation };
 }
 
-export function CloseOutForm() {
+export function CRF2022() {
   const { email } = useOutletContext<{ email: string }>();
   /* ensure user verification (JWT refresh) doesn't cause form to re-render */
   return useMemo(() => {
-    return <UserCloseOutForm email={email} />;
+    return <CloseOutRequestForm email={email} />;
   }, [email]);
 }
 
-function UserCloseOutForm(props: { email: string }) {
+function CloseOutRequestForm(props: { email: string }) {
   const { email } = props;
 
   const navigate = useNavigate();
   const { id: rebateId } = useParams<"id">(); // CSB Rebate ID (6 digits)
 
   const content = useContentData();
-  const csbData = useCsbData();
+  const configData = useConfigData();
   const bapSamData = useBapSamData();
   const {
     displaySuccessNotification,
     displayErrorNotification,
     dismissNotification,
   } = useNotificationsActions();
+  const { rebateYear } = useRebateYearState();
 
-  const submissionsQueries = useSubmissionsQueries();
-  const rebates = useRebates();
+  const submissionsQueries = useSubmissionsQueries("2022");
+  const submissions = useSubmissions("2022");
 
   const { query, mutation } = useFormioSubmissionQueryAndMutation(rebateId);
   const { userAccess, formSchema, submission } = query.data ?? {};
@@ -160,7 +162,7 @@ function UserCloseOutForm(props: { email: string }) {
    */
   const lastSuccesfullySubmittedData = useRef<{ [field: string]: unknown }>({});
 
-  if (!csbData || !bapSamData) {
+  if (!configData || !bapSamData) {
     return <Loading />;
   }
 
@@ -180,20 +182,21 @@ function UserCloseOutForm(props: { email: string }) {
     return <Message type="error" text={messages.formSubmissionError} />;
   }
 
-  const rebate = rebates.find((r) => r.rebateId === rebateId);
+  const rebate = submissions.find((r) => r.rebateId === rebateId);
 
-  const closeOutNeedsEdits = !rebate
+  const crfNeedsEdits = !rebate
     ? false
     : submissionNeedsEdits({
-        formio: rebate.closeOut.formio,
-        bap: rebate.closeOut.bap,
+        formio: rebate.crf.formio,
+        bap: rebate.crf.bap,
       });
 
-  const closeOutFormOpen = csbData.submissionPeriodOpen.closeOut;
+  const crfSubmissionPeriodOpen =
+    configData.submissionPeriodOpen[rebateYear].crf;
 
   const formIsReadOnly =
-    (submission.state === "submitted" || !closeOutFormOpen) &&
-    !closeOutNeedsEdits;
+    (submission.state === "submitted" || !crfSubmissionPeriodOpen) &&
+    !crfNeedsEdits;
 
   /** matched SAM.gov entity for the Close Out submission */
   const entity = bapSamData.entities.find((entity) => {
@@ -218,9 +221,9 @@ function UserCloseOutForm(props: { email: string }) {
           className="margin-top-4"
           children={
             submission.state === "draft"
-              ? content.draftCloseOutIntro
+              ? content.draftCRFIntro
               : submission.state === "submitted"
-              ? content.submittedCloseOutIntro
+              ? content.submittedCRFIntro
               : ""
           }
         />

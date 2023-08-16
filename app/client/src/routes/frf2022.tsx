@@ -9,14 +9,14 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages } from "../config";
 import {
-  FormioApplicationSubmission,
+  FormioFRF2022Submission,
   getData,
   postData,
   useContentData,
-  useCsbData,
+  useConfigData,
   useBapSamData,
   useSubmissionsQueries,
-  useRebates,
+  useSubmissions,
   submissionNeedsEdits,
   getUserInfo,
 } from "../utilities";
@@ -25,6 +25,7 @@ import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { useDialogActions } from "contexts/dialog";
 import { useNotificationsActions } from "contexts/notifications";
+import { useRebateYearState } from "contexts/rebateYear";
 
 type ServerResponse =
   | {
@@ -35,7 +36,7 @@ type ServerResponse =
   | {
       userAccess: true;
       formSchema: { url: string; json: object };
-      submission: FormioApplicationSubmission;
+      submission: FormioFRF2022Submission;
     };
 
 /** Custom hook to fetch Formio submission data */
@@ -43,13 +44,13 @@ function useFormioSubmissionQueryAndMutation(mongoId: string | undefined) {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    queryClient.resetQueries({ queryKey: ["application"] });
+    queryClient.resetQueries({ queryKey: ["formio/2022/frf-submission"] });
   }, [queryClient]);
 
-  const url = `${serverUrl}/api/formio-application-submission/${mongoId}`;
+  const url = `${serverUrl}/api/formio/2022/frf-submission/${mongoId}`;
 
   const query = useQuery({
-    queryKey: ["application", { id: mongoId }],
+    queryKey: ["formio/2022/frf-submission", { id: mongoId }],
     queryFn: () => {
       return getData<ServerResponse>(url).then((res) => {
         const comboKey = res.submission?.data.bap_hidden_entity_combo_key;
@@ -64,7 +65,7 @@ function useFormioSubmissionQueryAndMutation(mongoId: string | undefined) {
          */
         Formio.Providers.providers.storage.s3 = function (formio: any) {
           const s3Formio = cloneDeep(formio);
-          s3Formio.formUrl = `${serverUrl}/api/s3/application/${mongoId}/${comboKey}`;
+          s3Formio.formUrl = `${serverUrl}/api/formio/2022/s3/frf/${mongoId}/${comboKey}`;
           return s3(s3Formio);
         };
 
@@ -88,11 +89,11 @@ function useFormioSubmissionQueryAndMutation(mongoId: string | undefined) {
       metadata: { [field: string]: unknown };
       state: "submitted" | "draft";
     }) => {
-      return postData<FormioApplicationSubmission>(url, updatedSubmission);
+      return postData<FormioFRF2022Submission>(url, updatedSubmission);
     },
     onSuccess: (res) => {
       return queryClient.setQueryData<ServerResponse>(
-        ["application", { id: mongoId }],
+        ["formio/2022/frf-submission", { id: mongoId }],
         (prevData) => {
           return prevData?.submission
             ? { ...prevData, submission: res }
@@ -105,22 +106,22 @@ function useFormioSubmissionQueryAndMutation(mongoId: string | undefined) {
   return { query, mutation };
 }
 
-export function ApplicationForm() {
+export function FRF2022() {
   const { email } = useOutletContext<{ email: string }>();
   /* ensure user verification (JWT refresh) doesn't cause form to re-render */
   return useMemo(() => {
-    return <UserApplicationForm email={email} />;
+    return <FundingRequestForm email={email} />;
   }, [email]);
 }
 
-function UserApplicationForm(props: { email: string }) {
+function FundingRequestForm(props: { email: string }) {
   const { email } = props;
 
   const navigate = useNavigate();
   const { id: mongoId } = useParams<"id">(); // MongoDB ObjectId string
 
   const content = useContentData();
-  const csbData = useCsbData();
+  const configData = useConfigData();
   const bapSamData = useBapSamData();
   const { displayDialog } = useDialogActions();
   const {
@@ -129,9 +130,10 @@ function UserApplicationForm(props: { email: string }) {
     displayErrorNotification,
     dismissNotification,
   } = useNotificationsActions();
+  const { rebateYear } = useRebateYearState();
 
-  const submissionsQueries = useSubmissionsQueries();
-  const rebates = useRebates();
+  const submissionsQueries = useSubmissionsQueries("2022");
+  const submissions = useSubmissions("2022");
 
   const { query, mutation } = useFormioSubmissionQueryAndMutation(mongoId);
   const { userAccess, formSchema, submission } = query.data ?? {};
@@ -167,7 +169,7 @@ function UserApplicationForm(props: { email: string }) {
    */
   const lastSuccesfullySubmittedData = useRef<{ [field: string]: unknown }>({});
 
-  if (!csbData || !bapSamData) {
+  if (!configData || !bapSamData) {
     return <Loading />;
   }
 
@@ -187,26 +189,24 @@ function UserApplicationForm(props: { email: string }) {
     return <Message type="error" text={messages.formSubmissionError} />;
   }
 
-  const rebate = rebates.find((r) => r.application.formio._id === mongoId);
+  const rebate = submissions.find((r) => r.frf.formio._id === mongoId);
 
-  const applicationNeedsEdits = !rebate
+  const frfNeedsEdits = !rebate
     ? false
     : submissionNeedsEdits({
-        formio: rebate.application.formio,
-        bap: rebate.application.bap,
+        formio: rebate.frf.formio,
+        bap: rebate.frf.bap,
       });
 
-  const applicationNeedsEditsAndPaymentRequestExists =
-    applicationNeedsEdits && !!rebate?.paymentRequest.formio;
+  const frfNeedsEditsAndPRFExists = frfNeedsEdits && !!rebate?.prf.formio;
 
   /**
-   * NOTE: If the Application form submission needs edits and there's a
-   * corresponding Payment Request form submission, display a confirmation
-   * dialog prompting the user to delete the Payment Request form submission,
-   * as it's data will no longer valid when the Application form submission's
+   * NOTE: If the FRF submission needs edits and there's a corresponding PRF
+   * submission, display a confirmation dialog prompting the user to delete the
+   * PRF submission, as it's data will no longer valid when the FRF submission's
    * data is changed.
    */
-  if (applicationNeedsEditsAndPaymentRequestExists) {
+  if (frfNeedsEditsAndPRFExists) {
     displayDialog({
       dismissable: true,
       heading: "Submission Edits Requested",
@@ -248,9 +248,9 @@ function UserApplicationForm(props: { email: string }) {
       ),
       confirmText: "Delete Payment Request Form Submission",
       confirmedAction: () => {
-        const paymentRequest = rebate.paymentRequest.formio;
+        const prf = rebate.prf.formio;
 
-        if (!paymentRequest) {
+        if (!prf) {
           displayErrorNotification({
             id: Date.now(),
             body: (
@@ -281,12 +281,12 @@ function UserApplicationForm(props: { email: string }) {
           ),
         });
 
-        const url = `${serverUrl}/api/delete-formio-payment-request-submission`;
+        const url = `${serverUrl}/api/formio/2022/delete-prf-submission`;
 
         postData(url, {
-          mongoId: paymentRequest._id,
-          rebateId: paymentRequest.data.hidden_bap_rebate_id,
-          comboKey: paymentRequest.data.bap_hidden_entity_combo_key,
+          mongoId: prf._id,
+          rebateId: prf.data.hidden_bap_rebate_id,
+          comboKey: prf.data.bap_hidden_entity_combo_key,
         })
           .then((res) => {
             window.location.reload();
@@ -308,17 +308,18 @@ function UserApplicationForm(props: { email: string }) {
             });
           });
       },
-      dismissedAction: () => navigate(`/payment-request/${rebate.rebateId}`),
+      dismissedAction: () => navigate(`/prf/2022/${rebate.rebateId}`),
     });
 
     return null;
   }
 
-  const applicationFormOpen = csbData.submissionPeriodOpen.application;
+  const frfSubmissionPeriodOpen =
+    configData.submissionPeriodOpen[rebateYear].frf;
 
   const formIsReadOnly =
-    (submission.state === "submitted" || !applicationFormOpen) &&
-    !applicationNeedsEdits;
+    (submission.state === "submitted" || !frfSubmissionPeriodOpen) &&
+    !frfNeedsEdits;
 
   /** matched SAM.gov entity for the Application submission */
   const entity = bapSamData.entities.find((entity) => {
@@ -343,9 +344,9 @@ function UserApplicationForm(props: { email: string }) {
           className="margin-top-4"
           children={
             submission.state === "draft"
-              ? content.draftApplicationIntro
+              ? content.draftFRFIntro
               : submission.state === "submitted"
-              ? content.submittedApplicationIntro
+              ? content.submittedFRFIntro
               : ""
           }
         />
@@ -363,7 +364,7 @@ function UserApplicationForm(props: { email: string }) {
           </div>
         </li>
 
-        {rebate?.application.bap?.rebateId && (
+        {rebate?.frf.bap?.rebateId && (
           <li className="usa-icon-list__item">
             <div className="usa-icon-list__icon text-primary">
               <svg className="usa-icon" aria-hidden="true" role="img">
@@ -371,7 +372,7 @@ function UserApplicationForm(props: { email: string }) {
               </svg>
             </div>
             <div className="usa-icon-list__content">
-              <strong>Rebate ID:</strong> {rebate.application.bap.rebateId}
+              <strong>Rebate ID:</strong> {rebate.frf.bap.rebateId}
             </div>
           </li>
         )}

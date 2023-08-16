@@ -1,12 +1,7 @@
 const express = require("express");
 const ObjectId = require("mongodb").ObjectId;
 // ---
-const {
-  axiosFormio,
-  formioApplicationFormUrl,
-  formioPaymentRequestFormUrl,
-  formioCloseOutFormUrl,
-} = require("../config/formio");
+const { axiosFormio, formUrl } = require("../config/formio");
 const { ensureAuthenticated, ensureHelpdesk } = require("../middleware");
 const { getBapFormSubmissionData } = require("../utilities/bap");
 
@@ -17,7 +12,7 @@ router.use(ensureAuthenticated);
 router.use(ensureHelpdesk);
 
 // --- get an existing form's submission data from Formio
-router.get("/formio-submission/:formType/:id", (req, res) => {
+router.get("/formio/submission/:formType/:id", (req, res) => {
   const { formType, id } = req.params;
 
   const rebateId = id.length === 6 ? id : null;
@@ -31,29 +26,22 @@ router.get("/formio-submission/:formType/:id", (req, res) => {
   }
 
   const formName =
-    formType === "application"
+    formType === "frf"
       ? "CSB Application"
-      : formType === "payment-request"
+      : formType === "prf"
       ? "CSB Payment Request"
-      : formType === "close-out"
+      : formType === "crf"
       ? "CSB Close Out"
       : "CSB";
 
-  const formUrl =
-    formType === "application"
-      ? formioApplicationFormUrl
-      : formType === "payment-request"
-      ? formioPaymentRequestFormUrl
-      : formType === "close-out"
-      ? formioCloseOutFormUrl
-      : null; // fallback
+  const formioFormUrl = formUrl["2022"][formType];
 
   return getBapFormSubmissionData(req, formType, rebateId, mongoId).then(
     (bapSubmission) => {
-      if (!bapSubmission || !formUrl) {
+      if (!bapSubmission || !formioFormUrl) {
         const logId = rebateId || mongoId;
         const errorStatus = 500;
-        const errorMessage = `Error getting ${formName} form submission '${logId}' from the BAP.`;
+        const errorMessage = `Error getting ${formName} submission '${logId}' from the BAP.`;
         return res.status(errorStatus).json({ message: errorMessage });
       }
 
@@ -68,13 +56,13 @@ router.get("/formio-submission/:formType/:id", (req, res) => {
       } = bapSubmission;
 
       return Promise.all([
-        axiosFormio(req).get(`${formUrl}/submission/${CSB_Form_ID__c}`),
-        axiosFormio(req).get(formUrl),
+        axiosFormio(req).get(`${formioFormUrl}/submission/${CSB_Form_ID__c}`),
+        axiosFormio(req).get(formioFormUrl),
       ])
         .then((responses) => responses.map((axiosRes) => axiosRes.data))
         .then(([formioSubmission, schema]) => {
           return res.json({
-            formSchema: { url: formUrl, json: schema },
+            formSchema: { url: formioFormUrl, json: schema },
             formio: formioSubmission,
             bap: {
               modified: CSB_Modified_Full_String__c, // ISO 8601 date time string
@@ -94,9 +82,9 @@ router.get("/formio-submission/:formType/:id", (req, res) => {
           });
         })
         .catch((error) => {
-          // NOTE: logged in axiosFormio response interceptor
+          // NOTE: error is logged in axiosFormio response interceptor
           const errorStatus = error.response?.status || 500;
-          const errorMessage = `Error getting ${formName} form submission '${CSB_Form_ID__c}'.`;
+          const errorMessage = `Error getting ${formName} submission '${CSB_Form_ID__c}'.`;
           return res.status(errorStatus).json({ message: errorMessage });
         });
     }

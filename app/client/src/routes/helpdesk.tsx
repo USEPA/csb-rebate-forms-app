@@ -9,14 +9,14 @@ import {
   serverUrl,
   messages,
   formioStatusMap,
-  bapApplicationStatusMap,
-  bapPaymentRequestStatusMap,
-  bapCloseOutStatusMap,
+  bapFRFStatusMap,
+  bapPRFStatusMap,
+  bapCRFStatusMap,
 } from "../config";
 import {
-  FormioApplicationSubmission,
-  FormioPaymentRequestSubmission,
-  FormioCloseOutSubmission,
+  FormioFRF2022Submission,
+  FormioPRF2022Submission,
+  FormioCRF2022Submission,
   BapSubmission,
   getData,
   postData,
@@ -29,7 +29,7 @@ import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/tooltip";
 
-type FormType = "application" | "payment-request" | "close-out";
+type FormType = "frf" | "prf" | "crf";
 
 type ServerResponse =
   | {
@@ -40,9 +40,9 @@ type ServerResponse =
   | {
       formSchema: { url: string; json: object };
       formio:
-        | FormioApplicationSubmission
-        | FormioPaymentRequestSubmission
-        | FormioCloseOutSubmission;
+        | FormioFRF2022Submission
+        | FormioPRF2022Submission
+        | FormioCRF2022Submission;
       bap: BapSubmission;
     };
 
@@ -62,9 +62,9 @@ function formatTime(dateTimeString: string | null) {
 function getStatus(options: {
   formType: FormType;
   formio:
-    | FormioApplicationSubmission
-    | FormioPaymentRequestSubmission
-    | FormioCloseOutSubmission;
+    | FormioFRF2022Submission
+    | FormioPRF2022Submission
+    | FormioCRF2022Submission;
   bap: BapSubmission;
 }) {
   const { formType, formio, bap } = options;
@@ -75,12 +75,12 @@ function getStatus(options: {
 
   return submissionNeedsEdits({ formio, bap })
     ? "Edits Requested"
-    : formType === "application"
-    ? bapApplicationStatusMap.get(bapInternalStatus) || formioStatus
-    : formType === "payment-request"
-    ? bapPaymentRequestStatusMap.get(bapInternalStatus) || formioStatus
-    : formType === "close-out"
-    ? bapCloseOutStatusMap.get(bapInternalStatus) || formioStatus
+    : formType === "frf"
+    ? bapFRFStatusMap.get(bapInternalStatus) || formioStatus
+    : formType === "prf"
+    ? bapPRFStatusMap.get(bapInternalStatus) || formioStatus
+    : formType === "crf"
+    ? bapCRFStatusMap.get(bapInternalStatus) || formioStatus
     : "";
 }
 
@@ -91,7 +91,7 @@ export function Helpdesk() {
   const content = useContentData();
   const helpdeskAccess = useHelpdeskAccess();
 
-  const [formType, setFormType] = useState<FormType>("application");
+  const [formType, setFormType] = useState<FormType>("frf");
   const [searchText, setSearchText] = useState("");
   const [lastSearchedText, setLastSearchedText] = useState("");
   const [resultDisplayed, setResultDisplayed] = useState(false);
@@ -101,7 +101,7 @@ export function Helpdesk() {
     queryClient.resetQueries({ queryKey: ["helpdesk"] });
   }, [queryClient]);
 
-  const url = `${serverUrl}/help/formio-submission/${formType}/${searchText}`;
+  const url = `${serverUrl}/api/help/formio/submission/${formType}/${searchText}`;
 
   const query = useQuery({
     queryKey: ["helpdesk"],
@@ -138,12 +138,12 @@ export function Helpdesk() {
         <fieldset className="usa-fieldset mobile-lg:display-flex">
           <div className="usa-radio">
             <input
-              id="form-type-application"
+              id="form-type-frf"
               className="usa-radio__input"
               type="radio"
               name="form-type"
-              value="application"
-              checked={formType === "application"}
+              value="frf"
+              checked={formType === "frf"}
               onChange={(ev) => {
                 setFormType(ev.target.value as FormType);
                 setResultDisplayed(false);
@@ -152,7 +152,7 @@ export function Helpdesk() {
             />
             <label
               className="usa-radio__label margin-top-0"
-              htmlFor="form-type-application"
+              htmlFor="form-type-frf"
             >
               Application
             </label>
@@ -160,12 +160,12 @@ export function Helpdesk() {
 
           <div className="usa-radio mobile-lg:margin-left-3">
             <input
-              id="form-type-payment-request"
+              id="form-type-prf"
               className="usa-radio__input"
               type="radio"
               name="form-type"
-              value="payment-request"
-              checked={formType === "payment-request"}
+              value="prf"
+              checked={formType === "prf"}
               onChange={(ev) => {
                 setFormType(ev.target.value as FormType);
                 setResultDisplayed(false);
@@ -174,7 +174,7 @@ export function Helpdesk() {
             />
             <label
               className="usa-radio__label mobile-lg:margin-top-0"
-              htmlFor="form-type-payment-request"
+              htmlFor="form-type-prf"
             >
               Payment Request
             </label>
@@ -182,12 +182,12 @@ export function Helpdesk() {
 
           <div className="usa-radio mobile-lg:margin-left-3">
             <input
-              id="form-type-close-out"
+              id="form-type-crf"
               className="usa-radio__input"
               type="radio"
               name="form-type"
-              value="close-out"
-              checked={formType === "close-out"}
+              value="crf"
+              checked={formType === "crf"}
               onChange={(ev) => {
                 setFormType(ev.target.value as FormType);
                 setResultDisplayed(false);
@@ -196,7 +196,7 @@ export function Helpdesk() {
             />
             <label
               className="usa-radio__label mobile-lg:margin-top-0"
-              htmlFor="form-type-close-out"
+              htmlFor="form-type-crf"
             >
               Close Out
             </label>
@@ -324,21 +324,21 @@ export function Helpdesk() {
 
                   <td>{getStatus({ formType, formio, bap })}</td>
 
-                  {formType === "application" ? (
+                  {formType === "frf" ? (
                     <td>{formio.data.sam_hidden_applicant_name as string}</td>
-                  ) : formType === "payment-request" ? (
+                  ) : formType === "prf" ? (
                     <td>{formio.data.applicantName as string}</td>
-                  ) : formType === "close-out" ? (
+                  ) : formType === "crf" ? (
                     <td>{formio.data.signatureName as string}</td>
                   ) : (
                     <td>&nbsp;</td>
                   )}
 
-                  {formType === "application" ? (
+                  {formType === "frf" ? (
                     <td>{formio.data.last_updated_by as string}</td>
-                  ) : formType === "payment-request" ? (
+                  ) : formType === "prf" ? (
                     <td>{formio.data.hidden_current_user_email as string}</td>
-                  ) : formType === "close-out" ? (
+                  ) : formType === "crf" ? (
                     <td>{formio.data.hidden_current_user_email as string}</td>
                   ) : (
                     <td>&nbsp;</td>

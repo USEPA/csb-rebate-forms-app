@@ -6,18 +6,56 @@ const log = require("../utilities/logger");
 const {
   CLOUD_SPACE,
   SERVER_URL,
+  CSB_2022_FRF_OPEN,
+  CSB_2022_PRF_OPEN,
+  CSB_2022_CRF_OPEN,
+  CSB_2023_FRF_OPEN,
+  CSB_2023_PRF_OPEN,
+  CSB_2023_CRF_OPEN,
   FORMIO_BASE_URL,
   FORMIO_PROJECT_NAME,
-  FORMIO_APPLICATION_FORM_PATH,
-  FORMIO_PAYMENT_REQUEST_FORM_PATH,
-  FORMIO_CLOSE_OUT_FORM_PATH,
   FORMIO_API_KEY,
+  FORMIO_2022_FRF_PATH,
+  FORMIO_2022_PRF_PATH,
+  FORMIO_2022_CRF_PATH,
+  FORMIO_2023_FRF_PATH,
+  FORMIO_2023_PRF_PATH,
+  FORMIO_2023_CRF_PATH,
 } = process.env;
 
 const formioProjectUrl = `${FORMIO_BASE_URL}/${FORMIO_PROJECT_NAME}`;
-const formioApplicationFormUrl = `${formioProjectUrl}/${FORMIO_APPLICATION_FORM_PATH}`;
-const formioPaymentRequestFormUrl = `${formioProjectUrl}/${FORMIO_PAYMENT_REQUEST_FORM_PATH}`;
-const formioCloseOutFormUrl = `${formioProjectUrl}/${FORMIO_CLOSE_OUT_FORM_PATH}`;
+
+/**
+ * Stores form url for each form by rebate year.
+ */
+const formUrl = {
+  2022: {
+    frf: `${formioProjectUrl}/${FORMIO_2022_FRF_PATH}`,
+    prf: `${formioProjectUrl}/${FORMIO_2022_PRF_PATH}`,
+    crf: `${formioProjectUrl}/${FORMIO_2022_CRF_PATH}`,
+  },
+  2023: {
+    frf: `${formioProjectUrl}/${FORMIO_2023_FRF_PATH}`,
+    prf: `${formioProjectUrl}/${FORMIO_2023_PRF_PATH}`,
+    crf: `${formioProjectUrl}/${FORMIO_2023_CRF_PATH}`,
+  },
+};
+
+/**
+ * Stores whether the submission period is open for each form by rebate year.
+ */
+const submissionPeriodOpen = {
+  2022: {
+    frf: CSB_2022_FRF_OPEN === "true",
+    prf: CSB_2022_PRF_OPEN === "true",
+    crf: CSB_2022_CRF_OPEN === "true",
+  },
+  2023: {
+    frf: CSB_2023_FRF_OPEN === "true",
+    prf: CSB_2023_PRF_OPEN === "true",
+    crf: CSB_2023_CRF_OPEN === "true",
+  },
+};
 
 /** @param {express.Request} req */
 function axiosFormio(req) {
@@ -75,15 +113,14 @@ function axiosFormio(req) {
   return instance;
 }
 
-const formioCsbMetadata = {
+const formioCSBMetadata = {
   "csb-app-cloud-space": `env-${CLOUD_SPACE || "local"}`,
   "csb-app-cloud-origin": SERVER_URL || "localhost",
 };
 
 module.exports = {
   axiosFormio,
-  formioApplicationFormUrl,
-  formioPaymentRequestFormUrl,
-  formioCloseOutFormUrl,
-  formioCsbMetadata,
+  formUrl,
+  submissionPeriodOpen,
+  formioCSBMetadata,
 };
