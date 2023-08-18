@@ -172,6 +172,7 @@ type FormioFRF2023Data = {
   appInfo_uei: string;
   appInfo_efti: string;
   appInfo_orgName: string;
+  _formio_schoolDistrictName: string;
 };
 
 export type FormioFRF2022Submission = FormioSubmission & {

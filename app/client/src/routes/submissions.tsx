@@ -850,11 +850,9 @@ function FRF2023Submission(props: {
     appInfo_uei,
     appInfo_efti,
     appInfo_orgName,
-    // TODO: (school district name field)
+    _formio_schoolDistrictName,
     _user_email,
   } = frf.formio.data;
-
-  const appInfo_schoolDistrictName = null; // TODO: temporary
 
   const date = new Date(frf.formio.modified).toLocaleDateString();
   const time = new Date(frf.formio.modified).toLocaleTimeString();
@@ -1021,8 +1019,8 @@ function FRF2023Submission(props: {
             />
           )}
           <br />
-          {Boolean(appInfo_schoolDistrictName) ? (
-            appInfo_schoolDistrictName
+          {Boolean(_formio_schoolDistrictName) ? (
+            _formio_schoolDistrictName
           ) : (
             <TextWithTooltip
               text=" "
