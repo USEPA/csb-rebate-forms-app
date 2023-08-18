@@ -11,7 +11,7 @@ const data = require("../content/nces.json");
 const router = express.Router();
 
 // --- Search the NCES data with the provided NCES ID and return a match
-router.get("/:searchText", async (req, res) => {
+router.get("/:searchText?", async (req, res) => {
   const { searchText } = req.params;
 
   // const s3BucketUrl = `https://${S3_PUBLIC_BUCKET}.s3-${S3_PUBLIC_REGION}.amazonaws.com`;
@@ -22,11 +22,25 @@ router.get("/:searchText", async (req, res) => {
   //     : axios.get(`${s3BucketUrl}/content/nces.json`).then((res) => res.data))
   // );
 
+  if (!searchText) {
+    const logMessage = `No NCES ID passed to NCES data lookup.`;
+    log({ level: "info", message: logMessage, req });
+
+    return res.json({});
+  }
+
+  if (searchText.length !== 7) {
+    const logMessage = `Invalid NCES ID '${searchText}' passed to NCES data lookup.`;
+    log({ level: "info", message: logMessage, req });
+
+    return res.json({});
+  }
+
   const result = data.find((item) => item["NCES District ID"] === searchText);
 
   const logMessage =
     `NCES data searched with NCES ID '${searchText}' resulting in ` +
-    `${result ? "a match" : "no results"}.`;
+    `${result ? "a match" : "no matches"}.`;
   log({ level: "info", message: logMessage, req });
 
   return res.json({ ...result });
