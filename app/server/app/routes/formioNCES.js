@@ -7,8 +7,8 @@ const cors = require("cors");
 const log = require("../utilities/logger");
 const data = require("../content/nces.json");
 
-const { NODE_ENV, FORMIO_NCES_API_KEY } = process.env;
-// const { S3_PUBLIC_BUCKET, S3_PUBLIC_REGION } = process.env;
+const { FORMIO_NCES_API_KEY } = process.env;
+// const { NODE_ENV, S3_PUBLIC_BUCKET, S3_PUBLIC_REGION } = process.env;
 
 const router = express.Router();
 
@@ -20,7 +20,7 @@ const router = express.Router();
  * @param {express.NextFunction} next
  */
 function enableLocalhostCORS(req, res, next) {
-  if (NODE_ENV === "development") {
+  if (req.get("host") === "localhost:3001") {
     cors({ origin: "*" });
   }
 
