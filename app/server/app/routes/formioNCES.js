@@ -1,19 +1,34 @@
 // const { resolve } = require("node:path");
 // const { readFile } = require("node:fs/promises");
 const express = require("express");
+const cors = require("cors");
 // const axios = require("axios").default || require("axios"); // TODO: https://github.com/axios/axios/issues/5011
 // ---
 const log = require("../utilities/logger");
 const data = require("../content/nces.json");
 
 const { FORMIO_NCES_API_KEY } = process.env;
-
 // const { NODE_ENV, S3_PUBLIC_BUCKET, S3_PUBLIC_REGION } = process.env;
 
 const router = express.Router();
 
+/**
+ * Enable CORS for local development
+ *
+ * @param {express.Request} req
+ * @param {express.Response} res
+ * @param {express.NextFunction} next
+ */
+function enableLocalhostCORS(req, res, next) {
+  if (req.get("host") === "localhost:3001") {
+    cors({ origin: "*" });
+  }
+
+  next();
+}
+
 // --- Search the NCES data with the provided NCES ID and return a match
-router.get("/:searchText?", async (req, res) => {
+router.get("/:searchText?", enableLocalhostCORS, (req, res) => {
   const { searchText } = req.params;
   const apiKey = req.headers["x-api-key"];
 
