@@ -51,7 +51,7 @@ router.get("/:searchText?", (req, res) => {
     return res.json({});
   }
 
-  const result = data.find((item) => item["NCES District ID"] === searchText);
+  const result = data.find((item) => item["NCES ID"] === searchText);
 
   const logMessage =
     `NCES data searched with NCES ID '${searchText}' resulting in ` +
