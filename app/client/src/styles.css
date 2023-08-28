@@ -38,4 +38,5 @@
 /* --- Radix UI --- */
 [data-radix-popper-content-wrapper] {
   transition-property: none;
+  z-index: 10 !important;
 }
