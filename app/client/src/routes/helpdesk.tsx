@@ -28,6 +28,11 @@ import { Loading } from "components/loading";
 import { Message } from "components/message";
 import { MarkdownContent } from "components/markdownContent";
 import { TextWithTooltip } from "components/tooltip";
+import {
+  RebateYear,
+  useRebateYearState,
+  useRebateYearActions,
+} from "contexts/rebateYear";
 
 type FormType = "frf" | "prf" | "crf";
 
@@ -90,6 +95,8 @@ export function Helpdesk() {
 
   const content = useContentData();
   const helpdeskAccess = useHelpdeskAccess();
+  const { rebateYear } = useRebateYearState();
+  const { setRebateYear } = useRebateYearActions();
 
   const [formType, setFormType] = useState<FormType>("frf");
   const [searchText, setSearchText] = useState("");
@@ -134,102 +141,131 @@ export function Helpdesk() {
         />
       )}
 
-      <div className="padding-2 border-1px border-base-lighter bg-base-lightest">
-        <fieldset className="usa-fieldset mobile-lg:display-flex">
-          <div className="usa-radio">
-            <input
-              id="form-type-frf"
-              className="usa-radio__input"
-              type="radio"
-              name="form-type"
-              value="frf"
-              checked={formType === "frf"}
-              onChange={(ev) => {
-                setFormType(ev.target.value as FormType);
-                setResultDisplayed(false);
-                queryClient.resetQueries({ queryKey: ["helpdesk"] });
-              }}
-            />
+      <div className="margin-top-1 padding-2 border-1px border-base-lighter bg-base-lightest">
+        <nav className="flex-align-center tablet:display-flex">
+          <div className="tablet:margin-right-1">
             <label
-              className="usa-radio__label margin-top-0"
-              htmlFor="form-type-frf"
+              htmlFor="rebate-year"
+              className="margin-right-1 font-sans-2xs"
             >
-              Application
+              Rebate Year:
             </label>
+            <select
+              id="rebate-year"
+              name="rebate-year"
+              className="tw-rounded-md tw-border-0 tw-text-sm tw-font-bold tw-leading-4 tw-ring-1 tw-ring-inset tw-ring-gray-300"
+              onChange={(ev) => setRebateYear(ev.target.value as RebateYear)}
+              defaultValue={rebateYear}
+            >
+              <option>2022</option>
+              <option>2023</option>
+            </select>
           </div>
 
-          <div className="usa-radio mobile-lg:margin-left-3">
-            <input
-              id="form-type-prf"
-              className="usa-radio__input"
-              type="radio"
-              name="form-type"
-              value="prf"
-              checked={formType === "prf"}
-              onChange={(ev) => {
-                setFormType(ev.target.value as FormType);
-                setResultDisplayed(false);
-                queryClient.resetQueries({ queryKey: ["helpdesk"] });
-              }}
-            />
-            <label
-              className="usa-radio__label mobile-lg:margin-top-0"
-              htmlFor="form-type-prf"
-            >
-              Payment Request
-            </label>
-          </div>
+          <div className="tablet:margin-left-1">
+            <fieldset className="csb-helpdesk-form-inputs usa-fieldset tablet:display-flex">
+              <div className="usa-radio">
+                <input
+                  id="form-type-frf"
+                  className="usa-radio__input"
+                  type="radio"
+                  name="form-type"
+                  value="frf"
+                  checked={formType === "frf"}
+                  onChange={(ev) => {
+                    setFormType(ev.target.value as FormType);
+                    setResultDisplayed(false);
+                    queryClient.resetQueries({ queryKey: ["helpdesk"] });
+                  }}
+                />
+                <label
+                  className="usa-radio__label tablet:margin-top-0 font-sans-2xs"
+                  htmlFor="form-type-frf"
+                >
+                  Application
+                </label>
+              </div>
 
-          <div className="usa-radio mobile-lg:margin-left-3">
-            <input
-              id="form-type-crf"
-              className="usa-radio__input"
-              type="radio"
-              name="form-type"
-              value="crf"
-              checked={formType === "crf"}
-              onChange={(ev) => {
-                setFormType(ev.target.value as FormType);
-                setResultDisplayed(false);
-                queryClient.resetQueries({ queryKey: ["helpdesk"] });
-              }}
-            />
-            <label
-              className="usa-radio__label mobile-lg:margin-top-0"
-              htmlFor="form-type-crf"
-            >
-              Close Out
-            </label>
-          </div>
-        </fieldset>
+              <div className="usa-radio tablet:margin-left-2">
+                <input
+                  id="form-type-prf"
+                  className="usa-radio__input"
+                  type="radio"
+                  name="form-type"
+                  value="prf"
+                  checked={formType === "prf"}
+                  onChange={(ev) => {
+                    setFormType(ev.target.value as FormType);
+                    setResultDisplayed(false);
+                    queryClient.resetQueries({ queryKey: ["helpdesk"] });
+                  }}
+                />
+                <label
+                  className="usa-radio__label tablet:margin-top-0 font-sans-2xs"
+                  htmlFor="form-type-prf"
+                >
+                  Payment Request
+                </label>
+              </div>
 
-        <form
-          className="usa-search margin-top-2"
-          role="search"
-          onSubmit={(ev) => {
-            ev.preventDefault();
-            if (searchText === "") return;
-            setLastSearchedText(searchText);
-            setFormDisplayed(false);
-            query.refetch();
-          }}
-        >
-          <label className="usa-sr-only" htmlFor="search-submissions-by-id">
-            Search submissions by ID
-          </label>
-          <input
-            id="search-submissions-by-id"
-            className="usa-input"
-            type="search"
-            name="search-submissions"
-            value={searchText}
-            onChange={(ev) => setSearchText(ev.target.value)}
-          />
-          <button className="usa-button" type="submit">
-            <span className="usa-search__submit-text">Search</span>
-            <img className="usa-search__submit-icon" src={icon} alt="Search" />
-          </button>
-        </form>
+              <div className="usa-radio tablet:margin-left-2">
+                <input
+                  id="form-type-crf"
+                  className="usa-radio__input"
+                  type="radio"
+                  name="form-type"
+                  value="crf"
+                  checked={formType === "crf"}
+                  onChange={(ev) => {
+                    setFormType(ev.target.value as FormType);
+                    setResultDisplayed(false);
+                    queryClient.resetQueries({ queryKey: ["helpdesk"] });
+                  }}
+                />
+                <label
+                  className="usa-radio__label tablet:margin-top-0 font-sans-2xs"
+                  htmlFor="form-type-crf"
+                >
+                  Close Out
+                </label>
+              </div>
+            </fieldset>
+          </div>
+        </nav>
+
+        <div className="margin-top-2 tablet:margin-top-1">
+          <form
+            className="usa-search"
+            role="search"
+            onSubmit={(ev) => {
+              ev.preventDefault();
+              if (searchText === "") return;
+              setLastSearchedText(searchText);
+              setFormDisplayed(false);
+              query.refetch();
+            }}
+          >
+            <label className="usa-sr-only" htmlFor="search-submissions-by-id">
+              Search submissions by ID
+            </label>
+            <input
+              id="search-submissions-by-id"
+              className="usa-input"
+              type="search"
+              name="search-submissions"
+              value={searchText}
+              onChange={(ev) => setSearchText(ev.target.value)}
+            />
+            <button className="usa-button" type="submit">
+              <span className="usa-search__submit-text">Search</span>
+              <img
+                className="usa-search__submit-icon"
+                src={icon}
+                alt="Search"
+              />
+            </button>
+          </form>
+        </div>
       </div>
 
       {query.isFetching || mutation.isLoading ? (
