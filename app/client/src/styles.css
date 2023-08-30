@@ -29,6 +29,15 @@
   color: inherit;
 }
 
+.csb-helpdesk-form-inputs .usa-radio__label {
+  padding-left: 1.625rem;
+}
+
+.csb-helpdesk-form-inputs .usa-radio__label::before {
+  width: 1rem;
+  height: 1rem;
+}
+
 /* --- Formio --- */
 .csb-form button[type="submit"] i {
   /* prevent formio loading icon from being displayed inside buttons */

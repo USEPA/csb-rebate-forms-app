@@ -17,6 +17,7 @@ import {
   FormioFRF2022Submission,
   FormioPRF2022Submission,
   FormioCRF2022Submission,
+  FormioFRF2023Submission,
   BapSubmission,
   getData,
   postData,
@@ -47,7 +48,8 @@ type ServerResponse =
       formio:
         | FormioFRF2022Submission
         | FormioPRF2022Submission
-        | FormioCRF2022Submission;
+        | FormioCRF2022Submission
+        | FormioFRF2023Submission;
       bap: BapSubmission;
     };
 
@@ -60,33 +62,82 @@ function formatTime(dateTimeString: string | null) {
 }
 
 /**
- * Returns a submission's status by checking the BAP internal status first,
- * then falling back to the Formio status if the BAP internal status is not
- * explicitly accounted for.
+ * ...
  */
-function getStatus(options: {
+function ResultTableRows(props: {
+  lastSearchedText: string;
   formType: FormType;
   formio:
     | FormioFRF2022Submission
     | FormioPRF2022Submission
-    | FormioCRF2022Submission;
+    | FormioCRF2022Submission
+    | FormioFRF2023Submission;
   bap: BapSubmission;
 }) {
-  const { formType, formio, bap } = options;
-  const bapInternalStatus = bap.status;
+  const { lastSearchedText, formType, formio, bap } = props;
+  const { rebateYear } = useRebateYearState();
+
+  const date = formatDate(formio.modified);
+  const time = formatTime(formio.modified);
+
+  const bapInternalStatus = bap.status || "";
   const formioStatus = formioStatusMap.get(formio.state);
 
-  if (!bapInternalStatus) return "";
+  /* TODO: update logic once BAP supports 2023 FRF */
 
-  return submissionNeedsEdits({ formio, bap })
-    ? "Edits Requested"
-    : formType === "frf"
-    ? bapFRFStatusMap.get(bapInternalStatus) || formioStatus
-    : formType === "prf"
-    ? bapPRFStatusMap.get(bapInternalStatus) || formioStatus
-    : formType === "crf"
-    ? bapCRFStatusMap.get(bapInternalStatus) || formioStatus
-    : "";
+  const id =
+    rebateYear === "2023"
+      ? formio._id
+      : lastSearchedText.length === 6
+      ? bap.rebateId
+      : bap.mongoId;
+
+  const status =
+    rebateYear === "2023"
+      ? formioStatus
+      : submissionNeedsEdits({ formio, bap })
+      ? "Edits Requested"
+      : formType === "frf"
+      ? bapFRFStatusMap.get(bapInternalStatus) || formioStatus
+      : formType === "prf"
+      ? bapPRFStatusMap.get(bapInternalStatus) || formioStatus
+      : formType === "crf"
+      ? bapCRFStatusMap.get(bapInternalStatus) || formioStatus
+      : "";
+
+  const name =
+    rebateYear === "2023"
+      ? (formio as FormioFRF2023Submission).data._bap_applicant_name
+      : formType === "frf"
+      ? (formio as FormioFRF2022Submission).data.sam_hidden_applicant_name
+      : formType === "prf"
+      ? (formio as FormioPRF2022Submission).data.applicantName
+      : formType === "crf"
+      ? (formio as FormioCRF2022Submission).data.signatureName
+      : "";
+
+  const email =
+    rebateYear === "2023"
+      ? (formio as FormioFRF2023Submission).data._user_email
+      : formType === "frf"
+      ? (formio as FormioFRF2022Submission).data.last_updated_by
+      : formType === "prf"
+      ? (formio as FormioPRF2022Submission).data.hidden_current_user_email
+      : formType === "crf"
+      ? (formio as FormioCRF2022Submission).data.hidden_current_user_email
+      : "";
+
+  return (
+    <>
+      <td>{id}</td>
+      <td>{status}</td>
+      <td>{name}</td>
+      <td>{email}</td>
+      <td>
+        <span title={`${date} ${time}`}>{date}</span>
+      </td>
+    </>
+  );
 }
 
 export function Helpdesk() {
@@ -108,7 +159,7 @@ export function Helpdesk() {
     queryClient.resetQueries({ queryKey: ["helpdesk"] });
   }, [queryClient]);
 
-  const url = `${serverUrl}/api/help/formio/submission/${formType}/${searchText}`;
+  const url = `${serverUrl}/api/help/formio/${rebateYear}/${formType}/${searchText}`;
 
   const query = useQuery({
     queryKey: ["helpdesk"],
@@ -352,44 +403,12 @@ export function Helpdesk() {
                     </button>
                   </th>
 
-                  {lastSearchedText.length === 6 ? (
-                    <td>{bap.rebateId}</td>
-                  ) : (
-                    <td>{bap.mongoId}</td>
-                  )}
-
-                  <td>{getStatus({ formType, formio, bap })}</td>
-
-                  {formType === "frf" ? (
-                    <td>{formio.data.sam_hidden_applicant_name as string}</td>
-                  ) : formType === "prf" ? (
-                    <td>{formio.data.applicantName as string}</td>
-                  ) : formType === "crf" ? (
-                    <td>{formio.data.signatureName as string}</td>
-                  ) : (
-                    <td>&nbsp;</td>
-                  )}
-
-                  {formType === "frf" ? (
-                    <td>{formio.data.last_updated_by as string}</td>
-                  ) : formType === "prf" ? (
-                    <td>{formio.data.hidden_current_user_email as string}</td>
-                  ) : formType === "crf" ? (
-                    <td>{formio.data.hidden_current_user_email as string}</td>
-                  ) : (
-                    <td>&nbsp;</td>
-                  )}
-
-                  <td>
-                    <span
-                      title={
-                        `${formatDate(formio.modified)} ` +
-                        `${formatTime(formio.modified)}`
-                      }
-                    >
-                      {formatDate(formio.modified)}
-                    </span>
-                  </td>
+                  <ResultTableRows
+                    lastSearchedText={lastSearchedText}
+                    formType={formType}
+                    formio={formio}
+                    bap={bap}
+                  />
                 </tr>
               </tbody>
             </table>

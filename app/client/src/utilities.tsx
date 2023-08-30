@@ -137,6 +137,8 @@ type FormioPRF2022Data = {
   hidden_current_user_title: string;
   hidden_current_user_name: string;
   hidden_bap_rebate_id: string;
+  // fields set by form definition (among others):
+  applicantName: string;
 };
 
 type FormioCRF2022Data = {
@@ -148,6 +150,8 @@ type FormioCRF2022Data = {
   hidden_current_user_title: string;
   hidden_current_user_name: string;
   hidden_bap_rebate_id: string;
+  // fields set by form definition (among others):
+  signatureName: string;
 };
 
 type FormioFRF2023Data = {
