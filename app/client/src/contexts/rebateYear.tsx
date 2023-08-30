@@ -44,7 +44,7 @@ function reducer(state: State, action: Action): State {
 
 export function RebateYearProvider({ children }: Props) {
   const initialState: State = {
-    rebateYear: "2022",
+    rebateYear: "2023",
   };
 
   const [state, dispatch] = useReducer(reducer, initialState);
