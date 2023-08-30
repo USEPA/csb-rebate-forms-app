@@ -61,9 +61,6 @@ function formatTime(dateTimeString: string | null) {
   return dateTimeString ? new Date(dateTimeString).toLocaleTimeString() : "";
 }
 
-/**
- * ...
- */
 function ResultTableRows(props: {
   lastSearchedText: string;
   formType: FormType;
