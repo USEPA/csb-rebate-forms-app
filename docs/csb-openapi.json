@@ -166,10 +166,18 @@
         "parameters": [{ "$ref": "#/components/parameters/scan" }]
       }
     },
-    "/api/help/formio/submission/{formType}/{id}": {
+    "/api/help/formio/{rebateYear}/{formType}/{id}": {
       "get": {
-        "summary": "/api/help/formio/submission/{formType}/{id}",
+        "summary": "/api/help/formio/{rebateYear}/{formType}/{id}",
         "parameters": [
+          {
+            "name": "rebateYear",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "formType",
             "in": "path",

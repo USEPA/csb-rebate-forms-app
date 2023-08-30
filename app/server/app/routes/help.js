@@ -12,8 +12,8 @@ router.use(ensureAuthenticated);
 router.use(ensureHelpdesk);
 
 // --- get an existing form's submission data from Formio
-router.get("/formio/submission/:formType/:id", (req, res) => {
-  const { formType, id } = req.params;
+router.get("/formio/:rebateYear/:formType/:id", (req, res) => {
+  const { rebateYear, formType, id } = req.params;
 
   const rebateId = id.length === 6 ? id : null;
   const mongoId = !rebateId ? id : null;
@@ -34,14 +34,52 @@ router.get("/formio/submission/:formType/:id", (req, res) => {
       ? "CSB Close Out"
       : "CSB";
 
-  const formioFormUrl = formUrl["2022"][formType];
+  const formioFormUrl = formUrl[rebateYear][formType];
+
+  /**
+   * TODO: revisit `getBapFormSubmissionData()` to include rebateYear once BAP
+   * supports 2023 FRF
+   */
+  if (rebateYear === "2023") {
+    if (rebateId && !mongoId) {
+      const errorStatus = 500;
+      const errorMessage = `Error getting 2023 ${formName} submission '${rebateId}'.`;
+      return res.status(errorStatus).json({ message: errorMessage });
+    }
+
+    return Promise.all([
+      axiosFormio(req).get(`${formioFormUrl}/submission/${mongoId}`),
+      axiosFormio(req).get(formioFormUrl),
+    ])
+      .then((responses) => responses.map((axiosRes) => axiosRes.data))
+      .then(([formioSubmission, schema]) => {
+        return res.json({
+          formSchema: { url: formioFormUrl, json: schema },
+          formio: formioSubmission,
+          bap: {
+            modified: null,
+            comboKey: null,
+            mongoId: null,
+            rebateId: null,
+            reviewItemId: null,
+            status: null,
+          },
+        });
+      })
+      .catch((error) => {
+        // NOTE: error is logged in axiosFormio response interceptor
+        const errorStatus = error.response?.status || 500;
+        const errorMessage = `Error getting ${rebateYear} ${formName} submission '${mongoId}'.`;
+        return res.status(errorStatus).json({ message: errorMessage });
+      });
+  }
 
   return getBapFormSubmissionData(req, formType, rebateId, mongoId).then(
     (bapSubmission) => {
       if (!bapSubmission || !formioFormUrl) {
         const logId = rebateId || mongoId;
         const errorStatus = 500;
-        const errorMessage = `Error getting ${formName} submission '${logId}' from the BAP.`;
+        const errorMessage = `Error getting ${rebateYear} ${formName} submission '${logId}' from the BAP.`;
         return res.status(errorStatus).json({ message: errorMessage });
       }
 
@@ -84,7 +122,7 @@ router.get("/formio/submission/:formType/:id", (req, res) => {
         .catch((error) => {
           // NOTE: error is logged in axiosFormio response interceptor
           const errorStatus = error.response?.status || 500;
-          const errorMessage = `Error getting ${formName} submission '${CSB_Form_ID__c}'.`;
+          const errorMessage = `Error getting ${rebateYear} ${formName} submission '${CSB_Form_ID__c}'.`;
           return res.status(errorStatus).json({ message: errorMessage });
         });
     }
