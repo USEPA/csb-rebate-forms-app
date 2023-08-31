@@ -18,6 +18,16 @@ router.get("/sam", (req, res) => {
   const adminOrHelpdeskUser =
     userRoles.includes("csb_admin") || userRoles.includes("csb_helpdesk");
 
+  if (!mail) {
+    const logMessage = `User with no email address attempted to fetch SAM.gov records.`;
+    log({ level: "error", message: logMessage, req });
+
+    return res.json({
+      results: false,
+      entities: [],
+    });
+  }
+
   getSamEntities(req, mail)
     .then((entities) => {
       /**
@@ -26,7 +36,7 @@ router.get("/sam", (req, res) => {
        */
       if (!adminOrHelpdeskUser && entities?.length === 0) {
         const logMessage =
-          `User with email '${mail}' tried to use app ` +
+          `User with email '${mail}' attempted to use app ` +
           `without any associated SAM.gov records.`;
         log({ level: "error", message: logMessage, req });
 
