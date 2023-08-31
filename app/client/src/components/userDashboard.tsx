@@ -88,7 +88,7 @@ export function UserDashboard(props: { email: string }) {
     });
   }
 
-  if (!bapSamData) {
+  if (!bapSamData || !email) {
     return <Loading />;
   }
 
