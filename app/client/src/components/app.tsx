@@ -3,6 +3,7 @@ import { render } from "react-dom";
 import {
   createBrowserRouter,
   createRoutesFromElements,
+  redirect,
   Navigate,
   Route,
   RouterProvider,
@@ -38,11 +39,12 @@ import { UserDashboard } from "components/userDashboard";
 import { ConfirmationDialog } from "components/confirmationDialog";
 import { Notifications } from "components/notifications";
 import { Helpdesk } from "routes/helpdesk";
-import { AllRebates } from "routes/allRebates";
-import { NewApplicationForm } from "routes/newApplicationForm";
-import { ApplicationForm } from "routes/applicationForm";
-import { PaymentRequestForm } from "routes/paymentRequestForm";
-import { CloseOutForm } from "routes/closeOutForm";
+import { Submissions } from "routes/submissions";
+import { FRFNew } from "routes/frfNew";
+import { FRF2022 } from "routes/frf2022";
+import { PRF2022 } from "routes/prf2022";
+import { CRF2022 } from "routes/crf2022";
+import { FRF2023 } from "routes/frf2023";
 import { useDialogState, useDialogActions } from "contexts/dialog";
 
 /** Custom hook to display a site-wide alert banner */
@@ -238,12 +240,36 @@ export function App() {
     <Route errorElement={<Message type="error" text={messages.genericError} />}>
       <Route path="/welcome" element={<Welcome />} />
       <Route path="/" element={<ProtectedRoute />}>
-        <Route index element={<AllRebates />} />
+        <Route index element={<Submissions />} />
+
         <Route path="helpdesk" element={<Helpdesk />} />
-        <Route path="rebate/new" element={<NewApplicationForm />} />
-        <Route path="rebate/:id" element={<ApplicationForm />} />
-        <Route path="payment-request/:id" element={<PaymentRequestForm />} />
-        <Route path="close-out/:id" element={<CloseOutForm />} />
+
+        {/* Redirect pre-v4 routes to use post-v4 routes */}
+        <Route
+          path="rebate/new"
+          loader={({ params }) => redirect(`/frf/new`)}
+        />
+        <Route
+          path="rebate/:id"
+          loader={({ params }) => redirect(`/frf/2022/${params.id}`)}
+        />
+        <Route
+          path="payment-request/:id"
+          loader={({ params }) => redirect(`/prf/2022/${params.id}`)}
+        />
+        <Route
+          path="close-out/:id"
+          loader={({ params }) => redirect(`/crf/2022/${params.id}`)}
+        />
+
+        <Route path="frf/new" element={<FRFNew />} />
+
+        <Route path="frf/2022/:id" element={<FRF2022 />} />
+        <Route path="prf/2022/:id" element={<PRF2022 />} />
+        <Route path="crf/2022/:id" element={<CRF2022 />} />
+
+        <Route path="frf/2023/:id" element={<FRF2023 />} />
+
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Route>

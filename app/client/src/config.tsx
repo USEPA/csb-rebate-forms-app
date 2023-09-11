@@ -69,12 +69,10 @@ export const messages = {
   timeout:
     "For security reasons, you have been logged out due to 15 minutes of inactivity.",
   logout: "You have successfully logged out.",
-  applicationFormClosed:
-    "The CSB Application form enrollment period is closed.",
-  paymentRequestFormClosed:
-    "The CSB Payment Request form enrollment period is closed.",
-  closeOutFormClosed: "The CSB Close Out form enrollment period is closed.",
-  paymentRequestFormWillBeDeleted:
+  frfClosed: "The CSB Application form enrollment period is closed.",
+  prfClosed: "The CSB Payment Request form enrollment period is closed.",
+  crfClosed: "The CSB Close Out form enrollment period is closed.",
+  prfWillBeDeleted:
     "A request to edit the Application form associated with this draft or submitted Payment Request form has been made, so this form has been set to read-only mode. Visit your dashboard to make edits to the associated Application form submission.",
 };
 
@@ -87,27 +85,27 @@ export const formioStatusMap = new Map<string, string>()
   .set("submitted", "Submitted");
 
 /**
- * BAP internal to external status mapping for Application form submissions.
+ * BAP internal to external status mapping for FRF submissions.
  */
-export const bapApplicationStatusMap = new Map<string, string>()
+export const bapFRFStatusMap = new Map<string, string>()
   .set("Needs Clarification", "Needs Clarification")
   .set("Withdrawn", "Withdrawn")
   .set("Coordinator Denied", "Not Selected")
   .set("Accepted", "Selected");
 
 /**
- * BAP internal to external status mapping for Payment Request form submissions.
+ * BAP internal to external status mapping for PRF submissions.
  */
-export const bapPaymentRequestStatusMap = new Map<string, string>()
+export const bapPRFStatusMap = new Map<string, string>()
   .set("Needs Clarification", "Needs Clarification")
   .set("Withdrawn", "Withdrawn")
   .set("Coordinator Denied", "Funding Not Approved")
   .set("Accepted", "Funding Approved");
 
 /**
- * BAP internal to external status mapping for Close Out form submissions.
+ * BAP internal to external status mapping for CRF submissions.
  */
-export const bapCloseOutStatusMap = new Map<string, string>()
+export const bapCRFStatusMap = new Map<string, string>()
   .set("Needs Clarification", "Needs Clarification")
   .set("Reimbursement Needed", "Reimbursement Needed")
   .set("Branch Director Denied", "Close Out Not Approved")

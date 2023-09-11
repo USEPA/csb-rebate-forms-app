@@ -164,15 +164,16 @@ function protectClientRoutes(req, res, next) {
  */
 function checkClientRouteExists(req, res, next) {
   const subPath = SERVER_BASE_PATH || "";
-  const clientRoutes = ["/", "/welcome", "/helpdesk", "/rebate/new"].map(
+
+  const clientRoutes = ["/", "/welcome", "/helpdesk", "/frf/new"].map(
     (route) => `${subPath}${route}`
   );
 
   if (
     !clientRoutes.includes(req.path) &&
-    !req.path.includes("/rebate/") &&
-    !req.path.includes("/payment-request/") &&
-    !req.path.includes("/close-out/")
+    !req.path.includes("/frf/") &&
+    !req.path.includes("/prf/") &&
+    !req.path.includes("/crf/")
   ) {
     const errorStatus = 404;
     return res

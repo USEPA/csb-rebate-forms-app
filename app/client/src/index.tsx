@@ -7,6 +7,7 @@ import { ErrorBoundary } from "components/errorBoundary";
 import { App } from "components/app";
 import { DialogProvider } from "contexts/dialog";
 import { NotificationsProvider } from "contexts/notifications";
+import { RebateYearProvider } from "contexts/rebateYear";
 import "./tailwind-preflight.css";
 import "./styles.css";
 
@@ -40,7 +41,9 @@ function Index() {
         <ErrorBoundary>
           <DialogProvider>
             <NotificationsProvider>
-              <App />
+              <RebateYearProvider>
+                <App />
+              </RebateYearProvider>
             </NotificationsProvider>
           </DialogProvider>
         </ErrorBoundary>
