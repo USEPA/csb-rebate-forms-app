@@ -11,6 +11,6 @@ router.use("/api/bap", require("./bap"));
 router.use("/api/formio/2022", require("./formio2022"));
 router.use("/api/formio/2023", require("./formio2023"));
 router.use("/api/help", require("./help"));
-router.use("/status", require("./status"));
+router.use("/api/status", require("./status"));
 
 module.exports = router;
