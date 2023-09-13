@@ -78,7 +78,7 @@ type BapFormSubmission = {
   Record_Type_Name__c:
     | "CSB Funding Request"
     | "CSB Payment Request"
-    | "CSB Closeout Request";
+    | "CSB Close Out Request";
   Parent_CSB_Rebate__r: {
     CSB_Funding_Request_Status__c: string;
     CSB_Payment_Request_Status__c: string;
@@ -356,7 +356,7 @@ export function useSubmissionsQueries(rebateYear: RebateYear) {
                 ? "frfs"
                 : submission.Record_Type_Name__c === "CSB Payment Request"
                 ? "prfs"
-                : submission.Record_Type_Name__c === "CSB Closeout Request"
+                : submission.Record_Type_Name__c === "CSB Close Out Request"
                 ? "crfs"
                 : null;
 
