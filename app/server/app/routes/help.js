@@ -113,7 +113,7 @@ router.get("/formio/:rebateYear/:formType/:id", (req, res) => {
                   ? Parent_CSB_Rebate__r?.CSB_Funding_Request_Status__c
                   : Record_Type_Name__c === "CSB Payment Request"
                   ? Parent_CSB_Rebate__r?.CSB_Payment_Request_Status__c
-                  : Record_Type_Name__c === "CSB Closeout Request"
+                  : Record_Type_Name__c === "CSB Close Out Request"
                   ? Parent_CSB_Rebate__r?.CSB_Closeout_Request_Status__c
                   : "",
             },
@@ -125,7 +125,7 @@ router.get("/formio/:rebateYear/:formType/:id", (req, res) => {
           const errorMessage = `Error getting ${rebateYear} ${formName} submission '${CSB_Form_ID__c}'.`;
           return res.status(errorStatus).json({ message: errorMessage });
         });
-    }
+    },
   );
 });
 
