@@ -19,7 +19,7 @@
   "dependencies": {
     "@formio/premium": "1.18.4",
     "@formio/react": "5.2.3",
-    "@formio/uswds": "2.5.0",
+    "@formio/uswds": "2.4.8",
     "@headlessui/react": "1.7.17",
     "@heroicons/react": "2.0.18",
     "@radix-ui/react-tooltip": "1.0.6",

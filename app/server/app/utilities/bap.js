@@ -305,7 +305,7 @@ async function queryForSamEntities(req, email) {
         PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c: 1,
         PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c: 1,
         PHYSICAL_ADDRESS_ZIP_CODE_4__c: 1,
-      }
+      },
     )
     .execute(async (err, records) => ((await err) ? err : records));
 }
@@ -360,7 +360,7 @@ async function queryForBapFormSubmissionData(req, formType, rebateId, mongoId) {
       {
         // "*": 1,
         Id: 1, // Salesforce record ID
-      }
+      },
     )
     .limit(1)
     .execute(async (err, records) => ((await err) ? err : records));
@@ -374,7 +374,9 @@ async function queryForBapFormSubmissionData(req, formType, rebateId, mongoId) {
   //   CSB_Review_Item_ID__c,
   //   Parent_Rebate_ID__c,
   //   Record_Type_Name__c,
-  //   Parent_CSB_Rebate__r.CSB_Funding_Request_Status__c
+  //   Parent_CSB_Rebate__r.CSB_Funding_Request_Status__c,
+  //   Parent_CSB_Rebate__r.CSB_Payment_Request_Status__c,
+  //   Parent_CSB_Rebate__r.CSB_Closeout_Request_Status__c
   // FROM
   //   ${BAP_FORMS_TABLE}
   // WHERE
@@ -398,11 +400,11 @@ async function queryForBapFormSubmissionData(req, formType, rebateId, mongoId) {
         CSB_Modified_Full_String__c: 1, // ISO 8601 date time string
         CSB_Review_Item_ID__c: 1, // CSB Rebate ID with form/version ID (9 digits)
         Parent_Rebate_ID__c: 1, // CSB Rebate ID (6 digits)
-        Record_Type_Name__c: 1, // 'CSB Funding Request' | 'CSB Payment Request' | 'CSB Closeout Request'
+        Record_Type_Name__c: 1, // 'CSB Funding Request' | 'CSB Payment Request' | 'CSB Close Out Request'
         "Parent_CSB_Rebate__r.CSB_Funding_Request_Status__c": 1,
         "Parent_CSB_Rebate__r.CSB_Payment_Request_Status__c": 1,
         "Parent_CSB_Rebate__r.CSB_Closeout_Request_Status__c": 1,
-      }
+      },
     )
     .execute(async (err, records) => ((await err) ? err : records));
 
@@ -446,7 +448,7 @@ async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
       {
         // "*": 1,
         Parent_Rebate_ID__c: 1, // CSB Rebate ID (6 digits)
-      }
+      },
     )
     .sort({ CreatedDate: -1 })
     .execute(async (err, records) => ((await err) ? err : records));
@@ -491,11 +493,11 @@ async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
         CSB_Modified_Full_String__c: 1, // ISO 8601 date time string
         CSB_Review_Item_ID__c: 1, // CSB Rebate ID with form/version ID (9 digits)
         Parent_Rebate_ID__c: 1, // CSB Rebate ID (6 digits)
-        Record_Type_Name__c: 1, // 'CSB Funding Request' | 'CSB Payment Request' | 'CSB Closeout Request'
+        Record_Type_Name__c: 1, // 'CSB Funding Request' | 'CSB Payment Request' | 'CSB Close Out Request'
         "Parent_CSB_Rebate__r.CSB_Funding_Request_Status__c": 1,
         "Parent_CSB_Rebate__r.CSB_Payment_Request_Status__c": 1,
         "Parent_CSB_Rebate__r.CSB_Closeout_Request_Status__c": 1,
-      }
+      },
     )
     .sort({ CreatedDate: -1 })
     .execute(async (err, records) => ((await err) ? err : records));
@@ -539,7 +541,7 @@ async function queryBapForPRFData(req, frfReviewItemId) {
       {
         // "*": 1,
         Id: 1, // Salesforce record ID
-      }
+      },
     )
     .limit(1)
     .execute(async (err, records) => ((await err) ? err : records));
@@ -598,7 +600,7 @@ async function queryBapForPRFData(req, frfReviewItemId) {
         School_District_Prioritized__c: 1,
         Total_Rebate_Funds_Requested__c: 1,
         Total_Infrastructure_Funds__c: 1,
-      }
+      },
     )
     .execute(async (err, records) => ((await err) ? err : records));
 
@@ -623,7 +625,7 @@ async function queryBapForPRFData(req, frfReviewItemId) {
       {
         // "*": 1,
         Id: 1, // Salesforce record ID
-      }
+      },
     )
     .limit(1)
     .execute(async (err, records) => ((await err) ? err : records));
@@ -660,7 +662,7 @@ async function queryBapForPRFData(req, frfReviewItemId) {
         CSB_Fuel_Type__c: 1,
         CSB_Replacement_Fuel_Type__c: 1,
         CSB_Funds_Requested__c: 1,
-      }
+      },
     )
     .execute(async (err, records) => ((await err) ? err : records));
 
@@ -705,7 +707,7 @@ async function queryBapForCRFData(req, frfReviewItemId, prfReviewItemId) {
       {
         // "*": 1,
         Id: 1, // Salesforce record ID
-      }
+      },
     )
     .limit(1)
     .execute(async (err, records) => ((await err) ? err : records));
@@ -752,7 +754,7 @@ async function queryBapForCRFData(req, frfReviewItemId, prfReviewItemId) {
         Fleet_Contact_Email__c: 1,
         "School_District_Contact__r.FirstName": 1,
         "School_District_Contact__r.LastName": 1,
-      }
+      },
     )
     .execute(async (err, records) => ((await err) ? err : records));
 
@@ -775,7 +777,7 @@ async function queryBapForCRFData(req, frfReviewItemId, prfReviewItemId) {
       {
         // "*": 1,
         Id: 1, // Salesforce record ID
-      }
+      },
     )
     .limit(1)
     .execute(async (err, records) => ((await err) ? err : records));
@@ -854,7 +856,7 @@ async function queryBapForCRFData(req, frfReviewItemId, prfReviewItemId) {
         Total_Level_2_Charger_Costs__c: 1,
         Total_DC_Fast_Charger_Costs__c: 1,
         Total_Other_Infrastructure_Costs__c: 1,
-      }
+      },
     )
     .execute(async (err, records) => ((await err) ? err : records));
 
@@ -879,7 +881,7 @@ async function queryBapForCRFData(req, frfReviewItemId, prfReviewItemId) {
       {
         // "*": 1,
         Id: 1, // Salesforce record ID
-      }
+      },
     )
     .limit(1)
     .execute(async (err, records) => ((await err) ? err : records));
@@ -936,7 +938,7 @@ async function queryBapForCRFData(req, frfReviewItemId, prfReviewItemId) {
         New_Bus_GVWR__c: 1,
         New_Bus_Rebate_Amount__c: 1,
         New_Bus_Purchase_Price__c: 1,
-      }
+      },
     )
     .execute(async (err, records) => ((await err) ? err : records));
 
