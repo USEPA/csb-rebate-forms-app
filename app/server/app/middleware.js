@@ -74,7 +74,7 @@ function ensureAuthenticated(req, res, next, rejectCallback = rejectRequest) {
       });
 
       next();
-    }
+    },
   );
 }
 
@@ -140,7 +140,7 @@ function rejectRequest(req, res, jwtExpired) {
 function protectClientRoutes(req, res, next) {
   const subPath = SERVER_BASE_PATH || "";
   const unprotectedRoutes = ["/", "/welcome", "/manifest.json"].map(
-    (route) => `${subPath}${route}`
+    (route) => `${subPath}${route}`,
   );
 
   if (!unprotectedRoutes.includes(req.path) && !req.path.includes("/static")) {
@@ -166,7 +166,7 @@ function checkClientRouteExists(req, res, next) {
   const subPath = SERVER_BASE_PATH || "";
 
   const clientRoutes = ["/", "/welcome", "/helpdesk", "/frf/new"].map(
-    (route) => `${subPath}${route}`
+    (route) => `${subPath}${route}`,
   );
 
   if (
@@ -179,23 +179,6 @@ function checkClientRouteExists(req, res, next) {
     return res
       .status(errorStatus)
       .sendFile(resolve(__dirname, "public/404.html"));
-  }
-
-  next();
-}
-
-/**
- * Global middleware on dev/staging to send 200 status on all server endpoints
- * (required for ZAP scan).
- *
- * @param {express.Request} req
- * @param {express.Response} res
- * @param {express.NextFunction} next
- */
-function appScan(req, res, next) {
-  /** OpenAPI def must use global "scan" param and enum to "true". */
-  if (req.query.scan === "true") {
-    return res.json({ status: 200 });
   }
 
   next();
@@ -244,7 +227,6 @@ function verifyMongoObjectId(req, res, next) {
 module.exports = {
   ensureAuthenticated,
   ensureHelpdesk,
-  appScan,
   protectClientRoutes,
   checkClientRouteExists,
   storeBapComboKeys,
