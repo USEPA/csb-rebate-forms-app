@@ -18,7 +18,7 @@
           }
         },
         "tags": [],
-        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+        "parameters": []
       }
     },
     "/login/assert": {
@@ -38,7 +38,7 @@
           }
         },
         "tags": [],
-        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+        "parameters": []
       }
     },
     "/login/fail": {
@@ -50,7 +50,7 @@
           }
         },
         "tags": [],
-        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+        "parameters": []
       }
     },
     "/logout": {
@@ -62,7 +62,7 @@
           }
         },
         "tags": [],
-        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+        "parameters": []
       }
     },
     "/logout/callback": {
@@ -74,7 +74,7 @@
           }
         },
         "tags": [],
-        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+        "parameters": []
       },
       "post": {
         "summary": "/logout/callback",
@@ -84,7 +84,7 @@
           }
         },
         "tags": [],
-        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+        "parameters": []
       }
     },
     "/metadata": {
@@ -103,7 +103,7 @@
           }
         },
         "tags": [],
-        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+        "parameters": []
       }
     },
     "/api/status/app": {
@@ -115,7 +115,7 @@
           }
         },
         "tags": [],
-        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+        "parameters": []
       }
     },
     "/api/status/bap/sam": {
@@ -127,7 +127,7 @@
           }
         },
         "tags": [],
-        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+        "parameters": []
       }
     },
     "/api/status/formio/2022/frf": {
@@ -139,7 +139,7 @@
           }
         },
         "tags": [],
-        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+        "parameters": []
       }
     },
     "/api/status/formio/2022/prf": {
@@ -151,7 +151,7 @@
           }
         },
         "tags": [],
-        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+        "parameters": []
       }
     },
     "/api/status/formio/2022/crf": {
@@ -163,7 +163,7 @@
           }
         },
         "tags": [],
-        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+        "parameters": []
       }
     },
     "/api/status/formio/2023/frf": {
@@ -175,7 +175,7 @@
           }
         },
         "tags": [],
-        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+        "parameters": []
       }
     },
     "/api/help/formio/{rebateYear}/{formType}/{id}": {
@@ -205,8 +205,7 @@
             "schema": {
               "type": "string"
             }
-          },
-          { "$ref": "#/components/parameters/scan" }
+          }
         ],
         "responses": {
           "200": {
@@ -276,7 +275,7 @@
           }
         },
         "tags": [],
-        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+        "parameters": []
       }
     },
     "/api/user": {
@@ -325,7 +324,7 @@
           }
         },
         "tags": [],
-        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+        "parameters": []
       }
     },
     "/api/config": {
@@ -366,7 +365,7 @@
           }
         },
         "tags": [],
-        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+        "parameters": []
       }
     },
     "/api/bap/sam": {
@@ -397,7 +396,7 @@
           }
         },
         "tags": [],
-        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+        "parameters": []
       }
     },
     "/api/bap/submissions": {
@@ -419,7 +418,7 @@
           }
         },
         "tags": [],
-        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+        "parameters": []
       }
     },
     "/api/formio/nces/{searchText}": {
@@ -446,8 +445,7 @@
             "schema": {
               "type": "string"
             }
-          },
-          { "$ref": "#/components/parameters/scan" }
+          }
         ]
       }
     },
@@ -484,8 +482,7 @@
             "schema": {
               "type": "string"
             }
-          },
-          { "$ref": "#/components/parameters/scan" }
+          }
         ]
       },
       "post": {
@@ -520,8 +517,7 @@
             "schema": {
               "type": "string"
             }
-          },
-          { "$ref": "#/components/parameters/scan" }
+          }
         ]
       }
     },
@@ -544,7 +540,7 @@
           }
         },
         "tags": [],
-        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+        "parameters": []
       }
     },
     "/api/formio/2022/frf-submission": {
@@ -566,7 +562,7 @@
           }
         },
         "tags": [],
-        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+        "parameters": []
       }
     },
     "/api/formio/2022/frf-submission/{mongoId}": {
@@ -580,8 +576,7 @@
             "schema": {
               "type": "string"
             }
-          },
-          { "$ref": "#/components/parameters/scan" }
+          }
         ],
         "responses": {
           "200": {
@@ -628,8 +623,7 @@
             "schema": {
               "type": "string"
             }
-          },
-          { "$ref": "#/components/parameters/scan" }
+          }
         ],
         "responses": {
           "200": {
@@ -665,7 +659,7 @@
           }
         },
         "tags": [],
-        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+        "parameters": []
       }
     },
     "/api/formio/2022/prf-submission": {
@@ -687,7 +681,7 @@
           }
         },
         "tags": [],
-        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+        "parameters": []
       }
     },
     "/api/formio/2022/prf-submission/{rebateId}": {
@@ -701,8 +695,7 @@
             "schema": {
               "type": "string"
             }
-          },
-          { "$ref": "#/components/parameters/scan" }
+          }
         ],
         "responses": {
           "200": {
@@ -749,8 +742,7 @@
             "schema": {
               "type": "string"
             }
-          },
-          { "$ref": "#/components/parameters/scan" }
+          }
         ],
         "responses": {
           "200": {
@@ -783,7 +775,7 @@
           }
         },
         "tags": [],
-        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+        "parameters": []
       }
     },
     "/api/formio/2022/crf-submissions": {
@@ -805,7 +797,7 @@
           }
         },
         "tags": [],
-        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+        "parameters": []
       }
     },
     "/api/formio/2022/crf-submission": {
@@ -827,7 +819,7 @@
           }
         },
         "tags": [],
-        "parameters": [{ "$ref": "#/components/parameters/scan" }]
+        "parameters": []
       }
     },
     "/api/formio/2022/crf-submission/{rebateId}": {
@@ -841,8 +833,7 @@
             "schema": {
               "type": "string"
             }
-          },
-          { "$ref": "#/components/parameters/scan" }
+          }
         ],
         "responses": {
           "200": {
@@ -889,8 +880,7 @@
             "schema": {
               "type": "string"
             }
-          },
-          { "$ref": "#/components/parameters/scan" }
+          }
         ],
         "responses": {
           "200": {
@@ -910,16 +900,6 @@
   },
   "tags": [],
   "components": {
-    "parameters": {
-      "scan": {
-        "in": "query",
-        "name": "scan",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "enum": ["true"]
-        }
-      }
-    }
+    "parameters": {}
   }
 }
