@@ -11,11 +11,7 @@ const passport = require("passport");
 const errorHandler = require("./utilities/errorHandler");
 const log = require("./utilities/logger");
 const samlStrategy = require("./config/samlStrategy");
-const {
-  appScan,
-  protectClientRoutes,
-  checkClientRouteExists,
-} = require("./middleware");
+const { protectClientRoutes, checkClientRouteExists } = require("./middleware");
 const routes = require("./routes");
 
 const {
@@ -90,14 +86,6 @@ app.disable("x-powered-by");
 if (NODE_ENV === "development") {
   app.use(cors({ origin: CLIENT_URL, credentials: true }));
   app.use(morgan("dev"));
-}
-
-/**
- * Apply global middleware on dev/staging in order for scan to receive 200
- * status on all endpoints
- */
-if (CLOUD_SPACE === "dev" || CLOUD_SPACE === "staging") {
-  app.use(appScan);
 }
 
 app.use(express.json({ limit: JSON_PAYLOAD_LIMIT || "5mb" }));
