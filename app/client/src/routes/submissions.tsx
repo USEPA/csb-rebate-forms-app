@@ -418,7 +418,9 @@ function PRF2022Submission(props: {
         <th scope="row" colSpan={6}>
           <button
             className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
+            disabled={!prfSubmissionPeriodOpen}
             onClick={(ev) => {
+              if (!prfSubmissionPeriodOpen) return;
               if (!frf.bap || !entity) return;
 
               // account for when data is posting to prevent double submits
@@ -651,7 +653,9 @@ function CRF2022Submission(props: {
         <th scope="row" colSpan={6}>
           <button
             className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
+            disabled={!crfSubmissionPeriodOpen}
             onClick={(ev) => {
+              if (!crfSubmissionPeriodOpen) return;
               if (!frf.bap || !prf.bap || !entity) return;
 
               // account for when data is posting to prevent double submits
