@@ -1,7 +1,7 @@
 {
-  "name": "epa-csb",
+  "name": "epa-csb-rebate-forms-app",
   "version": "4.0.0",
-  "description": "U.S. EPA Clean School Bus data collection system",
+  "description": "U.S. EPA CSB Rebate Forms Application",
   "license": "CC0-1.0",
   "author": "USEPA (https://www.epa.gov)",
   "contributors": [
