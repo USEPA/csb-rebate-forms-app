@@ -1,24 +1,24 @@
 const {
   NODE_ENV,
-  REACT_APP_SERVER_BASE_PATH,
-  REACT_APP_CLOUD_SPACE,
-  REACT_APP_FORMIO_BASE_URL,
-  REACT_APP_FORMIO_PROJECT_NAME,
-} = process.env;
+  VITE_SERVER_BASE_PATH,
+  VITE_CLOUD_SPACE,
+  VITE_FORMIO_BASE_URL,
+  VITE_FORMIO_PROJECT_NAME,
+} = import.meta.env;
 
-if (!REACT_APP_FORMIO_BASE_URL) {
-  const message = `Required REACT_APP_FORMIO_BASE_URL environment variable not found.`;
+if (!VITE_FORMIO_BASE_URL) {
+  const message = `Required VITE_FORMIO_BASE_URL environment variable not found.`;
   throw new Error(message);
 }
 
-if (!REACT_APP_FORMIO_PROJECT_NAME) {
-  const message = `Required REACT_APP_FORMIO_PROJECT_NAME environment variable not found.`;
+if (!VITE_FORMIO_PROJECT_NAME) {
+  const message = `Required VITE_FORMIO_PROJECT_NAME environment variable not found.`;
   throw new Error(message);
 }
 
 // allows the app to be accessed from a sub directory of a server (e.g. /csb)
 export const serverBasePath =
-  NODE_ENV === "development" ? "" : REACT_APP_SERVER_BASE_PATH || "";
+  NODE_ENV === "development" ? "" : VITE_SERVER_BASE_PATH || "";
 
 // NOTE: This app is configured to use [Create React App's proxy setup]
 // (https://create-react-app.dev/docs/proxying-api-requests-in-development/)
@@ -40,11 +40,11 @@ export const serverUrlForHrefs =
   NODE_ENV === "development" ? "http://localhost:3001" : serverUrl;
 
 export const cloudSpace =
-  NODE_ENV === "development" ? "dev" : REACT_APP_CLOUD_SPACE || "";
+  NODE_ENV === "development" ? "dev" : VITE_CLOUD_SPACE || "";
 
-export const formioBaseUrl = REACT_APP_FORMIO_BASE_URL;
+export const formioBaseUrl = VITE_FORMIO_BASE_URL;
 
-const formioProjectName = REACT_APP_FORMIO_PROJECT_NAME;
+const formioProjectName = VITE_FORMIO_PROJECT_NAME;
 
 export const formioProjectUrl = `${formioBaseUrl}/${formioProjectName}`;
 
