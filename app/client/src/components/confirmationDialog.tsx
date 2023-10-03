@@ -2,7 +2,7 @@ import { Fragment, useRef } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 // ---
-import { useDialogState, useDialogActions } from "contexts/dialog";
+import { useDialogState, useDialogActions } from "@/contexts/dialog";
 
 export function ConfirmationDialog() {
   const {
@@ -57,7 +57,7 @@ export function ConfirmationDialog() {
               <Dialog.Panel className="tw-relative tw-transform tw-overflow-hidden tw-rounded-lg tw-bg-white tw-p-4 tw-shadow-xl tw-transition-all sm:tw-w-full sm:tw-max-w-md sm:tw-p-6">
                 {dismissable && dismissText && (
                   <div className="twpf">
-                    <div className="tw-absolute tw-top-0 tw-right-0 tw-pt-4 tw-pr-4">
+                    <div className="tw-absolute tw-right-0 tw-top-0 tw-pr-4 tw-pt-4">
                       <button
                         type="button"
                         className="tw-rounded-md tw-bg-white tw-text-gray-400 tw-transition-none hover:tw-text-gray-700 focus:tw-text-gray-700"

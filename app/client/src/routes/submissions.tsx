@@ -3,7 +3,7 @@ import type { LinkProps } from "react-router-dom";
 import { Link, useNavigate, useOutletContext } from "react-router-dom";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl, messages } from "../config";
+import { serverUrl, messages } from "@/config";
 import {
   Rebate,
   postData,
@@ -14,17 +14,17 @@ import {
   useSubmissions,
   submissionNeedsEdits,
   getUserInfo,
-} from "../utilities";
-import { Loading, LoadingButtonIcon } from "components/loading";
-import { Message } from "components/message";
-import { MarkdownContent } from "components/markdownContent";
-import { TextWithTooltip } from "components/tooltip";
-import { useNotificationsActions } from "contexts/notifications";
+} from "@/utilities";
+import { Loading, LoadingButtonIcon } from "@/components/loading";
+import { Message } from "@/components/message";
+import { MarkdownContent } from "@/components/markdownContent";
+import { TextWithTooltip } from "@/components/tooltip";
+import { useNotificationsActions } from "@/contexts/notifications";
 import {
   RebateYear,
   useRebateYearState,
   useRebateYearActions,
-} from "contexts/rebateYear";
+} from "@/contexts/rebateYear";
 
 const defaultTableRowClassNames = "bg-gray-5";
 const highlightedTableRowClassNames = "bg-primary-lighter";

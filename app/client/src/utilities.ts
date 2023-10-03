@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useQueryClient, useQuery, useQueries } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 // ---
-import { serverUrl, serverUrlForHrefs } from "./config";
+import { serverUrl, serverUrlForHrefs } from "@/config";
 
 type RebateYear = "2022" | "2023";
 
@@ -368,7 +368,7 @@ export function useSubmissionsQueries(rebateYear: RebateYear) {
             frfs: [] as BapFormSubmission[],
             prfs: [] as BapFormSubmission[],
             crfs: [] as BapFormSubmission[],
-          }
+          },
         );
 
         return Promise.resolve(submissions);

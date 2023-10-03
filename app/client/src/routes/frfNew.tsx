@@ -4,7 +4,7 @@ import { Dialog, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl, messages } from "../config";
+import { serverUrl, messages } from "@/config";
 import {
   BapSamEntity,
   FormioFRF2022Submission,
@@ -14,12 +14,12 @@ import {
   useConfigData,
   useBapSamData,
   getUserInfo,
-} from "../utilities";
-import { Loading, LoadingButtonIcon } from "components/loading";
-import { Message } from "components/message";
-import { MarkdownContent } from "components/markdownContent";
-import { TextWithTooltip } from "components/tooltip";
-import { useRebateYearState } from "contexts/rebateYear";
+} from "@/utilities";
+import { Loading, LoadingButtonIcon } from "@/components/loading";
+import { Message } from "@/components/message";
+import { MarkdownContent } from "@/components/markdownContent";
+import { TextWithTooltip } from "@/components/tooltip";
+import { useRebateYearState } from "@/contexts/rebateYear";
 
 /**
  * Creates the initial FRF submission data for a given rebate year
@@ -267,7 +267,7 @@ export function FRFNew() {
                                           | FormioFRF2023Submission
                                         >(
                                           `${serverUrl}/api/formio/${rebateYear}/frf-submission/`,
-                                          { data, state: "draft" }
+                                          { data, state: "draft" },
                                         )
                                           .then((res) => {
                                             const url = `/frf/${rebateYear}/${res._id}`;

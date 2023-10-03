@@ -7,7 +7,7 @@ import s3 from "formiojs/providers/storage/s3";
 import { cloneDeep, isEqual } from "lodash";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl, messages } from "../config";
+import { serverUrl, messages } from "@/config";
 import {
   FormioFRF2022Submission,
   getData,
@@ -19,13 +19,13 @@ import {
   useSubmissions,
   submissionNeedsEdits,
   getUserInfo,
-} from "../utilities";
-import { Loading } from "components/loading";
-import { Message } from "components/message";
-import { MarkdownContent } from "components/markdownContent";
-import { useDialogActions } from "contexts/dialog";
-import { useNotificationsActions } from "contexts/notifications";
-import { useRebateYearState } from "contexts/rebateYear";
+} from "@/utilities";
+import { Loading } from "@/components/loading";
+import { Message } from "@/components/message";
+import { MarkdownContent } from "@/components/markdownContent";
+import { useDialogActions } from "@/contexts/dialog";
+import { useNotificationsActions } from "@/contexts/notifications";
+import { useRebateYearState } from "@/contexts/rebateYear";
 
 type ServerResponse =
   | {
@@ -98,7 +98,7 @@ function useFormioSubmissionQueryAndMutation(mongoId: string | undefined) {
           return prevData?.submission
             ? { ...prevData, submission: res }
             : prevData;
-        }
+        },
       );
     },
   });

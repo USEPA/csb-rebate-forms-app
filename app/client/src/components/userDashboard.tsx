@@ -1,14 +1,14 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Formio } from "@formio/react";
-import premium from "@formio/premium";
+import premium from "@formio/premium/lib/index.js";
 import uswds from "@formio/uswds";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrlForHrefs, formioBaseUrl, formioProjectUrl } from "../config";
-import { useConfigQuery, useBapSamQuery, useBapSamData } from "../utilities";
-import { useHelpdeskAccess } from "components/app";
-import { Loading } from "components/loading";
-import { useDialogActions } from "contexts/dialog";
+import { serverUrlForHrefs, formioBaseUrl, formioProjectUrl } from "@/config";
+import { useConfigQuery, useBapSamQuery, useBapSamData } from "@/utilities";
+import { useHelpdeskAccess } from "@/components/app";
+import { Loading } from "@/components/loading";
+import { useDialogActions } from "@/contexts/dialog";
 
 Formio.setBaseUrl(formioBaseUrl);
 Formio.setProjectUrl(formioProjectUrl);

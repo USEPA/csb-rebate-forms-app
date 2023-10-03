@@ -1,7 +1,7 @@
 import { Component, ErrorInfo, ReactNode } from "react";
 // ---
-import { messages } from "../config";
-import { Message } from "components/message";
+import { messages } from "@/config";
+import { Message } from "@/components/message";
 
 type Props = {
   children: ReactNode;

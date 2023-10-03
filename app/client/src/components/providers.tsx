@@ -2,9 +2,9 @@ import type { ReactNode } from "react";
 import { Suspense, lazy, useState, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 // ---
-import { DialogProvider } from "contexts/dialog";
-import { NotificationsProvider } from "contexts/notifications";
-import { RebateYearProvider } from "contexts/rebateYear";
+import { DialogProvider } from "@/contexts/dialog";
+import { NotificationsProvider } from "@/contexts/notifications";
+import { RebateYearProvider } from "@/contexts/rebateYear";
 
 declare global {
   interface Window {

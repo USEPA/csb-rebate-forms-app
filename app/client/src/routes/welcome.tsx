@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrlForHrefs, messages } from "../config";
-import { Message } from "components/message";
+import { serverUrlForHrefs, messages } from "@/config";
+import { Message } from "@/components/message";
 
 export function Welcome() {
   const [searchParams, setSearchParams] = useSearchParams();
