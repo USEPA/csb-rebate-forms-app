@@ -4,7 +4,7 @@ import premium from "@formio/premium/lib/index.js";
 import uswds from "@formio/uswds";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrlForHrefs, formioBaseUrl, formioProjectUrl } from "@/config";
+import { serverUrl, formioBaseUrl, formioProjectUrl } from "@/config";
 import { useConfigQuery, useBapSamQuery, useBapSamData } from "@/utilities";
 import { useHelpdeskAccess } from "@/components/app";
 import { Loading } from "@/components/loading";
@@ -170,7 +170,7 @@ export function UserDashboard(props: { email: string }) {
           </div>
 
           <div className="margin-bottom-1 mobile-lg:margin-left-1">
-            <a className={btnClassNames} href={`${serverUrlForHrefs}/logout`}>
+            <a className={btnClassNames} href={`${serverUrl}/logout`}>
               <SignOutIconText />
             </a>
           </div>

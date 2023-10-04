@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useQueryClient, useQuery, useQueries } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 // ---
-import { serverUrl, serverUrlForHrefs } from "@/config";
+import { serverUrl } from "@/config";
 
 type RebateYear = "2022" | "2023";
 
@@ -326,11 +326,11 @@ export function useBapSamQuery() {
     queryFn: () => getData<BapSamData>(`${serverUrl}/api/bap/sam`),
     onSuccess: (res) => {
       if (!res.results) {
-        window.location.href = `${serverUrlForHrefs}/logout?RelayState=/welcome?info=bap-sam-results`;
+        window.location.href = `${serverUrl}/logout?RelayState=/welcome?info=bap-sam-results`;
       }
     },
     onError: (err) => {
-      window.location.href = `${serverUrlForHrefs}/logout?RelayState=/welcome?error=bap-sam-fetch`;
+      window.location.href = `${serverUrl}/logout?RelayState=/welcome?error=bap-sam-fetch`;
     },
     refetchOnWindowFocus: false,
   });

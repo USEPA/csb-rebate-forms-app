@@ -22,9 +22,6 @@ export const serverBasePath =
 
 export const serverUrl = window.location.origin + serverBasePath;
 
-export const serverUrlForHrefs =
-  MODE === "development" ? "http://localhost:3001" : serverUrl;
-
 export const cloudSpace =
   MODE === "development" ? "dev" : VITE_CLOUD_SPACE || "";
 

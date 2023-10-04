@@ -19,12 +19,7 @@ import "@formio/choices.js/public/assets/styles/choices.min.css";
 import "@formio/premium/dist/premium.css";
 import "formiojs/dist/formio.full.min.css";
 // ---
-import {
-  serverBasePath,
-  serverUrlForHrefs,
-  cloudSpace,
-  messages,
-} from "@/config";
+import { serverBasePath, serverUrl, cloudSpace, messages } from "@/config";
 import {
   useContentQuery,
   useContentData,
@@ -167,7 +162,7 @@ function useInactivityDialog(callback: () => void) {
   useEffect(() => {
     /** log the user out if the inactivity countdown reaches zero. */
     if (countdownSeconds <= 0) {
-      window.location.href = `${serverUrlForHrefs}/logout?RelayState=/welcome?info=timeout`;
+      window.location.href = `${serverUrl}/logout?RelayState=/welcome?info=timeout`;
     }
 
     /** update the inactivity warning's countdown time remaining every second. */
