@@ -263,7 +263,7 @@ function PaymentRequestForm(props: { email: string }) {
         </li>
       </ul>
 
-      <Dialog as="div" open={dataIsPosting.current} onClose={(ev) => {}}>
+      <Dialog as="div" open={dataIsPosting.current} onClose={(_value) => {}}>
         <div className="tw-fixed tw-inset-0 tw-bg-black/30" />
         <div className="tw-fixed tw-inset-0 tw-z-20">
           <div className="tw-flex tw-min-h-full tw-items-center tw-justify-center">
@@ -326,7 +326,7 @@ function PaymentRequestForm(props: { email: string }) {
             pendingSubmissionData.current = data;
 
             mutation.mutate(updatedSubmission, {
-              onSuccess: (res, payload, context) => {
+              onSuccess: (res, _payload, _context) => {
                 pendingSubmissionData.current = {};
                 lastSuccesfullySubmittedData.current = cloneDeep(res.data);
 
@@ -361,7 +361,7 @@ function PaymentRequestForm(props: { email: string }) {
                   setTimeout(() => dismissNotification({ id }), 5000);
                 }
               },
-              onError: (error, payload, context) => {
+              onError: (_error, _payload, _context) => {
                 displayErrorNotification({
                   id: Date.now(),
                   body: (
@@ -375,7 +375,7 @@ function PaymentRequestForm(props: { email: string }) {
                   ),
                 });
               },
-              onSettled: (data, error, payload, context) => {
+              onSettled: (_data, _error, _payload, _context) => {
                 dataIsPosting.current = false;
                 formIsBeingSubmitted.current = false;
               },
@@ -441,7 +441,7 @@ function PaymentRequestForm(props: { email: string }) {
             pendingSubmissionData.current = data;
 
             mutation.mutate(updatedSubmission, {
-              onSuccess: (res, payload, context) => {
+              onSuccess: (res, _payload, _context) => {
                 pendingSubmissionData.current = {};
                 lastSuccesfullySubmittedData.current = cloneDeep(res.data);
 
@@ -459,7 +459,7 @@ function PaymentRequestForm(props: { email: string }) {
 
                 setTimeout(() => dismissNotification({ id }), 5000);
               },
-              onError: (error, payload, context) => {
+              onError: (_error, _payload, _context) => {
                 displayErrorNotification({
                   id: Date.now(),
                   body: (
@@ -469,7 +469,7 @@ function PaymentRequestForm(props: { email: string }) {
                   ),
                 });
               },
-              onSettled: (data, error, payload, context) => {
+              onSettled: (_data, _error, _payload, _context) => {
                 dataIsPosting.current = false;
               },
             });

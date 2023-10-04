@@ -419,7 +419,7 @@ function PRF2022Submission(props: {
           <button
             className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
             disabled={!prfSubmissionPeriodOpen}
-            onClick={(ev) => {
+            onClick={(_ev) => {
               if (!prfSubmissionPeriodOpen) return;
               if (!frf.bap || !entity) return;
 
@@ -440,10 +440,10 @@ function PRF2022Submission(props: {
                 frfReviewItemId: frf.bap.reviewItemId, // CSB Rebate ID with form/version ID (9 digits)
                 frfFormModified: frf.bap.modified,
               })
-                .then((res) => {
+                .then((_res) => {
                   navigate(`/prf/2022/${frf.bap?.rebateId}`);
                 })
-                .catch((err) => {
+                .catch((_err) => {
                   displayErrorNotification({
                     id: Date.now(),
                     body: (
@@ -654,7 +654,7 @@ function CRF2022Submission(props: {
           <button
             className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
             disabled={!crfSubmissionPeriodOpen}
-            onClick={(ev) => {
+            onClick={(_ev) => {
               if (!crfSubmissionPeriodOpen) return;
               if (!frf.bap || !prf.bap || !entity) return;
 
@@ -676,10 +676,10 @@ function CRF2022Submission(props: {
                 prfReviewItemId: prf.bap.reviewItemId, // CSB Rebate ID with form/version ID (9 digits)
                 prfModified: prf.bap.modified,
               })
-                .then((res) => {
+                .then((_res) => {
                   navigate(`/crf/2022/${prf.bap?.rebateId}`);
                 })
-                .catch((err) => {
+                .catch((_err) => {
                   displayErrorNotification({
                     id: Date.now(),
                     body: (

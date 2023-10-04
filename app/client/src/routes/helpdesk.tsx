@@ -161,7 +161,7 @@ export function Helpdesk() {
   const query = useQuery({
     queryKey: ["helpdesk"],
     queryFn: () => getData<ServerResponse>(url),
-    onSuccess: (res) => setResultDisplayed(true),
+    onSuccess: (_res) => setResultDisplayed(true),
     enabled: false,
   });
 

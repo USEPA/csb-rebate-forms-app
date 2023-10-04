@@ -26,7 +26,7 @@ export function ConfirmationDialog() {
         className="tw-relative tw-z-10"
         initialFocus={cancelRef}
         open={dialogShown}
-        onClose={(ev) => {
+        onClose={(_ev) => {
           dismissable && dismissedAction && dismissedAction();
           dismissable && resetDialog();
         }}
@@ -61,7 +61,7 @@ export function ConfirmationDialog() {
                       <button
                         type="button"
                         className="tw-rounded-md tw-bg-white tw-text-gray-400 tw-transition-none hover:tw-text-gray-700 focus:tw-text-gray-700"
-                        onClick={(ev) => {
+                        onClick={(_ev) => {
                           dismissedAction && dismissedAction();
                           resetDialog();
                         }}
@@ -86,7 +86,7 @@ export function ConfirmationDialog() {
                       <li className="usa-button-group__item">
                         <button
                           className="usa-button"
-                          onClick={(ev) => {
+                          onClick={(_ev) => {
                             confirmedAction();
                             resetDialog();
                           }}
@@ -99,7 +99,7 @@ export function ConfirmationDialog() {
                         <li className="usa-button-group__item">
                           <button
                             className="usa-button"
-                            onClick={(ev) => {
+                            onClick={(_ev) => {
                               dismissedAction && dismissedAction();
                               resetDialog();
                             }}

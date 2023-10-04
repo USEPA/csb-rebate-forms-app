@@ -329,7 +329,7 @@ export function useBapSamQuery() {
         window.location.href = `${serverUrl}/logout?RelayState=/welcome?info=bap-sam-results`;
       }
     },
-    onError: (err) => {
+    onError: (_err) => {
       window.location.href = `${serverUrl}/logout?RelayState=/welcome?error=bap-sam-fetch`;
     },
     refetchOnWindowFocus: false,

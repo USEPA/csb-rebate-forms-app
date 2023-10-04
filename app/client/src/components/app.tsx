@@ -240,10 +240,7 @@ export function App() {
         <Route path="helpdesk" element={<Helpdesk />} />
 
         {/* Redirect pre-v4 routes to use post-v4 routes */}
-        <Route
-          path="rebate/new"
-          loader={({ params }) => redirect(`/frf/new`)}
-        />
+        <Route path="rebate/new" loader={(_args) => redirect(`/frf/new`)} />
         <Route
           path="rebate/:id"
           loader={({ params }) => redirect(`/frf/2022/${params.id}`)}
