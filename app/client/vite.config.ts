@@ -35,6 +35,18 @@ export default ({ mode }) => {
         },
       },
     },
+    /*
+      NOTE:
+      The following is required to avoid a bug with a GitHub Action workflow
+      including `regenerator-runtime` in the build as an external dependency.
+
+      For reference, the GitHub Action workflow's log message stated:
+      "regenerator-runtime/runtime.js" is imported by "regenerator-runtime/runtime.js?commonjs-external",
+      but could not be resolved – treating it as an external dependency.
+    */
+    optimizeDeps: {
+      exclude: ["regenerator-runtime"],
+    },
     define: {
       "process.env": {},
     },
