@@ -9,7 +9,7 @@ import { XMarkIcon } from "@heroicons/react/20/solid";
 import {
   useNotificationsState,
   useNotificationsActions,
-} from "contexts/notifications";
+} from "@/contexts/notifications";
 
 export function Notifications() {
   const { displayed, type, body } = useNotificationsState();
