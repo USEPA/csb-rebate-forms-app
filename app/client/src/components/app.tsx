@@ -19,28 +19,33 @@ import "@formio/choices.js/public/assets/styles/choices.min.css";
 import "@formio/premium/dist/premium.css";
 import "formiojs/dist/formio.full.min.css";
 // ---
-import { serverBasePath, serverUrl, cloudSpace, messages } from "@/config";
+import {
+  serverBasePath,
+  serverUrlForHrefs,
+  cloudSpace,
+  messages,
+} from "../config";
 import {
   useContentQuery,
   useContentData,
   useUserQuery,
   useUserData,
-} from "@/utilities";
-import { Loading } from "@/components/loading";
-import { Message } from "@/components/message";
-import { MarkdownContent } from "@/components/markdownContent";
-import { Welcome } from "@/routes/welcome";
-import { UserDashboard } from "@/components/userDashboard";
-import { ConfirmationDialog } from "@/components/confirmationDialog";
-import { Notifications } from "@/components/notifications";
-import { Helpdesk } from "@/routes/helpdesk";
-import { Submissions } from "@/routes/submissions";
-import { FRFNew } from "@/routes/frfNew";
-import { FRF2022 } from "@/routes/frf2022";
-import { PRF2022 } from "@/routes/prf2022";
-import { CRF2022 } from "@/routes/crf2022";
-import { FRF2023 } from "@/routes/frf2023";
-import { useDialogState, useDialogActions } from "@/contexts/dialog";
+} from "../utilities";
+import { Loading } from "components/loading";
+import { Message } from "components/message";
+import { MarkdownContent } from "components/markdownContent";
+import { Welcome } from "routes/welcome";
+import { UserDashboard } from "components/userDashboard";
+import { ConfirmationDialog } from "components/confirmationDialog";
+import { Notifications } from "components/notifications";
+import { Helpdesk } from "routes/helpdesk";
+import { Submissions } from "routes/submissions";
+import { FRFNew } from "routes/frfNew";
+import { FRF2022 } from "routes/frf2022";
+import { PRF2022 } from "routes/prf2022";
+import { CRF2022 } from "routes/crf2022";
+import { FRF2023 } from "routes/frf2023";
+import { useDialogState, useDialogActions } from "contexts/dialog";
 
 /** Custom hook to display a site-wide alert banner */
 function useSiteAlertBanner() {
@@ -68,7 +73,7 @@ function useSiteAlertBanner() {
           }}
         />
       </div>,
-      container,
+      container
     );
   }, [content]);
 }
@@ -85,7 +90,7 @@ function useDisclaimerBanner() {
     banner.setAttribute("id", "csb-disclaimer-banner");
     banner.setAttribute(
       "class",
-      "padding-1 text-center text-white bg-secondary-dark",
+      "padding-1 text-center text-white bg-secondary-dark"
     );
     banner.innerHTML = `<strong>EPA development environment:</strong> The
       content on this page is not production data and this site is being used
@@ -162,7 +167,7 @@ function useInactivityDialog(callback: () => void) {
   useEffect(() => {
     /** log the user out if the inactivity countdown reaches zero. */
     if (countdownSeconds <= 0) {
-      window.location.href = `${serverUrl}/logout?RelayState=/welcome?info=timeout`;
+      window.location.href = `${serverUrlForHrefs}/logout?RelayState=/welcome?info=timeout`;
     }
 
     /** update the inactivity warning's countdown time remaining every second. */
@@ -174,7 +179,7 @@ function useInactivityDialog(callback: () => void) {
             You will be automatically logged out in{" "}
             {countdownSeconds > 0 ? countdownSeconds - 1 : countdownSeconds}{" "}
             seconds due to inactivity.
-          </p>,
+          </p>
         );
       }, 1000);
 
@@ -240,7 +245,10 @@ export function App() {
         <Route path="helpdesk" element={<Helpdesk />} />
 
         {/* Redirect pre-v4 routes to use post-v4 routes */}
-        <Route path="rebate/new" loader={(_args) => redirect(`/frf/new`)} />
+        <Route
+          path="rebate/new"
+          loader={({ params }) => redirect(`/frf/new`)}
+        />
         <Route
           path="rebate/:id"
           loader={({ params }) => redirect(`/frf/2022/${params.id}`)}
@@ -264,7 +272,7 @@ export function App() {
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
-    </Route>,
+    </Route>
   );
 
   const router = createBrowserRouter(routes, { basename: serverBasePath });

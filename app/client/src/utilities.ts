@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useQueryClient, useQuery, useQueries } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 // ---
-import { serverUrl } from "@/config";
+import { serverUrl, serverUrlForHrefs } from "./config";
 
 type RebateYear = "2022" | "2023";
 
@@ -326,11 +326,11 @@ export function useBapSamQuery() {
     queryFn: () => getData<BapSamData>(`${serverUrl}/api/bap/sam`),
     onSuccess: (res) => {
       if (!res.results) {
-        window.location.href = `${serverUrl}/logout?RelayState=/welcome?info=bap-sam-results`;
+        window.location.href = `${serverUrlForHrefs}/logout?RelayState=/welcome?info=bap-sam-results`;
       }
     },
-    onError: (_err) => {
-      window.location.href = `${serverUrl}/logout?RelayState=/welcome?error=bap-sam-fetch`;
+    onError: (err) => {
+      window.location.href = `${serverUrlForHrefs}/logout?RelayState=/welcome?error=bap-sam-fetch`;
     },
     refetchOnWindowFocus: false,
   });
@@ -368,7 +368,7 @@ export function useSubmissionsQueries(rebateYear: RebateYear) {
             frfs: [] as BapFormSubmission[],
             prfs: [] as BapFormSubmission[],
             crfs: [] as BapFormSubmission[],
-          },
+          }
         );
 
         return Promise.resolve(submissions);

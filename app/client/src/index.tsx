@@ -1,20 +1,18 @@
 import { StrictMode } from "react";
 import { render } from "react-dom";
-/*
-  NOTE: regenerator-runtime is imported to avoid a bug with a GitHub Action
-  workflow including regenerator-runtime in the build as an external dependency.
-  For reference, the GitHub Action workflow's log message stated:
-    "regenerator-runtime/runtime.js" is imported by
-    "regenerator-runtime/runtime.js?commonjs-external", but could not be
-    resolved – treating it as an external dependency.
-*/
-import "regenerator-runtime";
+import reportWebVitals from "./reportWebVitals";
 // ---
-import { ErrorBoundary } from "@/components/errorBoundary";
-import { Providers } from "@/components/providers";
-import { App } from "@/components/app";
-import "@/tailwind-preflight.css";
-import "@/styles.css";
+import { ErrorBoundary } from "components/errorBoundary";
+import { Providers } from "components/providers";
+import { App } from "components/app";
+import "./tailwind-preflight.css";
+import "./styles.css";
+
+declare global {
+  interface Window {
+    csb: any;
+  }
+}
 
 const container = document.getElementById("root") as HTMLElement;
 
@@ -31,3 +29,8 @@ function Index() {
 }
 
 render(<Index />, container);
+
+// If you want to start measuring performance in your app, pass a function
+// to log results (for example: reportWebVitals(console.log))
+// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
+reportWebVitals();

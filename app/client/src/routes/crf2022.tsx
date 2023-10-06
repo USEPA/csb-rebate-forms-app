@@ -7,7 +7,7 @@ import s3 from "formiojs/providers/storage/s3";
 import { cloneDeep, isEqual } from "lodash";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl, messages } from "@/config";
+import { serverUrl, messages } from "../config";
 import {
   FormioCRF2022Submission,
   getData,
@@ -19,12 +19,12 @@ import {
   useSubmissions,
   submissionNeedsEdits,
   getUserInfo,
-} from "@/utilities";
-import { Loading } from "@/components/loading";
-import { Message } from "@/components/message";
-import { MarkdownContent } from "@/components/markdownContent";
-import { useNotificationsActions } from "@/contexts/notifications";
-import { useRebateYearState } from "@/contexts/rebateYear";
+} from "../utilities";
+import { Loading } from "components/loading";
+import { Message } from "components/message";
+import { MarkdownContent } from "components/markdownContent";
+import { useNotificationsActions } from "contexts/notifications";
+import { useRebateYearState } from "contexts/rebateYear";
 
 type ServerResponse =
   | {
@@ -93,7 +93,7 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
           return prevData?.submission
             ? { ...prevData, submission: res }
             : prevData;
-        },
+        }
       );
     },
   });
@@ -242,7 +242,7 @@ function CloseOutRequestForm(props: { email: string }) {
         </li>
       </ul>
 
-      <Dialog as="div" open={dataIsPosting.current} onClose={(_value) => {}}>
+      <Dialog as="div" open={dataIsPosting.current} onClose={(ev) => {}}>
         <div className="tw-fixed tw-inset-0 tw-bg-black/30" />
         <div className="tw-fixed tw-inset-0 tw-z-20">
           <div className="tw-flex tw-min-h-full tw-items-center tw-justify-center">
@@ -299,7 +299,7 @@ function CloseOutRequestForm(props: { email: string }) {
             pendingSubmissionData.current = data;
 
             mutation.mutate(updatedSubmission, {
-              onSuccess: (res, _payload, _context) => {
+              onSuccess: (res, payload, context) => {
                 pendingSubmissionData.current = {};
                 lastSuccesfullySubmittedData.current = cloneDeep(res.data);
 
@@ -333,7 +333,7 @@ function CloseOutRequestForm(props: { email: string }) {
                   setTimeout(() => dismissNotification({ id }), 5000);
                 }
               },
-              onError: (_error, _payload, _context) => {
+              onError: (error, payload, context) => {
                 displayErrorNotification({
                   id: Date.now(),
                   body: (
@@ -347,7 +347,7 @@ function CloseOutRequestForm(props: { email: string }) {
                   ),
                 });
               },
-              onSettled: (_data, _error, _payload, _context) => {
+              onSettled: (data, error, payload, context) => {
                 dataIsPosting.current = false;
                 formIsBeingSubmitted.current = false;
               },
@@ -390,7 +390,7 @@ function CloseOutRequestForm(props: { email: string }) {
             pendingSubmissionData.current = data;
 
             mutation.mutate(updatedSubmission, {
-              onSuccess: (res, _payload, _context) => {
+              onSuccess: (res, payload, context) => {
                 pendingSubmissionData.current = {};
                 lastSuccesfullySubmittedData.current = cloneDeep(res.data);
 
@@ -408,7 +408,7 @@ function CloseOutRequestForm(props: { email: string }) {
 
                 setTimeout(() => dismissNotification({ id }), 5000);
               },
-              onError: (_error, _payload, _context) => {
+              onError: (error, payload, context) => {
                 displayErrorNotification({
                   id: Date.now(),
                   body: (
@@ -418,7 +418,7 @@ function CloseOutRequestForm(props: { email: string }) {
                   ),
                 });
               },
-              onSettled: (_data, _error, _payload, _context) => {
+              onSettled: (data, error, payload, context) => {
                 dataIsPosting.current = false;
               },
             });

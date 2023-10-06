@@ -1,7 +1,7 @@
 import { Component, ErrorInfo, ReactNode } from "react";
 // ---
-import { messages } from "@/config";
-import { Message } from "@/components/message";
+import { messages } from "../config";
+import { Message } from "components/message";
 
 type Props = {
   children: ReactNode;
@@ -16,7 +16,7 @@ export class ErrorBoundary extends Component<Props, State> {
     hasError: false,
   };
 
-  public static getDerivedStateFromError(_error: Error): State {
+  public static getDerivedStateFromError(error: Error): State {
     return { hasError: true };
   }
 
