@@ -51,6 +51,7 @@
     "react-idle-timer": "5.7.2",
     "react-markdown": "8.0.7",
     "react-router-dom": "6.15.0",
+    "regenerator-runtime": "0.14.0",
     "remark-gfm": "3.0.1",
     "uswds": "2.14.0"
   }
