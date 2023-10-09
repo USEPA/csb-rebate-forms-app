@@ -304,6 +304,18 @@ export function useUserData() {
   return queryClient.getQueryData<UserData>(["user"]);
 }
 
+/** Custom hook to check if user should have access to the helpdesk page */
+export function useHelpdeskAccess() {
+  const user = useUserData();
+  const userRoles = user?.memberof.split(",") || [];
+
+  return !user
+    ? "pending"
+    : userRoles.includes("csb_admin") || userRoles.includes("csb_helpdesk")
+    ? "success"
+    : "failure";
+}
+
 /** Custom hook to fetch CSB config */
 export function useConfigQuery() {
   return useQuery({

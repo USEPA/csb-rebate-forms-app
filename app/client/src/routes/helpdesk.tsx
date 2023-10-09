@@ -22,9 +22,9 @@ import {
   getData,
   postData,
   useContentData,
+  useHelpdeskAccess,
   submissionNeedsEdits,
 } from "@/utilities";
-import { useHelpdeskAccess } from "@/components/app";
 import { Loading } from "@/components/loading";
 import { Message } from "@/components/message";
 import { MarkdownContent } from "@/components/markdownContent";
