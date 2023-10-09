@@ -1,12 +1,11 @@
 const log = require("./logger");
 
-const { CLIENT_URL, SERVER_URL } = process.env;
+const { NODE_ENV, CLIENT_URL, SERVER_URL } = process.env;
+const url = NODE_ENV === "development" ? CLIENT_URL : SERVER_URL;
 
 function errorHandler(err, req, res, next) {
   const logMessage = typeof err.toString === "function" ? err.toString() : err;
   log({ level: "error", message: logMessage, req });
-
-  const url = CLIENT_URL || SERVER_URL;
 
   /**
    * If user was trying to log in and an error occurred, return them back to
