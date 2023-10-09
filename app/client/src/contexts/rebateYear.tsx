@@ -1,10 +1,5 @@
-import {
-  Dispatch,
-  ReactNode,
-  createContext,
-  useContext,
-  useReducer,
-} from "react";
+import type { Dispatch, ReactNode } from "react";
+import { createContext, useContext, useReducer } from "react";
 
 type Props = {
   children: ReactNode;
