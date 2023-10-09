@@ -12,7 +12,7 @@ import {
   bapFRFStatusMap,
   bapPRFStatusMap,
   bapCRFStatusMap,
-} from "../config";
+} from "@/config";
 import {
   FormioFRF2022Submission,
   FormioPRF2022Submission,
@@ -23,17 +23,17 @@ import {
   postData,
   useContentData,
   submissionNeedsEdits,
-} from "../utilities";
-import { useHelpdeskAccess } from "components/app";
-import { Loading } from "components/loading";
-import { Message } from "components/message";
-import { MarkdownContent } from "components/markdownContent";
-import { TextWithTooltip } from "components/tooltip";
+} from "@/utilities";
+import { useHelpdeskAccess } from "@/components/app";
+import { Loading } from "@/components/loading";
+import { Message } from "@/components/message";
+import { MarkdownContent } from "@/components/markdownContent";
+import { TextWithTooltip } from "@/components/tooltip";
 import {
   RebateYear,
   useRebateYearState,
   useRebateYearActions,
-} from "contexts/rebateYear";
+} from "@/contexts/rebateYear";
 
 type FormType = "frf" | "prf" | "crf";
 
@@ -161,7 +161,7 @@ export function Helpdesk() {
   const query = useQuery({
     queryKey: ["helpdesk"],
     queryFn: () => getData<ServerResponse>(url),
-    onSuccess: (res) => setResultDisplayed(true),
+    onSuccess: (_res) => setResultDisplayed(true),
     enabled: false,
   });
 

@@ -17,7 +17,7 @@
     "prettier-plugin-tailwindcss": "0.5.4"
   },
   "scripts": {
-    "client": "cd client && npm run start",
+    "client": "cd client && npm run dev",
     "server": "cd server && npm start",
     "start": "concurrently -kc \"blue.dim,green.dim\" \"npm:server\" \"npm:client\""
   },
