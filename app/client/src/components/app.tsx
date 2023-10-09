@@ -183,18 +183,6 @@ function useInactivityDialog(callback: () => void) {
   }, [dialogShown, heading, countdownSeconds, updateDialogDescription]);
 }
 
-/** Custom hook to check if user should have access to the helpdesk page */
-export function useHelpdeskAccess() {
-  const user = useUserData();
-  const userRoles = user?.memberof.split(",") || [];
-
-  return !user
-    ? "pending"
-    : userRoles.includes("csb_admin") || userRoles.includes("csb_helpdesk")
-    ? "success"
-    : "failure";
-}
-
 function ProtectedRoute() {
   const { pathname } = useLocation();
 

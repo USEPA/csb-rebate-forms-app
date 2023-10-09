@@ -5,8 +5,12 @@ import uswds from "@formio/uswds";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, formioBaseUrl, formioProjectUrl } from "@/config";
-import { useConfigQuery, useBapSamQuery, useBapSamData } from "@/utilities";
-import { useHelpdeskAccess } from "@/components/app";
+import {
+  useHelpdeskAccess,
+  useConfigQuery,
+  useBapSamQuery,
+  useBapSamData,
+} from "@/utilities";
 import { Loading } from "@/components/loading";
 import { useDialogActions } from "@/contexts/dialog";
 
