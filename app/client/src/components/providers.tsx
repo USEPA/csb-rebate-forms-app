@@ -8,7 +8,7 @@ import { RebateYearProvider } from "@/contexts/rebateYear";
 
 declare global {
   interface Window {
-    csb: any;
+    csb?: { toggleReactQueryDevtools: () => void };
   }
 }
 
@@ -22,11 +22,12 @@ export function Providers(props: { children: ReactNode }) {
   const { children } = props;
 
   const [queryClient] = useState(() => new QueryClient());
-  const [devtoolsDisplayed, setDevtoolsDisplayed] = useState(false);
+  const [reactQueryDevtoolsShown, setReactQueryDevtoolsShown] = useState(false);
 
   useEffect(() => {
-    window.csb ??= {};
-    window.csb.toggleDevtools = () => setDevtoolsDisplayed((value) => !value);
+    window.csb ??= {
+      toggleReactQueryDevtools: () => setReactQueryDevtoolsShown((val) => !val),
+    };
   });
 
   return (
@@ -37,7 +38,7 @@ export function Providers(props: { children: ReactNode }) {
         </NotificationsProvider>
       </DialogProvider>
 
-      {devtoolsDisplayed && (
+      {reactQueryDevtoolsShown && (
         <Suspense fallback={null}>
           <ReactQueryDevtoolsProduction />
         </Suspense>

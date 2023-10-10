@@ -236,7 +236,7 @@ export type Rebate =
       };
     };
 
-async function fetchData<T = any>(url: string, options: RequestInit) {
+async function fetchData<T = unknown>(url: string, options: RequestInit) {
   try {
     const response = await fetch(url, options);
     const contentType = response.headers.get("content-type");
@@ -253,7 +253,7 @@ async function fetchData<T = any>(url: string, options: RequestInit) {
  * Fetches data and returns a promise containing JSON fetched from a provided
  * web service URL or handles any other OK response returned from the server
  */
-export function getData<T = any>(url: string) {
+export function getData<T = unknown>(url: string) {
   return fetchData<T>(url, {
     method: "GET",
     credentials: "include" as const,
@@ -264,7 +264,7 @@ export function getData<T = any>(url: string) {
  * Posts JSON data and returns a promise containing JSON fetched from a provided
  * web service URL or handles any other OK response returned from the server
  */
-export function postData<T = any>(url: string, data: object) {
+export function postData<T = unknown>(url: string, data: object) {
   return fetchData<T>(url, {
     method: "POST",
     credentials: "include" as const,

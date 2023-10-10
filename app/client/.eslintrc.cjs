@@ -13,9 +13,14 @@ module.exports = {
   parser: "@typescript-eslint/parser",
   plugins: ["react-refresh"],
   rules: {
+    "no-extra-boolean-cast": "off",
     "react-refresh/only-export-components": [
       "warn",
-      { allowConstantExport: true },
+      { allowConstantExport: true }, // allow export const foo = 4
+    ],
+    "@typescript-eslint/no-unused-vars": [
+      "warn",
+      { argsIgnorePattern: "^_" }, // ignore unused args starting with _
     ],
   },
 };
