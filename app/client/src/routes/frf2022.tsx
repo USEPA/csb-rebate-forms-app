@@ -63,7 +63,10 @@ function useFormioSubmissionQueryAndMutation(mongoId: string | undefined) {
          * https://github.com/formio/formio.js/blob/master/src/providers/storage/s3.js#L5
          * https://github.com/formio/formio.js/blob/master/src/providers/storage/xhr.js#L90
          */
-        Formio.Providers.providers.storage.s3 = function (formio: any) {
+        Formio.Providers.providers.storage.s3 = function (formio: {
+          formUrl: string;
+          [field: string]: unknown;
+        }) {
           const s3Formio = cloneDeep(formio);
           s3Formio.formUrl = `${serverUrl}/api/formio/2022/s3/frf/${mongoId}/${comboKey}`;
           return s3(s3Formio);
