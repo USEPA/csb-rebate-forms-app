@@ -1,3 +1,5 @@
+/* eslint-disable react-refresh/only-export-components */
+
 import type { Dispatch, ReactNode } from "react";
 import { createContext, useContext, useReducer } from "react";
 

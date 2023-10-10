@@ -18,7 +18,7 @@ import "@/styles.css";
 
 const container = document.getElementById("root") as HTMLElement;
 
-function Index() {
+export default function Index() {
   return (
     <StrictMode>
       <ErrorBoundary>
