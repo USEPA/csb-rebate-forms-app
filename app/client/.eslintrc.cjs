@@ -13,6 +13,7 @@ module.exports = {
   parser: "@typescript-eslint/parser",
   plugins: ["react-refresh"],
   rules: {
+    "no-extra-boolean-cast": "off",
     "react-refresh/only-export-components": [
       "warn",
       { allowConstantExport: true }, // allow export const foo = 4
