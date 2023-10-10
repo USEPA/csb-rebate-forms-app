@@ -69,10 +69,16 @@ function useFormioSubmissionQueryAndMutation(mongoId: string | undefined) {
           return s3(s3Formio);
         };
 
-        // remove `ncesDataSource` and `ncesDataLookup` fields
         const data = { ...res.submission?.data };
-        if (data.hasOwnProperty("ncesDataSource")) delete data.ncesDataSource;
-        if (data.hasOwnProperty("ncesDataLookup")) delete data.ncesDataLookup;
+
+        // remove `ncesDataSource` and `ncesDataLookup` fields
+        // (https://eslint.org/docs/latest/rules/no-prototype-builtins)
+        if (Object.prototype.hasOwnProperty.call(data, "ncesDataSource")) {
+          delete data.ncesDataSource;
+        }
+        if (Object.prototype.hasOwnProperty.call(data, "ncesDataLookup")) {
+          delete data.ncesDataLookup;
+        }
 
         return Promise.resolve({
           ...res,
@@ -423,8 +429,13 @@ function FundingRequestForm(props: { email: string }) {
             const data = { ...onSubmitSubmission.data };
 
             // remove `ncesDataSource` and `ncesDataLookup` fields
-            if (data.hasOwnProperty("ncesDataSource")) delete data.ncesDataSource; // prettier-ignore
-            if (data.hasOwnProperty("ncesDataLookup")) delete data.ncesDataLookup; // prettier-ignore
+            // (https://eslint.org/docs/latest/rules/no-prototype-builtins)
+            if (Object.prototype.hasOwnProperty.call(data, "ncesDataSource")) {
+              delete data.ncesDataSource;
+            }
+            if (Object.prototype.hasOwnProperty.call(data, "ncesDataLookup")) {
+              delete data.ncesDataLookup;
+            }
 
             const updatedSubmission = {
               ...onSubmitSubmission,
@@ -502,8 +513,13 @@ function FundingRequestForm(props: { email: string }) {
             const data = { ...onNextPageParam.submission.data };
 
             // remove `ncesDataSource` and `ncesDataLookup` fields
-            if (data.hasOwnProperty("ncesDataSource")) delete data.ncesDataSource; // prettier-ignore
-            if (data.hasOwnProperty("ncesDataLookup")) delete data.ncesDataLookup; // prettier-ignore
+            // (https://eslint.org/docs/latest/rules/no-prototype-builtins)
+            if (Object.prototype.hasOwnProperty.call(data, "ncesDataSource")) {
+              delete data.ncesDataSource;
+            }
+            if (Object.prototype.hasOwnProperty.call(data, "ncesDataLookup")) {
+              delete data.ncesDataLookup;
+            }
 
             // "dirty check" – don't post an update if no changes have been made
             // to the form (ignoring current user fields)
