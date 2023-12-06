@@ -842,7 +842,7 @@ function FRF2023Submission(props: {
   rebate: Extract<Rebate, { rebateYear: "2023" }>;
 }) {
   const { rebate } = props;
-  const { frf } = rebate;
+  const { frf, prf, crf } = rebate;
 
   const configData = useConfigData();
 
@@ -866,21 +866,15 @@ function FRF2023Submission(props: {
     bap: frf.bap,
   });
 
-  /**
-   * NOTE:
-   * Setting of the statuses below will occur once the BAP's 2023 FRF work has
-   * been completed, so the code below will be updated in the future.
-   */
+  const frfNeedsClarification = frf.bap?.status === "Needs Clarification";
 
-  const frfNeedsClarification = false; // frf.bap?.status === "Needs Clarification";
+  const frfHasBeenWithdrawn = frf.bap?.status === "Withdrawn";
 
-  const frfHasBeenWithdrawn = false; // frf.bap?.status === "Withdrawn";
+  const frfNotSelected = frf.bap?.status === "Coordinator Denied";
 
-  const frfNotSelected = false; // frf.bap?.status === "Coordinator Denied";
+  const frfSelected = frf.bap?.status === "Accepted";
 
-  const frfSelected = false; // frf.bap?.status === "Accepted";
-
-  const frfSelectedButNoPRF = false; // frfSelected && !Boolean(prf.formio);
+  const frfSelectedButNoPRF = frfSelected && !Boolean(prf.formio);
 
   const prfFundingApproved = false; // prf.bap?.status === "Accepted";
 
@@ -958,10 +952,16 @@ function FRF2023Submission(props: {
       </th>
 
       <td className={statusTableCellClassNames}>
-        <TextWithTooltip
-          text=" "
-          tooltip="Rebate ID will be displayed at a later date"
-        />
+        {frf.bap?.rebateId ? (
+          <span title={`Application ID: ${frf.formio._id}`}>
+            {frf.bap.rebateId}
+          </span>
+        ) : (
+          <TextWithTooltip
+            text=" "
+            tooltip="Rebate ID should be displayed within 24hrs. after submitting a rebate form application"
+          />
+        )}
       </td>
 
       <td className={statusTableCellClassNames}>
