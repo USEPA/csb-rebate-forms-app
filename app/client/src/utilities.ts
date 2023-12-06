@@ -76,9 +76,16 @@ type BapFormSubmission = {
   CSB_Review_Item_ID__c: string; // CSB Rebate ID with form/version ID (9 digits)
   Parent_Rebate_ID__c: string; // CSB Rebate ID (6 digits)
   Record_Type_Name__c:
-    | "CSB Funding Request"
-    | "CSB Payment Request"
-    | "CSB Close Out Request";
+    | "CSB Funding Request" // TODO: remove once BAP's update has been deployed
+    | "CSB Payment Request" // TODO: remove once BAP's update has been deployed
+    | "CSB Close Out Request" // TODO: remove once BAP's update has been deployed
+    | "CSB Funding Request 2022"
+    | "CSB Payment Request 2022"
+    | "CSB Close Out Request 2022"
+    | "CSB Funding Request 2023"
+    | "CSB Payment Request 2023"
+    | "CSB Close Out Request 2023";
+  Rebate_Program_Year__c: null | RebateYear;
   Parent_CSB_Rebate__r: {
     CSB_Funding_Request_Status__c: string;
     CSB_Payment_Request_Status__c: string;
@@ -86,6 +93,19 @@ type BapFormSubmission = {
     attributes: { type: string; url: string };
   };
   attributes: { type: string; url: string };
+};
+
+type BapFormSubmissions = {
+  2022: {
+    frfs: BapFormSubmission[];
+    prfs: BapFormSubmission[];
+    crfs: BapFormSubmission[];
+  };
+  2023: {
+    frfs: BapFormSubmission[];
+    prfs: BapFormSubmission[];
+    crfs: BapFormSubmission[];
+  };
 };
 
 type FormioSubmission = {
@@ -224,7 +244,7 @@ export type Rebate =
       rebateYear: "2023";
       frf: {
         formio: FormioFRF2023Submission;
-        bap: null;
+        bap: BapSubmission | null;
       };
       prf: {
         formio: null;
@@ -361,25 +381,54 @@ export function useSubmissionsQueries(rebateYear: RebateYear) {
     queryFn: () => {
       const url = `${serverUrl}/api/bap/submissions`;
       return getData<BapFormSubmission[]>(url).then((res) => {
+        const frfRecordTypeNames = [
+          "CSB Funding Request", // TODO: remove once BAP's update has been deployed
+          "CSB Funding Request 2022",
+          "CSB Funding Request 2023",
+        ];
+
+        const prfRecordTypeNames = [
+          "CSB Payment Request", // TODO: remove once BAP's update has been deployed
+          "CSB Payment Request 2022",
+          "CSB Payment Request 2023",
+        ];
+
+        const crfRecordTypeNames = [
+          "CSB Close Out Request", // TODO: remove once BAP's update has been deployed
+          "CSB Close Out Request 2022",
+          "CSB Close Out Request 2023",
+        ];
+
         const submissions = res.reduce(
           (object, submission) => {
-            const formType =
-              submission.Record_Type_Name__c === "CSB Funding Request"
-                ? "frfs"
-                : submission.Record_Type_Name__c === "CSB Payment Request"
-                ? "prfs"
-                : submission.Record_Type_Name__c === "CSB Close Out Request"
-                ? "crfs"
-                : null;
+            const { Record_Type_Name__c, Rebate_Program_Year__c } = submission;
 
-            if (formType) object[formType].push(submission);
+            const formType = frfRecordTypeNames.includes(Record_Type_Name__c)
+              ? "frfs"
+              : prfRecordTypeNames.includes(Record_Type_Name__c)
+              ? "prfs"
+              : crfRecordTypeNames.includes(Record_Type_Name__c)
+              ? "crfs"
+              : null;
+
+            const rebateYear =
+              Rebate_Program_Year__c === null ? "2022" : Rebate_Program_Year__c;
+
+            if (formType) object[rebateYear][formType].push(submission);
 
             return object;
           },
           {
-            frfs: [] as BapFormSubmission[],
-            prfs: [] as BapFormSubmission[],
-            crfs: [] as BapFormSubmission[],
+            2022: {
+              frfs: [] as BapFormSubmission[],
+              prfs: [] as BapFormSubmission[],
+              crfs: [] as BapFormSubmission[],
+            },
+            2023: {
+              frfs: [] as BapFormSubmission[],
+              prfs: [] as BapFormSubmission[],
+              crfs: [] as BapFormSubmission[],
+            },
           },
         );
 
@@ -428,11 +477,7 @@ export function useSubmissionsQueries(rebateYear: RebateYear) {
   type Query = {
     queryKey: string[];
     queryFn: () =>
-      | Promise<{
-          frfs: BapFormSubmission[];
-          prfs: BapFormSubmission[];
-          crfs: BapFormSubmission[];
-        }>
+      | Promise<BapFormSubmissions>
       | Promise<FormioFRF2022Submission[]>
       | Promise<FormioPRF2022Submission[]>
       | Promise<FormioCRF2022Submission[]>
@@ -444,20 +489,14 @@ export function useSubmissionsQueries(rebateYear: RebateYear) {
     rebateYear === "2022"
       ? [bapQuery, formioFRF2022Query, formioPRF2022Query, formioCRF2022Query]
       : rebateYear === "2023"
-      ? [formioFRF2023Query]
+      ? [bapQuery, formioFRF2023Query]
       : [];
 
   return useQueries({ queries });
 }
 
 function combine2022Submissions(options: {
-  bapFormSubmissions:
-    | {
-        frfs: BapFormSubmission[];
-        prfs: BapFormSubmission[];
-        crfs: BapFormSubmission[];
-      }
-    | undefined;
+  bapFormSubmissions: BapFormSubmissions | undefined;
   formioFRFSubmissions: FormioFRF2022Submission[] | undefined;
   formioPRFSubmissions: FormioPRF2022Submission[] | undefined;
   formioCRFSubmissions: FormioCRF2022Submission[] | undefined;
@@ -490,7 +529,7 @@ function combine2022Submissions(options: {
    * to be updated).
    */
   for (const formioFRFSubmission of formioFRFSubmissions) {
-    const bapMatch = bapFormSubmissions.frfs.find((bapFRFSubmission) => {
+    const bapMatch = bapFormSubmissions[2022].frfs.find((bapFRFSubmission) => {
       return bapFRFSubmission.CSB_Form_ID__c === formioFRFSubmission._id;
     });
 
@@ -537,7 +576,7 @@ function combine2022Submissions(options: {
   for (const formioPRFSubmission of formioPRFSubmissions) {
     const formioBapRebateId = formioPRFSubmission.data.hidden_bap_rebate_id;
 
-    const bapMatch = bapFormSubmissions.prfs.find((bapPRFSubmission) => {
+    const bapMatch = bapFormSubmissions[2022].prfs.find((bapPRFSubmission) => {
       return bapPRFSubmission.Parent_Rebate_ID__c === formioBapRebateId;
     });
 
@@ -570,7 +609,7 @@ function combine2022Submissions(options: {
   for (const formioCRFSubmission of formioCRFSubmissions) {
     const formioBapRebateId = formioCRFSubmission.data.hidden_bap_rebate_id;
 
-    const bapMatch = bapFormSubmissions.crfs.find((bapCRFSubmission) => {
+    const bapMatch = bapFormSubmissions[2022].crfs.find((bapCRFSubmission) => {
       return bapCRFSubmission.Parent_Rebate_ID__c === formioBapRebateId;
     });
 
@@ -593,12 +632,13 @@ function combine2022Submissions(options: {
 }
 
 function combine2023Submissions(options: {
+  bapFormSubmissions: BapFormSubmissions | undefined;
   formioFRFSubmissions: FormioFRF2023Submission[] | undefined;
 }) {
-  const { formioFRFSubmissions } = options;
+  const { bapFormSubmissions, formioFRFSubmissions } = options;
 
-  // ensure form submissions data has been fetched from Formio
-  if (!formioFRFSubmissions) {
+  // ensure form submissions data has been fetched from both the BAP and Formio
+  if (!bapFormSubmissions || !formioFRFSubmissions) {
     return {};
   }
 
@@ -607,16 +647,36 @@ function combine2023Submissions(options: {
   } = {};
 
   /**
-   * Iterate over Formio FRF submissions so we can build up each rebate object
-   * with the FRF submission data and initialize PRF and CRF submission data
-   * structure (both to be updated).
+   * Iterate over Formio FRF submissions, matching them with submissions
+   * returned from the BAP, so we can build up each rebate object with the FRF
+   * submission data and initialize PRF and CRF submission data structure (both
+   * to be updated).
    */
   for (const formioFRFSubmission of formioFRFSubmissions) {
-    rebates[`_${formioFRFSubmission._id}`] = {
+    const bapMatch = bapFormSubmissions[2023].frfs.find((bapFRFSubmission) => {
+      return bapFRFSubmission.CSB_Form_ID__c === formioFRFSubmission._id;
+    });
+
+    const modified = bapMatch?.CSB_Modified_Full_String__c || null;
+    const comboKey = bapMatch?.UEI_EFTI_Combo_Key__c || null;
+    const mongoId = bapMatch?.CSB_Form_ID__c || null;
+    const rebateId = bapMatch?.Parent_Rebate_ID__c || null;
+    const reviewItemId = bapMatch?.CSB_Review_Item_ID__c || null;
+    const status = bapMatch?.Parent_CSB_Rebate__r?.CSB_Funding_Request_Status__c || null; // prettier-ignore
+
+    /**
+     * NOTE: If new FRF submissions have been reciently created in Formio and
+     * the BAP's ETL process has not yet run to pickup those new Formio
+     * submissions, all of the fields above will be null, so instead of
+     * assigning the submission's key as `rebateId` (which will be null), we'll
+     * assign it to be an underscore concatenated with the Formio submission's
+     * mongoDB ObjectID – just so each submission object still has a unique ID.
+     */
+    rebates[rebateId || `_${formioFRFSubmission._id}`] = {
       rebateYear: "2023",
       frf: {
         formio: { ...formioFRFSubmission },
-        bap: null,
+        bap: { modified, comboKey, mongoId, rebateId, reviewItemId, status },
       },
       prf: { formio: null, bap: null },
       crf: { formio: null, bap: null },
@@ -634,11 +694,9 @@ function combine2023Submissions(options: {
 function useCombinedSubmissions(rebateYear: RebateYear) {
   const queryClient = useQueryClient();
 
-  const bapFormSubmissions = queryClient.getQueryData<{
-    frfs: BapFormSubmission[];
-    prfs: BapFormSubmission[];
-    crfs: BapFormSubmission[];
-  }>(["bap/submissions"]);
+  const bapFormSubmissions = queryClient.getQueryData<BapFormSubmissions>([
+    "bap/submissions",
+  ]);
 
   const formioFRF2022Submissions = queryClient.getQueryData<
     FormioFRF2022Submission[]
@@ -666,6 +724,7 @@ function useCombinedSubmissions(rebateYear: RebateYear) {
         })
       : rebateYear === "2023"
       ? combine2023Submissions({
+          bapFormSubmissions,
           formioFRFSubmissions: formioFRF2023Submissions,
         })
       : {};
