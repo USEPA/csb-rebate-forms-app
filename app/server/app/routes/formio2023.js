@@ -38,7 +38,7 @@ router.get(
   storeBapComboKeys,
   (req, res) => {
     downloadS3FileMetadata({ rebateYear: "2023", req, res });
-  }
+  },
 );
 
 // --- upload Formio S3 file metadata
@@ -47,7 +47,7 @@ router.post(
   storeBapComboKeys,
   (req, res) => {
     uploadS3FileMetadata({ rebateYear: "2023", req, res });
-  }
+  },
 );
 
 // --- get user's 2023 FRF submissions from Formio
@@ -67,7 +67,7 @@ router.get(
   storeBapComboKeys,
   (req, res) => {
     fetchFRFSubmission({ rebateYear: "2023", req, res });
-  }
+  },
 );
 
 // --- post an update to an existing draft 2023 FRF submission to Formio
@@ -77,7 +77,20 @@ router.post(
   storeBapComboKeys,
   (req, res) => {
     updateFRFSubmission({ rebateYear: "2023", req, res });
-  }
+  },
 );
+
+// --- get user's 2023 PRF submissions from Formio
+
+// --- post a new 2023 PRF submission to Formio
+
+// --- get an existing 2023 PRF's schema and submission data from Formio
+
+// --- post an update to an existing draft 2023 PRF submission to Formio
+
+// --- delete an existing 2023 PRF submission from Formio
+router.post("/delete-prf-submission", storeBapComboKeys, (req, res) => {
+  // TODO
+});
 
 module.exports = router;

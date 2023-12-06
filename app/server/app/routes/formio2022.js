@@ -41,7 +41,7 @@ router.get(
   storeBapComboKeys,
   (req, res) => {
     downloadS3FileMetadata({ rebateYear: "2022", req, res });
-  }
+  },
 );
 
 // --- upload Formio S3 file metadata
@@ -50,7 +50,7 @@ router.post(
   storeBapComboKeys,
   (req, res) => {
     uploadS3FileMetadata({ rebateYear: "2022", req, res });
-  }
+  },
 );
 
 // --- get user's 2022 FRF submissions from Formio
@@ -70,7 +70,7 @@ router.get(
   storeBapComboKeys,
   (req, res) => {
     fetchFRFSubmission({ rebateYear: "2022", req, res });
-  }
+  },
 );
 
 // --- post an update to an existing draft 2022 FRF submission to Formio
@@ -80,7 +80,7 @@ router.post(
   storeBapComboKeys,
   (req, res) => {
     updateFRFSubmission({ rebateYear: "2022", req, res });
-  }
+  },
 );
 
 // --- get user's 2022 PRF submissions from Formio
@@ -92,7 +92,7 @@ router.get("/prf-submissions", storeBapComboKeys, (req, res) => {
     `?sort=-modified` +
     `&limit=1000000` +
     `&data.bap_hidden_entity_combo_key=${bapComboKeys.join(
-      "&data.bap_hidden_entity_combo_key="
+      "&data.bap_hidden_entity_combo_key=",
     )}`;
 
   axiosFormio(req)
@@ -439,7 +439,7 @@ router.get("/crf-submissions", storeBapComboKeys, (req, res) => {
     `?sort=-modified` +
     `&limit=1000000` +
     `&data.bap_hidden_entity_combo_key=${bapComboKeys.join(
-      "&data.bap_hidden_entity_combo_key="
+      "&data.bap_hidden_entity_combo_key=",
     )}`;
 
   axiosFormio(req)
