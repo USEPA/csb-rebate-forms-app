@@ -5,7 +5,6 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages } from "@/config";
 import {
-  Rebate,
   postData,
   useContentData,
   useConfigData,
@@ -21,10 +20,19 @@ import { MarkdownContent } from "@/components/markdownContent";
 import { TextWithTooltip } from "@/components/tooltip";
 import { useNotificationsActions } from "@/contexts/notifications";
 import {
-  RebateYear,
   useRebateYearState,
   useRebateYearActions,
 } from "@/contexts/rebateYear";
+import type { RebateYear } from "@/contexts/rebateYear";
+import type {
+  FormioFRF2022Submission,
+  FormioPRF2022Submission,
+  FormioCRF2022Submission,
+  FormioFRF2023Submission,
+  // FormioPRF2023Submission,
+  // FormioCRF2023Submission,
+  Rebate,
+} from "@/utilities";
 
 const defaultTableRowClassNames = "bg-gray-5";
 const highlightedTableRowClassNames = "bg-primary-lighter";
@@ -129,9 +137,7 @@ function SubmissionsTableHeader() {
   );
 }
 
-function FRF2022Submission(props: {
-  rebate: Extract<Rebate, { rebateYear: "2022" }>;
-}) {
+function FRF2022Submission(props: { rebate: Rebate }) {
   const { rebate } = props;
   const { frf, prf, crf } = rebate;
 
@@ -148,7 +154,7 @@ function FRF2022Submission(props: {
     applicantOrganizationName,
     schoolDistrictName,
     last_updated_by,
-  } = frf.formio.data;
+  } = (frf.formio as FormioFRF2022Submission).data;
 
   const date = new Date(frf.formio.modified).toLocaleDateString();
   const time = new Date(frf.formio.modified).toLocaleTimeString();
@@ -376,9 +382,7 @@ save the form for the EFT indicator to be displayed. */
   );
 }
 
-function PRF2022Submission(props: {
-  rebate: Extract<Rebate, { rebateYear: "2022" }>;
-}) {
+function PRF2022Submission(props: { rebate: Rebate }) {
   const { rebate } = props;
   const { frf, prf, crf } = rebate;
 
@@ -406,10 +410,10 @@ function PRF2022Submission(props: {
 
   /** matched SAM.gov entity for the FRF submission */
   const entity = bapSamData.entities.find((entity) => {
-    return (
-      entity.ENTITY_STATUS__c === "Active" &&
-      entity.ENTITY_COMBO_KEY__c === frf.formio.data.bap_hidden_entity_combo_key
-    );
+    const { ENTITY_STATUS__c, ENTITY_COMBO_KEY__c } = entity;
+    const comboKey = (frf.formio as FormioFRF2022Submission).data
+      .bap_hidden_entity_combo_key;
+    return ENTITY_STATUS__c === "Active" && ENTITY_COMBO_KEY__c === comboKey;
   });
 
   if (frfSelectedButNoPRF) {
@@ -485,7 +489,10 @@ function PRF2022Submission(props: {
   // return if a Payment Request submission has not been created for this rebate
   if (!prf.formio) return null;
 
-  const { hidden_current_user_email, hidden_bap_rebate_id } = prf.formio.data;
+  const {
+    hidden_current_user_email,
+    hidden_bap_rebate_id, //
+  } = (prf.formio as FormioPRF2022Submission).data;
 
   const date = new Date(prf.formio.modified).toLocaleDateString();
   const time = new Date(prf.formio.modified).toLocaleTimeString();
@@ -610,9 +617,7 @@ function PRF2022Submission(props: {
   );
 }
 
-function CRF2022Submission(props: {
-  rebate: Extract<Rebate, { rebateYear: "2022" }>;
-}) {
+function CRF2022Submission(props: { rebate: Rebate }) {
   const { rebate } = props;
   const { frf, prf, crf } = rebate;
 
@@ -640,11 +645,10 @@ function CRF2022Submission(props: {
 
   /** matched SAM.gov entity for the PRF submission */
   const entity = bapSamData.entities.find((entity) => {
-    return (
-      entity.ENTITY_STATUS__c === "Active" &&
-      entity.ENTITY_COMBO_KEY__c ===
-        prf.formio?.data.bap_hidden_entity_combo_key
-    );
+    const { ENTITY_STATUS__c, ENTITY_COMBO_KEY__c } = entity;
+    const comboKey = (prf.formio as FormioPRF2022Submission | null)?.data
+      .bap_hidden_entity_combo_key;
+    return ENTITY_STATUS__c === "Active" && ENTITY_COMBO_KEY__c === comboKey;
   });
 
   if (prfFundingApprovedButNoCRF) {
@@ -720,7 +724,10 @@ function CRF2022Submission(props: {
   // return if a Close Out submission has not been created for this rebate
   if (!crf.formio) return null;
 
-  const { hidden_current_user_email, hidden_bap_rebate_id } = crf.formio.data;
+  const {
+    hidden_current_user_email,
+    hidden_bap_rebate_id, //
+  } = (crf.formio as FormioCRF2022Submission).data;
 
   const date = new Date(crf.formio.modified).toLocaleDateString();
   const time = new Date(crf.formio.modified).toLocaleTimeString();
@@ -838,9 +845,7 @@ function CRF2022Submission(props: {
   );
 }
 
-function FRF2023Submission(props: {
-  rebate: Extract<Rebate, { rebateYear: "2023" }>;
-}) {
+function FRF2023Submission(props: { rebate: Rebate }) {
   const { rebate } = props;
   const { frf, prf, crf } = rebate;
 
@@ -856,7 +861,7 @@ function FRF2023Submission(props: {
     appInfo_orgName,
     _formio_schoolDistrictName,
     _user_email,
-  } = frf.formio.data;
+  } = (frf.formio as FormioFRF2023Submission).data;
 
   const date = new Date(frf.formio.modified).toLocaleDateString();
   const time = new Date(frf.formio.modified).toLocaleTimeString();
@@ -876,9 +881,9 @@ function FRF2023Submission(props: {
 
   const frfSelectedButNoPRF = frfSelected && !Boolean(prf.formio);
 
-  const prfFundingApproved = false; // prf.bap?.status === "Accepted";
+  const prfFundingApproved = prf.bap?.status === "Accepted";
 
-  const prfFundingApprovedButNoCRF = prfFundingApproved; // prfFundingApproved && !Boolean(crf.formio);
+  const prfFundingApprovedButNoCRF = prfFundingApproved && !Boolean(crf.formio);
 
   const statusTableCellClassNames =
     frf.formio.state === "submitted" || !frfSubmissionPeriodOpen
