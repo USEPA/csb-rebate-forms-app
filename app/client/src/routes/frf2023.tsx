@@ -9,7 +9,6 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages } from "@/config";
 import {
-  FormioFRF2023Submission,
   getData,
   postData,
   useContentData,
@@ -26,6 +25,7 @@ import { MarkdownContent } from "@/components/markdownContent";
 import { useDialogActions } from "@/contexts/dialog";
 import { useNotificationsActions } from "@/contexts/notifications";
 import { useRebateYearState } from "@/contexts/rebateYear";
+import type { FormioFRF2023Submission } from "@/utilities";
 
 type ServerResponse =
   | {

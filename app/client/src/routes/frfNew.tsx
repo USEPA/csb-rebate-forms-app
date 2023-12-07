@@ -6,9 +6,6 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages } from "@/config";
 import {
-  BapSamEntity,
-  FormioFRF2022Submission,
-  FormioFRF2023Submission,
   postData,
   useContentData,
   useConfigData,
@@ -20,6 +17,11 @@ import { Message } from "@/components/message";
 import { MarkdownContent } from "@/components/markdownContent";
 import { TextWithTooltip } from "@/components/tooltip";
 import { useRebateYearState } from "@/contexts/rebateYear";
+import type {
+  BapSamEntity,
+  FormioFRF2022Submission,
+  FormioFRF2023Submission,
+} from "@/utilities";
 
 /**
  * Creates the initial FRF submission data for a given rebate year
