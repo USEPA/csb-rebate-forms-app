@@ -81,6 +81,10 @@ router.post(
 );
 
 // --- get user's 2023 PRF submissions from Formio
+router.get("/prf-submissions", storeBapComboKeys, (req, res) => {
+  // TODO
+  res.json([]);
+});
 
 // --- post a new 2023 PRF submission to Formio
 
@@ -92,5 +96,17 @@ router.post(
 router.post("/delete-prf-submission", storeBapComboKeys, (req, res) => {
   // TODO
 });
+
+// --- get user's 2022 CRF submissions from Formio
+router.get("/crf-submissions", storeBapComboKeys, (req, res) => {
+  // TODO
+  res.json([]);
+});
+
+// --- post a new 2022 CRF submission to Formio
+
+// --- get an existing 2022 CRF's schema and submission data from Formio
+
+// --- post an update to an existing draft 2022 CRF submission to Formio
 
 module.exports = router;

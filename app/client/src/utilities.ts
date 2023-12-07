@@ -199,6 +199,16 @@ type FormioFRF2023Data = {
   _formio_schoolDistrictName: string;
 };
 
+type FormioPRF2023Data = {
+  [field: string]: unknown;
+  // TODO: add PRF fields
+};
+
+type FormioCRF2023Data = {
+  [field: string]: unknown;
+  // TODO: add CRF fields
+};
+
 export type FormioFRF2022Submission = FormioSubmission & {
   data: FormioFRF2022Data;
 };
@@ -213,6 +223,14 @@ export type FormioCRF2022Submission = FormioSubmission & {
 
 export type FormioFRF2023Submission = FormioSubmission & {
   data: FormioFRF2023Data;
+};
+
+export type FormioPRF2023Submission = FormioSubmission & {
+  data: FormioPRF2023Data;
+};
+
+export type FormioCRF2023Submission = FormioSubmission & {
+  data: FormioCRF2023Data;
 };
 
 export type BapSubmission = {
@@ -474,6 +492,24 @@ export function useSubmissionsQueries(rebateYear: RebateYear) {
     refetchOnWindowFocus: false,
   };
 
+  const formioPRF2023Query = {
+    queryKey: ["formio/2023/prf-submissions"],
+    queryFn: () => {
+      const url = `${serverUrl}/api/formio/2023/prf-submissions`;
+      return getData<FormioPRF2023Submission[]>(url);
+    },
+    refetchOnWindowFocus: false,
+  };
+
+  const formioCRF2023Query = {
+    queryKey: ["formio/2023/crf-submissions"],
+    queryFn: () => {
+      const url = `${serverUrl}/api/formio/2023/crf-submissions`;
+      return getData<FormioCRF2023Submission[]>(url);
+    },
+    refetchOnWindowFocus: false,
+  };
+
   type Query = {
     queryKey: string[];
     queryFn: () =>
@@ -481,7 +517,9 @@ export function useSubmissionsQueries(rebateYear: RebateYear) {
       | Promise<FormioFRF2022Submission[]>
       | Promise<FormioPRF2022Submission[]>
       | Promise<FormioCRF2022Submission[]>
-      | Promise<FormioFRF2023Submission[]>;
+      | Promise<FormioFRF2023Submission[]>
+      | Promise<FormioPRF2023Submission[]>
+      | Promise<FormioCRF2023Submission[]>;
     refetchOnWindowFocus: boolean;
   };
 
@@ -489,7 +527,7 @@ export function useSubmissionsQueries(rebateYear: RebateYear) {
     rebateYear === "2022"
       ? [bapQuery, formioFRF2022Query, formioPRF2022Query, formioCRF2022Query]
       : rebateYear === "2023"
-      ? [bapQuery, formioFRF2023Query]
+      ? [bapQuery, formioFRF2023Query, formioPRF2023Query, formioCRF2023Query]
       : [];
 
   return useQueries({ queries });
@@ -713,6 +751,8 @@ function useCombinedSubmissions(rebateYear: RebateYear) {
   const formioFRF2023Submissions = queryClient.getQueryData<
     FormioFRF2023Submission[]
   >(["formio/2023/frf-submissions"]);
+
+  // TODO: add formioPRF2023Submissions and formioCRF2023Submissions
 
   const submissions =
     rebateYear === "2022"
