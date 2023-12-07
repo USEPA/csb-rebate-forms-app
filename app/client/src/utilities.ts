@@ -75,13 +75,16 @@ type BapFormSubmission = {
   CSB_Modified_Full_String__c: string; // ISO 8601 date time string
   CSB_Review_Item_ID__c: string; // CSB Rebate ID with form/version ID (9 digits)
   Parent_Rebate_ID__c: string; // CSB Rebate ID (6 digits)
-  Record_Type_Name__c:
-    | "CSB Funding Request" // TODO: remove once BAP's update has been deployed
-    | "CSB Payment Request" // TODO: remove once BAP's update has been deployed
-    | "CSB Close Out Request" // TODO: remove once BAP's update has been deployed
-    | "CSB Funding Request 2022"
-    | "CSB Payment Request 2022"
-    | "CSB Close Out Request 2022"
+  Record_Type_Name__c: /*
+   * NOTE: 2022 submissions don't have a year in their record type name, but
+   * we'll account for it here in case the BAP switches to using it in the future.
+   */
+  | "CSB Funding Request" // NOTE: 2022 submissions
+    | "CSB Payment Request" // NOTE: 2022 submissions
+    | "CSB Close Out Request" // NOTE: 2022 submissions
+    | "CSB Funding Request 2022" // NOTE: not currently used
+    | "CSB Payment Request 2022" // NOTE: not currently used
+    | "CSB Close Out Request 2022" // NOTE: not currently used
     | "CSB Funding Request 2023"
     | "CSB Payment Request 2023"
     | "CSB Close Out Request 2023";
@@ -393,40 +396,29 @@ export function useSubmissionsQueries(rebateYear: RebateYear) {
     queryFn: () => {
       const url = `${serverUrl}/api/bap/submissions`;
       return getData<BapFormSubmission[]>(url).then((res) => {
-        const frfRecordTypeNames = [
-          "CSB Funding Request", // TODO: remove once BAP's update has been deployed
-          "CSB Funding Request 2022",
-          "CSB Funding Request 2023",
-        ];
-
-        const prfRecordTypeNames = [
-          "CSB Payment Request", // TODO: remove once BAP's update has been deployed
-          "CSB Payment Request 2022",
-          "CSB Payment Request 2023",
-        ];
-
-        const crfRecordTypeNames = [
-          "CSB Close Out Request", // TODO: remove once BAP's update has been deployed
-          "CSB Close Out Request 2022",
-          "CSB Close Out Request 2023",
-        ];
+        if (!Array.isArray(res)) {
+          return Promise.reject(res);
+        }
 
         const submissions = res.reduce(
           (object, submission) => {
             const { Record_Type_Name__c, Rebate_Program_Year__c } = submission;
 
-            const formType = frfRecordTypeNames.includes(Record_Type_Name__c)
-              ? "frfs"
-              : prfRecordTypeNames.includes(Record_Type_Name__c)
-              ? "prfs"
-              : crfRecordTypeNames.includes(Record_Type_Name__c)
-              ? "crfs"
-              : null;
-
             const rebateYear =
               Rebate_Program_Year__c === null ? "2022" : Rebate_Program_Year__c;
 
-            if (formType) object[rebateYear][formType].push(submission);
+            const formType =
+              Record_Type_Name__c.startsWith("CSB Funding Request") // prettier-ignore
+                ? "frfs"
+                : Record_Type_Name__c.startsWith("CSB Payment Request")
+                ? "prfs"
+                : Record_Type_Name__c.startsWith("CSB Close Out Request")
+                ? "crfs"
+                : null;
+
+            if (rebateYear && formType) {
+              object[rebateYear][formType].push(submission);
+            }
 
             return object;
           },
