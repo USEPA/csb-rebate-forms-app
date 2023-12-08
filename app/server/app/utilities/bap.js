@@ -45,6 +45,7 @@ const { submissionPeriodOpen } = require("../config/formio");
  * @property {string} CSB_Review_Item_ID__c
  * @property {string} Parent_Rebate_ID__c
  * @property {string} Record_Type_Name__c
+ * @property {string | null} Rebate_Program_Year__c
  * @property {{
  *  CSB_Funding_Request_Status__c: string
  *  CSB_Payment_Request_Status__c: string
@@ -466,6 +467,7 @@ async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
   //   CSB_Review_Item_ID__c,
   //   Parent_Rebate_ID__c,
   //   Record_Type_Name__c,
+  //   Rebate_Program_Year__c,
   //   Parent_CSB_Rebate__r.CSB_Funding_Request_Status__c,
   //   Parent_CSB_Rebate__r.CSB_Payment_Request_Status__c,
   //   Parent_CSB_Rebate__r.CSB_Closeout_Request_Status__c
@@ -493,7 +495,8 @@ async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
         CSB_Modified_Full_String__c: 1, // ISO 8601 date time string
         CSB_Review_Item_ID__c: 1, // CSB Rebate ID with form/version ID (9 digits)
         Parent_Rebate_ID__c: 1, // CSB Rebate ID (6 digits)
-        Record_Type_Name__c: 1, // 'CSB Funding Request' | 'CSB Payment Request' | 'CSB Close Out Request'
+        Record_Type_Name__c: 1, // 'CSB Funding Request' | 'CSB Payment Request' | 'CSB Close Out Request' | 'CSB Funding Request 2023' | 'CSB Payment Request 2023' | 'CSB Close Out Request 2023'
+        Rebate_Program_Year__c: 1, // '2022' | '2023'
         "Parent_CSB_Rebate__r.CSB_Funding_Request_Status__c": 1,
         "Parent_CSB_Rebate__r.CSB_Payment_Request_Status__c": 1,
         "Parent_CSB_Rebate__r.CSB_Closeout_Request_Status__c": 1,
