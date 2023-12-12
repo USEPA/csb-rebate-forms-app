@@ -1,66 +1,33 @@
-import { Suspense, StrictMode, lazy, useState, useEffect } from "react";
+import { StrictMode } from "react";
 import { render } from "react-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import reportWebVitals from "./reportWebVitals";
+/*
+  NOTE: regenerator-runtime is imported to avoid a bug with a GitHub Action
+  workflow including regenerator-runtime in the build as an external dependency.
+  For reference, the GitHub Action workflow's log message stated:
+    "regenerator-runtime/runtime.js" is imported by
+    "regenerator-runtime/runtime.js?commonjs-external", but could not be
+    resolved – treating it as an external dependency.
+*/
+import "regenerator-runtime";
 // ---
-import { ErrorBoundary } from "components/errorBoundary";
-import { App } from "components/app";
-import { DialogProvider } from "contexts/dialog";
-import { NotificationsProvider } from "contexts/notifications";
-import { RebateYearProvider } from "contexts/rebateYear";
-import "./tailwind-preflight.css";
-import "./styles.css";
-
-declare global {
-  interface Window {
-    csb: any;
-  }
-}
+import { ErrorBoundary } from "@/components/errorBoundary";
+import { Providers } from "@/components/providers";
+import { App } from "@/components/app";
+import "@/tailwind-preflight.css";
+import "@/styles.css";
 
 const container = document.getElementById("root") as HTMLElement;
 
-const queryClient = new QueryClient();
-
-const ReactQueryDevtoolsProduction = lazy(() =>
-  import("@tanstack/react-query-devtools/build/lib/index.prod.js").then(
-    (module) => ({ default: module.ReactQueryDevtools })
-  )
-);
-
-function Index() {
-  const [devtoolsDisplayed, setDevtoolsDisplayed] = useState(false);
-
-  useEffect(() => {
-    window.csb ??= {};
-    window.csb.toggleDevtools = () => setDevtoolsDisplayed((value) => !value);
-  });
-
+export default function Index() {
   return (
     <StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <ErrorBoundary>
-          <DialogProvider>
-            <NotificationsProvider>
-              <RebateYearProvider>
-                <App />
-              </RebateYearProvider>
-            </NotificationsProvider>
-          </DialogProvider>
-        </ErrorBoundary>
-
-        {devtoolsDisplayed && (
-          <Suspense fallback={null}>
-            <ReactQueryDevtoolsProduction />
-          </Suspense>
-        )}
-      </QueryClientProvider>
+      <ErrorBoundary>
+        <Providers>
+          <App />
+        </Providers>
+      </ErrorBoundary>
     </StrictMode>
   );
 }
 
 render(<Index />, container);
-
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();

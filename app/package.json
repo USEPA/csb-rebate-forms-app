@@ -1,7 +1,7 @@
 {
-  "name": "epa-csb",
+  "name": "epa-csb-rebate-forms-app",
   "version": "4.0.0",
-  "description": "U.S. EPA Clean School Bus data collection system",
+  "description": "U.S. EPA CSB Rebate Forms Application",
   "license": "CC0-1.0",
   "author": "USEPA (https://www.epa.gov)",
   "contributors": [
@@ -17,7 +17,7 @@
     "prettier-plugin-tailwindcss": "0.5.4"
   },
   "scripts": {
-    "client": "cd client && npm start",
+    "client": "cd client && npm run dev",
     "server": "cd server && npm start",
     "start": "concurrently -kc \"blue.dim,green.dim\" \"npm:server\" \"npm:client\""
   },

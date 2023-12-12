@@ -5,14 +5,10 @@ const { ensureAuthenticated } = require("../middleware");
 const { createJWT, jwtCookieName } = require("../utilities/createJwt");
 const log = require("../utilities/logger");
 
-const { CLIENT_URL, SERVER_URL, SAML_PUBLIC_KEY } = process.env;
+const { NODE_ENV, CLIENT_URL, SERVER_URL, SAML_PUBLIC_KEY } = process.env;
+const url = NODE_ENV === "development" ? CLIENT_URL : SERVER_URL;
 
 const router = express.Router();
-
-/**
- * NOTE: SERVER_URL is needed as fallback when using sub path, e.g. /csb
- */
-const baseUrl = CLIENT_URL || SERVER_URL;
 
 router.get(
   "/login",
@@ -20,7 +16,7 @@ router.get(
     successRedirect: "/",
     failureRedirect: "/login/fail",
     session: false,
-  })
+  }),
 );
 
 router.post(
@@ -57,15 +53,15 @@ router.post(
      * "RelayState" will be the path that the user initially tried to access
      * before being sent to /login
      */
-    res.redirect(`${baseUrl}${body.RelayState || "/"}`);
-  }
+    res.redirect(`${url}${body.RelayState || "/"}`);
+  },
 );
 
 router.get("/login/fail", (req, res) => {
   const logMessage = `SAML Error - Login failed.`;
   log({ level: "error", message: logMessage, req });
 
-  res.redirect(`${baseUrl}/welcome?error=saml`);
+  res.redirect(`${url}/welcome?error=saml`);
 });
 
 router.get("/logout", ensureAuthenticated, (req, res) => {
@@ -77,7 +73,7 @@ router.get("/logout", ensureAuthenticated, (req, res) => {
       const logMessage = `SAML Error - Passport logout failed - ${err}`;
       log({ level: "error", message: logMessage, req });
 
-      res.redirect(`${baseUrl}/`);
+      res.redirect(`${url}/`);
     } else {
       const logMessage = `User with email '${mail}' and member of ${userGroups} groups logged out.`;
       log({ level: "info", message: logMessage, req });
@@ -97,7 +93,7 @@ const logoutCallback = (req, res) => {
    * or post body), redirect to below.
    */
   const relayState = req.query?.RelayState || req.body?.RelayState;
-  res.redirect(`${baseUrl}${relayState || "/welcome?success=logout"}`);
+  res.redirect(`${url}${relayState || "/welcome?success=logout"}`);
 };
 
 /**

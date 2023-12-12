@@ -4,22 +4,24 @@ import { Dialog, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl, messages } from "../config";
+import { serverUrl, messages } from "@/config";
 import {
-  BapSamEntity,
-  FormioFRF2022Submission,
-  FormioFRF2023Submission,
   postData,
   useContentData,
   useConfigData,
   useBapSamData,
   getUserInfo,
-} from "../utilities";
-import { Loading, LoadingButtonIcon } from "components/loading";
-import { Message } from "components/message";
-import { MarkdownContent } from "components/markdownContent";
-import { TextWithTooltip } from "components/tooltip";
-import { useRebateYearState } from "contexts/rebateYear";
+} from "@/utilities";
+import { Loading, LoadingButtonIcon } from "@/components/loading";
+import { Message } from "@/components/message";
+import { MarkdownContent } from "@/components/markdownContent";
+import { TextWithTooltip } from "@/components/tooltip";
+import { useRebateYearState } from "@/contexts/rebateYear";
+import type {
+  BapSamEntity,
+  FormioFRF2022Submission,
+  FormioFRF2023Submission,
+} from "@/utilities";
 
 /**
  * Creates the initial FRF submission data for a given rebate year
@@ -126,7 +128,7 @@ export function FRFNew() {
       <Dialog
         as="div"
         className="tw-relative tw-z-10"
-        onClose={(ev) => navigate("/")}
+        onClose={(_value) => navigate("/")}
       >
         <Transition.Child
           as={Fragment}
@@ -157,7 +159,7 @@ export function FRFNew() {
                     <button
                       type="button"
                       className="tw-rounded-md tw-bg-white tw-text-gray-400 tw-transition-none hover:tw-text-gray-700 focus:tw-text-gray-700"
-                      onClick={(ev) => navigate("/")}
+                      onClick={(_ev) => navigate("/")}
                     >
                       <span className="tw-sr-only">Close</span>
                       <XMarkIcon
@@ -245,7 +247,7 @@ export function FRFNew() {
                                   >
                                     <button
                                       className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-                                      onClick={(ev) => {
+                                      onClick={(_ev) => {
                                         setErrorMessage({
                                           displayed: false,
                                           text: "",
@@ -267,13 +269,13 @@ export function FRFNew() {
                                           | FormioFRF2023Submission
                                         >(
                                           `${serverUrl}/api/formio/${rebateYear}/frf-submission/`,
-                                          { data, state: "draft" }
+                                          { data, state: "draft" },
                                         )
                                           .then((res) => {
                                             const url = `/frf/${rebateYear}/${res._id}`;
                                             navigate(url);
                                           })
-                                          .catch((err) => {
+                                          .catch((_err) => {
                                             setErrorMessage({
                                               displayed: true,
                                               text: "Error creating new rebate form application.",

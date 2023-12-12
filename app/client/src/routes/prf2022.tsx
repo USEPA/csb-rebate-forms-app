@@ -7,9 +7,8 @@ import s3 from "formiojs/providers/storage/s3";
 import { cloneDeep, isEqual } from "lodash";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl, messages } from "../config";
+import { serverUrl, messages } from "@/config";
 import {
-  FormioPRF2022Submission,
   getData,
   postData,
   useContentData,
@@ -19,12 +18,13 @@ import {
   useSubmissions,
   submissionNeedsEdits,
   getUserInfo,
-} from "../utilities";
-import { Loading } from "components/loading";
-import { Message } from "components/message";
-import { MarkdownContent } from "components/markdownContent";
-import { useNotificationsActions } from "contexts/notifications";
-import { useRebateYearState } from "contexts/rebateYear";
+} from "@/utilities";
+import { Loading } from "@/components/loading";
+import { Message } from "@/components/message";
+import { MarkdownContent } from "@/components/markdownContent";
+import { useNotificationsActions } from "@/contexts/notifications";
+import { useRebateYearState } from "@/contexts/rebateYear";
+import type { FormioPRF2022Submission } from "@/utilities";
 
 type ServerResponse =
   | {
@@ -63,7 +63,10 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
          * https://github.com/formio/formio.js/blob/master/src/providers/storage/s3.js#L5
          * https://github.com/formio/formio.js/blob/master/src/providers/storage/xhr.js#L90
          */
-        Formio.Providers.providers.storage.s3 = function (formio: any) {
+        Formio.Providers.providers.storage.s3 = function (formio: {
+          formUrl: string;
+          [field: string]: unknown;
+        }) {
           const s3Formio = cloneDeep(formio);
           s3Formio.formUrl = `${serverUrl}/api/formio/2022/s3/prf/${mongoId}/${comboKey}`;
           return s3(s3Formio);
@@ -93,7 +96,7 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
           return prevData?.submission
             ? { ...prevData, submission: res }
             : prevData;
-        }
+        },
       );
     },
   });
@@ -263,7 +266,7 @@ function PaymentRequestForm(props: { email: string }) {
         </li>
       </ul>
 
-      <Dialog as="div" open={dataIsPosting.current} onClose={(ev) => {}}>
+      <Dialog as="div" open={dataIsPosting.current} onClose={(_value) => {}}>
         <div className="tw-fixed tw-inset-0 tw-bg-black/30" />
         <div className="tw-fixed tw-inset-0 tw-z-20">
           <div className="tw-flex tw-min-h-full tw-items-center tw-justify-center">
@@ -326,7 +329,7 @@ function PaymentRequestForm(props: { email: string }) {
             pendingSubmissionData.current = data;
 
             mutation.mutate(updatedSubmission, {
-              onSuccess: (res, payload, context) => {
+              onSuccess: (res, _payload, _context) => {
                 pendingSubmissionData.current = {};
                 lastSuccesfullySubmittedData.current = cloneDeep(res.data);
 
@@ -361,7 +364,7 @@ function PaymentRequestForm(props: { email: string }) {
                   setTimeout(() => dismissNotification({ id }), 5000);
                 }
               },
-              onError: (error, payload, context) => {
+              onError: (_error, _payload, _context) => {
                 displayErrorNotification({
                   id: Date.now(),
                   body: (
@@ -375,7 +378,7 @@ function PaymentRequestForm(props: { email: string }) {
                   ),
                 });
               },
-              onSettled: (data, error, payload, context) => {
+              onSettled: (_data, _error, _payload, _context) => {
                 dataIsPosting.current = false;
                 formIsBeingSubmitted.current = false;
               },
@@ -441,7 +444,7 @@ function PaymentRequestForm(props: { email: string }) {
             pendingSubmissionData.current = data;
 
             mutation.mutate(updatedSubmission, {
-              onSuccess: (res, payload, context) => {
+              onSuccess: (res, _payload, _context) => {
                 pendingSubmissionData.current = {};
                 lastSuccesfullySubmittedData.current = cloneDeep(res.data);
 
@@ -459,7 +462,7 @@ function PaymentRequestForm(props: { email: string }) {
 
                 setTimeout(() => dismissNotification({ id }), 5000);
               },
-              onError: (error, payload, context) => {
+              onError: (_error, _payload, _context) => {
                 displayErrorNotification({
                   id: Date.now(),
                   body: (
@@ -469,7 +472,7 @@ function PaymentRequestForm(props: { email: string }) {
                   ),
                 });
               },
-              onSettled: (data, error, payload, context) => {
+              onSettled: (_data, _error, _payload, _context) => {
                 dataIsPosting.current = false;
               },
             });
