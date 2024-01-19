@@ -29,7 +29,7 @@ import type {
   FormioPRF2022Submission,
   FormioCRF2022Submission,
   FormioFRF2023Submission,
-  // FormioPRF2023Submission,
+  FormioPRF2023Submission,
   // FormioCRF2023Submission,
   Rebate,
 } from "@/utilities";
@@ -1048,6 +1048,246 @@ function FRF2023Submission(props: { rebate: Rebate }) {
   );
 }
 
+function PRF2023Submission(props: { rebate: Rebate }) {
+  const { rebate } = props;
+  const { frf, prf, crf } = rebate;
+
+  const navigate = useNavigate();
+  const { email } = useOutletContext<{ email: string }>();
+
+  const configData = useConfigData();
+  const bapSamData = useBapSamData();
+  const { displayErrorNotification } = useNotificationsActions();
+
+  /**
+   * Stores when data is being posted to the server, so a loading indicator can
+   * be rendered inside the "New Payment Request" button, and we can prevent
+   * double submits/creations of new PRF submissions.
+   */
+  const [dataIsPosting, setDataIsPosting] = useState(false);
+
+  if (!configData || !bapSamData) return null;
+
+  const prfSubmissionPeriodOpen = configData.submissionPeriodOpen["2023"].prf;
+
+  const frfSelected = frf.bap?.status === "Accepted";
+
+  const frfSelectedButNoPRF = frfSelected && !Boolean(prf.formio);
+
+  /** matched SAM.gov entity for the FRF submission */
+  const entity = bapSamData.entities.find((entity) => {
+    const { ENTITY_STATUS__c, ENTITY_COMBO_KEY__c } = entity;
+    const comboKey = (frf.formio as FormioFRF2023Submission).data
+      ._bap_entity_combo_key;
+    return ENTITY_STATUS__c === "Active" && ENTITY_COMBO_KEY__c === comboKey;
+  });
+
+  if (frfSelectedButNoPRF) {
+    return (
+      <tr className={highlightedTableRowClassNames}>
+        <th scope="row" colSpan={6}>
+          <button
+            className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
+            disabled={!prfSubmissionPeriodOpen}
+            onClick={(_ev) => {
+              if (!prfSubmissionPeriodOpen) return;
+              if (!frf.bap || !entity) return;
+
+              // account for when data is posting to prevent double submits
+              if (dataIsPosting) return;
+              setDataIsPosting(true);
+
+              const { title, name } = getUserInfo(email, entity);
+
+              // create a new draft PRF submission
+              postData(`${serverUrl}/api/formio/2023/prf-submission/`, {
+                email,
+                title,
+                name,
+                entity,
+                comboKey: frf.bap.comboKey,
+                rebateId: frf.bap.rebateId, // CSB Rebate ID (6 digits)
+                frfReviewItemId: frf.bap.reviewItemId, // CSB Rebate ID with form/version ID (9 digits)
+                frfFormModified: frf.bap.modified,
+              })
+                .then((_res) => {
+                  navigate(`/prf/2023/${frf.bap?.rebateId}`);
+                })
+                .catch((_err) => {
+                  displayErrorNotification({
+                    id: Date.now(),
+                    body: (
+                      <>
+                        <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                          Error creating Payment Request{" "}
+                          <em>{frf.bap?.rebateId}</em>.
+                        </p>
+                        <p className="tw-mt-1 tw-text-sm tw-text-gray-500">
+                          Please try again.
+                        </p>
+                      </>
+                    ),
+                  });
+                })
+                .finally(() => {
+                  setDataIsPosting(false);
+                });
+            }}
+          >
+            <span className="display-flex flex-align-center">
+              <svg
+                className="usa-icon"
+                aria-hidden="true"
+                focusable="false"
+                role="img"
+              >
+                <use href={`${icons}#add_circle`} />
+              </svg>
+              <span className="margin-left-1">New Payment Request</span>
+              {dataIsPosting && <LoadingButtonIcon />}
+            </span>
+          </button>
+        </th>
+      </tr>
+    );
+  }
+
+  // return if a Payment Request submission has not been created for this rebate
+  if (!prf.formio) return null;
+
+  const {
+    _user_email,
+    _bap_rebate_id, //
+  } = (prf.formio as FormioPRF2023Submission).data;
+
+  const date = new Date(prf.formio.modified).toLocaleDateString();
+  const time = new Date(prf.formio.modified).toLocaleTimeString();
+
+  const frfNeedsEdits = submissionNeedsEdits({
+    formio: frf.formio,
+    bap: frf.bap,
+  });
+
+  const prfNeedsEdits = submissionNeedsEdits({
+    formio: prf.formio,
+    bap: prf.bap,
+  });
+
+  // TODO: review statuses for 2023 PRF
+  const prfNeedsClarification = prf.bap?.status === "Needs Clarification";
+
+  const prfHasBeenWithdrawn = prf.bap?.status === "Withdrawn";
+
+  const prfFundingNotApproved = prf.bap?.status === "Coordinator Denied";
+
+  const prfFundingApproved = prf.bap?.status === "Accepted";
+
+  const prfFundingApprovedButNoCRF = prfFundingApproved && !Boolean(crf.formio);
+
+  const statusTableCellClassNames =
+    prf.formio.state === "submitted" || !prfSubmissionPeriodOpen
+      ? "text-italic"
+      : "";
+
+  const statusIconClassNames = prfFundingApproved
+    ? "usa-icon text-primary" // blue
+    : "usa-icon";
+
+  const statusIcon = prfNeedsEdits
+    ? `${icons}#priority_high` // !
+    : prfHasBeenWithdrawn
+    ? `${icons}#close` // ✕
+    : prfFundingNotApproved
+    ? `${icons}#cancel` // ✕ inside a circle
+    : prfFundingApproved
+    ? `${icons}#check_circle` // check inside a circle
+    : prf.formio.state === "draft"
+    ? `${icons}#more_horiz` // three horizontal dots
+    : prf.formio.state === "submitted"
+    ? `${icons}#check` // check
+    : `${icons}#remove`; // — (fallback, not used)
+
+  const statusText = prfNeedsEdits
+    ? "Edits Requested"
+    : prfHasBeenWithdrawn
+    ? "Withdrawn"
+    : prfFundingNotApproved
+    ? "Funding Not Approved"
+    : prfFundingApproved
+    ? "Funding Approved"
+    : prf.formio.state === "draft"
+    ? "Draft"
+    : prf.formio.state === "submitted"
+    ? "Submitted"
+    : ""; // fallback, not used
+
+  const prfUrl = `/prf/2023/${_bap_rebate_id}`;
+
+  return (
+    <tr
+      className={
+        prfNeedsEdits || prfFundingApprovedButNoCRF
+          ? highlightedTableRowClassNames
+          : defaultTableRowClassNames
+      }
+    >
+      <th scope="row" className={statusTableCellClassNames}>
+        {frfNeedsEdits ? (
+          <FormButtonLink type="view" to={prfUrl} />
+        ) : prfNeedsEdits ? (
+          <FormButtonLink type="edit" to={prfUrl} />
+        ) : prf.formio.state === "submitted" || !prfSubmissionPeriodOpen ? (
+          <FormButtonLink type="view" to={prfUrl} />
+        ) : prf.formio.state === "draft" ? (
+          <FormButtonLink type="edit" to={prfUrl} />
+        ) : null}
+      </th>
+
+      <td className={statusTableCellClassNames}>&nbsp;</td>
+
+      <td className={statusTableCellClassNames}>
+        <span>Payment Request</span>
+        <br />
+        <span className="display-flex flex-align-center font-sans-2xs">
+          {prfNeedsClarification ? (
+            <TextWithTooltip
+              text="Needs Clarification"
+              tooltip="Check your email for instructions on what needs clarification"
+              iconClassNames="text-base-darkest"
+            />
+          ) : (
+            <>
+              <svg
+                className={statusIconClassNames}
+                aria-hidden="true"
+                focusable="false"
+                role="img"
+              >
+                <use href={statusIcon} />
+              </svg>
+              <span className="margin-left-05">{statusText}</span>
+            </>
+          )}
+        </span>
+      </td>
+
+      <td className={statusTableCellClassNames}>&nbsp;</td>
+
+      <td className={statusTableCellClassNames}>&nbsp;</td>
+
+      <td className={statusTableCellClassNames}>
+        {_user_email}
+        <br />
+        <span title={`${date} ${time}`}>{date}</span>
+      </td>
+    </tr>
+  );
+}
+
+function CRF2023Submission(props: { rebate: Rebate }) {
+  //
+}
+
 function Submissions2022() {
   const content = useContentData();
   const submissionsQueries = useSubmissionsQueries("2022");
@@ -1150,6 +1390,8 @@ function Submissions2023() {
               return rebate.rebateYear === "2023" ? (
                 <Fragment key={rebate.rebateId}>
                   <FRF2023Submission rebate={rebate} />
+                  <PRF2023Submission rebate={rebate} />
+                  {/* <CRF2023Submission rebate={rebate} /> */}
                   {/* blank row after all submissions but the last one */}
                   {index !== submissions.length - 1 && (
                     <tr className="bg-white">
