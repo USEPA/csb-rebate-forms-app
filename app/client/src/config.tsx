@@ -32,7 +32,7 @@ const formioProjectName = VITE_FORMIO_PROJECT_NAME;
 export const formioProjectUrl = `${formioBaseUrl}/${formioProjectName}`;
 
 export const messages = {
-  genericError: "Something went wrong.",
+  genericError: "The application has encountered an unknown error.",
   authError: "Authentication error. Please log in again or contact support.",
   samlError: "Error logging in. Please try again or contact support.",
   bapSamFetchError: "Error loading SAM.gov data. Please contact support.",
