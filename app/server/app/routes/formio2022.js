@@ -14,7 +14,7 @@ const {
 } = require("../middleware");
 const {
   getBapFormSubmissionsStatuses,
-  getBapDataForCRF,
+  getBapDataFor2022CRF,
   checkFormSubmissionPeriodAndBapStatus,
 } = require("../utilities/bap");
 const {
@@ -358,7 +358,7 @@ router.post("/crf-submission", storeBapComboKeys, (req, res) => {
     ALT_GOVT_BUS_POC_EMAIL__c,
   } = entity;
 
-  return getBapDataForCRF(req, frfReviewItemId, prfReviewItemId)
+  return getBapDataFor2022CRF(req, frfReviewItemId, prfReviewItemId)
     .then(({ frfRecordQuery, prfRecordQuery, busRecordsQuery }) => {
       const {
         Fleet_Name__c,

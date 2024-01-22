@@ -14,7 +14,6 @@ const {
 } = require("../middleware");
 const {
   getBapFormSubmissionsStatuses,
-  getBapDataForCRF,
   checkFormSubmissionPeriodAndBapStatus,
 } = require("../utilities/bap");
 const {

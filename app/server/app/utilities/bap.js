@@ -673,18 +673,19 @@ async function queryBapFor2022PRFData(req, frfReviewItemId) {
 }
 
 /**
- * Uses cached JSforce connection to query the BAP for FRF submission data and
- * PRF submission data, for use in a brand new CRF submission.
+ * Uses cached JSforce connection to query the BAP for 2022 FRF submission data
+ * and 2022 PRF submission data, for use in a brand new 2022 CRF submission.
  *
  * @param {express.Request} req
  * @param {string} frfReviewItemId CSB Rebate ID with the form/version ID (9 digits)
  * @param {string} prfReviewItemId CSB Rebate ID with the form/version ID (9 digits)
  * @returns {Promise<BapDataForForCRF>} FRF and PRF submission fields
  */
-async function queryBapForCRFData(req, frfReviewItemId, prfReviewItemId) {
+async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
   const logMessage =
-    `Querying the BAP for FRF submission associated with ` +
-    `FRF Review Item ID: '${frfReviewItemId}' and PRF submission associated with ` +
+    `Querying the BAP for 2022 FRF submission associated with ` +
+    `FRF Review Item ID: '${frfReviewItemId}' ` +
+    `and 2022 PRF submission associated with ` +
     `PRF Review Item ID: '${prfReviewItemId}'.`;
   log({ level: "info", message: logMessage });
 
@@ -1062,17 +1063,17 @@ function getBapDataFor2022PRF(req, frfReviewItemId) {
 }
 
 /**
- * Fetches FRF submission data and PRF submission data associated with a FRF
- * Review Item ID and a PRF Review Item ID.
+ * Fetches 2022 FRF submission data and 2022 PRF submission data associated with
+ * a FRF Review Item ID and a PRF Review Item ID.
  *
  * @param {express.Request} req
  * @param {string} frfReviewItemId
  * @param {string} prfReviewItemId
- * @returns {ReturnType<queryBapForCRFData>}
+ * @returns {ReturnType<queryBapFor2022CRFData>}
  */
-function getBapDataForCRF(req, frfReviewItemId, prfReviewItemId) {
+function getBapDataFor2022CRF(req, frfReviewItemId, prfReviewItemId) {
   return verifyBapConnection(req, {
-    name: queryBapForCRFData,
+    name: queryBapFor2022CRFData,
     args: [req, frfReviewItemId, prfReviewItemId],
   });
 }
@@ -1127,6 +1128,6 @@ module.exports = {
   getBapFormSubmissionData,
   getBapFormSubmissionsStatuses,
   getBapDataFor2022PRF,
-  getBapDataForCRF,
+  getBapDataFor2022CRF,
   checkFormSubmissionPeriodAndBapStatus,
 };
