@@ -14,7 +14,6 @@ const {
 } = require("../middleware");
 const {
   getBapFormSubmissionsStatuses,
-  getBapDataForPRF,
   getBapDataForCRF,
   checkFormSubmissionPeriodAndBapStatus,
 } = require("../utilities/bap");
@@ -28,6 +27,7 @@ const {
   updateFRFSubmission,
   //
   fetchPRFSubmissions,
+  createPRFSubmission,
 } = require("../utilities/formio");
 const log = require("../utilities/logger");
 
@@ -89,6 +89,9 @@ router.get("/prf-submissions", storeBapComboKeys, (req, res) => {
 });
 
 // --- post a new 2023 PRF submission to Formio
+router.post("/prf-submission", storeBapComboKeys, (req, res) => {
+  createPRFSubmission({ rebateYear: "2023", req, res });
+});
 
 // --- get an existing 2023 PRF's schema and submission data from Formio
 
