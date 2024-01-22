@@ -7,7 +7,7 @@ const {
   formioCSBMetadata,
 } = require("../config/formio");
 const {
-  getBapDataForPRF,
+  getBapDataFor2022PRF,
   checkFormSubmissionPeriodAndBapStatus,
 } = require("../utilities/bap");
 const log = require("./logger");
@@ -29,7 +29,6 @@ function getComboKeyFieldName({ rebateYear }) {
  * @param {'2022' | '2023'} param.rebateYear
  * @param {express.Request} param.req
  * @param {express.Response} param.res
- * @returns {Promise<{ data: Object, metadata: Object, state: 'draft' }>}
  */
 function fetchDataForPRFSubmission({ rebateYear, req, res }) {
   /** @type {{
@@ -53,79 +52,83 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
     frfFormModified,
   } = req.body;
 
-  return getBapDataForPRF(req, frfReviewItemId)
-    .then(({ frfRecordQuery, busRecordsQuery }) => {
-      const {
-        CSB_NCES_ID__c,
-        Primary_Applicant__r,
-        Alternate_Applicant__r,
-        Applicant_Organization__r,
-        CSB_School_District__r,
-        Fleet_Name__c,
-        School_District_Prioritized__c,
-        Total_Rebate_Funds_Requested__c,
-        Total_Infrastructure_Funds__c,
-      } = frfRecordQuery[0];
+  if (rebateYear === "2022") {
+    return getBapDataFor2022PRF(req, frfReviewItemId)
+      .then(({ frfRecordQuery, busRecordsQuery }) => {
+        const {
+          CSB_NCES_ID__c,
+          Primary_Applicant__r,
+          Alternate_Applicant__r,
+          Applicant_Organization__r,
+          CSB_School_District__r,
+          Fleet_Name__c,
+          School_District_Prioritized__c,
+          Total_Rebate_Funds_Requested__c,
+          Total_Infrastructure_Funds__c,
+        } = frfRecordQuery[0];
 
-      const busInfo = busRecordsQuery.map((record) => ({
-        busNum: record.Rebate_Item_num__c,
-        oldBusNcesDistrictId: CSB_NCES_ID__c,
-        oldBusVin: record.CSB_VIN__c,
-        oldBusModelYear: record.CSB_Model_Year__c,
-        oldBusFuelType: record.CSB_Fuel_Type__c,
-        newBusFuelType: record.CSB_Replacement_Fuel_Type__c,
-        hidden_bap_max_rebate: record.CSB_Funds_Requested__c,
-      }));
+        const busInfo = busRecordsQuery.map((record) => ({
+          busNum: record.Rebate_Item_num__c,
+          oldBusNcesDistrictId: CSB_NCES_ID__c,
+          oldBusVin: record.CSB_VIN__c,
+          oldBusModelYear: record.CSB_Model_Year__c,
+          oldBusFuelType: record.CSB_Fuel_Type__c,
+          newBusFuelType: record.CSB_Replacement_Fuel_Type__c,
+          hidden_bap_max_rebate: record.CSB_Funds_Requested__c,
+        }));
 
-      /**
-       * NOTE: `purchaseOrders` is initialized as an empty array to fix some
-       * issue with the field being changed to an object when the form loads
-       */
-      const submission = {
-        data: {
-          bap_hidden_entity_combo_key: comboKey,
-          hidden_application_form_modified: frfFormModified,
-          hidden_current_user_email: email,
-          hidden_current_user_title: title,
-          hidden_current_user_name: name,
-          hidden_sam_uei: entity.UNIQUE_ENTITY_ID__c,
-          hidden_sam_efti: entity.ENTITY_EFT_INDICATOR__c || "0000",
-          hidden_sam_elec_bus_poc_email: entity.ELEC_BUS_POC_EMAIL__c,
-          hidden_sam_alt_elec_bus_poc_email: entity.ALT_ELEC_BUS_POC_EMAIL__c,
-          hidden_sam_govt_bus_poc_email: entity.GOVT_BUS_POC_EMAIL__c,
-          hidden_sam_alt_govt_bus_poc_email: entity.ALT_GOVT_BUS_POC_EMAIL__c,
-          hidden_bap_rebate_id: rebateId,
-          hidden_bap_district_id: CSB_NCES_ID__c,
-          hidden_bap_primary_name: Primary_Applicant__r?.Name,
-          hidden_bap_primary_title: Primary_Applicant__r?.Title,
-          hidden_bap_primary_phone_number: Primary_Applicant__r?.Phone,
-          hidden_bap_primary_email: Primary_Applicant__r?.Email,
-          hidden_bap_alternate_name: Alternate_Applicant__r?.Name || "",
-          hidden_bap_alternate_title: Alternate_Applicant__r?.Title || "",
-          hidden_bap_alternate_phone_number: Alternate_Applicant__r?.Phone || "", // prettier-ignore
-          hidden_bap_alternate_email: Alternate_Applicant__r?.Email || "",
-          hidden_bap_org_name: Applicant_Organization__r?.Name,
-          hidden_bap_district_name: CSB_School_District__r?.Name,
-          hidden_bap_fleet_name: Fleet_Name__c,
-          hidden_bap_prioritized: School_District_Prioritized__c,
-          hidden_bap_requested_funds: Total_Rebate_Funds_Requested__c,
-          hidden_bap_infra_max_rebate: Total_Infrastructure_Funds__c,
-          busInfo,
-          purchaseOrders: [],
-        },
-        /** Add custom metadata to track formio submissions from wrapper. */
-        metadata: { ...formioCSBMetadata },
-        state: "draft",
-      };
+        /**
+         * NOTE: `purchaseOrders` is initialized as an empty array to fix some
+         * issue with the field being changed to an object when the form loads
+         */
+        return {
+          data: {
+            bap_hidden_entity_combo_key: comboKey,
+            hidden_application_form_modified: frfFormModified,
+            hidden_current_user_email: email,
+            hidden_current_user_title: title,
+            hidden_current_user_name: name,
+            hidden_sam_uei: entity.UNIQUE_ENTITY_ID__c,
+            hidden_sam_efti: entity.ENTITY_EFT_INDICATOR__c || "0000",
+            hidden_sam_elec_bus_poc_email: entity.ELEC_BUS_POC_EMAIL__c,
+            hidden_sam_alt_elec_bus_poc_email: entity.ALT_ELEC_BUS_POC_EMAIL__c,
+            hidden_sam_govt_bus_poc_email: entity.GOVT_BUS_POC_EMAIL__c,
+            hidden_sam_alt_govt_bus_poc_email: entity.ALT_GOVT_BUS_POC_EMAIL__c,
+            hidden_bap_rebate_id: rebateId,
+            hidden_bap_district_id: CSB_NCES_ID__c,
+            hidden_bap_primary_name: Primary_Applicant__r?.Name,
+            hidden_bap_primary_title: Primary_Applicant__r?.Title,
+            hidden_bap_primary_phone_number: Primary_Applicant__r?.Phone,
+            hidden_bap_primary_email: Primary_Applicant__r?.Email,
+            hidden_bap_alternate_name: Alternate_Applicant__r?.Name || "",
+            hidden_bap_alternate_title: Alternate_Applicant__r?.Title || "",
+            hidden_bap_alternate_phone_number: Alternate_Applicant__r?.Phone || "", // prettier-ignore
+            hidden_bap_alternate_email: Alternate_Applicant__r?.Email || "",
+            hidden_bap_org_name: Applicant_Organization__r?.Name,
+            hidden_bap_district_name: CSB_School_District__r?.Name,
+            hidden_bap_fleet_name: Fleet_Name__c,
+            hidden_bap_prioritized: School_District_Prioritized__c,
+            hidden_bap_requested_funds: Total_Rebate_Funds_Requested__c,
+            hidden_bap_infra_max_rebate: Total_Infrastructure_Funds__c,
+            busInfo,
+            purchaseOrders: [],
+          },
+          /** Add custom metadata to track formio submissions from wrapper. */
+          metadata: { ...formioCSBMetadata },
+          state: "draft",
+        };
+      })
+      .catch((error) => {
+        // NOTE: logged in bap verifyBapConnection
+        const errorStatus = 500;
+        const errorMessage = `Error getting data for a new Payment Request form submission from the BAP.`;
+        return res.status(errorStatus).json({ message: errorMessage });
+      });
+  }
 
-      return submission;
-    })
-    .catch((error) => {
-      // NOTE: logged in bap verifyBapConnection
-      const errorStatus = 500;
-      const errorMessage = `Error getting data for a new Payment Request form submission from the BAP.`;
-      return res.status(errorStatus).json({ message: errorMessage });
-    });
+  if (rebateYear === "2023") {
+    // TODO
+  }
 }
 
 /**

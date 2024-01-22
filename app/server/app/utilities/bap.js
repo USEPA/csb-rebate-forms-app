@@ -509,16 +509,16 @@ async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
 }
 
 /**
- * Uses cached JSforce connection to query the BAP for FRF submission data, for
- * use in a brand new PRF submission.
+ * Uses cached JSforce connection to query the BAP for 2022 FRF submission data,
+ * for use in a brand new 2022 PRF submission.
  *
  * @param {express.Request} req
  * @param {string} frfReviewItemId CSB Rebate ID with the form/version ID (9 digits)
  * @returns {Promise<BapDataForPRF>} FRF submission fields
  */
-async function queryBapForPRFData(req, frfReviewItemId) {
+async function queryBapFor2022PRFData(req, frfReviewItemId) {
   const logMessage =
-    `Querying the BAP for FRF submission associated with ` +
+    `Querying the BAP for 2022 FRF submission associated with ` +
     `FRF Review Item ID: '${frfReviewItemId}'.`;
   log({ level: "info", message: logMessage });
 
@@ -1048,15 +1048,15 @@ function getBapFormSubmissionsStatuses(req, comboKeys) {
 }
 
 /**
- * Fetches FRF submission data associated with a FRF Review Item ID.
+ * Fetches 2022 FRF submission data associated with a FRF Review Item ID.
  *
  * @param {express.Request} req
  * @param {string} frfReviewItemId
- * @returns {ReturnType<queryBapForPRFData>}
+ * @returns {ReturnType<queryBapFor2022PRFData>}
  */
-function getBapDataForPRF(req, frfReviewItemId) {
+function getBapDataFor2022PRF(req, frfReviewItemId) {
   return verifyBapConnection(req, {
-    name: queryBapForPRFData,
+    name: queryBapFor2022PRFData,
     args: [req, frfReviewItemId],
   });
 }
@@ -1126,7 +1126,7 @@ module.exports = {
   getBapComboKeys,
   getBapFormSubmissionData,
   getBapFormSubmissionsStatuses,
-  getBapDataForPRF,
+  getBapDataFor2022PRF,
   getBapDataForCRF,
   checkFormSubmissionPeriodAndBapStatus,
 };
