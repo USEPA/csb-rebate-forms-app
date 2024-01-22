@@ -21,10 +21,13 @@ const {
 const {
   uploadS3FileMetadata,
   downloadS3FileMetadata,
+  //
   fetchFRFSubmissions,
   createFRFSubmission,
   fetchFRFSubmission,
   updateFRFSubmission,
+  //
+  fetchPRFSubmissions,
 } = require("../utilities/formio");
 const log = require("../utilities/logger");
 
@@ -82,8 +85,7 @@ router.post(
 
 // --- get user's 2023 PRF submissions from Formio
 router.get("/prf-submissions", storeBapComboKeys, (req, res) => {
-  // TODO
-  res.json([]);
+  fetchPRFSubmissions({ rebateYear: "2023", req, res });
 });
 
 // --- post a new 2023 PRF submission to Formio

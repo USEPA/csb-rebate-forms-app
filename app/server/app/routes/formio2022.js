@@ -21,10 +21,13 @@ const {
 const {
   uploadS3FileMetadata,
   downloadS3FileMetadata,
+  //
   fetchFRFSubmissions,
   createFRFSubmission,
   fetchFRFSubmission,
   updateFRFSubmission,
+  //
+  fetchPRFSubmissions,
 } = require("../utilities/formio");
 const log = require("../utilities/logger");
 
@@ -85,26 +88,7 @@ router.post(
 
 // --- get user's 2022 PRF submissions from Formio
 router.get("/prf-submissions", storeBapComboKeys, (req, res) => {
-  const { bapComboKeys } = req;
-
-  const submissionsUrl =
-    `${formioPRFUrl}/submission` +
-    `?sort=-modified` +
-    `&limit=1000000` +
-    `&data.bap_hidden_entity_combo_key=${bapComboKeys.join(
-      "&data.bap_hidden_entity_combo_key=",
-    )}`;
-
-  axiosFormio(req)
-    .get(submissionsUrl)
-    .then((axiosRes) => axiosRes.data)
-    .then((submissions) => res.json(submissions))
-    .catch((error) => {
-      // NOTE: error is logged in axiosFormio response interceptor
-      const errorStatus = error.response?.status || 500;
-      const errorMessage = `Error getting Formio Payment Request form submissions.`;
-      return res.status(errorStatus).json({ message: errorMessage });
-    });
+  fetchPRFSubmissions({ rebateYear: "2022", req, res });
 });
 
 // --- post a new 2022 PRF submission to Formio
