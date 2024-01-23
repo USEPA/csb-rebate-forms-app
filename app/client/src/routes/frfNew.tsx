@@ -34,15 +34,22 @@ function createInitialSubmissionData(options: {
   const { rebateYear, email, entity } = options;
 
   const { title, name } = getUserInfo(email, entity);
-  const comboKey = entity.ENTITY_COMBO_KEY__c;
-  const uei = entity.UNIQUE_ENTITY_ID__c;
-  const efti = entity.ENTITY_EFT_INDICATOR__c;
-  const orgName = entity.LEGAL_BUSINESS_NAME__c;
-  const address1 = entity.PHYSICAL_ADDRESS_LINE_1__c;
-  const address2 = entity.PHYSICAL_ADDRESS_LINE_2__c;
-  const city = entity.PHYSICAL_ADDRESS_CITY__c;
-  const state = entity.PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c;
-  const zip = entity.PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c;
+
+  const {
+    ENTITY_COMBO_KEY__c,
+    UNIQUE_ENTITY_ID__c,
+    ENTITY_EFT_INDICATOR__c,
+    LEGAL_BUSINESS_NAME__c,
+    PHYSICAL_ADDRESS_LINE_1__c,
+    PHYSICAL_ADDRESS_LINE_2__c,
+    PHYSICAL_ADDRESS_CITY__c,
+    PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
+    PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
+    ELEC_BUS_POC_EMAIL__c,
+    ALT_ELEC_BUS_POC_EMAIL__c,
+    GOVT_BUS_POC_EMAIL__c,
+    ALT_GOVT_BUS_POC_EMAIL__c,
+  } = entity;
 
   return rebateYear === "2022"
     ? {
@@ -50,40 +57,40 @@ function createInitialSubmissionData(options: {
         hidden_current_user_email: email,
         hidden_current_user_title: title,
         hidden_current_user_name: name,
-        bap_hidden_entity_combo_key: comboKey,
+        bap_hidden_entity_combo_key: ENTITY_COMBO_KEY__c,
         sam_hidden_applicant_email: email,
         sam_hidden_applicant_title: title,
         sam_hidden_applicant_name: name,
-        sam_hidden_applicant_efti: efti,
-        sam_hidden_applicant_uei: uei,
-        sam_hidden_applicant_organization_name: orgName,
-        sam_hidden_applicant_street_address_1: address1,
-        sam_hidden_applicant_street_address_2: address2,
-        sam_hidden_applicant_city: city,
-        sam_hidden_applicant_state: state,
-        sam_hidden_applicant_zip_code: zip,
+        sam_hidden_applicant_efti: ENTITY_EFT_INDICATOR__c,
+        sam_hidden_applicant_uei: UNIQUE_ENTITY_ID__c,
+        sam_hidden_applicant_organization_name: LEGAL_BUSINESS_NAME__c,
+        sam_hidden_applicant_street_address_1: PHYSICAL_ADDRESS_LINE_1__c,
+        sam_hidden_applicant_street_address_2: PHYSICAL_ADDRESS_LINE_2__c,
+        sam_hidden_applicant_city: PHYSICAL_ADDRESS_CITY__c,
+        sam_hidden_applicant_state: PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
+        sam_hidden_applicant_zip_code: PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
       }
     : rebateYear === "2023"
     ? {
         _user_email: email,
         _user_title: title,
         _user_name: name,
-        _bap_entity_combo_key: comboKey,
-        _bap_elec_bus_poc_email: entity.ELEC_BUS_POC_EMAIL__c,
-        _bap_alt_elec_bus_poc_email: entity.ALT_ELEC_BUS_POC_EMAIL__c,
-        _bap_govt_bus_poc_email: entity.GOVT_BUS_POC_EMAIL__c,
-        _bap_alt_govt_bus_poc_email: entity.ALT_GOVT_BUS_POC_EMAIL__c,
+        _bap_entity_combo_key: ENTITY_COMBO_KEY__c,
+        _bap_elec_bus_poc_email: ELEC_BUS_POC_EMAIL__c,
+        _bap_alt_elec_bus_poc_email: ALT_ELEC_BUS_POC_EMAIL__c,
+        _bap_govt_bus_poc_email: GOVT_BUS_POC_EMAIL__c,
+        _bap_alt_govt_bus_poc_email: ALT_GOVT_BUS_POC_EMAIL__c,
         _bap_applicant_email: email,
         _bap_applicant_title: title,
         _bap_applicant_name: name,
-        _bap_applicant_efti: efti,
-        _bap_applicant_uei: uei,
-        _bap_applicant_organization_name: orgName,
-        _bap_applicant_street_address_1: address1,
-        _bap_applicant_street_address_2: address2,
-        _bap_applicant_city: city,
-        _bap_applicant_state: state,
-        _bap_applicant_zip: zip,
+        _bap_applicant_efti: ENTITY_EFT_INDICATOR__c,
+        _bap_applicant_uei: UNIQUE_ENTITY_ID__c,
+        _bap_applicant_organization_name: LEGAL_BUSINESS_NAME__c,
+        _bap_applicant_street_address_1: PHYSICAL_ADDRESS_LINE_1__c,
+        _bap_applicant_street_address_2: PHYSICAL_ADDRESS_LINE_2__c,
+        _bap_applicant_city: PHYSICAL_ADDRESS_CITY__c,
+        _bap_applicant_state: PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
+        _bap_applicant_zip: PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
       }
     : null;
 }
