@@ -144,17 +144,80 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
 
   if (rebateYear === "2023") {
     return getBapDataFor2023PRF(req, frfReviewItemId)
-      .then(({ frfRecordQuery }) => {
+      .then(({ frfRecordQuery, busRecordsQuery }) => {
         const {
           Primary_Applicant__r,
           Alternate_Applicant__r,
           CSB_School_District__r,
           School_District_Contact__r,
+          County__c,
           CSB_NCES_ID__c,
+          School_District_Prioritized__c,
+          School_District_Poverty_Rate__c,
           Prioritized_as_High_Need__c,
           Prioritized_as_Tribal__c,
           Prioritized_as_Rural__c,
         } = frfRecordQuery[0];
+
+        // TODO: ask BAP for the query for the fields below.
+        // NOTE: the data from the 2023 FRF is in an 'organizations' field (array of objects)
+        // which has the exact same fields below, except for "_org_typeCombined"
+        const org_organizations = new Array(0).map((item) => ({
+          org_number: Infinity,
+          org_type: {
+            existingBusOwner: true,
+            newBusOwner: true,
+            privateFleet: false,
+          },
+          _org_typeCombined: "", // NOTE: was 'org_hidden_type' in the FRF (example value: 'Existing Bus Owner, New Bus Owner')
+          org_orgName: "",
+          org_contactFName: "",
+          org_contactLName: "",
+          org_contactTitle: "",
+          org_contactEmail: "",
+          org_contactPhone: "",
+          org_address1: "",
+          org_address2: "",
+          org_county: "",
+          org_city: "",
+          org_state: {
+            name: "",
+            abbreviation: "",
+          },
+          org_zip: "",
+        }));
+
+        const bus_buses = busRecordsQuery.map((item) => ({
+          bus_busNumber: item.Rebate_Item_num__c,
+          bus_existingOwner: {
+            org: "", // TODO: Old_Bus_Owner__r.* or Old_Bus_Owner_Contact_ID__c
+            organization: "",
+            orgContactFName: "",
+            orgContactLName: "",
+          },
+          bus_existingVin: item.CSB_VIN__c,
+          bus_existingFuelType: item.CSB_Fuel_Type__c,
+          bus_existingGvwr: item.CSB_GVWR__c,
+          bus_existingOdometer: item.Old_Bus_Odometer_miles__c,
+          bus_existingModel: item.CSB_Model__c,
+          bus_existingModelYear: item.CSB_Model_Year__c,
+          bus_existingManufacturer: item.CSB_Manufacturer__c,
+          bus_existingManufacturerOther: item.CSB_Manufacturer_if_Other__c,
+          bus_existingAnnualFuelConsumption: item.CSB_Annual_Fuel_Consumption__c, // prettier-ignore
+          bus_existingAnnualMileage: item.Annual_Mileage__c,
+          bus_existingRemainingLife: item.Old_Bus_Estimated_Remaining_Life__c,
+          bus_existingIdlingHours: item.Old_Bus_Annual_Idling_Hours__c,
+          bus_newOwner: {
+            org: "", // TODO: New_Bus_Owner__r.* or New_Bus_Owner_Contact_ID__c
+            organization: "",
+            orgContactFName: "",
+            orgContactLName: "",
+          },
+          bus_rebate: item.CSB_Funds_Requested__c,
+          bus_newFuelType: item.New_Bus_Fuel_Type__c,
+          bus_newGvwr: item.New_Bus_GVWR__c,
+          _bus_newADAfromFRF: item.New_Bus_ADA_Compliant__c,
+        }));
 
         return {
           data: {
@@ -168,14 +231,13 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
             _bap_applicant_name: name,
             _bap_applicant_efti: ENTITY_EFT_INDICATOR__c || "0000",
             _bap_applicant_uei: UNIQUE_ENTITY_ID__c,
-            _bap_applicant_organization_name: LEGAL_BUSINESS_NAME__c, // TODO: confirm
-            _bap_applicant_district_name: "", // TODO: get
-            _bap_applicant_street_address_1: PHYSICAL_ADDRESS_LINE_1__c, // TODO: confirm
-            _bap_applicant_street_address_2: PHYSICAL_ADDRESS_LINE_2__c, // TODO: confirm
-            _bap_applicant_county: "", // TODO: get
-            _bap_applicant_city: PHYSICAL_ADDRESS_CITY__c, // TODO: confirm
-            _bap_applicant_state: PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c, // TODO: confirm
-            _bap_applicant_zip: PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c, // TODO: confirm
+            _bap_applicant_organization_name: LEGAL_BUSINESS_NAME__c,
+            _bap_applicant_street_address_1: PHYSICAL_ADDRESS_LINE_1__c,
+            _bap_applicant_street_address_2: PHYSICAL_ADDRESS_LINE_2__c,
+            _bap_applicant_county: County__c, // TODO: confirm with BAP
+            _bap_applicant_city: PHYSICAL_ADDRESS_CITY__c,
+            _bap_applicant_state: PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
+            _bap_applicant_zip: PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
             _bap_elec_bus_poc_email: ELEC_BUS_POC_EMAIL__c,
             _bap_alt_elec_bus_poc_email: ALT_ELEC_BUS_POC_EMAIL__c,
             _bap_govt_bus_poc_email: GOVT_BUS_POC_EMAIL__c,
@@ -191,14 +253,15 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
             _bap_alternate_email: Alternate_Applicant__r?.Email,
             _bap_alternate_phone_number: Alternate_Applicant__r?.Phone,
             _bap_district_ncesID: CSB_NCES_ID__c,
+            // TODO: confirm with BAP we should use the individual fields below and not the 'BillingAddress' object's fields
             _bap_district_name: CSB_School_District__r?.Name,
-            _bap_district_address_1: CSB_School_District__r?.BillingStreet, // TODO: confirm
-            _bap_district_address_2: "", // TODO: get
-            _bap_district_city: CSB_School_District__r?.BillingCity, // TODO: confirm
-            _bap_district_state: CSB_School_District__r?.BillingState, // TODO: confirm
-            _bap_district_zip: CSB_School_District__r?.BillingPostalCode, // TODO: confirm
-            _bap_district_priority: "", // TODO: get
-            _bap_district_selfCertify: "", // TODO: get
+            _bap_district_address_1: CSB_School_District__r?.BillingStreet, // TODO: nofity BAP this field is the district address 1 and 2 combined, when it should be two fields in the BAP
+            _bap_district_address_2: "", // TODO: see above
+            _bap_district_city: CSB_School_District__r?.BillingCity,
+            _bap_district_state: CSB_School_District__r?.BillingState,
+            _bap_district_zip: CSB_School_District__r?.BillingPostalCode,
+            _bap_district_priority: School_District_Prioritized__c,
+            _bap_district_selfCertify: School_District_Poverty_Rate__c,
             _bap_district_priorityReason: {
               highNeed: Prioritized_as_High_Need__c,
               tribal: Prioritized_as_Tribal__c,
@@ -209,6 +272,8 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
             _bap_district_contactTitle: School_District_Contact__r?.Title,
             _bap_district_contactEmail: School_District_Contact__r?.Email,
             _bap_district_contactPhone: School_District_Contact__r?.Phone,
+            org_organizations,
+            bus_buses,
           },
           /** Add custom metadata to track formio submissions from wrapper. */
           metadata: { ...formioCSBMetadata },

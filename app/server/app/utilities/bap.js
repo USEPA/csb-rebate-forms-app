@@ -133,10 +133,31 @@ const { submissionPeriodOpen } = require("../config/formio");
  *    Phone: string
  *  } | null
  *  CSB_NCES_ID__c: string
+ *  School_District_Prioritized__c: string
+ *  School_District_Poverty_Rate__c: string
  *  Prioritized_as_High_Need__c: string
  *  Prioritized_as_Tribal__c: string
  *  Prioritized_as_Rural__c: string
  * }[]} frfRecordQuery
+ * @property {{
+ *  Rebate_Item_num__c: string
+ *  CSB_VIN__c: string
+ *  CSB_Fuel_Type__c: string
+ *  CSB_GVWR__c: string
+ *  Old_Bus_Odometer_miles__c: string
+ *  CSB_Model__c: string
+ *  CSB_Model_Year__c: string
+ *  CSB_Manufacturer__c: string
+ *  CSB_Manufacturer_if_Other__c: string
+ *  CSB_Annual_Fuel_Consumption__c: string
+ *  Annual_Mileage__c: string
+ *  Old_Bus_Estimated_Remaining_Life__c: string
+ *  Old_Bus_Annual_Idling_Hours__c: string
+ *  CSB_Funds_Requested__c: string
+ *  New_Bus_Fuel_Type__c: string
+ *  New_Bus_GVWR__c: string
+ *  New_Bus_ADA_Compliant__c: string
+ * }[]} busRecordsQuery
  * @property {{
  *  type: string
  *  url: string
@@ -781,6 +802,8 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
   //   School_District_Contact__r.Email,
   //   School_District_Contact__r.Phone,
   //   CSB_NCES_ID__c,
+  //   School_District_Prioritized__c,
+  //   School_District_Poverty_Rate__c,
   //   Prioritized_as_High_Need__c,
   //   Prioritized_as_Tribal__c,
   //   Prioritized_as_Rural__c,
@@ -823,6 +846,8 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
         "School_District_Contact__r.Email": 1,
         "School_District_Contact__r.Phone": 1,
         CSB_NCES_ID__c: 1,
+        School_District_Prioritized__c: 1,
+        School_District_Poverty_Rate__c: 1,
         Prioritized_as_High_Need__c: 1,
         Prioritized_as_Tribal__c: 1,
         Prioritized_as_Rural__c: 1,
@@ -830,7 +855,91 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
     )
     .execute(async (err, records) => ((await err) ? err : records));
 
-  return { frfRecordQuery };
+  const frfRecordId = frfRecordQuery["0"].Id;
+
+  // `SELECT
+  //   Id
+  // FROM
+  //   RecordType
+  // WHERE
+  //   DeveloperName = 'CSB_Rebate_Item' AND
+  //   SObjectType = '${BAP_BUS_TABLE}'
+  // LIMIT 1`
+
+  const busRecordTypeIdQuery = await bapConnection
+    .sobject("RecordType")
+    .find(
+      {
+        DeveloperName: "CSB_Rebate_Item",
+        SObjectType: BAP_BUS_TABLE,
+      },
+      {
+        // "*": 1,
+        Id: 1, // Salesforce record ID
+      },
+    )
+    .limit(1)
+    .execute(async (err, records) => ((await err) ? err : records));
+
+  const busRecordTypeId = busRecordTypeIdQuery["0"].Id;
+
+  // `SELECT
+  //   Rebate_Item_num__c,
+  //   CSB_VIN__c,
+  //   CSB_Fuel_Type__c,
+  //   CSB_GVWR__c,
+  //   Old_Bus_Odometer_miles__c,
+  //   CSB_Model__c,
+  //   CSB_Model_Year__c,
+  //   CSB_Manufacturer__c,
+  //   CSB_Manufacturer_if_Other__c,
+  //   CSB_Annual_Fuel_Consumption__c,
+  //   Annual_Mileage__c,
+  //   Old_Bus_Estimated_Remaining_Life__c,
+  //   Old_Bus_Annual_Idling_Hours__c,
+  //   CSB_Funds_Requested__c,
+  //   New_Bus_Fuel_Type__c,
+  //   New_Bus_GVWR__c,
+  //   New_Bus_ADA_Compliant__c
+  // FROM
+  //   ${BAP_BUS_TABLE}
+  // WHERE
+  //   RecordTypeId = '${busRecordTypeId}' AND
+  //   Related_Order_Request__c = '${frfRecordId}' AND
+  //   CSB_Rebate_Item_Type__c = 'Old Bus'`
+
+  const busRecordsQuery = await bapConnection
+    .sobject(BAP_BUS_TABLE)
+    .find(
+      {
+        RecordTypeId: busRecordTypeId,
+        Related_Order_Request__c: frfRecordId,
+        CSB_Rebate_Item_Type__c: "Old Bus",
+      },
+      {
+        // "*": 1,
+        Rebate_Item_num__c: 1,
+        CSB_VIN__c: 1,
+        CSB_Fuel_Type__c: 1,
+        CSB_GVWR__c: 1,
+        Old_Bus_Odometer_miles__c: 1,
+        CSB_Model__c: 1,
+        CSB_Model_Year__c: 1,
+        CSB_Manufacturer__c: 1,
+        CSB_Manufacturer_if_Other__c: 1,
+        CSB_Annual_Fuel_Consumption__c: 1,
+        Annual_Mileage__c: 1,
+        Old_Bus_Estimated_Remaining_Life__c: 1,
+        Old_Bus_Annual_Idling_Hours__c: 1,
+        CSB_Funds_Requested__c: 1,
+        New_Bus_Fuel_Type__c: 1,
+        New_Bus_GVWR__c: 1,
+        New_Bus_ADA_Compliant__c: 1,
+      },
+    )
+    .execute(async (err, records) => ((await err) ? err : records));
+
+  return { frfRecordQuery, busRecordsQuery };
 }
 
 /**
