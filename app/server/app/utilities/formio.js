@@ -8,6 +8,7 @@ const {
 } = require("../config/formio");
 const {
   getBapDataFor2022PRF,
+  getBapDataFor2023PRF,
   checkFormSubmissionPeriodAndBapStatus,
 } = require("../utilities/bap");
 const log = require("./logger");
@@ -52,6 +53,21 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
     frfFormModified,
   } = req.body;
 
+  const {
+    UNIQUE_ENTITY_ID__c,
+    ENTITY_EFT_INDICATOR__c,
+    LEGAL_BUSINESS_NAME__c,
+    PHYSICAL_ADDRESS_LINE_1__c,
+    PHYSICAL_ADDRESS_LINE_2__c,
+    PHYSICAL_ADDRESS_CITY__c,
+    PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
+    PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
+    ELEC_BUS_POC_EMAIL__c,
+    ALT_ELEC_BUS_POC_EMAIL__c,
+    GOVT_BUS_POC_EMAIL__c,
+    ALT_GOVT_BUS_POC_EMAIL__c,
+  } = entity;
+
   if (rebateYear === "2022") {
     return getBapDataFor2022PRF(req, frfReviewItemId)
       .then(({ frfRecordQuery, busRecordsQuery }) => {
@@ -88,12 +104,12 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
             hidden_current_user_email: email,
             hidden_current_user_title: title,
             hidden_current_user_name: name,
-            hidden_sam_uei: entity.UNIQUE_ENTITY_ID__c,
-            hidden_sam_efti: entity.ENTITY_EFT_INDICATOR__c || "0000",
-            hidden_sam_elec_bus_poc_email: entity.ELEC_BUS_POC_EMAIL__c,
-            hidden_sam_alt_elec_bus_poc_email: entity.ALT_ELEC_BUS_POC_EMAIL__c,
-            hidden_sam_govt_bus_poc_email: entity.GOVT_BUS_POC_EMAIL__c,
-            hidden_sam_alt_govt_bus_poc_email: entity.ALT_GOVT_BUS_POC_EMAIL__c,
+            hidden_sam_uei: UNIQUE_ENTITY_ID__c,
+            hidden_sam_efti: ENTITY_EFT_INDICATOR__c || "0000",
+            hidden_sam_elec_bus_poc_email: ELEC_BUS_POC_EMAIL__c,
+            hidden_sam_alt_elec_bus_poc_email: ALT_ELEC_BUS_POC_EMAIL__c,
+            hidden_sam_govt_bus_poc_email: GOVT_BUS_POC_EMAIL__c,
+            hidden_sam_alt_govt_bus_poc_email: ALT_GOVT_BUS_POC_EMAIL__c,
             hidden_bap_rebate_id: rebateId,
             hidden_bap_district_id: CSB_NCES_ID__c,
             hidden_bap_primary_name: Primary_Applicant__r?.Name,
@@ -121,13 +137,90 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
       .catch((error) => {
         // NOTE: logged in bap verifyBapConnection
         const errorStatus = 500;
-        const errorMessage = `Error getting data for a new Payment Request form submission from the BAP.`;
+        const errorMessage = `Error getting data for a new 2022 Payment Request form submission from the BAP.`;
         return res.status(errorStatus).json({ message: errorMessage });
       });
   }
 
   if (rebateYear === "2023") {
-    // TODO
+    return getBapDataFor2023PRF(req, frfReviewItemId)
+      .then(({ frfRecordQuery }) => {
+        const {
+          Primary_Applicant__r,
+          Alternate_Applicant__r,
+          CSB_School_District__r,
+          School_District_Contact__r,
+          CSB_NCES_ID__c,
+          Prioritized_as_High_Need__c,
+          Prioritized_as_Tribal__c,
+          Prioritized_as_Rural__c,
+        } = frfRecordQuery[0];
+
+        return {
+          data: {
+            _bap_entity_combo_key: comboKey,
+            _application_form_modified: frfFormModified,
+            _user_email: email,
+            _user_title: title,
+            _user_name: name,
+            _bap_applicant_email: email,
+            _bap_applicant_title: title,
+            _bap_applicant_name: name,
+            _bap_applicant_efti: ENTITY_EFT_INDICATOR__c || "0000",
+            _bap_applicant_uei: UNIQUE_ENTITY_ID__c,
+            _bap_applicant_organization_name: LEGAL_BUSINESS_NAME__c, // TODO: confirm
+            _bap_applicant_district_name: "", // TODO: get
+            _bap_applicant_street_address_1: PHYSICAL_ADDRESS_LINE_1__c, // TODO: confirm
+            _bap_applicant_street_address_2: PHYSICAL_ADDRESS_LINE_2__c, // TODO: confirm
+            _bap_applicant_county: "", // TODO: get
+            _bap_applicant_city: PHYSICAL_ADDRESS_CITY__c, // TODO: confirm
+            _bap_applicant_state: PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c, // TODO: confirm
+            _bap_applicant_zip: PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c, // TODO: confirm
+            _bap_elec_bus_poc_email: ELEC_BUS_POC_EMAIL__c,
+            _bap_alt_elec_bus_poc_email: ALT_ELEC_BUS_POC_EMAIL__c,
+            _bap_govt_bus_poc_email: GOVT_BUS_POC_EMAIL__c,
+            _bap_alt_govt_bus_poc_email: ALT_GOVT_BUS_POC_EMAIL__c,
+            _bap_primary_fname: Primary_Applicant__r?.FirstName,
+            _bap_primary_lname: Primary_Applicant__r?.LastName,
+            _bap_primary_title: Primary_Applicant__r?.Title,
+            _bap_primary_email: Primary_Applicant__r?.Email,
+            _bap_primary_phone_number: Primary_Applicant__r?.Phone,
+            _bap_alternate_fname: Alternate_Applicant__r?.FirstName,
+            _bap_alternate_lname: Alternate_Applicant__r?.LastName,
+            _bap_alternate_title: Alternate_Applicant__r?.Title,
+            _bap_alternate_email: Alternate_Applicant__r?.Email,
+            _bap_alternate_phone_number: Alternate_Applicant__r?.Phone,
+            _bap_district_ncesID: CSB_NCES_ID__c,
+            _bap_district_name: CSB_School_District__r?.Name,
+            _bap_district_address_1: CSB_School_District__r?.BillingStreet, // TODO: confirm
+            _bap_district_address_2: "", // TODO: get
+            _bap_district_city: CSB_School_District__r?.BillingCity, // TODO: confirm
+            _bap_district_state: CSB_School_District__r?.BillingState, // TODO: confirm
+            _bap_district_zip: CSB_School_District__r?.BillingPostalCode, // TODO: confirm
+            _bap_district_priority: "", // TODO: get
+            _bap_district_selfCertify: "", // TODO: get
+            _bap_district_priorityReason: {
+              highNeed: Prioritized_as_High_Need__c,
+              tribal: Prioritized_as_Tribal__c,
+              rural: Prioritized_as_Rural__c,
+            },
+            _bap_district_contactFName: School_District_Contact__r?.FirstName,
+            _bap_district_contactLName: School_District_Contact__r?.LastName,
+            _bap_district_contactTitle: School_District_Contact__r?.Title,
+            _bap_district_contactEmail: School_District_Contact__r?.Email,
+            _bap_district_contactPhone: School_District_Contact__r?.Phone,
+          },
+          /** Add custom metadata to track formio submissions from wrapper. */
+          metadata: { ...formioCSBMetadata },
+          state: "draft",
+        };
+      })
+      .catch((error) => {
+        // NOTE: logged in bap verifyBapConnection
+        const errorStatus = 500;
+        const errorMessage = `Error getting data for a new 2023 Payment Request form submission from the BAP.`;
+        return res.status(errorStatus).json({ message: errorMessage });
+      });
   }
 }
 

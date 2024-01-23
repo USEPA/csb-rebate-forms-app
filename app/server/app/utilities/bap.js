@@ -58,7 +58,7 @@ const { submissionPeriodOpen } = require("../config/formio");
  */
 
 /**
- * @typedef {Object} BapDataForPRF
+ * @typedef {Object} BapDataFor2022PRF
  * @property {{
  *  Id: string
  *  UEI_EFTI_Combo_Key__c: string
@@ -101,7 +101,50 @@ const { submissionPeriodOpen } = require("../config/formio");
  */
 
 /**
- * @typedef {Object} BapDataForForCRF
+ * @typedef {Object} BapDataFor2023PRF
+ * @property {{
+ *  Id: string
+ *  Primary_Applicant__r: {
+ *    FirstName: string
+ *    LastName: string
+ *    Title: string
+ *    Email: string
+ *    Phone: string
+ *  } | null
+ *  Alternate_Applicant__r: {
+ *    FirstName: string
+ *    LastName: string
+ *    Title: string
+ *    Email: string
+ *    Phone: string
+ *  } | null
+ *  CSB_School_District__r: {
+ *    Name: string
+ *    BillingStreet: string
+ *    BillingCity: string
+ *    BillingState: string
+ *    BillingPostalCode: string
+ *  } | null
+ *  School_District_Contact__r: {
+ *    FirstName: string
+ *    LastName: string
+ *    Title: string
+ *    Email: string
+ *    Phone: string
+ *  } | null
+ *  CSB_NCES_ID__c: string
+ *  Prioritized_as_High_Need__c: string
+ *  Prioritized_as_Tribal__c: string
+ *  Prioritized_as_Rural__c: string
+ * }[]} frfRecordQuery
+ * @property {{
+ *  type: string
+ *  url: string
+ * }} attributes
+ */
+
+/**
+ * @typedef {Object} BapDataForFor2022CRF
  * @property {{
  *  Fleet_Name__c: string
  *  Fleet_Street_Address__c: string
@@ -514,7 +557,7 @@ async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
  *
  * @param {express.Request} req
  * @param {string} frfReviewItemId CSB Rebate ID with the form/version ID (9 digits)
- * @returns {Promise<BapDataForPRF>} FRF submission fields
+ * @returns {Promise<BapDataFor2022PRF>} 2022 FRF submission fields
  */
 async function queryBapFor2022PRFData(req, frfReviewItemId) {
   const logMessage =
@@ -673,13 +716,131 @@ async function queryBapFor2022PRFData(req, frfReviewItemId) {
 }
 
 /**
+ * Uses cached JSforce connection to query the BAP for 2023 FRF submission data,
+ * for use in a brand new 2023 PRF submission.
+ *
+ * @param {express.Request} req
+ * @param {string} frfReviewItemId CSB Rebate ID with the form/version ID (9 digits)
+ * @returns {Promise<BapDataFor2023PRF>} 2023 FRF submission fields
+ */
+async function queryBapFor2023PRFData(req, frfReviewItemId) {
+  const logMessage =
+    `Querying the BAP for 2023 FRF submission associated with ` +
+    `FRF Review Item ID: '${frfReviewItemId}'.`;
+  log({ level: "info", message: logMessage });
+
+  /** @type {jsforce.Connection} */
+  const { bapConnection } = req.app.locals;
+
+  // `SELECT
+  //   Id
+  // FROM
+  //   RecordType
+  // WHERE
+  //   DeveloperName = 'CSB_Funding_Request_2023' AND
+  //   SObjectType = '${BAP_FORMS_TABLE}'
+  // LIMIT 1`
+
+  const frfRecordTypeIdQuery = await bapConnection
+    .sobject("RecordType")
+    .find(
+      {
+        DeveloperName: "CSB_Funding_Request_2023",
+        SObjectType: BAP_FORMS_TABLE,
+      },
+      {
+        // "*": 1,
+        Id: 1, // Salesforce record ID
+      },
+    )
+    .limit(1)
+    .execute(async (err, records) => ((await err) ? err : records));
+
+  const frfRecordTypeId = frfRecordTypeIdQuery["0"].Id;
+
+  // `SELECT
+  //   Id,
+  //   Primary_Applicant__r.FirstName,
+  //   Primary_Applicant__r.LastName,
+  //   Primary_Applicant__r.Title,
+  //   Primary_Applicant__r.Email,
+  //   Primary_Applicant__r.Phone,
+  //   Alternate_Applicant__r.FirstName,
+  //   Alternate_Applicant__r.LastName,
+  //   Alternate_Applicant__r.Title,
+  //   Alternate_Applicant__r.Email,
+  //   Alternate_Applicant__r.Phone,
+  //   CSB_School_District__r.Name,
+  //   CSB_School_District__r.BillingStreet,
+  //   CSB_School_District__r.BillingCity,
+  //   CSB_School_District__r.BillingState,
+  //   CSB_School_District__r.BillingPostalCode,
+  //   School_District_Contact__r.FirstName,
+  //   School_District_Contact__r.LastName,
+  //   School_District_Contact__r.Title,
+  //   School_District_Contact__r.Email,
+  //   School_District_Contact__r.Phone,
+  //   CSB_NCES_ID__c,
+  //   Prioritized_as_High_Need__c,
+  //   Prioritized_as_Tribal__c,
+  //   Prioritized_as_Rural__c,
+  // FROM
+  //   ${BAP_FORMS_TABLE}
+  // WHERE
+  //   RecordTypeId = '${frfRecordTypeId}' AND
+  //   CSB_Review_Item_ID__c = '${frfReviewItemId}' AND
+  //   Latest_Version__c = TRUE`
+
+  const frfRecordQuery = await bapConnection
+    .sobject(BAP_FORMS_TABLE)
+    .find(
+      {
+        RecordTypeId: frfRecordTypeId,
+        CSB_Review_Item_ID__c: frfReviewItemId,
+        Latest_Version__c: true,
+      },
+      {
+        // "*": 1,
+        Id: 1, // Salesforce record ID
+        "Primary_Applicant__r.FirstName": 1,
+        "Primary_Applicant__r.LastName": 1,
+        "Primary_Applicant__r.Title": 1,
+        "Primary_Applicant__r.Email": 1,
+        "Primary_Applicant__r.Phone": 1,
+        "Alternate_Applicant__r.FirstName": 1,
+        "Alternate_Applicant__r.LastName": 1,
+        "Alternate_Applicant__r.Title": 1,
+        "Alternate_Applicant__r.Email": 1,
+        "Alternate_Applicant__r.Phone": 1,
+        "CSB_School_District__r.Name": 1,
+        "CSB_School_District__r.BillingStreet": 1,
+        "CSB_School_District__r.BillingCity": 1,
+        "CSB_School_District__r.BillingState": 1,
+        "CSB_School_District__r.BillingPostalCode": 1,
+        "School_District_Contact__r.FirstName": 1,
+        "School_District_Contact__r.LastName": 1,
+        "School_District_Contact__r.Title": 1,
+        "School_District_Contact__r.Email": 1,
+        "School_District_Contact__r.Phone": 1,
+        CSB_NCES_ID__c: 1,
+        Prioritized_as_High_Need__c: 1,
+        Prioritized_as_Tribal__c: 1,
+        Prioritized_as_Rural__c: 1,
+      },
+    )
+    .execute(async (err, records) => ((await err) ? err : records));
+
+  return { frfRecordQuery };
+}
+
+/**
  * Uses cached JSforce connection to query the BAP for 2022 FRF submission data
  * and 2022 PRF submission data, for use in a brand new 2022 CRF submission.
  *
  * @param {express.Request} req
  * @param {string} frfReviewItemId CSB Rebate ID with the form/version ID (9 digits)
  * @param {string} prfReviewItemId CSB Rebate ID with the form/version ID (9 digits)
- * @returns {Promise<BapDataForForCRF>} FRF and PRF submission fields
+ * @returns {Promise<BapDataForFor2022CRF>} 2022 FRF and 2022 PRF submission fields
  */
 async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
   const logMessage =
@@ -1063,6 +1224,20 @@ function getBapDataFor2022PRF(req, frfReviewItemId) {
 }
 
 /**
+ * Fetches 2023 FRF submission data associated with a FRF Review Item ID.
+ *
+ * @param {express.Request} req
+ * @param {string} frfReviewItemId
+ * @returns {ReturnType<queryBapFor2023PRFData>}
+ */
+function getBapDataFor2023PRF(req, frfReviewItemId) {
+  return verifyBapConnection(req, {
+    name: queryBapFor2023PRFData,
+    args: [req, frfReviewItemId],
+  });
+}
+
+/**
  * Fetches 2022 FRF submission data and 2022 PRF submission data associated with
  * a FRF Review Item ID and a PRF Review Item ID.
  *
@@ -1128,6 +1303,7 @@ module.exports = {
   getBapFormSubmissionData,
   getBapFormSubmissionsStatuses,
   getBapDataFor2022PRF,
+  getBapDataFor2023PRF,
   getBapDataFor2022CRF,
   checkFormSubmissionPeriodAndBapStatus,
 };
