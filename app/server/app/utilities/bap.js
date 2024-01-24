@@ -140,6 +140,7 @@ const { submissionPeriodOpen } = require("../config/formio");
  *  Prioritized_as_Rural__c: string
  * }[]} frfRecordQuery
  * @property {{
+ *  Id: string
  *  Rebate_Item_num__c: string
  *  CSB_VIN__c: string
  *  CSB_Fuel_Type__c: string
@@ -806,7 +807,7 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
   //   School_District_Poverty_Rate__c,
   //   Prioritized_as_High_Need__c,
   //   Prioritized_as_Tribal__c,
-  //   Prioritized_as_Rural__c,
+  //   Prioritized_as_Rural__c
   // FROM
   //   ${BAP_FORMS_TABLE}
   // WHERE
@@ -884,6 +885,7 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
   const busRecordTypeId = busRecordTypeIdQuery["0"].Id;
 
   // `SELECT
+  //   Id,
   //   Rebate_Item_num__c,
   //   CSB_VIN__c,
   //   CSB_Fuel_Type__c,
@@ -918,6 +920,7 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
       },
       {
         // "*": 1,
+        Id: 1, // Salesforce record ID
         Rebate_Item_num__c: 1,
         CSB_VIN__c: 1,
         CSB_Fuel_Type__c: 1,
