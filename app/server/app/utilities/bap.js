@@ -85,7 +85,7 @@ const { submissionPeriodOpen } = require("../config/formio");
  *  School_District_Prioritized__c: string
  *  Total_Rebate_Funds_Requested__c: string
  *  Total_Infrastructure_Funds__c: string
- * }[]} frfRecordQuery
+ * }[]} frf2022RecordQuery
  * @property {{
  *  Rebate_Item_num__c: string
  *  CSB_VIN__c: string
@@ -93,7 +93,7 @@ const { submissionPeriodOpen } = require("../config/formio");
  *  CSB_Fuel_Type__c: string
  *  CSB_Replacement_Fuel_Type__c: string
  *  CSB_Funds_Requested__c: string
- * }[]} busRecordsQuery
+ * }[]} frf2022BusRecordsQuery
  * @property {{
  *  type: string
  *  url: string
@@ -501,7 +501,7 @@ async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
   //     .join(" OR ")}) AND
   //   Latest_Version__c = TRUE`
 
-  const parentRebateIdsQuery = await bapConnection
+  const csbRebateIdsQuery = await bapConnection
     .sobject("Order_Request__c")
     .find(
       {
@@ -516,11 +516,11 @@ async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
     .sort({ CreatedDate: -1 })
     .execute(async (err, records) => ((await err) ? err : records));
 
-  const parentRebateIds = Array.isArray(parentRebateIdsQuery)
-    ? parentRebateIdsQuery.map((item) => item.Parent_Rebate_ID__c)
+  const csbRebateIds = Array.isArray(csbRebateIdsQuery)
+    ? csbRebateIdsQuery.map((item) => item.Parent_Rebate_ID__c)
     : [];
 
-  if (parentRebateIds.length === 0) return [];
+  if (csbRebateIds.length === 0) return [];
 
   // `SELECT
   //   UEI_EFTI_Combo_Key__c,
@@ -536,7 +536,7 @@ async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
   // FROM
   //   Order_Request__c
   // WHERE
-  //   (${parentRebateIds
+  //   (${csbRebateIds
   //     .map((id) => `Parent_CSB_Rebate__r.CSB_Rebate_ID__c = '${id}'`)
   //     .join(" OR ")}) AND
   //   Latest_Version__c = TRUE
@@ -547,7 +547,7 @@ async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
     .sobject("Order_Request__c")
     .find(
       {
-        "Parent_CSB_Rebate__r.CSB_Rebate_ID__c": { $in: parentRebateIds },
+        "Parent_CSB_Rebate__r.CSB_Rebate_ID__c": { $in: csbRebateIds },
         Latest_Version__c: true,
       },
       {
@@ -596,7 +596,7 @@ async function queryBapFor2022PRFData(req, frfReviewItemId) {
   //   SObjectType = 'Order_Request__c'
   // LIMIT 1`
 
-  const frfRecordTypeIdQuery = await bapConnection
+  const frf2022RecordTypeIdQuery = await bapConnection
     .sobject("RecordType")
     .find(
       {
@@ -611,7 +611,7 @@ async function queryBapFor2022PRFData(req, frfReviewItemId) {
     .limit(1)
     .execute(async (err, records) => ((await err) ? err : records));
 
-  const frfRecordTypeId = frfRecordTypeIdQuery["0"].Id;
+  const frf2022RecordTypeId = frf2022RecordTypeIdQuery["0"].Id;
 
   // `SELECT
   //   Id,
@@ -634,15 +634,15 @@ async function queryBapFor2022PRFData(req, frfReviewItemId) {
   // FROM
   //   Order_Request__c
   // WHERE
-  //   RecordTypeId = '${frfRecordTypeId}' AND
+  //   RecordTypeId = '${frf2022RecordTypeId}' AND
   //   CSB_Review_Item_ID__c = '${frfReviewItemId}' AND
   //   Latest_Version__c = TRUE`
 
-  const frfRecordQuery = await bapConnection
+  const frf2022RecordQuery = await bapConnection
     .sobject("Order_Request__c")
     .find(
       {
-        RecordTypeId: frfRecordTypeId,
+        RecordTypeId: frf2022RecordTypeId,
         CSB_Review_Item_ID__c: frfReviewItemId,
         Latest_Version__c: true,
       },
@@ -669,7 +669,7 @@ async function queryBapFor2022PRFData(req, frfReviewItemId) {
     )
     .execute(async (err, records) => ((await err) ? err : records));
 
-  const frfRecordId = frfRecordQuery["0"].Id;
+  const frf2022RecordId = frf2022RecordQuery["0"].Id;
 
   // `SELECT
   //   Id
@@ -680,7 +680,7 @@ async function queryBapFor2022PRFData(req, frfReviewItemId) {
   //   SObjectType = 'Line_Item__c'
   // LIMIT 1`
 
-  const busRecordTypeIdQuery = await bapConnection
+  const rebateItemRecordTypeIdQuery = await bapConnection
     .sobject("RecordType")
     .find(
       {
@@ -695,7 +695,7 @@ async function queryBapFor2022PRFData(req, frfReviewItemId) {
     .limit(1)
     .execute(async (err, records) => ((await err) ? err : records));
 
-  const busRecordTypeId = busRecordTypeIdQuery["0"].Id;
+  const rebateItemRecordTypeId = rebateItemRecordTypeIdQuery["0"].Id;
 
   // `SELECT
   //   Rebate_Item_num__c,
@@ -707,16 +707,16 @@ async function queryBapFor2022PRFData(req, frfReviewItemId) {
   // FROM
   //   Line_Item__c
   // WHERE
-  //   RecordTypeId = '${busRecordTypeId}' AND
-  //   Related_Order_Request__c = '${frfRecordId}' AND
+  //   RecordTypeId = '${rebateItemRecordTypeId}' AND
+  //   Related_Order_Request__c = '${frf2022RecordId}' AND
   //   CSB_Rebate_Item_Type__c = 'Old Bus'`
 
-  const busRecordsQuery = await bapConnection
+  const frf2022BusRecordsQuery = await bapConnection
     .sobject("Line_Item__c")
     .find(
       {
-        RecordTypeId: busRecordTypeId,
-        Related_Order_Request__c: frfRecordId,
+        RecordTypeId: rebateItemRecordTypeId,
+        Related_Order_Request__c: frf2022RecordId,
         CSB_Rebate_Item_Type__c: "Old Bus",
       },
       {
@@ -731,7 +731,7 @@ async function queryBapFor2022PRFData(req, frfReviewItemId) {
     )
     .execute(async (err, records) => ((await err) ? err : records));
 
-  return { frfRecordQuery, busRecordsQuery };
+  return { frf2022RecordQuery, frf2022BusRecordsQuery };
 }
 
 /**

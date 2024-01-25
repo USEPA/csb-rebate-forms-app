@@ -70,7 +70,7 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
 
   if (rebateYear === "2022") {
     return getBapDataFor2022PRF(req, frfReviewItemId)
-      .then(({ frfRecordQuery, busRecordsQuery }) => {
+      .then(({ frf2022RecordQuery, frf2022BusRecordsQuery }) => {
         const {
           CSB_NCES_ID__c,
           Primary_Applicant__r,
@@ -81,9 +81,9 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
           School_District_Prioritized__c,
           Total_Rebate_Funds_Requested__c,
           Total_Infrastructure_Funds__c,
-        } = frfRecordQuery[0];
+        } = frf2022RecordQuery[0];
 
-        const busInfo = busRecordsQuery.map((record) => ({
+        const busInfo = frf2022BusRecordsQuery.map((record) => ({
           busNum: record.Rebate_Item_num__c,
           oldBusNcesDistrictId: CSB_NCES_ID__c,
           oldBusVin: record.CSB_VIN__c,
