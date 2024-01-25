@@ -252,7 +252,6 @@ const {
   BAP_URL,
   BAP_USER,
   BAP_PASSWORD,
-  BAP_BUS_TABLE,
 } = process.env;
 
 /**
@@ -678,7 +677,7 @@ async function queryBapFor2022PRFData(req, frfReviewItemId) {
   //   RecordType
   // WHERE
   //   DeveloperName = 'CSB_Rebate_Item' AND
-  //   SObjectType = '${BAP_BUS_TABLE}'
+  //   SObjectType = 'Line_Item__c'
   // LIMIT 1`
 
   const busRecordTypeIdQuery = await bapConnection
@@ -686,7 +685,7 @@ async function queryBapFor2022PRFData(req, frfReviewItemId) {
     .find(
       {
         DeveloperName: "CSB_Rebate_Item",
-        SObjectType: BAP_BUS_TABLE,
+        SObjectType: "Line_Item__c",
       },
       {
         // "*": 1,
@@ -706,14 +705,14 @@ async function queryBapFor2022PRFData(req, frfReviewItemId) {
   //   CSB_Replacement_Fuel_Type__c,
   //   CSB_Funds_Requested__c
   // FROM
-  //   ${BAP_BUS_TABLE}
+  //   Line_Item__c
   // WHERE
   //   RecordTypeId = '${busRecordTypeId}' AND
   //   Related_Order_Request__c = '${frfRecordId}' AND
   //   CSB_Rebate_Item_Type__c = 'Old Bus'`
 
   const busRecordsQuery = await bapConnection
-    .sobject(BAP_BUS_TABLE)
+    .sobject("Line_Item__c")
     .find(
       {
         RecordTypeId: busRecordTypeId,
@@ -862,7 +861,7 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
   //   RecordType
   // WHERE
   //   DeveloperName = 'CSB_Rebate_Item' AND
-  //   SObjectType = '${BAP_BUS_TABLE}'
+  //   SObjectType = 'Line_Item__c'
   // LIMIT 1`
 
   const busRecordTypeIdQuery = await bapConnection
@@ -870,7 +869,7 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
     .find(
       {
         DeveloperName: "CSB_Rebate_Item",
-        SObjectType: BAP_BUS_TABLE,
+        SObjectType: "Line_Item__c",
       },
       {
         // "*": 1,
@@ -902,14 +901,14 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
   //   New_Bus_GVWR__c,
   //   New_Bus_ADA_Compliant__c
   // FROM
-  //   ${BAP_BUS_TABLE}
+  //   Line_Item__c
   // WHERE
   //   RecordTypeId = '${busRecordTypeId}' AND
   //   Related_Order_Request__c = '${frfRecordId}' AND
   //   CSB_Rebate_Item_Type__c = 'Old Bus'`
 
   const busRecordsQuery = await bapConnection
-    .sobject(BAP_BUS_TABLE)
+    .sobject("Line_Item__c")
     .find(
       {
         RecordTypeId: busRecordTypeId,
@@ -1143,7 +1142,7 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
   //   RecordType
   // WHERE
   //   DeveloperName = 'CSB_Rebate_Item' AND
-  //   SObjectType = '${BAP_BUS_TABLE}'
+  //   SObjectType = 'Line_Item__c'
   // LIMIT 1`
 
   const busRecordTypeIdQuery = await bapConnection
@@ -1151,7 +1150,7 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
     .find(
       {
         DeveloperName: "CSB_Rebate_Item",
-        SObjectType: BAP_BUS_TABLE,
+        SObjectType: "Line_Item__c",
       },
       {
         // "*": 1,
@@ -1181,14 +1180,14 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
   //   New_Bus_Rebate_Amount__c,
   //   New_Bus_Purchase_Price__c
   // FROM
-  //   ${BAP_BUS_TABLE}
+  //   Line_Item__c
   // WHERE
   //   RecordTypeId = '${busRecordTypeId}' AND
   //   Related_Order_Request__c = '${prfRecordId}' AND
   //   CSB_Rebate_Item_Type__c = 'New Bus'`
 
   const busRecordsQuery = await bapConnection
-    .sobject(BAP_BUS_TABLE)
+    .sobject("Line_Item__c")
     .find(
       {
         RecordTypeId: busRecordTypeId,
