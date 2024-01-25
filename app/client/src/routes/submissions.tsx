@@ -1173,7 +1173,6 @@ function PRF2023Submission(props: { rebate: Rebate }) {
     bap: prf.bap,
   });
 
-  // TODO: review statuses for 2023 PRF
   const prfNeedsClarification = prf.bap?.status === "Needs Clarification";
 
   const prfHasBeenWithdrawn = prf.bap?.status === "Withdrawn";
@@ -1212,7 +1211,7 @@ function PRF2023Submission(props: { rebate: Rebate }) {
     : prfHasBeenWithdrawn
     ? "Withdrawn"
     : prfFundingNotApproved
-    ? "Funding Not Approved"
+    ? "Funding Denied"
     : prfFundingApproved
     ? "Funding Approved"
     : prf.formio.state === "draft"
