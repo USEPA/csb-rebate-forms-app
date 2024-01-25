@@ -396,7 +396,7 @@ async function queryForBapFormSubmissionData(req, formType, rebateId, mongoId) {
   /** @type {jsforce.Connection} */
   const { bapConnection } = req.app.locals;
 
-  const developername =
+  const developerName =
     formType === "frf"
       ? "CSB_Funding_Request"
       : formType === "prf"
@@ -405,23 +405,23 @@ async function queryForBapFormSubmissionData(req, formType, rebateId, mongoId) {
       ? "CSB_Closeout_Request"
       : null; // fallback
 
-  if (!developername) return null;
+  if (!developerName) return null;
 
   // `SELECT
   //   Id
   // FROM
-  //   recordtype
+  //   RecordType
   // WHERE
-  //   developername = '${developername}' AND
-  //   sobjecttype = '${BAP_FORMS_TABLE}'
+  //   DeveloperName = '${developerName}' AND
+  //   SObjectType = '${BAP_FORMS_TABLE}'
   // LIMIT 1`
 
   const formRecordTypeIdQuery = await bapConnection
-    .sobject("recordtype")
+    .sobject("RecordType")
     .find(
       {
-        developername,
-        sobjecttype: BAP_FORMS_TABLE,
+        DeveloperName: developerName,
+        SObjectType: BAP_FORMS_TABLE,
       },
       {
         // "*": 1,
@@ -446,7 +446,7 @@ async function queryForBapFormSubmissionData(req, formType, rebateId, mongoId) {
   // FROM
   //   ${BAP_FORMS_TABLE}
   // WHERE
-  //   recordtypeid = '${formRecordTypeId}' AND
+  //   RecordTypeId = '${formRecordTypeId}' AND
   //   CSB_Form_ID__c = '${mongoId}'
   //   Latest_Version__c = TRUE`
 
@@ -454,7 +454,7 @@ async function queryForBapFormSubmissionData(req, formType, rebateId, mongoId) {
     .sobject(BAP_FORMS_TABLE)
     .find(
       {
-        recordtypeid: formRecordTypeId,
+        RecordTypeId: formRecordTypeId,
         ...(mongoId && { CSB_Form_ID__c: mongoId }),
         ...(rebateId && { Parent_Rebate_ID__c: rebateId }),
         Latest_Version__c: true,
@@ -593,18 +593,18 @@ async function queryBapFor2022PRFData(req, frfReviewItemId) {
   // `SELECT
   //   Id
   // FROM
-  //   recordtype
+  //   RecordType
   // WHERE
-  //   developername = 'CSB_Funding_Request' AND
-  //   sobjecttype = '${BAP_FORMS_TABLE}'
+  //   DeveloperName = 'CSB_Funding_Request' AND
+  //   SObjectType = '${BAP_FORMS_TABLE}'
   // LIMIT 1`
 
   const frfRecordTypeIdQuery = await bapConnection
-    .sobject("recordtype")
+    .sobject("RecordType")
     .find(
       {
-        developername: "CSB_Funding_Request",
-        sobjecttype: BAP_FORMS_TABLE,
+        DeveloperName: "CSB_Funding_Request",
+        SObjectType: BAP_FORMS_TABLE,
       },
       {
         // "*": 1,
@@ -637,7 +637,7 @@ async function queryBapFor2022PRFData(req, frfReviewItemId) {
   // FROM
   //   ${BAP_FORMS_TABLE}
   // WHERE
-  //   recordtypeid = '${frfRecordTypeId}' AND
+  //   RecordTypeId = '${frfRecordTypeId}' AND
   //   CSB_Review_Item_ID__c = '${frfReviewItemId}' AND
   //   Latest_Version__c = TRUE`
 
@@ -645,7 +645,7 @@ async function queryBapFor2022PRFData(req, frfReviewItemId) {
     .sobject(BAP_FORMS_TABLE)
     .find(
       {
-        recordtypeid: frfRecordTypeId,
+        RecordTypeId: frfRecordTypeId,
         CSB_Review_Item_ID__c: frfReviewItemId,
         Latest_Version__c: true,
       },
@@ -677,18 +677,18 @@ async function queryBapFor2022PRFData(req, frfReviewItemId) {
   // `SELECT
   //   Id
   // FROM
-  //   recordtype
+  //   RecordType
   // WHERE
-  //   developername = 'CSB_Rebate_Item' AND
-  //   sobjecttype = '${BAP_BUS_TABLE}'
+  //   DeveloperName = 'CSB_Rebate_Item' AND
+  //   SObjectType = '${BAP_BUS_TABLE}'
   // LIMIT 1`
 
   const busRecordTypeIdQuery = await bapConnection
-    .sobject("recordtype")
+    .sobject("RecordType")
     .find(
       {
-        developername: "CSB_Rebate_Item",
-        sobjecttype: BAP_BUS_TABLE,
+        DeveloperName: "CSB_Rebate_Item",
+        SObjectType: BAP_BUS_TABLE,
       },
       {
         // "*": 1,
@@ -710,7 +710,7 @@ async function queryBapFor2022PRFData(req, frfReviewItemId) {
   // FROM
   //   ${BAP_BUS_TABLE}
   // WHERE
-  //   recordtypeid = '${busRecordTypeId}' AND
+  //   RecordTypeId = '${busRecordTypeId}' AND
   //   Related_Order_Request__c = '${frfRecordId}' AND
   //   CSB_Rebate_Item_Type__c = 'Old Bus'`
 
@@ -718,7 +718,7 @@ async function queryBapFor2022PRFData(req, frfReviewItemId) {
     .sobject(BAP_BUS_TABLE)
     .find(
       {
-        recordtypeid: busRecordTypeId,
+        RecordTypeId: busRecordTypeId,
         Related_Order_Request__c: frfRecordId,
         CSB_Rebate_Item_Type__c: "Old Bus",
       },
@@ -968,18 +968,18 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
   // `SELECT
   //   Id
   // FROM
-  //   recordtype
+  //   RecordType
   // WHERE
-  //   developername = 'CSB_Funding_Request' AND
-  //   sobjecttype = '${BAP_FORMS_TABLE}'
+  //   DeveloperName = 'CSB_Funding_Request' AND
+  //   SObjectType = '${BAP_FORMS_TABLE}'
   // LIMIT 1`
 
   const frfRecordTypeIdQuery = await bapConnection
-    .sobject("recordtype")
+    .sobject("RecordType")
     .find(
       {
-        developername: "CSB_Funding_Request",
-        sobjecttype: BAP_FORMS_TABLE,
+        DeveloperName: "CSB_Funding_Request",
+        SObjectType: BAP_FORMS_TABLE,
       },
       {
         // "*": 1,
@@ -1006,7 +1006,7 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
   // FROM
   //   ${BAP_FORMS_TABLE}
   // WHERE
-  //   recordtypeid = '${frfRecordTypeId}' AND
+  //   RecordTypeId = '${frfRecordTypeId}' AND
   //   CSB_Review_Item_ID__c = '${frfReviewItemId}' AND
   //   Latest_Version__c = TRUE`
 
@@ -1014,7 +1014,7 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
     .sobject(BAP_FORMS_TABLE)
     .find(
       {
-        recordtypeid: frfRecordTypeId,
+        RecordTypeId: frfRecordTypeId,
         CSB_Review_Item_ID__c: frfReviewItemId,
         Latest_Version__c: true,
       },
@@ -1038,18 +1038,18 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
   // `SELECT
   //   Id
   // FROM
-  //   recordtype
+  //   RecordType
   // WHERE
-  //   developername = 'CSB_Payment_Request' AND
-  //   sobjecttype = '${BAP_FORMS_TABLE}'
+  //   DeveloperName = 'CSB_Payment_Request' AND
+  //   SObjectType = '${BAP_FORMS_TABLE}'
   // LIMIT 1`
 
   const prfRecordTypeIdQuery = await bapConnection
-    .sobject("recordtype")
+    .sobject("RecordType")
     .find(
       {
-        developername: "CSB_Payment_Request",
-        sobjecttype: BAP_FORMS_TABLE,
+        DeveloperName: "CSB_Payment_Request",
+        SObjectType: BAP_FORMS_TABLE,
       },
       {
         // "*": 1,
@@ -1092,7 +1092,7 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
   // FROM
   //   ${BAP_FORMS_TABLE}
   // WHERE
-  //   recordtypeid = '${prfRecordTypeId}' AND
+  //   RecordTypeId = '${prfRecordTypeId}' AND
   //   CSB_Review_Item_ID__c = '${prfReviewItemId}' AND
   //   Latest_Version__c = TRUE`
 
@@ -1100,7 +1100,7 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
     .sobject(BAP_FORMS_TABLE)
     .find(
       {
-        recordtypeid: prfRecordTypeId,
+        RecordTypeId: prfRecordTypeId,
         CSB_Review_Item_ID__c: prfReviewItemId,
         Latest_Version__c: true,
       },
@@ -1142,18 +1142,18 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
   // `SELECT
   //   Id
   // FROM
-  //   recordtype
+  //   RecordType
   // WHERE
-  //   developername = 'CSB_Rebate_Item' AND
-  //   sobjecttype = '${BAP_BUS_TABLE}'
+  //   DeveloperName = 'CSB_Rebate_Item' AND
+  //   SObjectType = '${BAP_BUS_TABLE}'
   // LIMIT 1`
 
   const busRecordTypeIdQuery = await bapConnection
-    .sobject("recordtype")
+    .sobject("RecordType")
     .find(
       {
-        developername: "CSB_Rebate_Item",
-        sobjecttype: BAP_BUS_TABLE,
+        DeveloperName: "CSB_Rebate_Item",
+        SObjectType: BAP_BUS_TABLE,
       },
       {
         // "*": 1,
@@ -1185,7 +1185,7 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
   // FROM
   //   ${BAP_BUS_TABLE}
   // WHERE
-  //   recordtypeid = '${busRecordTypeId}' AND
+  //   RecordTypeId = '${busRecordTypeId}' AND
   //   Related_Order_Request__c = '${prfRecordId}' AND
   //   CSB_Rebate_Item_Type__c = 'New Bus'`
 
@@ -1193,7 +1193,7 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
     .sobject(BAP_BUS_TABLE)
     .find(
       {
-        recordtypeid: busRecordTypeId,
+        RecordTypeId: busRecordTypeId,
         Related_Order_Request__c: prfRecordId,
         CSB_Rebate_Item_Type__c: "New Bus",
       },
