@@ -223,14 +223,12 @@ function PaymentRequestForm(props: { email: string }) {
     return <Message type="error" text={messages.bapSamEntityNotActive} />;
   }
 
-  // const {
-  //   UNIQUE_ENTITY_ID__c,
-  //   ENTITY_EFT_INDICATOR__c,
-  //   ELEC_BUS_POC_EMAIL__c,
-  //   ALT_ELEC_BUS_POC_EMAIL__c,
-  //   GOVT_BUS_POC_EMAIL__c,
-  //   ALT_GOVT_BUS_POC_EMAIL__c,
-  // } = entity;
+  const {
+    ELEC_BUS_POC_EMAIL__c,
+    ALT_ELEC_BUS_POC_EMAIL__c,
+    GOVT_BUS_POC_EMAIL__c,
+    ALT_GOVT_BUS_POC_EMAIL__c,
+  } = entity;
 
   const { title, name } = getUserInfo(email, entity);
 
@@ -287,15 +285,10 @@ function PaymentRequestForm(props: { email: string }) {
               _user_email: email,
               _user_title: title,
               _user_name: name,
-              //
-              // TODO: determine which fields are needed
-              //
-              // _bap_applicant_uei: UNIQUE_ENTITY_ID__c,
-              // _bap_applicant_efti: ENTITY_EFT_INDICATOR__c || "0000",
-              // hidden_sam_elec_bus_poc_email: ELEC_BUS_POC_EMAIL__c,
-              // hidden_sam_alt_elec_bus_poc_email: ALT_ELEC_BUS_POC_EMAIL__c,
-              // hidden_sam_govt_bus_poc_email: GOVT_BUS_POC_EMAIL__c,
-              // hidden_sam_alt_govt_bus_poc_email: ALT_GOVT_BUS_POC_EMAIL__c,
+              _bap_elec_bus_poc_email: ELEC_BUS_POC_EMAIL__c,
+              _bap_alt_elec_bus_poc_email: ALT_ELEC_BUS_POC_EMAIL__c,
+              _bap_govt_bus_poc_email: GOVT_BUS_POC_EMAIL__c,
+              _bap_alt_govt_bus_poc_email: ALT_GOVT_BUS_POC_EMAIL__c,
               ...pendingSubmissionData.current,
             },
           }}
