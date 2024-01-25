@@ -252,7 +252,6 @@ const {
   BAP_URL,
   BAP_USER,
   BAP_PASSWORD,
-  BAP_SAM_TABLE,
   BAP_FORMS_TABLE,
   BAP_BUS_TABLE,
 } = process.env;
@@ -328,7 +327,7 @@ async function queryForSamEntities(req, email) {
   //   PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
   //   PHYSICAL_ADDRESS_ZIP_CODE_4__c
   // FROM
-  //   ${BAP_SAM_TABLE}
+  //   Data_Staging__c
   // WHERE
   //   ALT_ELEC_BUS_POC_EMAIL__c = '${email}' OR
   //   GOVT_BUS_POC_EMAIL__c = '${email}' OR
@@ -336,7 +335,7 @@ async function queryForSamEntities(req, email) {
   //   ELEC_BUS_POC_EMAIL__c = '${email}'`
 
   return await bapConnection
-    .sobject(BAP_SAM_TABLE)
+    .sobject("Data_Staging__c")
     .find(
       {
         $or: [
