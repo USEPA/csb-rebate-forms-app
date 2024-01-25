@@ -181,7 +181,7 @@ const { submissionPeriodOpen } = require("../config/formio");
  *    FirstName: string
  *    LastName: string
  *  }
- * }[]} frfRecordQuery
+ * }[]} frf2022RecordQuery
  * @property {{
  *  Id: string
  *  UEI_EFTI_Combo_Key__c: string
@@ -218,7 +218,7 @@ const { submissionPeriodOpen } = require("../config/formio");
  *  Total_Level_2_Charger_Costs__c: string
  *  Total_DC_Fast_Charger_Costs__c: string
  *  Total_Other_Infrastructure_Costs__c: string
- * }[]} prfRecordQuery
+ * }[]} prf2022RecordQuery
  * @property {{
  *  Rebate_Item_num__c: string
  *  CSB_VIN__c: string
@@ -238,7 +238,7 @@ const { submissionPeriodOpen } = require("../config/formio");
  *  New_Bus_GVWR__c: string
  *  New_Bus_Rebate_Amount__c: string
  *  New_Bus_Purchase_Price__c: string
- * }[]} busRecordsQuery
+ * }[]} prf2022busRecordsQuery
  * @property {{
  *  type: string
  *  url: string
@@ -971,7 +971,7 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
   //   SObjectType = 'Order_Request__c'
   // LIMIT 1`
 
-  const frfRecordTypeIdQuery = await bapConnection
+  const frf2022RecordTypeIdQuery = await bapConnection
     .sobject("RecordType")
     .find(
       {
@@ -986,7 +986,7 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
     .limit(1)
     .execute(async (err, records) => ((await err) ? err : records));
 
-  const frfRecordTypeId = frfRecordTypeIdQuery["0"].Id;
+  const frf2022RecordTypeId = frf2022RecordTypeIdQuery["0"].Id;
 
   // `SELECT
   //   Fleet_Name__c,
@@ -1003,15 +1003,15 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
   // FROM
   //   Order_Request__c
   // WHERE
-  //   RecordTypeId = '${frfRecordTypeId}' AND
+  //   RecordTypeId = '${frf2022RecordTypeId}' AND
   //   CSB_Review_Item_ID__c = '${frfReviewItemId}' AND
   //   Latest_Version__c = TRUE`
 
-  const frfRecordQuery = await bapConnection
+  const frf2022RecordQuery = await bapConnection
     .sobject("Order_Request__c")
     .find(
       {
-        RecordTypeId: frfRecordTypeId,
+        RecordTypeId: frf2022RecordTypeId,
         CSB_Review_Item_ID__c: frfReviewItemId,
         Latest_Version__c: true,
       },
@@ -1041,7 +1041,7 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
   //   SObjectType = 'Order_Request__c'
   // LIMIT 1`
 
-  const prfRecordTypeIdQuery = await bapConnection
+  const prf2022RecordTypeIdQuery = await bapConnection
     .sobject("RecordType")
     .find(
       {
@@ -1056,7 +1056,7 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
     .limit(1)
     .execute(async (err, records) => ((await err) ? err : records));
 
-  const prfRecordTypeId = prfRecordTypeIdQuery["0"].Id;
+  const prf2022RecordTypeId = prf2022RecordTypeIdQuery["0"].Id;
 
   // `SELECT
   //   Id,
@@ -1089,15 +1089,15 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
   // FROM
   //   Order_Request__c
   // WHERE
-  //   RecordTypeId = '${prfRecordTypeId}' AND
+  //   RecordTypeId = '${prf2022RecordTypeId}' AND
   //   CSB_Review_Item_ID__c = '${prfReviewItemId}' AND
   //   Latest_Version__c = TRUE`
 
-  const prfRecordQuery = await bapConnection
+  const prf2022RecordQuery = await bapConnection
     .sobject("Order_Request__c")
     .find(
       {
-        RecordTypeId: prfRecordTypeId,
+        RecordTypeId: prf2022RecordTypeId,
         CSB_Review_Item_ID__c: prfReviewItemId,
         Latest_Version__c: true,
       },
@@ -1134,7 +1134,7 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
     )
     .execute(async (err, records) => ((await err) ? err : records));
 
-  const prfRecordId = prfRecordQuery["0"].Id;
+  const prf2022RecordId = prf2022RecordQuery["0"].Id;
 
   // `SELECT
   //   Id
@@ -1145,7 +1145,7 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
   //   SObjectType = 'Line_Item__c'
   // LIMIT 1`
 
-  const busRecordTypeIdQuery = await bapConnection
+  const rebateItemRecordTypeIdQuery = await bapConnection
     .sobject("RecordType")
     .find(
       {
@@ -1160,7 +1160,7 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
     .limit(1)
     .execute(async (err, records) => ((await err) ? err : records));
 
-  const busRecordTypeId = busRecordTypeIdQuery["0"].Id;
+  const rebateItemRecordTypeId = rebateItemRecordTypeIdQuery["0"].Id;
 
   // `SELECT
   //   Rebate_Item_num__c,
@@ -1182,16 +1182,16 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
   // FROM
   //   Line_Item__c
   // WHERE
-  //   RecordTypeId = '${busRecordTypeId}' AND
-  //   Related_Order_Request__c = '${prfRecordId}' AND
+  //   RecordTypeId = '${rebateItemRecordTypeId}' AND
+  //   Related_Order_Request__c = '${prf2022RecordId}' AND
   //   CSB_Rebate_Item_Type__c = 'New Bus'`
 
-  const busRecordsQuery = await bapConnection
+  const prf2022busRecordsQuery = await bapConnection
     .sobject("Line_Item__c")
     .find(
       {
-        RecordTypeId: busRecordTypeId,
-        Related_Order_Request__c: prfRecordId,
+        RecordTypeId: rebateItemRecordTypeId,
+        Related_Order_Request__c: prf2022RecordId,
         CSB_Rebate_Item_Type__c: "New Bus",
       },
       {
@@ -1216,7 +1216,7 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
     )
     .execute(async (err, records) => ((await err) ? err : records));
 
-  return { frfRecordQuery, prfRecordQuery, busRecordsQuery };
+  return { frf2022RecordQuery, prf2022RecordQuery, prf2022busRecordsQuery };
 }
 
 /**
