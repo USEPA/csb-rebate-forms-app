@@ -70,7 +70,9 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
 
   if (rebateYear === "2022") {
     return getBapDataFor2022PRF(req, frfReviewItemId)
-      .then(({ frf2022RecordQuery, frf2022BusRecordsQuery }) => {
+      .then((results) => {
+        const { frf2022RecordQuery, frf2022BusRecordsQuery } = results;
+
         const {
           CSB_NCES_ID__c,
           Primary_Applicant__r,
@@ -83,15 +85,26 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
           Total_Infrastructure_Funds__c,
         } = frf2022RecordQuery[0];
 
-        const busInfo = frf2022BusRecordsQuery.map((record) => ({
-          busNum: record.Rebate_Item_num__c,
-          oldBusNcesDistrictId: CSB_NCES_ID__c,
-          oldBusVin: record.CSB_VIN__c,
-          oldBusModelYear: record.CSB_Model_Year__c,
-          oldBusFuelType: record.CSB_Fuel_Type__c,
-          newBusFuelType: record.CSB_Replacement_Fuel_Type__c,
-          hidden_bap_max_rebate: record.CSB_Funds_Requested__c,
-        }));
+        const busInfo = frf2022BusRecordsQuery.map((frf2022BusRecord) => {
+          const {
+            Rebate_Item_num__c,
+            CSB_VIN__c,
+            CSB_Model_Year__c,
+            CSB_Fuel_Type__c,
+            CSB_Replacement_Fuel_Type__c,
+            CSB_Funds_Requested__c,
+          } = frf2022BusRecord;
+
+          return {
+            busNum: Rebate_Item_num__c,
+            oldBusNcesDistrictId: CSB_NCES_ID__c,
+            oldBusVin: CSB_VIN__c,
+            oldBusModelYear: CSB_Model_Year__c,
+            oldBusFuelType: CSB_Fuel_Type__c,
+            newBusFuelType: CSB_Replacement_Fuel_Type__c,
+            hidden_bap_max_rebate: CSB_Funds_Requested__c,
+          };
+        });
 
         /**
          * NOTE: `purchaseOrders` is initialized as an empty array to fix some
@@ -144,13 +157,18 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
 
   if (rebateYear === "2023") {
     return getBapDataFor2023PRF(req, frfReviewItemId)
-      .then(({ frf2023RecordQuery, frf2023BusRecordsQuery }) => {
+      .then((results) => {
+        const {
+          frf2023RecordQuery,
+          frf2023BusRecordsQuery,
+          frf2023BusRecordsContactsQueries,
+        } = results;
+
         const {
           Primary_Applicant__r,
           Alternate_Applicant__r,
           CSB_School_District__r,
           School_District_Contact__r,
-          County__c,
           CSB_NCES_ID__c,
           School_District_Prioritized__c,
           School_District_Poverty_Rate__c,
@@ -187,37 +205,78 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
           org_zip: "",
         }));
 
-        const bus_buses = frf2023BusRecordsQuery.map((item) => ({
-          bus_busNumber: item.Rebate_Item_num__c,
-          bus_existingOwner: {
-            org: "", // TODO: Old_Bus_Owner__r.* or Old_Bus_Owner_Contact_ID__c
-            organization: "",
-            orgContactFName: "",
-            orgContactLName: "",
-          },
-          bus_existingVin: item.CSB_VIN__c,
-          bus_existingFuelType: item.CSB_Fuel_Type__c,
-          bus_existingGvwr: item.CSB_GVWR__c,
-          bus_existingOdometer: item.Old_Bus_Odometer_miles__c,
-          bus_existingModel: item.CSB_Model__c,
-          bus_existingModelYear: item.CSB_Model_Year__c,
-          bus_existingManufacturer: item.CSB_Manufacturer__c,
-          bus_existingManufacturerOther: item.CSB_Manufacturer_if_Other__c,
-          bus_existingAnnualFuelConsumption: item.CSB_Annual_Fuel_Consumption__c, // prettier-ignore
-          bus_existingAnnualMileage: item.Annual_Mileage__c,
-          bus_existingRemainingLife: item.Old_Bus_Estimated_Remaining_Life__c,
-          bus_existingIdlingHours: item.Old_Bus_Annual_Idling_Hours__c,
-          bus_newOwner: {
-            org: "", // TODO: New_Bus_Owner__r.* or New_Bus_Owner_Contact_ID__c
-            organization: "",
-            orgContactFName: "",
-            orgContactLName: "",
-          },
-          bus_rebate: item.CSB_Funds_Requested__c,
-          bus_newFuelType: item.New_Bus_Fuel_Type__c,
-          bus_newGvwr: item.New_Bus_GVWR__c,
-          _bus_newADAfromFRF: item.New_Bus_ADA_Compliant__c,
-        }));
+        const bus_buses = frf2023BusRecordsQuery.map((frf2023BusRecord) => {
+          const {
+            Id,
+            Rebate_Item_num__c,
+            CSB_VIN__c,
+            CSB_Fuel_Type__c,
+            CSB_GVWR__c,
+            Old_Bus_Odometer_miles__c,
+            CSB_Model__c,
+            CSB_Model_Year__c,
+            CSB_Manufacturer__c,
+            CSB_Manufacturer_if_Other__c,
+            CSB_Annual_Fuel_Consumption__c,
+            Annual_Mileage__c,
+            Old_Bus_Estimated_Remaining_Life__c,
+            Old_Bus_Annual_Idling_Hours__c,
+            CSB_Funds_Requested__c,
+            New_Bus_Fuel_Type__c,
+            New_Bus_GVWR__c,
+            New_Bus_ADA_Compliant__c,
+          } = frf2023BusRecord;
+
+          const existingOwnerRecord = frf2023BusRecordsContactsQueries.find(
+            ({ Related_Line_Item__c, Relationship_Type__c }) => {
+              return (
+                Related_Line_Item__c === Id &&
+                Relationship_Type__c === "Old Bus Private Fleet Owner (if changed)" // prettier-ignore
+              );
+            },
+          );
+
+          const newOwnerRecord = frf2023BusRecordsContactsQueries.find(
+            ({ Related_Line_Item__c, Relationship_Type__c }) => {
+              return (
+                Related_Line_Item__c === Id &&
+                Relationship_Type__c === "New Bus Owner"
+              );
+            },
+          );
+
+          return {
+            bus_busNumber: Rebate_Item_num__c,
+            bus_existingOwner: {
+              org: "", // TODO: ask BAP how to get this value
+              organization: existingOwnerRecord?.Contact_Organization_Name__c,
+              orgContactFName: existingOwnerRecord?.Contact__r?.FirstName,
+              orgContactLName: existingOwnerRecord?.Contact__r?.LastName,
+            },
+            bus_existingVin: CSB_VIN__c,
+            bus_existingFuelType: CSB_Fuel_Type__c,
+            bus_existingGvwr: CSB_GVWR__c,
+            bus_existingOdometer: Old_Bus_Odometer_miles__c,
+            bus_existingModel: CSB_Model__c,
+            bus_existingModelYear: CSB_Model_Year__c,
+            bus_existingManufacturer: CSB_Manufacturer__c,
+            bus_existingManufacturerOther: CSB_Manufacturer_if_Other__c,
+            bus_existingAnnualFuelConsumption: CSB_Annual_Fuel_Consumption__c,
+            bus_existingAnnualMileage: Annual_Mileage__c,
+            bus_existingRemainingLife: Old_Bus_Estimated_Remaining_Life__c,
+            bus_existingIdlingHours: Old_Bus_Annual_Idling_Hours__c,
+            bus_newOwner: {
+              org: "", // TODO: ask BAP how to get this value
+              organization: newOwnerRecord?.Contact_Organization_Name__c,
+              orgContactFName: newOwnerRecord?.Contact__r?.FirstName,
+              orgContactLName: newOwnerRecord?.Contact__r?.LastName,
+            },
+            bus_rebate: CSB_Funds_Requested__c,
+            bus_newFuelType: New_Bus_Fuel_Type__c,
+            bus_newGvwr: New_Bus_GVWR__c,
+            _bus_newADAfromFRF: New_Bus_ADA_Compliant__c,
+          };
+        });
 
         return {
           data: {
@@ -234,7 +293,7 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
             _bap_applicant_organization_name: LEGAL_BUSINESS_NAME__c,
             _bap_applicant_street_address_1: PHYSICAL_ADDRESS_LINE_1__c,
             _bap_applicant_street_address_2: PHYSICAL_ADDRESS_LINE_2__c,
-            _bap_applicant_county: County__c, // TODO: confirm with BAP
+            _bap_applicant_county: "", // TODO: ask BAP how to get this value
             _bap_applicant_city: PHYSICAL_ADDRESS_CITY__c,
             _bap_applicant_state: PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
             _bap_applicant_zip: PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
@@ -253,9 +312,8 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
             _bap_alternate_email: Alternate_Applicant__r?.Email,
             _bap_alternate_phone_number: Alternate_Applicant__r?.Phone,
             _bap_district_ncesID: CSB_NCES_ID__c,
-            // TODO: confirm with BAP we should use the individual fields below and not the 'BillingAddress' object's fields
             _bap_district_name: CSB_School_District__r?.Name,
-            _bap_district_address_1: CSB_School_District__r?.BillingStreet, // TODO: nofity BAP this field is the district address 1 and 2 combined, when it should be two fields in the BAP
+            _bap_district_address_1: CSB_School_District__r?.BillingStreet, // TODO: once BAP returns this field with a new line character, split on it for address line 1 and 2
             _bap_district_address_2: "", // TODO: see above
             _bap_district_city: CSB_School_District__r?.BillingCity,
             _bap_district_state: CSB_School_District__r?.BillingState,

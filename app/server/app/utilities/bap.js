@@ -160,6 +160,16 @@ const { submissionPeriodOpen } = require("../config/formio");
  *  New_Bus_ADA_Compliant__c: string
  * }[]} frf2023BusRecordsQuery
  * @property {{
+ *  Id: string
+ *  Related_Line_Item__c: string
+ *  Relationship_Type__c: string
+ *  Contact_Organization_Name__c: string
+ *  Contact__r: {
+ *    FirstName: string
+ *    LastName: string
+ *  } | null
+ * }[]} frf2023BusRecordsContactsQueries
+ * @property {{
  *  type: string
  *  url: string
  * }} attributes
@@ -939,7 +949,51 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
     )
     .execute(async (err, records) => ((await err) ? err : records));
 
-  return { frf2023RecordQuery, frf2023BusRecordsQuery };
+  const frf2023BusRecordsContactsQueries = await Promise.all(
+    frf2023BusRecordsQuery.map(async (frf2023BusRecord) => {
+      const frf2023BusRecordId = frf2023BusRecord.Id;
+
+      // `SELECT
+      //   Id,
+      //   Related_Line_Item__c,
+      //   Relationship_Type__c,
+      //   Contact_Organization_Name__c,
+      //   Contact__r.FirstName,
+      //   Contact__r.LastName
+      // FROM
+      //   Line_Item__c
+      // WHERE
+      //   RecordTypeId = '${rebateItemRecordTypeId}' AND
+      //   Related_Line_Item__c = '${frf2023BusRecordId}' AND
+      //   CSB_Rebate_Item_Type__c = 'COF Relationship'`
+
+      return await bapConnection
+        .sobject("Line_Item__c")
+        .find(
+          {
+            RecordTypeId: rebateItemRecordTypeId,
+            Related_Line_Item__c: frf2023BusRecordId,
+            CSB_Rebate_Item_Type__c: "COF Relationship",
+          },
+          {
+            // "*": 1,
+            Id: 1, // Salesforce record ID
+            Related_Line_Item__c: 1,
+            Relationship_Type__c: 1,
+            Contact_Organization_Name__c: 1,
+            "Contact__r.FirstName": 1,
+            "Contact__r.LastName": 1,
+          },
+        )
+        .execute(async (err, records) => ((await err) ? err : records));
+    }),
+  );
+
+  return {
+    frf2023RecordQuery,
+    frf2023BusRecordsQuery,
+    frf2023BusRecordsContactsQueries: frf2023BusRecordsContactsQueries.flat(),
+  };
 }
 
 /**
