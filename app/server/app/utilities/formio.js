@@ -144,7 +144,7 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
 
   if (rebateYear === "2023") {
     return getBapDataFor2023PRF(req, frfReviewItemId)
-      .then(({ frfRecordQuery, busRecordsQuery }) => {
+      .then(({ frf2023RecordQuery, frf2023BusRecordsQuery }) => {
         const {
           Primary_Applicant__r,
           Alternate_Applicant__r,
@@ -157,7 +157,7 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
           Prioritized_as_High_Need__c,
           Prioritized_as_Tribal__c,
           Prioritized_as_Rural__c,
-        } = frfRecordQuery[0];
+        } = frf2023RecordQuery[0];
 
         // TODO: ask BAP for the query for the fields below.
         // NOTE: the data from the 2023 FRF is in an 'organizations' field (array of objects)
@@ -187,7 +187,7 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
           org_zip: "",
         }));
 
-        const bus_buses = busRecordsQuery.map((item) => ({
+        const bus_buses = frf2023BusRecordsQuery.map((item) => ({
           bus_busNumber: item.Rebate_Item_num__c,
           bus_existingOwner: {
             org: "", // TODO: Old_Bus_Owner__r.* or Old_Bus_Owner_Contact_ID__c
