@@ -252,7 +252,6 @@ const {
   BAP_URL,
   BAP_USER,
   BAP_PASSWORD,
-  BAP_FORMS_TABLE,
   BAP_BUS_TABLE,
 } = process.env;
 
@@ -412,7 +411,7 @@ async function queryForBapFormSubmissionData(req, formType, rebateId, mongoId) {
   //   RecordType
   // WHERE
   //   DeveloperName = '${developerName}' AND
-  //   SObjectType = '${BAP_FORMS_TABLE}'
+  //   SObjectType = 'Order_Request__c'
   // LIMIT 1`
 
   const formRecordTypeIdQuery = await bapConnection
@@ -420,7 +419,7 @@ async function queryForBapFormSubmissionData(req, formType, rebateId, mongoId) {
     .find(
       {
         DeveloperName: developerName,
-        SObjectType: BAP_FORMS_TABLE,
+        SObjectType: "Order_Request__c",
       },
       {
         // "*": 1,
@@ -443,14 +442,14 @@ async function queryForBapFormSubmissionData(req, formType, rebateId, mongoId) {
   //   Parent_CSB_Rebate__r.CSB_Payment_Request_Status__c,
   //   Parent_CSB_Rebate__r.CSB_Closeout_Request_Status__c
   // FROM
-  //   ${BAP_FORMS_TABLE}
+  //   Order_Request__c
   // WHERE
   //   RecordTypeId = '${formRecordTypeId}' AND
   //   CSB_Form_ID__c = '${mongoId}'
   //   Latest_Version__c = TRUE`
 
   const formRecordQuery = await bapConnection
-    .sobject(BAP_FORMS_TABLE)
+    .sobject("Order_Request__c")
     .find(
       {
         RecordTypeId: formRecordTypeId,
@@ -496,7 +495,7 @@ async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
   // `SELECT
   //   Parent_Rebate_ID__c,
   // FROM
-  //   ${BAP_FORMS_TABLE}
+  //   Order_Request__c
   // WHERE
   //   (${comboKeys
   //     .map((key) => `UEI_EFTI_Combo_Key__c = '${key}'`)
@@ -504,7 +503,7 @@ async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
   //   Latest_Version__c = TRUE`
 
   const parentRebateIdsQuery = await bapConnection
-    .sobject(BAP_FORMS_TABLE)
+    .sobject("Order_Request__c")
     .find(
       {
         UEI_EFTI_Combo_Key__c: { $in: comboKeys },
@@ -536,7 +535,7 @@ async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
   //   Parent_CSB_Rebate__r.CSB_Payment_Request_Status__c,
   //   Parent_CSB_Rebate__r.CSB_Closeout_Request_Status__c
   // FROM
-  //   ${BAP_FORMS_TABLE}
+  //   Order_Request__c
   // WHERE
   //   (${parentRebateIds
   //     .map((id) => `Parent_CSB_Rebate__r.CSB_Rebate_ID__c = '${id}'`)
@@ -546,7 +545,7 @@ async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
   //   CreatedDate DESC`
 
   const submissions = await bapConnection
-    .sobject(BAP_FORMS_TABLE)
+    .sobject("Order_Request__c")
     .find(
       {
         "Parent_CSB_Rebate__r.CSB_Rebate_ID__c": { $in: parentRebateIds },
@@ -595,7 +594,7 @@ async function queryBapFor2022PRFData(req, frfReviewItemId) {
   //   RecordType
   // WHERE
   //   DeveloperName = 'CSB_Funding_Request' AND
-  //   SObjectType = '${BAP_FORMS_TABLE}'
+  //   SObjectType = 'Order_Request__c'
   // LIMIT 1`
 
   const frfRecordTypeIdQuery = await bapConnection
@@ -603,7 +602,7 @@ async function queryBapFor2022PRFData(req, frfReviewItemId) {
     .find(
       {
         DeveloperName: "CSB_Funding_Request",
-        SObjectType: BAP_FORMS_TABLE,
+        SObjectType: "Order_Request__c",
       },
       {
         // "*": 1,
@@ -634,14 +633,14 @@ async function queryBapFor2022PRFData(req, frfReviewItemId) {
   //   Total_Rebate_Funds_Requested__c,
   //   Total_Infrastructure_Funds__c
   // FROM
-  //   ${BAP_FORMS_TABLE}
+  //   Order_Request__c
   // WHERE
   //   RecordTypeId = '${frfRecordTypeId}' AND
   //   CSB_Review_Item_ID__c = '${frfReviewItemId}' AND
   //   Latest_Version__c = TRUE`
 
   const frfRecordQuery = await bapConnection
-    .sobject(BAP_FORMS_TABLE)
+    .sobject("Order_Request__c")
     .find(
       {
         RecordTypeId: frfRecordTypeId,
@@ -759,7 +758,7 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
   //   RecordType
   // WHERE
   //   DeveloperName = 'CSB_Funding_Request_2023' AND
-  //   SObjectType = '${BAP_FORMS_TABLE}'
+  //   SObjectType = 'Order_Request__c'
   // LIMIT 1`
 
   const frfRecordTypeIdQuery = await bapConnection
@@ -767,7 +766,7 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
     .find(
       {
         DeveloperName: "CSB_Funding_Request_2023",
-        SObjectType: BAP_FORMS_TABLE,
+        SObjectType: "Order_Request__c",
       },
       {
         // "*": 1,
@@ -808,14 +807,14 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
   //   Prioritized_as_Tribal__c,
   //   Prioritized_as_Rural__c
   // FROM
-  //   ${BAP_FORMS_TABLE}
+  //   Order_Request__c
   // WHERE
   //   RecordTypeId = '${frfRecordTypeId}' AND
   //   CSB_Review_Item_ID__c = '${frfReviewItemId}' AND
   //   Latest_Version__c = TRUE`
 
   const frfRecordQuery = await bapConnection
-    .sobject(BAP_FORMS_TABLE)
+    .sobject("Order_Request__c")
     .find(
       {
         RecordTypeId: frfRecordTypeId,
@@ -970,7 +969,7 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
   //   RecordType
   // WHERE
   //   DeveloperName = 'CSB_Funding_Request' AND
-  //   SObjectType = '${BAP_FORMS_TABLE}'
+  //   SObjectType = 'Order_Request__c'
   // LIMIT 1`
 
   const frfRecordTypeIdQuery = await bapConnection
@@ -978,7 +977,7 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
     .find(
       {
         DeveloperName: "CSB_Funding_Request",
-        SObjectType: BAP_FORMS_TABLE,
+        SObjectType: "Order_Request__c",
       },
       {
         // "*": 1,
@@ -1003,14 +1002,14 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
   //   School_District_Contact__r.FirstName,
   //   School_District_Contact__r.LastName
   // FROM
-  //   ${BAP_FORMS_TABLE}
+  //   Order_Request__c
   // WHERE
   //   RecordTypeId = '${frfRecordTypeId}' AND
   //   CSB_Review_Item_ID__c = '${frfReviewItemId}' AND
   //   Latest_Version__c = TRUE`
 
   const frfRecordQuery = await bapConnection
-    .sobject(BAP_FORMS_TABLE)
+    .sobject("Order_Request__c")
     .find(
       {
         RecordTypeId: frfRecordTypeId,
@@ -1040,7 +1039,7 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
   //   RecordType
   // WHERE
   //   DeveloperName = 'CSB_Payment_Request' AND
-  //   SObjectType = '${BAP_FORMS_TABLE}'
+  //   SObjectType = 'Order_Request__c'
   // LIMIT 1`
 
   const prfRecordTypeIdQuery = await bapConnection
@@ -1048,7 +1047,7 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
     .find(
       {
         DeveloperName: "CSB_Payment_Request",
-        SObjectType: BAP_FORMS_TABLE,
+        SObjectType: "Order_Request__c",
       },
       {
         // "*": 1,
@@ -1089,14 +1088,14 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
   //   Total_DC_Fast_Charger_Costs__c,
   //   Total_Other_Infrastructure_Costs__c
   // FROM
-  //   ${BAP_FORMS_TABLE}
+  //   Order_Request__c
   // WHERE
   //   RecordTypeId = '${prfRecordTypeId}' AND
   //   CSB_Review_Item_ID__c = '${prfReviewItemId}' AND
   //   Latest_Version__c = TRUE`
 
   const prfRecordQuery = await bapConnection
-    .sobject(BAP_FORMS_TABLE)
+    .sobject("Order_Request__c")
     .find(
       {
         RecordTypeId: prfRecordTypeId,
