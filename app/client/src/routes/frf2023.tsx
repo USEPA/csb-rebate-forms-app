@@ -280,8 +280,8 @@ function FundingRequestForm(props: { email: string }) {
 
         postData(url, {
           mongoId: prf._id,
-          rebateId: prf.data.hidden_bap_rebate_id,
-          comboKey: prf.data.bap_hidden_entity_combo_key,
+          rebateId: prf.data._bap_rebate_id,
+          comboKey: prf.data._bap_entity_combo_key,
         })
           .then((_res) => {
             window.location.reload();
