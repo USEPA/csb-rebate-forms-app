@@ -13,7 +13,6 @@ const {
   verifyMongoObjectId,
 } = require("../middleware");
 const {
-  getBapFormSubmissionsStatuses,
   getBapDataFor2022CRF,
   checkFormSubmissionPeriodAndBapStatus,
 } = require("../utilities/bap");
@@ -30,10 +29,10 @@ const {
   createPRFSubmission,
   fetchPRFSubmission,
   updatePRFSubmission,
+  deletePRFSubmission,
 } = require("../utilities/formio");
 const log = require("../utilities/logger");
 
-const formioPRFUrl = formUrl["2022"].prf;
 const formioCRFUrl = formUrl["2022"].crf;
 
 const router = express.Router();
@@ -110,67 +109,7 @@ router.post("/prf-submission/:rebateId", storeBapComboKeys, (req, res) => {
 
 // --- delete an existing 2022 PRF submission from Formio
 router.post("/delete-prf-submission", storeBapComboKeys, (req, res) => {
-  const { bapComboKeys, body } = req;
-  const { mail } = req.user;
-  const { mongoId, rebateId, comboKey } = body;
-
-  // verify post data includes one of user's BAP combo keys
-  if (!bapComboKeys.includes(comboKey)) {
-    const logMessage =
-      `User with email '${mail}' attempted to delete PRF submission '${rebateId}' ` +
-      `without a matching BAP combo key.`;
-    log({ level: "error", message: logMessage, req });
-
-    const errorStatus = 401;
-    const errorMessage = `Unauthorized.`;
-    return res.status(errorStatus).json({ message: errorMessage });
-  }
-
-  /**
-   * ensure the BAP status of the corresponding FRF submission is "Edits
-   * Requested" before deleting the FRF submission from Formio
-   */
-  getBapFormSubmissionsStatuses(req, req.bapComboKeys)
-    .then((submissions) => {
-      const frf = submissions.find((submission) => {
-        return (
-          submission.Parent_Rebate_ID__c === rebateId &&
-          submission.Record_Type_Name__c === "CSB Funding Request"
-        );
-      });
-
-      const frfNeedsEdits =
-        frf?.Parent_CSB_Rebate__r.CSB_Funding_Request_Status__c ===
-        "Edits Requested";
-
-      if (!frfNeedsEdits) {
-        const errorStatus = 400;
-        const errorMessage = `Application form submission '${mongoId}' does not need edits.`;
-        return res.status(errorStatus).json({ message: errorMessage });
-      }
-
-      axiosFormio(req)
-        .delete(`${formioPRFUrl}/submission/${mongoId}`)
-        .then((axiosRes) => axiosRes.data)
-        .then((response) => {
-          const logMessage = `User with email '${mail}' successfully deleted PRF submission '${rebateId}'.`;
-          log({ level: "info", message: logMessage, req });
-
-          res.json(response);
-        })
-        .catch((error) => {
-          // NOTE: error is logged in axiosFormio response interceptor
-          const errorStatus = error.response?.status || 500;
-          const errorMessage = `Error deleting Formio Payment Request form submission '${rebateId}'.`;
-          return res.status(errorStatus).json({ message: errorMessage });
-        });
-    })
-    .catch((error) => {
-      // NOTE: logged in bap verifyBapConnection
-      const errorStatus = 500;
-      const errorMessage = `Error getting form submissions statuses from the BAP.`;
-      return res.status(errorStatus).json({ message: errorMessage });
-    });
+  deletePRFSubmission({ rebateYear: "2022", req, res });
 });
 
 // --- get user's 2022 CRF submissions from Formio
