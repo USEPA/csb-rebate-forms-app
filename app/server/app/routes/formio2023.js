@@ -1,5 +1,4 @@
 const express = require("express");
-const ObjectId = require("mongodb").ObjectId;
 // ---
 const {
   axiosFormio,
@@ -27,6 +26,8 @@ const {
   //
   fetchPRFSubmissions,
   createPRFSubmission,
+  fetchPRFSubmission,
+  updatePRFSubmission,
 } = require("../utilities/formio");
 const log = require("../utilities/logger");
 
@@ -93,8 +94,14 @@ router.post("/prf-submission", storeBapComboKeys, (req, res) => {
 });
 
 // --- get an existing 2023 PRF's schema and submission data from Formio
+router.get("/prf-submission/:rebateId", storeBapComboKeys, async (req, res) => {
+  fetchPRFSubmission({ rebateYear: "2023", req, res });
+});
 
 // --- post an update to an existing draft 2023 PRF submission to Formio
+router.post("/prf-submission/:rebateId", storeBapComboKeys, (req, res) => {
+  updatePRFSubmission({ rebateYear: "2023", req, res });
+});
 
 // --- delete an existing 2023 PRF submission from Formio
 router.post("/delete-prf-submission", storeBapComboKeys, (req, res) => {
