@@ -1,20 +1,10 @@
 const express = require("express");
 // ---
 const {
-  axiosFormio,
-  formUrl,
-  submissionPeriodOpen,
-  formioCSBMetadata,
-} = require("../config/formio");
-const {
   ensureAuthenticated,
   storeBapComboKeys,
   verifyMongoObjectId,
 } = require("../middleware");
-const {
-  getBapFormSubmissionsStatuses,
-  checkFormSubmissionPeriodAndBapStatus,
-} = require("../utilities/bap");
 const {
   uploadS3FileMetadata,
   downloadS3FileMetadata,
@@ -28,8 +18,8 @@ const {
   createPRFSubmission,
   fetchPRFSubmission,
   updatePRFSubmission,
+  deletePRFSubmission,
 } = require("../utilities/formio");
-const log = require("../utilities/logger");
 
 const router = express.Router();
 
@@ -105,7 +95,7 @@ router.post("/prf-submission/:rebateId", storeBapComboKeys, (req, res) => {
 
 // --- delete an existing 2023 PRF submission from Formio
 router.post("/delete-prf-submission", storeBapComboKeys, (req, res) => {
-  // TODO
+  deletePRFSubmission({ rebateYear: "2023", req, res });
 });
 
 // --- get user's 2022 CRF submissions from Formio
