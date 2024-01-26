@@ -245,7 +245,7 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
             ({ Related_Line_Item__c, Relationship_Type__c }) => {
               return (
                 Related_Line_Item__c === Id &&
-                Relationship_Type__c === "Old Bus Private Fleet Owner (if changed)" // prettier-ignore
+                Relationship_Type__c === "Existing Bus Owner"
               );
             },
           );
