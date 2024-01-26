@@ -864,6 +864,84 @@ function fetchPRFSubmission({ rebateYear, req, res }) {
     });
 }
 
+/**
+ * @param {Object} param
+ * @param {'2022' | '2023'} param.rebateYear
+ * @param {express.Request} param.req
+ * @param {express.Response} param.res
+ */
+function updatePRFSubmission({ rebateYear, req, res }) {
+  const { bapComboKeys, body } = req;
+  const { mail } = req.user;
+  const { rebateId } = req.params; // CSB Rebate ID (6 digits)
+  const { mongoId, submission } = body;
+
+  const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
+  const comboKey = submission.data?.[comboKeyFieldName];
+
+  const formioFormUrl = formUrl[rebateYear].prf;
+
+  if (!formioFormUrl) {
+    const errorStatus = 400;
+    const errorMessage = `Formio form URL does not exist for ${rebateYear} PRF.`;
+    return res.status(errorStatus).json({ message: errorMessage });
+  }
+
+  checkFormSubmissionPeriodAndBapStatus({
+    rebateYear,
+    formType: "prf",
+    mongoId,
+    comboKey,
+    req,
+  })
+    .then(() => {
+      if (!bapComboKeys.includes(comboKey)) {
+        const logMessage =
+          `User with email '${mail}' attempted to update ${rebateYear} PRF ` +
+          `submission '${rebateId}' without a matching BAP combo key.`;
+        log({ level: "error", message: logMessage, req });
+
+        const errorStatus = 401;
+        const errorMessage = `Unauthorized.`;
+        return res.status(errorStatus).json({ message: errorMessage });
+      }
+
+      /** NOTE: verifyMongoObjectId */
+      if (mongoId && !ObjectId.isValid(mongoId)) {
+        const errorStatus = 400;
+        const errorMessage = `MongoDB ObjectId validation error for: '${mongoId}'.`;
+        return res.status(errorStatus).json({ message: errorMessage });
+      }
+
+      /** Add custom metadata to track formio submissions from wrapper. */
+      submission.metadata = {
+        ...submission.metadata,
+        ...formioCSBMetadata,
+      };
+
+      axiosFormio(req)
+        .put(`${formioFormUrl}/submission/${mongoId}`, submission)
+        .then((axiosRes) => axiosRes.data)
+        .then((submission) => res.json(submission))
+        .catch((error) => {
+          // NOTE: error is logged in axiosFormio response interceptor
+          const errorStatus = error.response?.status || 500;
+          const errorMessage = `Error updating Formio ${rebateYear} Payment Request form submission '${rebateId}'.`;
+          return res.status(errorStatus).json({ message: errorMessage });
+        });
+    })
+    .catch((error) => {
+      const logMessage =
+        `User with email '${mail}' attempted to update ${rebateYear} PRF ` +
+        `submission '${rebateId}' when the CSB PRF enrollment period was closed.`;
+      log({ level: "error", message: logMessage, req });
+
+      const errorStatus = 400;
+      const errorMessage = `${rebateYear} CSB Payment Request form enrollment period is closed.`;
+      return res.status(errorStatus).json({ message: errorMessage });
+    });
+}
+
 module.exports = {
   uploadS3FileMetadata,
   downloadS3FileMetadata,
@@ -876,4 +954,5 @@ module.exports = {
   fetchPRFSubmissions,
   createPRFSubmission,
   fetchPRFSubmission,
+  updatePRFSubmission,
 };

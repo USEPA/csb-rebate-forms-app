@@ -29,6 +29,7 @@ const {
   fetchPRFSubmissions,
   createPRFSubmission,
   fetchPRFSubmission,
+  updatePRFSubmission,
 } = require("../utilities/formio");
 const log = require("../utilities/logger");
 
@@ -104,65 +105,7 @@ router.get("/prf-submission/:rebateId", storeBapComboKeys, async (req, res) => {
 
 // --- post an update to an existing draft 2022 PRF submission to Formio
 router.post("/prf-submission/:rebateId", storeBapComboKeys, (req, res) => {
-  const { bapComboKeys, body } = req;
-  const { mail } = req.user;
-  const { rebateId } = req.params; // CSB Rebate ID (6 digits)
-  const { mongoId, submission } = body;
-  const comboKey = submission.data?.bap_hidden_entity_combo_key;
-
-  checkFormSubmissionPeriodAndBapStatus({
-    rebateYear: "2022",
-    formType: "prf",
-    mongoId,
-    comboKey,
-    req,
-  })
-    .then(() => {
-      if (!bapComboKeys.includes(comboKey)) {
-        const logMessage =
-          `User with email '${mail}' attempted to update PRF submission '${rebateId}' ` +
-          `without a matching BAP combo key.`;
-        log({ level: "error", message: logMessage, req });
-
-        const errorStatus = 401;
-        const errorMessage = `Unauthorized.`;
-        return res.status(errorStatus).json({ message: errorMessage });
-      }
-
-      /** NOTE: verifyMongoObjectId */
-      if (mongoId && !ObjectId.isValid(mongoId)) {
-        const errorStatus = 400;
-        const errorMessage = `MongoDB ObjectId validation error for: '${mongoId}'.`;
-        return res.status(errorStatus).json({ message: errorMessage });
-      }
-
-      /** Add custom metadata to track formio submissions from wrapper. */
-      submission.metadata = {
-        ...submission.metadata,
-        ...formioCSBMetadata,
-      };
-
-      axiosFormio(req)
-        .put(`${formioPRFUrl}/submission/${mongoId}`, submission)
-        .then((axiosRes) => axiosRes.data)
-        .then((submission) => res.json(submission))
-        .catch((error) => {
-          // NOTE: error is logged in axiosFormio response interceptor
-          const errorStatus = error.response?.status || 500;
-          const errorMessage = `Error updating Formio Payment Request form submission '${rebateId}'.`;
-          return res.status(errorStatus).json({ message: errorMessage });
-        });
-    })
-    .catch((error) => {
-      const logMessage =
-        `User with email '${mail}' attempted to update PRF submission '${rebateId}' ` +
-        `when the CSB PRF enrollment period was closed.`;
-      log({ level: "error", message: logMessage, req });
-
-      const errorStatus = 400;
-      const errorMessage = `CSB Payment Request form enrollment period is closed.`;
-      return res.status(errorStatus).json({ message: errorMessage });
-    });
+  updatePRFSubmission({ rebateYear: "2022", req, res });
 });
 
 // --- delete an existing 2022 PRF submission from Formio
