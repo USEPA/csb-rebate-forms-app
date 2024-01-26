@@ -294,8 +294,9 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
 
         return {
           data: {
-            _bap_entity_combo_key: comboKey,
             _application_form_modified: frfFormModified,
+            _bap_entity_combo_key: comboKey,
+            _bap_rebate_id: rebateId,
             _user_email: email,
             _user_title: title,
             _user_name: name,
