@@ -30,6 +30,8 @@ const {
   fetchPRFSubmission,
   updatePRFSubmission,
   deletePRFSubmission,
+  //
+  fetchCRFSubmissions,
 } = require("../utilities/formio");
 const log = require("../utilities/logger");
 
@@ -115,26 +117,7 @@ router.post("/delete-prf-submission", storeBapComboKeys, (req, res) => {
 
 // --- get user's 2022 CRF submissions from Formio
 router.get("/crf-submissions", storeBapComboKeys, (req, res) => {
-  const { bapComboKeys } = req;
-
-  const submissionsUrl =
-    `${formioCRFUrl}/submission` +
-    `?sort=-modified` +
-    `&limit=1000000` +
-    `&data.bap_hidden_entity_combo_key=${bapComboKeys.join(
-      "&data.bap_hidden_entity_combo_key=",
-    )}`;
-
-  axiosFormio(req)
-    .get(submissionsUrl)
-    .then((axiosRes) => axiosRes.data)
-    .then((submissions) => res.json(submissions))
-    .catch((error) => {
-      // NOTE: error is logged in axiosFormio response interceptor
-      const errorStatus = error.response?.status || 500;
-      const errorMessage = `Error getting Formio Close Out form submissions.`;
-      return res.status(errorStatus).json({ message: errorMessage });
-    });
+  fetchCRFSubmissions({ rebateYear, req, res });
 });
 
 // --- post a new 2022 CRF submission to Formio

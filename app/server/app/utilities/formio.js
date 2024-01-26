@@ -1021,6 +1021,45 @@ function deletePRFSubmission({ rebateYear, req, res }) {
     });
 }
 
+/**
+ * @param {Object} param
+ * @param {'2022' | '2023'} param.rebateYear
+ * @param {express.Request} param.req
+ * @param {express.Response} param.res
+ */
+function fetchCRFSubmissions({ rebateYear, req, res }) {
+  const { bapComboKeys } = req;
+
+  const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
+  const comboKeySearchParam = `&data.${comboKeyFieldName}=`;
+
+  const formioFormUrl = formUrl[rebateYear].crf;
+
+  if (!formioFormUrl) {
+    const errorStatus = 400;
+    const errorMessage = `Formio form URL does not exist for ${rebateYear} CRF.`;
+    return res.status(errorStatus).json({ message: errorMessage });
+  }
+
+  const submissionsUrl =
+    `${formioFormUrl}/submission` +
+    `?sort=-modified` +
+    `&limit=1000000` +
+    comboKeySearchParam +
+    `${bapComboKeys.join(comboKeySearchParam)}`;
+
+  axiosFormio(req)
+    .get(submissionsUrl)
+    .then((axiosRes) => axiosRes.data)
+    .then((submissions) => res.json(submissions))
+    .catch((error) => {
+      // NOTE: error is logged in axiosFormio response interceptor
+      const errorStatus = error.response?.status || 500;
+      const errorMessage = `Error getting Formio ${rebateYear} Close Out form submissions.`;
+      return res.status(errorStatus).json({ message: errorMessage });
+    });
+}
+
 module.exports = {
   uploadS3FileMetadata,
   downloadS3FileMetadata,
@@ -1035,4 +1074,6 @@ module.exports = {
   fetchPRFSubmission,
   updatePRFSubmission,
   deletePRFSubmission,
+  //
+  fetchCRFSubmissions,
 };
