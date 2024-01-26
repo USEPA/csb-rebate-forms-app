@@ -21,6 +21,7 @@ const {
   deletePRFSubmission,
 } = require("../utilities/formio");
 
+const rebateYear = "2023";
 const router = express.Router();
 
 router.use(ensureAuthenticated);
@@ -30,7 +31,7 @@ router.get(
   "/s3/:formType/:mongoId/:comboKey/storage/s3",
   storeBapComboKeys,
   (req, res) => {
-    downloadS3FileMetadata({ rebateYear: "2023", req, res });
+    downloadS3FileMetadata({ rebateYear, req, res });
   },
 );
 
@@ -39,18 +40,18 @@ router.post(
   "/s3/:formType/:mongoId/:comboKey/storage/s3",
   storeBapComboKeys,
   (req, res) => {
-    uploadS3FileMetadata({ rebateYear: "2023", req, res });
+    uploadS3FileMetadata({ rebateYear, req, res });
   },
 );
 
 // --- get user's 2023 FRF submissions from Formio
 router.get("/frf-submissions", storeBapComboKeys, (req, res) => {
-  fetchFRFSubmissions({ rebateYear: "2023", req, res });
+  fetchFRFSubmissions({ rebateYear, req, res });
 });
 
 // --- post a new 2023 FRF submission to Formio
 router.post("/frf-submission", storeBapComboKeys, (req, res) => {
-  createFRFSubmission({ rebateYear: "2023", req, res });
+  createFRFSubmission({ rebateYear, req, res });
 });
 
 // --- get an existing 2023 FRF's schema and submission data from Formio
@@ -59,7 +60,7 @@ router.get(
   verifyMongoObjectId,
   storeBapComboKeys,
   (req, res) => {
-    fetchFRFSubmission({ rebateYear: "2023", req, res });
+    fetchFRFSubmission({ rebateYear, req, res });
   },
 );
 
@@ -69,33 +70,33 @@ router.post(
   verifyMongoObjectId,
   storeBapComboKeys,
   (req, res) => {
-    updateFRFSubmission({ rebateYear: "2023", req, res });
+    updateFRFSubmission({ rebateYear, req, res });
   },
 );
 
 // --- get user's 2023 PRF submissions from Formio
 router.get("/prf-submissions", storeBapComboKeys, (req, res) => {
-  fetchPRFSubmissions({ rebateYear: "2023", req, res });
+  fetchPRFSubmissions({ rebateYear, req, res });
 });
 
 // --- post a new 2023 PRF submission to Formio
 router.post("/prf-submission", storeBapComboKeys, (req, res) => {
-  createPRFSubmission({ rebateYear: "2023", req, res });
+  createPRFSubmission({ rebateYear, req, res });
 });
 
 // --- get an existing 2023 PRF's schema and submission data from Formio
 router.get("/prf-submission/:rebateId", storeBapComboKeys, async (req, res) => {
-  fetchPRFSubmission({ rebateYear: "2023", req, res });
+  fetchPRFSubmission({ rebateYear, req, res });
 });
 
 // --- post an update to an existing draft 2023 PRF submission to Formio
 router.post("/prf-submission/:rebateId", storeBapComboKeys, (req, res) => {
-  updatePRFSubmission({ rebateYear: "2023", req, res });
+  updatePRFSubmission({ rebateYear, req, res });
 });
 
 // --- delete an existing 2023 PRF submission from Formio
 router.post("/delete-prf-submission", storeBapComboKeys, (req, res) => {
-  deletePRFSubmission({ rebateYear: "2023", req, res });
+  deletePRFSubmission({ rebateYear, req, res });
 });
 
 // --- get user's 2022 CRF submissions from Formio
