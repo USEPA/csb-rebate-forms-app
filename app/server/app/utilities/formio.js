@@ -287,9 +287,9 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
               orgContactFName: newOwnerRecord?.Contact__r?.FirstName,
               orgContactLName: newOwnerRecord?.Contact__r?.LastName,
             },
-            bus_rebate: New_Bus_Infra_Rebate_Requested__c,
             bus_newFuelType: New_Bus_Fuel_Type__c,
             bus_newGvwr: New_Bus_GVWR__c,
+            _bus_maxRebate: New_Bus_Infra_Rebate_Requested__c,
             _bus_newADAfromFRF: New_Bus_ADA_Compliant__c,
           };
         });
