@@ -2,6 +2,7 @@ import { Fragment, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { Dialog, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
+import clsx from "clsx";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages } from "@/config";
@@ -132,67 +133,103 @@ export function FRFNew() {
     <Transition.Root show={true} as={Fragment}>
       <Dialog
         as="div"
-        className="tw-relative tw-z-10"
+        className={clsx("tw-relative tw-z-10")}
         onClose={(_value) => navigate("/")}
       >
         <Transition.Child
           as={Fragment}
-          enter="tw-duration-300 tw-ease-out"
-          enterFrom="tw-opacity-0"
-          enterTo="tw-opacity-100"
-          leave="tw-duration-200 tw-ease-in"
-          leaveFrom="tw-opacity-100"
-          leaveTo="tw-opacity-0"
+          enter={clsx("tw-duration-300 tw-ease-out")}
+          enterFrom={clsx("tw-opacity-0")}
+          enterTo={clsx("tw-opacity-100")}
+          leave={clsx("tw-duration-200 tw-ease-in")}
+          leaveFrom={clsx("tw-opacity-100")}
+          leaveTo={clsx("tw-opacity-0")}
         >
-          <div className="tw-fixed tw-inset-0 tw-bg-black/70 tw-transition-colors" />
+          <div
+            className={clsx(
+              "tw-fixed tw-inset-0 tw-bg-black/70 tw-transition-colors",
+            )}
+          />
         </Transition.Child>
 
-        <div className="tw-fixed tw-inset-0 tw-z-10 tw-overflow-y-auto">
-          <div className="tw-flex tw-min-h-full tw-items-end tw-justify-center tw-p-4 sm:tw-items-center">
+        <div className={clsx("tw-fixed tw-inset-0 tw-z-10 tw-overflow-y-auto")}>
+          <div
+            className={clsx(
+              "tw-flex tw-min-h-full tw-items-end tw-justify-center tw-p-4",
+              "sm:tw-items-center",
+            )}
+          >
             <Transition.Child
               as={Fragment}
-              enter="tw-duration-300 tw-ease-out"
-              enterFrom="tw-translate-y-4 tw-opacity-0 sm:tw-translate-y-0"
-              enterTo="tw-translate-y-0 tw-opacity-100"
-              leave="tw-duration-200 tw-ease-in"
-              leaveFrom="tw-translate-y-0 tw-opacity-100"
-              leaveTo="tw-translate-y-4 tw-opacity-0 sm:tw-translate-y-0"
+              enter={clsx("tw-duration-300 tw-ease-out")}
+              enterFrom={clsx(
+                "tw-translate-y-4 tw-opacity-0",
+                "sm:tw-translate-y-0",
+              )}
+              enterTo={clsx("tw-translate-y-0 tw-opacity-100")}
+              leave={clsx("tw-duration-200 tw-ease-in")}
+              leaveFrom={clsx("tw-translate-y-0 tw-opacity-100")}
+              leaveTo={clsx(
+                "tw-translate-y-4 tw-opacity-0",
+                "sm:tw-translate-y-0",
+              )}
             >
-              <Dialog.Panel className="tw-relative tw-transform tw-overflow-hidden tw-rounded-lg tw-bg-white tw-p-4 tw-shadow-xl tw-transition-all sm:tw-w-full sm:tw-max-w-4xl sm:tw-p-6">
+              <Dialog.Panel
+                className={clsx(
+                  "tw-relative tw-transform tw-overflow-hidden tw-rounded-lg tw-bg-white tw-p-4 tw-shadow-xl tw-transition-all",
+                  "sm:tw-w-full sm:tw-max-w-4xl sm:tw-p-6",
+                )}
+              >
                 <div className="twpf">
-                  <div className="tw-absolute tw-right-0 tw-top-0 tw-pr-4 tw-pt-4">
+                  <div
+                    className={clsx(
+                      "tw-absolute tw-right-0 tw-top-0 tw-pr-4 tw-pt-4",
+                    )}
+                  >
                     <button
+                      className={clsx(
+                        "tw-rounded-md tw-bg-white tw-text-gray-400 tw-transition-none",
+                        "hover:tw-text-gray-700",
+                        "focus:tw-text-gray-700",
+                      )}
                       type="button"
-                      className="tw-rounded-md tw-bg-white tw-text-gray-400 tw-transition-none hover:tw-text-gray-700 focus:tw-text-gray-700"
                       onClick={(_ev) => navigate("/")}
                     >
-                      <span className="tw-sr-only">Close</span>
+                      <span className={clsx("tw-sr-only")}>Close</span>
                       <XMarkIcon
-                        className="tw-h-6 tw-w-6 tw-transition-none"
+                        className={clsx("tw-h-6 tw-w-6 tw-transition-none")}
                         aria-hidden="true"
                       />
                     </button>
                   </div>
                 </div>
 
-                <div className="tw-m-auto tw-max-w-3xl tw-p-4 sm:tw-p-8">
+                <div
+                  className={clsx("tw-m-auto tw-max-w-3xl tw-p-4", "sm:tw-p-8")}
+                >
                   {!frfSubmissionPeriodOpen ? (
-                    <div className="-tw-mb-4">
+                    <div className={clsx("-tw-mb-4")}>
                       <Message type="info" text={messages.frfClosed} />
                     </div>
                   ) : activeSamEntities.length <= 0 ? (
-                    <div className="-tw-mb-4">
+                    <div className={clsx("-tw-mb-4")}>
                       <Message type="info" text={messages.bapNoSamResults} />
                     </div>
                   ) : (
                     <>
                       {content && (
                         <MarkdownContent
-                          className="tw-mt-4 tw-text-center"
+                          className={clsx("tw-mt-4 tw-text-center")}
                           children={content.newFRFDialog}
                           components={{
                             h2: (props) => (
-                              <h2 className="tw-text-xl sm:tw-text-2xl md:tw-text-3xl">
+                              <h2
+                                className={clsx(
+                                  "tw-text-xl",
+                                  "sm:tw-text-2xl",
+                                  "md:tw-text-3xl",
+                                )}
+                              >
                                 {props.children}
                               </h2>
                             ),
