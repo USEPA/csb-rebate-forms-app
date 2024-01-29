@@ -134,7 +134,7 @@ const { submissionPeriodOpen } = require("../config/formio");
  *  } | null
  *  CSB_NCES_ID__c: string
  *  School_District_Prioritized__c: string
- *  School_District_Poverty_Rate__c: string
+ *  Self_Certification_Category__c: string
  *  Prioritized_as_High_Need__c: string
  *  Prioritized_as_Tribal__c: string
  *  Prioritized_as_Rural__c: string
@@ -146,6 +146,7 @@ const { submissionPeriodOpen } = require("../config/formio");
  *  CSB_Fuel_Type__c: string
  *  CSB_GVWR__c: string
  *  Old_Bus_Odometer_miles__c: string
+ *  Old_Bus_NCES_District_ID__c: string
  *  CSB_Model__c: string
  *  CSB_Model_Year__c: string
  *  CSB_Manufacturer__c: string
@@ -154,7 +155,7 @@ const { submissionPeriodOpen } = require("../config/formio");
  *  Annual_Mileage__c: string
  *  Old_Bus_Estimated_Remaining_Life__c: string
  *  Old_Bus_Annual_Idling_Hours__c: string
- *  CSB_Funds_Requested__c: string
+ *  New_Bus_Infra_Rebate_Requested__c: string
  *  New_Bus_Fuel_Type__c: string
  *  New_Bus_GVWR__c: string
  *  New_Bus_ADA_Compliant__c: string
@@ -811,7 +812,7 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
   //   School_District_Contact__r.Phone,
   //   CSB_NCES_ID__c,
   //   School_District_Prioritized__c,
-  //   School_District_Poverty_Rate__c,
+  //   Self_Certification_Category__c,
   //   Prioritized_as_High_Need__c,
   //   Prioritized_as_Tribal__c,
   //   Prioritized_as_Rural__c
@@ -855,7 +856,7 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
         "School_District_Contact__r.Phone": 1,
         CSB_NCES_ID__c: 1,
         School_District_Prioritized__c: 1,
-        School_District_Poverty_Rate__c: 1,
+        Self_Certification_Category__c: 1,
         Prioritized_as_High_Need__c: 1,
         Prioritized_as_Tribal__c: 1,
         Prioritized_as_Rural__c: 1,
@@ -898,6 +899,7 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
   //   CSB_Fuel_Type__c,
   //   CSB_GVWR__c,
   //   Old_Bus_Odometer_miles__c,
+  //   Old_Bus_NCES_District_ID__c,
   //   CSB_Model__c,
   //   CSB_Model_Year__c,
   //   CSB_Manufacturer__c,
@@ -906,7 +908,7 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
   //   Annual_Mileage__c,
   //   Old_Bus_Estimated_Remaining_Life__c,
   //   Old_Bus_Annual_Idling_Hours__c,
-  //   CSB_Funds_Requested__c,
+  //   New_Bus_Infra_Rebate_Requested__c,
   //   New_Bus_Fuel_Type__c,
   //   New_Bus_GVWR__c,
   //   New_Bus_ADA_Compliant__c
@@ -933,6 +935,7 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
         CSB_Fuel_Type__c: 1,
         CSB_GVWR__c: 1,
         Old_Bus_Odometer_miles__c: 1,
+        Old_Bus_NCES_District_ID__c: 1,
         CSB_Model__c: 1,
         CSB_Model_Year__c: 1,
         CSB_Manufacturer__c: 1,
@@ -941,7 +944,7 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
         Annual_Mileage__c: 1,
         Old_Bus_Estimated_Remaining_Life__c: 1,
         Old_Bus_Annual_Idling_Hours__c: 1,
-        CSB_Funds_Requested__c: 1,
+        New_Bus_Infra_Rebate_Requested__c: 1,
         New_Bus_Fuel_Type__c: 1,
         New_Bus_GVWR__c: 1,
         New_Bus_ADA_Compliant__c: 1,
