@@ -14,6 +14,11 @@ import {
   bapCRFStatusMap,
 } from "@/config";
 import {
+  type FormioFRF2022Submission,
+  type FormioPRF2022Submission,
+  type FormioCRF2022Submission,
+  type FormioFRF2023Submission,
+  type BapSubmission,
   getData,
   postData,
   useContentData,
@@ -25,17 +30,10 @@ import { Message } from "@/components/message";
 import { MarkdownContent } from "@/components/markdownContent";
 import { TextWithTooltip } from "@/components/tooltip";
 import {
+  type RebateYear,
   useRebateYearState,
   useRebateYearActions,
 } from "@/contexts/rebateYear";
-import type { RebateYear } from "@/contexts/rebateYear";
-import type {
-  FormioFRF2022Submission,
-  FormioPRF2022Submission,
-  FormioCRF2022Submission,
-  FormioFRF2023Submission,
-  BapSubmission,
-} from "@/utilities";
 
 type FormType = "frf" | "prf" | "crf";
 

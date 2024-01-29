@@ -1,10 +1,21 @@
 import { Fragment, useState } from "react";
-import type { LinkProps } from "react-router-dom";
-import { Link, useNavigate, useOutletContext } from "react-router-dom";
+import {
+  type LinkProps,
+  Link,
+  useNavigate,
+  useOutletContext,
+} from "react-router-dom";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages } from "@/config";
 import {
+  type FormioFRF2022Submission,
+  type FormioPRF2022Submission,
+  type FormioCRF2022Submission,
+  type FormioFRF2023Submission,
+  type FormioPRF2023Submission,
+  // type FormioCRF2023Submission,
+  type Rebate,
   postData,
   useContentData,
   useConfigData,
@@ -20,19 +31,10 @@ import { MarkdownContent } from "@/components/markdownContent";
 import { TextWithTooltip } from "@/components/tooltip";
 import { useNotificationsActions } from "@/contexts/notifications";
 import {
+  type RebateYear,
   useRebateYearState,
   useRebateYearActions,
 } from "@/contexts/rebateYear";
-import type { RebateYear } from "@/contexts/rebateYear";
-import type {
-  FormioFRF2022Submission,
-  FormioPRF2022Submission,
-  FormioCRF2022Submission,
-  FormioFRF2023Submission,
-  FormioPRF2023Submission,
-  // FormioCRF2023Submission,
-  Rebate,
-} from "@/utilities";
 
 const defaultTableRowClassNames = "bg-gray-5";
 const highlightedTableRowClassNames = "bg-primary-lighter";
