@@ -4,11 +4,13 @@ import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import { Dialog } from "@headlessui/react";
 import { Formio, Form } from "@formio/react";
 import s3 from "formiojs/providers/storage/s3";
+import clsx from "clsx";
 import { cloneDeep, isEqual } from "lodash";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages } from "@/config";
 import {
+  type FormioFRF2023Submission,
   getData,
   postData,
   useContentData,
@@ -25,7 +27,6 @@ import { MarkdownContent } from "@/components/markdownContent";
 import { useDialogActions } from "@/contexts/dialog";
 import { useNotificationsActions } from "@/contexts/notifications";
 import { useRebateYearState } from "@/contexts/rebateYear";
-import type { FormioFRF2023Submission } from "@/utilities";
 
 type ServerResponse =
   | {
@@ -250,10 +251,12 @@ function FundingRequestForm(props: { email: string }) {
             id: Date.now(),
             body: (
               <>
-                <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                <p
+                  className={clsx("tw-text-sm tw-font-medium tw-text-gray-900")}
+                >
                   Error deleting Payment Request <em>{rebate.rebateId}</em>.
                 </p>
-                <p className="tw-mt-1 tw-text-sm tw-text-gray-500">
+                <p className={clsx("tw-mt-1 tw-text-sm tw-text-gray-500")}>
                   Please notify the helpdesk that a problem exists preventing
                   the deletion of Payment Request form submission{" "}
                   <em>{rebate.rebateId}</em>.
@@ -270,7 +273,7 @@ function FundingRequestForm(props: { email: string }) {
         displayInfoNotification({
           id: Date.now(),
           body: (
-            <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+            <p className={clsx("tw-text-sm tw-font-medium tw-text-gray-900")}>
               Deleting Payment Request <em>{rebate.rebateId}</em>...
             </p>
           ),
@@ -291,10 +294,14 @@ function FundingRequestForm(props: { email: string }) {
               id: Date.now(),
               body: (
                 <>
-                  <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                  <p
+                    className={clsx(
+                      "tw-text-sm tw-font-medium tw-text-gray-900",
+                    )}
+                  >
                     Error deleting Payment Request <em>{rebate.rebateId}</em>.
                   </p>
-                  <p className="tw-mt-1 tw-text-sm tw-text-gray-500">
+                  <p className={clsx("tw-mt-1 tw-text-sm tw-text-gray-500")}>
                     Please reload the page to attempt the deletion again, or
                     contact the helpdesk if the problem persists.
                   </p>
@@ -374,10 +381,18 @@ function FundingRequestForm(props: { email: string }) {
       </ul>
 
       <Dialog as="div" open={dataIsPosting.current} onClose={(_value) => {}}>
-        <div className="tw-fixed tw-inset-0 tw-bg-black/30" />
-        <div className="tw-fixed tw-inset-0 tw-z-20">
-          <div className="tw-flex tw-min-h-full tw-items-center tw-justify-center">
-            <Dialog.Panel className="tw-rounded-lg tw-bg-white tw-px-4 tw-pb-4 tw-shadow-xl">
+        <div className={clsx("tw-fixed tw-inset-0 tw-bg-black/30")} />
+        <div className={clsx("tw-fixed tw-inset-0 tw-z-20")}>
+          <div
+            className={clsx(
+              "tw-flex tw-min-h-full tw-items-center tw-justify-center",
+            )}
+          >
+            <Dialog.Panel
+              className={clsx(
+                "tw-rounded-lg tw-bg-white tw-px-4 tw-pb-4 tw-shadow-xl",
+              )}
+            >
               <Loading />
             </Dialog.Panel>
           </div>
@@ -436,7 +451,11 @@ function FundingRequestForm(props: { email: string }) {
                 displaySuccessNotification({
                   id,
                   body: (
-                    <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                    <p
+                      className={clsx(
+                        "tw-text-sm tw-font-medium tw-text-gray-900",
+                      )}
+                    >
                       {onSubmitSubmission.state === "submitted" ? (
                         <>
                           Application <em>{mongoId}</em> submitted successfully.
@@ -464,7 +483,11 @@ function FundingRequestForm(props: { email: string }) {
                 displayErrorNotification({
                   id: Date.now(),
                   body: (
-                    <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                    <p
+                      className={clsx(
+                        "tw-text-sm tw-font-medium tw-text-gray-900",
+                      )}
+                    >
                       {onSubmitSubmission.state === "submitted" ? (
                         <>Error submitting Application form.</>
                       ) : (
@@ -524,7 +547,11 @@ function FundingRequestForm(props: { email: string }) {
                 displaySuccessNotification({
                   id,
                   body: (
-                    <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                    <p
+                      className={clsx(
+                        "tw-text-sm tw-font-medium tw-text-gray-900",
+                      )}
+                    >
                       Draft saved successfully.
                     </p>
                   ),
@@ -536,7 +563,11 @@ function FundingRequestForm(props: { email: string }) {
                 displayErrorNotification({
                   id: Date.now(),
                   body: (
-                    <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                    <p
+                      className={clsx(
+                        "tw-text-sm tw-font-medium tw-text-gray-900",
+                      )}
+                    >
                       Error saving draft.
                     </p>
                   ),

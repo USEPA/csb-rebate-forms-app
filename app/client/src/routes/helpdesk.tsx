@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import { Form } from "@formio/react";
+import clsx from "clsx";
 import icon from "uswds/img/usa-icons-bg/search--white.svg";
 import icons from "uswds/img/sprite.svg";
 // ---
@@ -14,6 +15,11 @@ import {
   bapCRFStatusMap,
 } from "@/config";
 import {
+  type FormioFRF2022Submission,
+  type FormioPRF2022Submission,
+  type FormioCRF2022Submission,
+  type FormioFRF2023Submission,
+  type BapSubmission,
   getData,
   postData,
   useContentData,
@@ -25,17 +31,10 @@ import { Message } from "@/components/message";
 import { MarkdownContent } from "@/components/markdownContent";
 import { TextWithTooltip } from "@/components/tooltip";
 import {
+  type RebateYear,
   useRebateYearState,
   useRebateYearActions,
 } from "@/contexts/rebateYear";
-import type { RebateYear } from "@/contexts/rebateYear";
-import type {
-  FormioFRF2022Submission,
-  FormioPRF2022Submission,
-  FormioCRF2022Submission,
-  FormioFRF2023Submission,
-  BapSubmission,
-} from "@/utilities";
 
 type FormType = "frf" | "prf" | "crf";
 
@@ -202,8 +201,10 @@ export function Helpdesk() {
             </label>
             <select
               id="rebate-year"
+              className={clsx(
+                "tw-rounded-md tw-border-0 tw-text-sm tw-font-bold tw-leading-4 tw-ring-1 tw-ring-inset tw-ring-gray-300",
+              )}
               name="rebate-year"
-              className="tw-rounded-md tw-border-0 tw-text-sm tw-font-bold tw-leading-4 tw-ring-1 tw-ring-inset tw-ring-gray-300"
               onChange={(ev) => setRebateYear(ev.target.value as RebateYear)}
               defaultValue={rebateYear}
             >

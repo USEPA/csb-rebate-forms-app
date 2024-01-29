@@ -1,4 +1,5 @@
 import { Root, Trigger, Portal, Content, Arrow } from "@radix-ui/react-tooltip";
+import clsx from "clsx";
 import icons from "uswds/img/sprite.svg";
 
 export function TextWithTooltip(props: {
@@ -9,17 +10,17 @@ export function TextWithTooltip(props: {
 }) {
   const { text, tooltip, iconName, iconClassNames } = props;
 
-  const svgClassNames = iconClassNames
-    ? `usa-icon text-base ${iconClassNames}`
-    : `usa-icon text-base`;
-
   return (
     <span className="display-inline-flex flex-align-center text-no-wrap">
       <Root delayDuration={0}>
         <Trigger asChild>
-          <button className="tw-m-0 tw-flex tw-rounded-full tw-border-0 tw-bg-transparent tw-p-0">
+          <button
+            className={clsx(
+              "tw-m-0 tw-flex tw-rounded-full tw-border-0 tw-bg-transparent tw-p-0",
+            )}
+          >
             <svg
-              className={svgClassNames}
+              className={clsx("usa-icon text-base", iconClassNames)}
               aria-hidden="true"
               focusable="false"
               role="img"

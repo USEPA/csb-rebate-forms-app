@@ -1,5 +1,4 @@
-import type { ReactNode } from "react";
-import { Component, ErrorInfo } from "react";
+import { type ReactNode, Component, ErrorInfo } from "react";
 // ---
 import { messages } from "@/config";
 import { Message } from "@/components/message";

@@ -1,10 +1,22 @@
 import { Fragment, useState } from "react";
-import type { LinkProps } from "react-router-dom";
-import { Link, useNavigate, useOutletContext } from "react-router-dom";
+import {
+  type LinkProps,
+  Link,
+  useNavigate,
+  useOutletContext,
+} from "react-router-dom";
+import clsx from "clsx";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages } from "@/config";
 import {
+  type FormioFRF2022Submission,
+  type FormioPRF2022Submission,
+  type FormioCRF2022Submission,
+  type FormioFRF2023Submission,
+  type FormioPRF2023Submission,
+  // type FormioCRF2023Submission,
+  type Rebate,
   postData,
   useContentData,
   useConfigData,
@@ -20,19 +32,10 @@ import { MarkdownContent } from "@/components/markdownContent";
 import { TextWithTooltip } from "@/components/tooltip";
 import { useNotificationsActions } from "@/contexts/notifications";
 import {
+  type RebateYear,
   useRebateYearState,
   useRebateYearActions,
 } from "@/contexts/rebateYear";
-import type { RebateYear } from "@/contexts/rebateYear";
-import type {
-  FormioFRF2022Submission,
-  FormioPRF2022Submission,
-  FormioCRF2022Submission,
-  FormioFRF2023Submission,
-  FormioPRF2023Submission,
-  // FormioCRF2023Submission,
-  Rebate,
-} from "@/utilities";
 
 const defaultTableRowClassNames = "bg-gray-5";
 const highlightedTableRowClassNames = "bg-primary-lighter";
@@ -40,13 +43,16 @@ const highlightedTableRowClassNames = "bg-primary-lighter";
 function FormButtonLink(props: { type: "edit" | "view"; to: LinkProps["to"] }) {
   const icon = props.type === "edit" ? "edit" : "visibility";
   const text = props.type === "edit" ? "Edit" : "View";
-  const linkClassNames =
-    `usa-button ` +
-    `${props.type === "view" ? "usa-button--base " : ""}` +
-    `font-sans-2xs margin-right-0 padding-x-105 padding-y-1`;
 
   return (
-    <Link to={props.to} className={linkClassNames}>
+    <Link
+      to={props.to}
+      className={clsx(
+        "usa-button",
+        props.type === "view" && "usa-button--base",
+        "font-sans-2xs margin-right-0 padding-x-105 padding-y-1",
+      )}
+    >
       <span className="display-flex flex-align-center">
         <svg
           className="usa-icon"
@@ -183,9 +189,7 @@ function FRF2022Submission(props: { rebate: Rebate }) {
       ? "text-italic"
       : "";
 
-  const statusIconClassNames = frfSelected
-    ? "usa-icon text-primary" // blue
-    : "usa-icon";
+  const statusIconClassNames = clsx("usa-icon", frfSelected && "text-primary");
 
   const statusIcon = frfNeedsEdits
     ? `${icons}#priority_high` // !
@@ -452,11 +456,19 @@ function PRF2022Submission(props: { rebate: Rebate }) {
                     id: Date.now(),
                     body: (
                       <>
-                        <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                        <p
+                          className={clsx(
+                            "tw-text-sm tw-font-medium tw-text-gray-900",
+                          )}
+                        >
                           Error creating Payment Request{" "}
                           <em>{frf.bap?.rebateId}</em>.
                         </p>
-                        <p className="tw-mt-1 tw-text-sm tw-text-gray-500">
+                        <p
+                          className={clsx(
+                            "tw-mt-1 tw-text-sm tw-text-gray-500",
+                          )}
+                        >
                           Please try again.
                         </p>
                       </>
@@ -522,9 +534,10 @@ function PRF2022Submission(props: { rebate: Rebate }) {
       ? "text-italic"
       : "";
 
-  const statusIconClassNames = prfFundingApproved
-    ? "usa-icon text-primary" // blue
-    : "usa-icon";
+  const statusIconClassNames = clsx(
+    "usa-icon",
+    prfFundingApproved && "text-primary",
+  );
 
   const statusIcon = prfNeedsEdits
     ? `${icons}#priority_high` // !
@@ -688,10 +701,18 @@ function CRF2022Submission(props: { rebate: Rebate }) {
                     id: Date.now(),
                     body: (
                       <>
-                        <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                        <p
+                          className={clsx(
+                            "tw-text-sm tw-font-medium tw-text-gray-900",
+                          )}
+                        >
                           Error creating Close Out <em>{prf.bap?.rebateId}</em>.
                         </p>
-                        <p className="tw-mt-1 tw-text-sm tw-text-gray-500">
+                        <p
+                          className={clsx(
+                            "tw-mt-1 tw-text-sm tw-text-gray-500",
+                          )}
+                        >
                           Please try again.
                         </p>
                       </>
@@ -750,9 +771,7 @@ function CRF2022Submission(props: { rebate: Rebate }) {
       ? "text-italic"
       : "";
 
-  const statusIconClassNames = crfApproved
-    ? "usa-icon text-primary" // blue
-    : "usa-icon";
+  const statusIconClassNames = clsx("usa-icon", crfApproved && "text-primary");
 
   const statusIcon = crfNeedsEdits
     ? `${icons}#priority_high` // !
@@ -890,9 +909,7 @@ function FRF2023Submission(props: { rebate: Rebate }) {
       ? "text-italic"
       : "";
 
-  const statusIconClassNames = frfSelected
-    ? "usa-icon text-primary" // blue
-    : "usa-icon";
+  const statusIconClassNames = clsx("usa-icon", frfSelected && "text-primary");
 
   const statusIcon = frfNeedsEdits
     ? `${icons}#priority_high` // !
@@ -1118,11 +1135,19 @@ function PRF2023Submission(props: { rebate: Rebate }) {
                     id: Date.now(),
                     body: (
                       <>
-                        <p className="tw-text-sm tw-font-medium tw-text-gray-900">
+                        <p
+                          className={clsx(
+                            "tw-text-sm tw-font-medium tw-text-gray-900",
+                          )}
+                        >
                           Error creating Payment Request{" "}
                           <em>{frf.bap?.rebateId}</em>.
                         </p>
-                        <p className="tw-mt-1 tw-text-sm tw-text-gray-500">
+                        <p
+                          className={clsx(
+                            "tw-mt-1 tw-text-sm tw-text-gray-500",
+                          )}
+                        >
                           Please try again.
                         </p>
                       </>
@@ -1188,9 +1213,10 @@ function PRF2023Submission(props: { rebate: Rebate }) {
       ? "text-italic"
       : "";
 
-  const statusIconClassNames = prfFundingApproved
-    ? "usa-icon text-primary" // blue
-    : "usa-icon";
+  const statusIconClassNames = clsx(
+    "usa-icon",
+    prfFundingApproved && "text-primary",
+  );
 
   const statusIcon = prfNeedsEdits
     ? `${icons}#priority_high` // !
@@ -1445,8 +1471,10 @@ export function Submissions() {
             </label>
             <select
               id="rebate-year"
+              className={clsx(
+                "tw-rounded-md tw-border-0 tw-text-sm tw-font-bold tw-leading-4 tw-ring-1 tw-ring-inset tw-ring-gray-300",
+              )}
               name="rebate-year"
-              className="tw-rounded-md tw-border-0 tw-text-sm tw-font-bold tw-leading-4 tw-ring-1 tw-ring-inset tw-ring-gray-300"
               onChange={(ev) => setRebateYear(ev.target.value as RebateYear)}
               defaultValue={rebateYear}
             >
