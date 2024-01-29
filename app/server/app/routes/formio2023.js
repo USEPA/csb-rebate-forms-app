@@ -19,6 +19,9 @@ const {
   fetchPRFSubmission,
   updatePRFSubmission,
   deletePRFSubmission,
+  //
+  fetchChangeSubmissions,
+  createChangeSubmission,
 } = require("../utilities/formio");
 
 const rebateYear = "2023";
@@ -99,16 +102,26 @@ router.post("/delete-prf-submission", storeBapComboKeys, (req, res) => {
   deletePRFSubmission({ rebateYear, req, res });
 });
 
-// --- get user's 2022 CRF submissions from Formio
+// --- get user's 2023 CRF submissions from Formio
 router.get("/crf-submissions", storeBapComboKeys, (req, res) => {
   // TODO
   res.json([]);
 });
 
-// --- post a new 2022 CRF submission to Formio
+// --- post a new 2023 CRF submission to Formio
 
-// --- get an existing 2022 CRF's schema and submission data from Formio
+// --- get an existing 2023 CRF's schema and submission data from Formio
 
-// --- post an update to an existing draft 2022 CRF submission to Formio
+// --- post an update to an existing draft 2023 CRF submission to Formio
+
+// --- get user's 2023 Change Request form submissions from Formio
+router.get("/change-submissions", storeBapComboKeys, (req, res) => {
+  fetchChangeSubmissions({ rebateYear, req, res });
+});
+
+// --- post a new 2023 Change Request form submission to Formio
+router.post("/change-submission", storeBapComboKeys, (req, res) => {
+  createChangeSubmission({ rebateYear, req, res });
+});
 
 module.exports = router;

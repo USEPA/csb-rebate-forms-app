@@ -1063,6 +1063,92 @@ function fetchCRFSubmissions({ rebateYear, req, res }) {
     });
 }
 
+/**
+ * @param {Object} param
+ * @param {'2022' | '2023'} param.rebateYear
+ * @param {express.Request} param.req
+ * @param {express.Response} param.res
+ */
+function fetchChangeSubmissions({ rebateYear, req, res }) {
+  const { bapComboKeys } = req;
+
+  const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
+  const comboKeySearchParam = `&data.${comboKeyFieldName}=`;
+
+  const formioFormUrl = formUrl[rebateYear].change;
+
+  if (!formioFormUrl) {
+    const errorStatus = 400;
+    const errorMessage = `Formio form URL does not exist for ${rebateYear} Change Request form.`;
+    return res.status(errorStatus).json({ message: errorMessage });
+  }
+
+  const submissionsUrl =
+    `${formioFormUrl}/submission` +
+    `?sort=-modified` +
+    `&limit=1000000` +
+    comboKeySearchParam +
+    `${bapComboKeys.join(comboKeySearchParam)}`;
+
+  axiosFormio(req)
+    .get(submissionsUrl)
+    .then((axiosRes) => axiosRes.data)
+    .then((submissions) => res.json(submissions))
+    .catch((error) => {
+      // NOTE: error is logged in axiosFormio response interceptor
+      const errorStatus = error.response?.status || 500;
+      const errorMessage = `Error getting Formio ${rebateYear} Change Request form submissions.`;
+      return res.status(errorStatus).json({ message: errorMessage });
+    });
+}
+
+/**
+ * @param {Object} param
+ * @param {'2022' | '2023'} param.rebateYear
+ * @param {express.Request} param.req
+ * @param {express.Response} param.res
+ */
+function createChangeSubmission({ rebateYear, req, res }) {
+  const { bapComboKeys, body } = req;
+  const { mail } = req.user;
+
+  const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
+  const comboKey = body.data?.[comboKeyFieldName];
+
+  const formioFormUrl = formUrl[rebateYear].change;
+
+  if (!formioFormUrl) {
+    const errorStatus = 400;
+    const errorMessage = `Formio form URL does not exist for ${rebateYear} Change Request form.`;
+    return res.status(errorStatus).json({ message: errorMessage });
+  }
+
+  if (!bapComboKeys.includes(comboKey)) {
+    const logMessage =
+      `User with email '${mail}' attempted to post a new ${rebateYear} ` +
+      `Change Request form submission without a matching BAP combo key.`;
+    log({ level: "error", message: logMessage, req });
+
+    const errorStatus = 401;
+    const errorMessage = `Unauthorized.`;
+    return res.status(errorStatus).json({ message: errorMessage });
+  }
+
+  /** Add custom metadata to track formio submissions from wrapper. */
+  body.metadata = { ...formioCSBMetadata };
+
+  axiosFormio(req)
+    .post(`${formioFormUrl}/submission`, body)
+    .then((axiosRes) => axiosRes.data)
+    .then((submission) => res.json(submission))
+    .catch((error) => {
+      // NOTE: error is logged in axiosFormio response interceptor
+      const errorStatus = error.response?.status || 500;
+      const errorMessage = `Error posting Formio ${rebateYear} Change Request form submission.`;
+      return res.status(errorStatus).json({ message: errorMessage });
+    });
+}
+
 module.exports = {
   uploadS3FileMetadata,
   downloadS3FileMetadata,
@@ -1079,4 +1165,7 @@ module.exports = {
   deletePRFSubmission,
   //
   fetchCRFSubmissions,
+  //
+  fetchChangeSubmissions,
+  createChangeSubmission,
 };
