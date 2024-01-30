@@ -71,7 +71,8 @@ export function UserDashboard(props: { email: string }) {
   const onFormPage =
     pathname.startsWith("/frf") ||
     pathname.startsWith("/prf") ||
-    pathname.startsWith("/crf");
+    pathname.startsWith("/crf") ||
+    pathname.startsWith("/change");
 
   const btnClassNames =
     "usa-button margin-0 padding-x-2 padding-y-1 width-full font-sans-2xs";
