@@ -42,7 +42,7 @@ import {
 const defaultTableRowClassNames = "bg-gray-5";
 const highlightedTableRowClassNames = "bg-primary-lighter";
 
-function FormButtonLink(props: { type: "edit" | "view"; to: LinkProps["to"] }) {
+function FormLink(props: { type: "edit" | "view"; to: LinkProps["to"] }) {
   const { type, to } = props;
   const icon = type === "edit" ? "edit" : "visibility";
   const text = type === "edit" ? "Edit" : "View";
@@ -82,10 +82,7 @@ function ChangeRequestTextIcon() {
   );
 }
 
-function ChangeRequestButtonLink(props: {
-  to: LinkProps["to"];
-  disabled: boolean;
-}) {
+function ChangeRequestLink(props: { to: LinkProps["to"]; disabled: boolean }) {
   const { to, disabled } = props;
 
   const btnClassNames =
@@ -290,11 +287,11 @@ function FRF2022Submission(props: { rebate: Rebate }) {
     >
       <th scope="row" className={statusTableCellClassNames}>
         {frfNeedsEdits ? (
-          <FormButtonLink type="edit" to={frfUrl} />
+          <FormLink type="edit" to={frfUrl} />
         ) : frf.formio.state === "submitted" || !frfSubmissionPeriodOpen ? (
-          <FormButtonLink type="view" to={frfUrl} />
+          <FormLink type="view" to={frfUrl} />
         ) : frf.formio.state === "draft" ? (
-          <FormButtonLink type="edit" to={frfUrl} />
+          <FormLink type="edit" to={frfUrl} />
         ) : null}
       </th>
 
@@ -624,13 +621,13 @@ function PRF2022Submission(props: { rebate: Rebate }) {
     >
       <th scope="row" className={statusTableCellClassNames}>
         {frfNeedsEdits ? (
-          <FormButtonLink type="view" to={prfUrl} />
+          <FormLink type="view" to={prfUrl} />
         ) : prfNeedsEdits ? (
-          <FormButtonLink type="edit" to={prfUrl} />
+          <FormLink type="edit" to={prfUrl} />
         ) : prf.formio.state === "submitted" || !prfSubmissionPeriodOpen ? (
-          <FormButtonLink type="view" to={prfUrl} />
+          <FormLink type="view" to={prfUrl} />
         ) : prf.formio.state === "draft" ? (
-          <FormButtonLink type="edit" to={prfUrl} />
+          <FormLink type="edit" to={prfUrl} />
         ) : null}
       </th>
 
@@ -854,11 +851,11 @@ function CRF2022Submission(props: { rebate: Rebate }) {
     >
       <th scope="row" className={statusTableCellClassNames}>
         {crfNeedsEdits ? (
-          <FormButtonLink type="edit" to={crfUrl} />
+          <FormLink type="edit" to={crfUrl} />
         ) : crf.formio.state === "submitted" || !crfSubmissionPeriodOpen ? (
-          <FormButtonLink type="view" to={crfUrl} />
+          <FormLink type="view" to={crfUrl} />
         ) : crf.formio.state === "draft" ? (
-          <FormButtonLink type="edit" to={crfUrl} />
+          <FormLink type="edit" to={crfUrl} />
         ) : null}
       </th>
 
@@ -1010,11 +1007,11 @@ function FRF2023Submission(props: { rebate: Rebate }) {
     >
       <th scope="row" className={statusTableCellClassNames}>
         {frfNeedsEdits ? (
-          <FormButtonLink type="edit" to={frfUrl} />
+          <FormLink type="edit" to={frfUrl} />
         ) : frf.formio.state === "submitted" || !frfSubmissionPeriodOpen ? (
-          <FormButtonLink type="view" to={frfUrl} />
+          <FormLink type="view" to={frfUrl} />
         ) : frf.formio.state === "draft" ? (
-          <FormButtonLink type="edit" to={frfUrl} />
+          <FormLink type="edit" to={frfUrl} />
         ) : null}
       </th>
 
@@ -1108,10 +1105,7 @@ function FRF2023Submission(props: { rebate: Rebate }) {
       </td>
 
       <td className={clsx("!tw-text-right")}>
-        <ChangeRequestButtonLink
-          to="/"
-          disabled={frf.formio.state === "draft"}
-        />
+        <ChangeRequestLink to="/" disabled={frf.formio.state === "draft"} />
       </td>
     </tr>
   );
@@ -1310,13 +1304,13 @@ function PRF2023Submission(props: { rebate: Rebate }) {
     >
       <th scope="row" className={statusTableCellClassNames}>
         {frfNeedsEdits ? (
-          <FormButtonLink type="view" to={prfUrl} />
+          <FormLink type="view" to={prfUrl} />
         ) : prfNeedsEdits ? (
-          <FormButtonLink type="edit" to={prfUrl} />
+          <FormLink type="edit" to={prfUrl} />
         ) : prf.formio.state === "submitted" || !prfSubmissionPeriodOpen ? (
-          <FormButtonLink type="view" to={prfUrl} />
+          <FormLink type="view" to={prfUrl} />
         ) : prf.formio.state === "draft" ? (
-          <FormButtonLink type="edit" to={prfUrl} />
+          <FormLink type="edit" to={prfUrl} />
         ) : null}
       </th>
 
@@ -1359,10 +1353,7 @@ function PRF2023Submission(props: { rebate: Rebate }) {
       </td>
 
       <td className={clsx("!tw-text-right")}>
-        <ChangeRequestButtonLink
-          to="/"
-          disabled={prf.formio.state === "draft"}
-        />
+        <ChangeRequestLink to="/" disabled={prf.formio.state === "draft"} />
       </td>
     </tr>
   );
