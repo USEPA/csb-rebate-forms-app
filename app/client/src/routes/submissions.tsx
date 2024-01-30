@@ -74,18 +74,18 @@ function FormLink(props: { type: "edit" | "view"; to: LinkProps["to"] }) {
 }
 
 function ChangeRequestButton(props: {
+  disabled: boolean;
   data: {
     formType: FormType;
     comboKey: string;
     mongoId: string;
-    rebateId: string;
+    rebateId: string | null;
     email: string;
     title: string;
     name: string;
   };
-  disabled: boolean;
 }) {
-  const { data, disabled } = props;
+  const { disabled, data } = props;
   const { formType, comboKey, mongoId, rebateId, email, title, name } = data;
 
   const navigate = useNavigate();
@@ -102,9 +102,9 @@ function ChangeRequestButton(props: {
   return (
     <button
       className="usa-button margin-0 padding-x-2 padding-y-1 font-sans-2xs"
-      disabled={disabled}
+      disabled={disabled || !rebateId}
       onClick={(_ev) => {
-        if (disabled) return;
+        if (disabled || !rebateId) return;
 
         // account for when data is posting to prevent double submits
         if (dataIsPosting) return;
@@ -122,8 +122,8 @@ function ChangeRequestButton(props: {
           _user_title: title,
           _user_name: name,
         })
-          .then((res) => {
-            navigate(`/change-request/2023/${res._id}`);
+          .then((_res) => {
+            navigate(`/change-request/${formType}/2023/${rebateId}`);
           })
           .catch((_err) => {
             displayErrorNotification({
@@ -1002,11 +1002,12 @@ function FRF2023Submission(props: { rebate: Rebate }) {
   const frfSubmissionPeriodOpen = configData.submissionPeriodOpen["2023"].frf;
 
   const {
+    _user_email,
+    _bap_entity_combo_key,
     appInfo_uei,
     appInfo_efti,
     appInfo_orgName,
     _formio_schoolDistrictName,
-    _user_email,
   } = (frf.formio as FormioFRF2023Submission).data;
 
   const date = new Date(frf.formio.modified).toLocaleDateString();
@@ -1191,16 +1192,16 @@ function FRF2023Submission(props: { rebate: Rebate }) {
 
       <td className={clsx("!tw-text-right")}>
         <ChangeRequestButton
+          disabled={frf.formio.state === "draft"}
           data={{
             formType: "frf",
-            comboKey: "", // TODO
-            mongoId: "", // TODO
-            rebateId: "", // TODO
+            comboKey: _bap_entity_combo_key,
+            mongoId: frf.formio._id,
+            rebateId: frf.bap?.rebateId || null,
             email,
             title,
             name,
           }}
-          disabled={frf.formio.state === "draft"}
         />
       </td>
     </tr>
@@ -1326,6 +1327,7 @@ function PRF2023Submission(props: { rebate: Rebate }) {
 
   const {
     _user_email,
+    _bap_entity_combo_key,
     _bap_rebate_id, //
   } = (prf.formio as FormioPRF2023Submission).data;
 
@@ -1452,16 +1454,16 @@ function PRF2023Submission(props: { rebate: Rebate }) {
 
       <td className={clsx("!tw-text-right")}>
         <ChangeRequestButton
+          disabled={prf.formio.state === "draft"}
           data={{
             formType: "prf",
-            comboKey: "", // TODO
-            mongoId: "", // TODO
-            rebateId: "", // TODO
+            comboKey: _bap_entity_combo_key,
+            mongoId: prf.formio._id,
+            rebateId: _bap_rebate_id,
             email,
             title,
             name,
           }}
-          disabled={prf.formio.state === "draft"}
         />
       </td>
     </tr>
