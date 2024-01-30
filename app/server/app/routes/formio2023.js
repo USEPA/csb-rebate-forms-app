@@ -120,7 +120,7 @@ router.get("/change-requests", storeBapComboKeys, (req, res) => {
 });
 
 // --- post a new 2023 Change Request form submission to Formio
-router.post("/change-requests", storeBapComboKeys, (req, res) => {
+router.post("/change-request", storeBapComboKeys, (req, res) => {
   createChangeRequest({ rebateYear, req, res });
 });
 

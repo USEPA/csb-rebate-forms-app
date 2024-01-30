@@ -111,17 +111,21 @@ function ChangeRequestButton(props: {
         setDataIsPosting(true);
 
         // create a new change request
-        const url = `${serverUrl}/api/formio/2023/change-request/`;
-
-        postData<FormioChangeRequest2023Submission>(url, {
-          _bap_entity_combo_key: comboKey,
-          _mongo_id: mongoId,
-          _rebate_id: rebateId,
-          _request_form: formType,
-          _user_email: email,
-          _user_title: title,
-          _user_name: name,
-        })
+        postData<FormioChangeRequest2023Submission>(
+          `${serverUrl}/api/formio/2023/change-request/`,
+          {
+            data: {
+              _bap_entity_combo_key: comboKey,
+              _mongo_id: mongoId,
+              _rebate_id: rebateId,
+              _request_form: formType,
+              _user_email: email,
+              _user_title: title,
+              _user_name: name,
+            },
+            state: "draft",
+          },
+        )
           .then((_res) => {
             navigate(`/change-request/${formType}/2023/${rebateId}`);
           })
