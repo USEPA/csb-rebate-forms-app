@@ -112,7 +112,7 @@ function ChangeRequestButton(props: {
 
         // create a new change request
         postData<FormioChangeRequest2023Submission>(
-          `${serverUrl}/api/formio/2023/change-request/`,
+          `${serverUrl}/api/formio/2023/change/`,
           {
             data: {
               _bap_entity_combo_key: comboKey,
@@ -127,7 +127,7 @@ function ChangeRequestButton(props: {
           },
         )
           .then((_res) => {
-            navigate(`/change-request/${formType}/2023/${rebateId}`);
+            navigate(`/change/${formType}/2023/${rebateId}`);
           })
           .catch((_err) => {
             displayErrorNotification({

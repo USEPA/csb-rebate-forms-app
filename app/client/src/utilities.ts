@@ -414,15 +414,15 @@ export function useChangeRequestsQuery(rebateYear: RebateYear) {
    * change request data to fetch for 2022.
    */
   const changeRequest2022Query = {
-    queryKey: ["formio/2022/change-requests"],
+    queryKey: ["formio/2022/changes"],
     queryFn: () => Promise.resolve([]),
     refetchOnWindowFocus: false,
   };
 
   const changeRequest2023Query = {
-    queryKey: ["formio/2023/change-requests"],
+    queryKey: ["formio/2023/changes"],
     queryFn: () => {
-      const url = `${serverUrl}/api/formio/2023/change-requests`;
+      const url = `${serverUrl}/api/formio/2023/changes`;
       return getData<FormioChangeRequest2023Submission[]>(url);
     },
     refetchOnWindowFocus: false,
@@ -430,7 +430,7 @@ export function useChangeRequestsQuery(rebateYear: RebateYear) {
 
   /* NOTE: Fallback (not used, as rebate year will match a query above) */
   const changeRequestQuery = {
-    queryKey: ["formio/change-requests"],
+    queryKey: ["formio/changes"],
     queryFn: () => Promise.resolve([]),
     refetchOnWindowFocus: false,
   };
@@ -452,9 +452,9 @@ export function useChangeRequestsQuery(rebateYear: RebateYear) {
 export function useChangeRequestsData(rebateYear: RebateYear) {
   const queryClient = useQueryClient();
   return rebateYear === "2022"
-    ? queryClient.getQueryData<[]>(["formio/2022/change-requests"])
+    ? queryClient.getQueryData<[]>(["formio/2022/changes"])
     : rebateYear === "2023"
-    ? queryClient.getQueryData<FormioChangeRequest2023Submission[]>(["formio/2023/change-requests"]) // prettier-ignore
+    ? queryClient.getQueryData<FormioChangeRequest2023Submission[]>(["formio/2023/changes"]) // prettier-ignore
     : undefined;
 }
 

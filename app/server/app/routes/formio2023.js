@@ -115,12 +115,12 @@ router.get("/crf-submissions", storeBapComboKeys, (req, res) => {
 // --- post an update to an existing draft 2023 CRF submission to Formio
 
 // --- get user's 2023 Change Request form submissions from Formio
-router.get("/change-requests", storeBapComboKeys, (req, res) => {
+router.get("/changes", storeBapComboKeys, (req, res) => {
   fetchChangeRequests({ rebateYear, req, res });
 });
 
 // --- post a new 2023 Change Request form submission to Formio
-router.post("/change-request", storeBapComboKeys, (req, res) => {
+router.post("/change", storeBapComboKeys, (req, res) => {
   createChangeRequest({ rebateYear, req, res });
 });
 
