@@ -21,6 +21,8 @@ import {
   useContentData,
   useConfigData,
   useBapSamData,
+  useChangeRequestsQuery,
+  useChangeRequestsData,
   useSubmissionsQueries,
   useSubmissions,
   submissionNeedsEdits,
@@ -1376,14 +1378,24 @@ function Submissions2022() {
 
 function Submissions2023() {
   const content = useContentData();
+  const changeRequestsQuery = useChangeRequestsQuery("2023");
   const submissionsQueries = useSubmissionsQueries("2023");
+  const changeRequests = useChangeRequestsData("2023");
   const submissions = useSubmissions("2023");
 
-  if (submissionsQueries.some((query) => query.isFetching)) {
+  console.log(changeRequests); // TODO: display change requests table if there are any
+
+  if (
+    changeRequestsQuery.isFetching ||
+    submissionsQueries.some((query) => query.isFetching)
+  ) {
     return <Loading />;
   }
 
-  if (submissionsQueries.some((query) => query.isError)) {
+  if (
+    changeRequestsQuery.isError ||
+    submissionsQueries.some((query) => query.isError)
+  ) {
     return <Message type="error" text={messages.formSubmissionsError} />;
   }
 

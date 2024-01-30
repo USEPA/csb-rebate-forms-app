@@ -395,12 +395,13 @@ export function useBapSamData() {
 
 /** Custom hook to fetch Change Request form submissions from Formio. */
 export function useChangeRequestsQuery(rebateYear: RebateYear) {
-  /* NOTE: Change Request form was added in the 2023 rebate year */
+  /*
+   * NOTE: Change Request form was added in the 2023 rebate year, so there's no
+   * change request data to fetch for 2022.
+   */
   const changeRequest2022Query = {
     queryKey: ["formio/2022/change-requests"],
-    queryFn: () => {
-      return Promise.resolve([] as FormioChangeRequest[]);
-    },
+    queryFn: () => Promise.resolve([]),
     refetchOnWindowFocus: false,
   };
 
@@ -413,11 +414,21 @@ export function useChangeRequestsQuery(rebateYear: RebateYear) {
     refetchOnWindowFocus: false,
   };
 
-  return rebateYear === "2022"
-    ? changeRequest2022Query
-    : rebateYear === "2023"
-    ? changeRequest2023Query
-    : undefined;
+  /* NOTE: Fallback (not used, as rebate year will match a query above) */
+  const changeRequestQuery = {
+    queryKey: ["formio/change-requests"],
+    queryFn: () => Promise.resolve([]),
+    refetchOnWindowFocus: false,
+  };
+
+  const query =
+    rebateYear === "2022"
+      ? changeRequest2022Query
+      : rebateYear === "2023"
+      ? changeRequest2023Query
+      : changeRequestQuery;
+
+  return useQuery(query);
 }
 
 /**
