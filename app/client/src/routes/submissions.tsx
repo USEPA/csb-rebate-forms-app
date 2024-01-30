@@ -43,15 +43,16 @@ const defaultTableRowClassNames = "bg-gray-5";
 const highlightedTableRowClassNames = "bg-primary-lighter";
 
 function FormButtonLink(props: { type: "edit" | "view"; to: LinkProps["to"] }) {
-  const icon = props.type === "edit" ? "edit" : "visibility";
-  const text = props.type === "edit" ? "Edit" : "View";
+  const { type, to } = props;
+  const icon = type === "edit" ? "edit" : "visibility";
+  const text = type === "edit" ? "Edit" : "View";
 
   return (
     <Link
-      to={props.to}
+      to={to}
       className={clsx(
         "usa-button",
-        props.type === "view" && "usa-button--base",
+        type === "view" && "usa-button--base",
         "font-sans-2xs margin-right-0 padding-x-105 padding-y-1",
       )}
     >
@@ -70,6 +71,37 @@ function FormButtonLink(props: { type: "edit" | "view"; to: LinkProps["to"] }) {
   );
 }
 
+function ChangeRequestTextIcon() {
+  return (
+    <span className="display-flex flex-align-center">
+      <span className="margin-right-1 text-right">Change</span>
+      <svg className="usa-icon" aria-hidden="true" focusable="false" role="img">
+        <use href={`${icons}#launch`} />
+      </svg>
+    </span>
+  );
+}
+
+function ChangeRequestButtonLink(props: {
+  to: LinkProps["to"];
+  disabled: boolean;
+}) {
+  const { to, disabled } = props;
+
+  const btnClassNames =
+    "usa-button margin-0 padding-x-2 padding-y-1 font-sans-2xs";
+
+  return disabled ? (
+    <button className={btnClassNames} disabled>
+      <ChangeRequestTextIcon />
+    </button>
+  ) : (
+    <Link className={btnClassNames} to={to}>
+      <ChangeRequestTextIcon />
+    </Link>
+  );
+}
+
 function NewApplicationIconText() {
   return (
     <span className="display-flex flex-align-center">
@@ -81,7 +113,9 @@ function NewApplicationIconText() {
   );
 }
 
-function SubmissionsTableHeader() {
+function SubmissionsTableHeader(props: { rebateYear: RebateYear }) {
+  const { rebateYear } = props;
+
   return (
     <thead>
       <tr className="font-sans-2xs text-no-wrap text-bottom">
@@ -140,6 +174,15 @@ function SubmissionsTableHeader() {
             tooltip="Last date this form was updated"
           />
         </th>
+
+        {rebateYear === "2023" && (
+          <th scope="col">
+            <TextWithTooltip
+              text="Change Request"
+              tooltip="Submit a change request for an extension, to request edits, or to withdraw from the rebate program"
+            />
+          </th>
+        )}
       </tr>
     </thead>
   );
@@ -1063,6 +1106,13 @@ function FRF2023Submission(props: { rebate: Rebate }) {
         <br />
         <span title={`${date} ${time}`}>{date}</span>
       </td>
+
+      <td className={clsx("!tw-text-right")}>
+        <ChangeRequestButtonLink
+          to="/"
+          disabled={frf.formio.state === "draft"}
+        />
+      </td>
     </tr>
   );
 }
@@ -1307,6 +1357,13 @@ function PRF2023Submission(props: { rebate: Rebate }) {
         <br />
         <span title={`${date} ${time}`}>{date}</span>
       </td>
+
+      <td className={clsx("!tw-text-right")}>
+        <ChangeRequestButtonLink
+          to="/"
+          disabled={prf.formio.state === "draft"}
+        />
+      </td>
     </tr>
   );
 }
@@ -1350,7 +1407,7 @@ function Submissions2022() {
           aria-label="Your 2022 Rebate Forms"
           className="usa-table usa-table--stacked usa-table--borderless width-full"
         >
-          <SubmissionsTableHeader />
+          <SubmissionsTableHeader rebateYear="2022" />
           <tbody>
             {submissions.map((rebate, index) => {
               return rebate.rebateYear === "2022" ? (
@@ -1421,7 +1478,7 @@ function Submissions2023() {
           aria-label="Your 2023 Rebate Forms"
           className="usa-table usa-table--stacked usa-table--borderless width-full"
         >
-          <SubmissionsTableHeader />
+          <SubmissionsTableHeader rebateYear="2023" />
           <tbody>
             {submissions.map((rebate, index) => {
               return rebate.rebateYear === "2023" ? (
