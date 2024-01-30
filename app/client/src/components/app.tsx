@@ -42,7 +42,7 @@ import { CRF2022 } from "@/routes/crf2022";
 import { FRF2023 } from "@/routes/frf2023";
 import { PRF2023 } from "@/routes/prf2023";
 // import { CRF2023 } from "@/routes/crf2023";
-import { ChangeRequest2023 } from "@/routes/changeRequest2023";
+import { Change2023 } from "@/routes/change2023";
 import { useDialogState, useDialogActions } from "@/contexts/dialog";
 
 /** Custom hook to display a site-wide alert banner */
@@ -256,8 +256,8 @@ export function App() {
         {/* <Route path="crf/2023/:id" element={<CRF2023 />} /> */}
 
         <Route
-          path="/change-request/:formType/2023/:rebateId"
-          element={<ChangeRequest2023 />}
+          path="/change/:formType/2023/:rebateId"
+          element={<Change2023 />}
         />
 
         <Route path="*" element={<Navigate to="/" replace />} />

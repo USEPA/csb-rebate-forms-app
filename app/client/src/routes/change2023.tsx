@@ -1,15 +1,15 @@
 import { useMemo } from "react";
 import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 
-export function ChangeRequest2023() {
+export function Change2023() {
   const { email } = useOutletContext<{ email: string }>();
   /* ensure user verification (JWT refresh) doesn't cause form to re-render */
   return useMemo(() => {
-    return <ChangeRequestForm email={email} />;
+    return <ChangeForm email={email} />;
   }, [email]);
 }
 
-function ChangeRequestForm(props: { email: string }) {
+function ChangeForm(props: { email: string }) {
   const { email } = props;
 
   const navigate = useNavigate();
