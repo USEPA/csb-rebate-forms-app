@@ -1069,7 +1069,7 @@ function fetchCRFSubmissions({ rebateYear, req, res }) {
  * @param {express.Request} param.req
  * @param {express.Response} param.res
  */
-function fetchChangeSubmissions({ rebateYear, req, res }) {
+function fetchChangeRequests({ rebateYear, req, res }) {
   const { bapComboKeys } = req;
 
   const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
@@ -1108,7 +1108,7 @@ function fetchChangeSubmissions({ rebateYear, req, res }) {
  * @param {express.Request} param.req
  * @param {express.Response} param.res
  */
-function createChangeSubmission({ rebateYear, req, res }) {
+function createChangeRequest({ rebateYear, req, res }) {
   const { bapComboKeys, body } = req;
   const { mail } = req.user;
 
@@ -1166,6 +1166,6 @@ module.exports = {
   //
   fetchCRFSubmissions,
   //
-  fetchChangeSubmissions,
-  createChangeSubmission,
+  fetchChangeRequests,
+  createChangeRequest,
 };

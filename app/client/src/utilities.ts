@@ -111,6 +111,10 @@ type BapFormSubmissions = {
   };
 };
 
+type FormioChangeRequest = {
+  // TODO
+};
+
 type FormioSubmission = {
   [field: string]: unknown;
   _id: string; // MongoDB ObjectId string
@@ -286,7 +290,7 @@ async function fetchData<T = unknown>(url: string, options: RequestInit) {
 
 /**
  * Fetches data and returns a promise containing JSON fetched from a provided
- * web service URL or handles any other OK response returned from the server
+ * web service URL or handles any other OK response returned from the server.
  */
 export function getData<T = unknown>(url: string) {
   return fetchData<T>(url, {
@@ -297,7 +301,7 @@ export function getData<T = unknown>(url: string) {
 
 /**
  * Posts JSON data and returns a promise containing JSON fetched from a provided
- * web service URL or handles any other OK response returned from the server
+ * web service URL or handles any other OK response returned from the server.
  */
 export function postData<T = unknown>(url: string, data: object) {
   return fetchData<T>(url, {
@@ -308,7 +312,7 @@ export function postData<T = unknown>(url: string, data: object) {
   });
 }
 
-/** Custom hook to fetch content data */
+/** Custom hook to fetch content data. */
 export function useContentQuery() {
   return useQuery({
     queryKey: ["content"],
@@ -317,13 +321,13 @@ export function useContentQuery() {
   });
 }
 
-/** Custom hook that returns cached fetched content data */
+/** Custom hook that returns cached fetched content data. */
 export function useContentData() {
   const queryClient = useQueryClient();
   return queryClient.getQueryData<Content>(["content"]);
 }
 
-/** Custom hook to fetch user data */
+/** Custom hook to fetch user data. */
 export function useUserQuery() {
   return useQuery({
     queryKey: ["user"],
@@ -333,13 +337,13 @@ export function useUserQuery() {
   });
 }
 
-/** Custom hook that returns cached fetched user data */
+/** Custom hook that returns cached fetched user data. */
 export function useUserData() {
   const queryClient = useQueryClient();
   return queryClient.getQueryData<UserData>(["user"]);
 }
 
-/** Custom hook to check if user should have access to the helpdesk page */
+/** Custom hook to check if user should have access to the helpdesk page. */
 export function useHelpdeskAccess() {
   const user = useUserData();
   const userRoles = user?.memberof.split(",") || [];
@@ -351,7 +355,7 @@ export function useHelpdeskAccess() {
     : "failure";
 }
 
-/** Custom hook to fetch CSB config */
+/** Custom hook to fetch CSB config. */
 export function useConfigQuery() {
   return useQuery({
     queryKey: ["config"],
@@ -360,13 +364,13 @@ export function useConfigQuery() {
   });
 }
 
-/** Custom hook that returns cached fetched CSB config */
+/** Custom hook that returns cached fetched CSB config. */
 export function useConfigData() {
   const queryClient = useQueryClient();
   return queryClient.getQueryData<ConfigData>(["config"]);
 }
 
-/** Custom hook to fetch BAP SAM.gov data */
+/** Custom hook to fetch BAP SAM.gov data. */
 export function useBapSamQuery() {
   return useQuery({
     queryKey: ["bap/sam"],
@@ -383,13 +387,53 @@ export function useBapSamQuery() {
   });
 }
 
-/** Custom hook that returns cached fetched BAP SAM.gov data */
+/** Custom hook that returns cached fetched BAP SAM.gov data. */
 export function useBapSamData() {
   const queryClient = useQueryClient();
   return queryClient.getQueryData<BapSamData>(["bap/sam"]);
 }
 
-/** Custom hook to fetch submissions from the BAP and Formio */
+/** Custom hook to fetch Change Request form submissions from Formio. */
+export function useChangeRequestsQuery(rebateYear: RebateYear) {
+  /* NOTE: Change Request form was added in the 2023 rebate year */
+  const changeRequest2022Query = {
+    queryKey: ["formio/2022/change-requests"],
+    queryFn: () => {
+      return Promise.resolve([] as FormioChangeRequest[]);
+    },
+    refetchOnWindowFocus: false,
+  };
+
+  const changeRequest2023Query = {
+    queryKey: ["formio/2023/change-requests"],
+    queryFn: () => {
+      const url = `${serverUrl}/api/formio/2023/change-requests`;
+      return getData<FormioChangeRequest[]>(url);
+    },
+    refetchOnWindowFocus: false,
+  };
+
+  return rebateYear === "2022"
+    ? changeRequest2022Query
+    : rebateYear === "2023"
+    ? changeRequest2023Query
+    : undefined;
+}
+
+/**
+ * Custom hook that returns cached fetched Change Request form submissions from
+ * Formio.
+ */
+export function useChangeRequestsData(rebateYear: RebateYear) {
+  const queryClient = useQueryClient();
+  return rebateYear === "2022"
+    ? queryClient.getQueryData<FormioChangeRequest[]>(["formio/2022/change-requests"]) // prettier-ignore
+    : rebateYear === "2023"
+    ? queryClient.getQueryData<FormioChangeRequest[]>(["formio/2023/change-requests"]) // prettier-ignore
+    : undefined;
+}
+
+/** Custom hook to fetch submissions from the BAP and Formio. */
 export function useSubmissionsQueries(rebateYear: RebateYear) {
   const bapQuery = {
     queryKey: ["bap/submissions"],

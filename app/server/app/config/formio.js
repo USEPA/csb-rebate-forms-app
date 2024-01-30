@@ -34,7 +34,7 @@ const formUrl = {
     frf: `${formioProjectUrl}/${FORMIO_2022_FRF_PATH}`,
     prf: `${formioProjectUrl}/${FORMIO_2022_PRF_PATH}`,
     crf: `${formioProjectUrl}/${FORMIO_2022_CRF_PATH}`,
-    change: "", // NOTE: change request form was added in the 2023 rebate year
+    change: "", // NOTE: Change Request form was added in the 2023 rebate year
   },
   2023: {
     frf: `${formioProjectUrl}/${FORMIO_2023_FRF_PATH}`,
