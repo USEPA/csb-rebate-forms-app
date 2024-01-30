@@ -120,7 +120,7 @@ export function Change2023() {
       {content && (
         <MarkdownContent
           className="margin-top-4"
-          children={content.draftPRFIntro} // TODO: replace with change request intro
+          children={content.changeRequestIntro}
         />
       )}
 
