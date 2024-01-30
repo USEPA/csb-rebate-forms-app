@@ -11,7 +11,7 @@ import icons from "uswds/img/sprite.svg";
 import { serverUrl, messages } from "@/config";
 import {
   type FormType,
-  type FormioChangeRequest2023Submission,
+  type FormioChange2023Submission,
   type FormioFRF2022Submission,
   type FormioPRF2022Submission,
   type FormioCRF2022Submission,
@@ -111,14 +111,14 @@ function ChangeRequestButton(props: {
         setDataIsPosting(true);
 
         // create a new change request
-        postData<FormioChangeRequest2023Submission>(
+        postData<FormioChange2023Submission>(
           `${serverUrl}/api/formio/2023/change/`,
           {
             data: {
-              _bap_entity_combo_key: comboKey,
-              _mongo_id: mongoId,
-              _rebate_id: rebateId,
               _request_form: formType,
+              _bap_entity_combo_key: comboKey,
+              _bap_rebate_id: rebateId,
+              _mongo_id: mongoId,
               _user_email: email,
               _user_title: title,
               _user_name: name,

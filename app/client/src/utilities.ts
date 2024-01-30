@@ -126,13 +126,13 @@ type FormioSubmission = {
   };
 };
 
-type FormioChangeRequest2023Data = {
+type FormioChange2023Data = {
   [field: string]: unknown;
   // fields injected upon a new draft Change Request form submission creation:
-  _bap_entity_combo_key: string;
-  _mongo_id: string;
-  _rebate_id: string;
   _request_form: FormType;
+  _bap_entity_combo_key: string;
+  _bap_rebate_id: string;
+  _mongo_id: string;
   _user_email: string;
   _user_title: string;
   _user_name: string;
@@ -236,8 +236,8 @@ type FormioCRF2023Data = {
   _bap_rebate_id: string;
 };
 
-export type FormioChangeRequest2023Submission = FormioSubmission & {
-  data: FormioChangeRequest2023Data;
+export type FormioChange2023Submission = FormioSubmission & {
+  data: FormioChange2023Data;
 };
 
 export type FormioFRF2022Submission = FormioSubmission & {
@@ -423,7 +423,7 @@ export function useChangeRequestsQuery(rebateYear: RebateYear) {
     queryKey: ["formio/2023/changes"],
     queryFn: () => {
       const url = `${serverUrl}/api/formio/2023/changes`;
-      return getData<FormioChangeRequest2023Submission[]>(url);
+      return getData<FormioChange2023Submission[]>(url);
     },
     refetchOnWindowFocus: false,
   };
@@ -454,7 +454,7 @@ export function useChangeRequestsData(rebateYear: RebateYear) {
   return rebateYear === "2022"
     ? queryClient.getQueryData<[]>(["formio/2022/changes"])
     : rebateYear === "2023"
-    ? queryClient.getQueryData<FormioChangeRequest2023Submission[]>(["formio/2023/changes"]) // prettier-ignore
+    ? queryClient.getQueryData<FormioChange2023Submission[]>(["formio/2023/changes"]) // prettier-ignore
     : undefined;
 }
 
