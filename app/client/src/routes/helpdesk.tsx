@@ -15,6 +15,7 @@ import {
   bapCRFStatusMap,
 } from "@/config";
 import {
+  type FormType,
   type FormioFRF2022Submission,
   type FormioPRF2022Submission,
   type FormioCRF2022Submission,
@@ -35,8 +36,6 @@ import {
   useRebateYearState,
   useRebateYearActions,
 } from "@/contexts/rebateYear";
-
-type FormType = "frf" | "prf" | "crf";
 
 type ServerResponse =
   | {

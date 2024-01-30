@@ -10,6 +10,8 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages } from "@/config";
 import {
+  type FormType,
+  type FormioChangeRequest2023Submission,
   type FormioFRF2022Submission,
   type FormioPRF2022Submission,
   type FormioCRF2022Submission,
@@ -71,31 +73,99 @@ function FormLink(props: { type: "edit" | "view"; to: LinkProps["to"] }) {
   );
 }
 
-function ChangeRequestTextIcon() {
+function ChangeRequestButton(props: {
+  data: {
+    formType: FormType;
+    comboKey: string;
+    mongoId: string;
+    rebateId: string;
+    email: string;
+    title: string;
+    name: string;
+  };
+  disabled: boolean;
+}) {
+  const { data, disabled } = props;
+  const { formType, comboKey, mongoId, rebateId, email, title, name } = data;
+
+  const navigate = useNavigate();
+
+  const { displayErrorNotification } = useNotificationsActions();
+
+  /**
+   * Stores when data is being posted to the server, so a loading indicator can
+   * be rendered inside the "Change" button, and we can prevent double submits/
+   * creations of new Change Request form submissions.
+   */
+  const [dataIsPosting, setDataIsPosting] = useState(false);
+
   return (
-    <span className="display-flex flex-align-center">
-      <span className="margin-right-1 text-right">Change</span>
-      <svg className="usa-icon" aria-hidden="true" focusable="false" role="img">
-        <use href={`${icons}#launch`} />
-      </svg>
-    </span>
-  );
-}
+    <button
+      className="usa-button margin-0 padding-x-2 padding-y-1 font-sans-2xs"
+      disabled={disabled}
+      onClick={(_ev) => {
+        if (disabled) return;
 
-function ChangeRequestLink(props: { to: LinkProps["to"]; disabled: boolean }) {
-  const { to, disabled } = props;
+        // account for when data is posting to prevent double submits
+        if (dataIsPosting) return;
+        setDataIsPosting(true);
 
-  const btnClassNames =
-    "usa-button margin-0 padding-x-2 padding-y-1 font-sans-2xs";
+        // create a new change request
+        const url = `${serverUrl}/api/formio/2023/change-request/`;
 
-  return disabled ? (
-    <button className={btnClassNames} disabled>
-      <ChangeRequestTextIcon />
+        postData<FormioChangeRequest2023Submission>(url, {
+          _bap_entity_combo_key: comboKey,
+          _mongo_id: mongoId,
+          _rebate_id: rebateId,
+          _request_form: formType,
+          _user_email: email,
+          _user_title: title,
+          _user_name: name,
+        })
+          .then((res) => {
+            navigate(`/change-request/2023/${res._id}`);
+          })
+          .catch((_err) => {
+            displayErrorNotification({
+              id: Date.now(),
+              body: (
+                <>
+                  <p
+                    className={clsx(
+                      "tw-text-sm tw-font-medium tw-text-gray-900",
+                    )}
+                  >
+                    Error creating Change Request for{" "}
+                    <em>
+                      {formType.toUpperCase()} {rebateId}
+                    </em>
+                    .
+                  </p>
+                  <p className={clsx("tw-mt-1 tw-text-sm tw-text-gray-500")}>
+                    Please try again.
+                  </p>
+                </>
+              ),
+            });
+          })
+          .finally(() => {
+            setDataIsPosting(false);
+          });
+      }}
+    >
+      <span className="display-flex flex-align-center">
+        {dataIsPosting && <LoadingButtonIcon position="start" />}
+        <span className="margin-right-1 text-right">Change</span>
+        <svg
+          className="usa-icon"
+          aria-hidden="true"
+          focusable="false"
+          role="img"
+        >
+          <use href={`${icons}#launch`} />
+        </svg>
+      </span>
     </button>
-  ) : (
-    <Link className={btnClassNames} to={to}>
-      <ChangeRequestTextIcon />
-    </Link>
   );
 }
 
@@ -532,7 +602,7 @@ function PRF2022Submission(props: { rebate: Rebate }) {
                 <use href={`${icons}#add_circle`} />
               </svg>
               <span className="margin-left-1">New Payment Request</span>
-              {dataIsPosting && <LoadingButtonIcon />}
+              {dataIsPosting && <LoadingButtonIcon position="end" />}
             </span>
           </button>
         </th>
@@ -776,7 +846,7 @@ function CRF2022Submission(props: { rebate: Rebate }) {
                 <use href={`${icons}#add_circle`} />
               </svg>
               <span className="margin-left-1">New Close Out</span>
-              {dataIsPosting && <LoadingButtonIcon />}
+              {dataIsPosting && <LoadingButtonIcon position="end" />}
             </span>
           </button>
         </th>
@@ -910,9 +980,24 @@ function FRF2023Submission(props: { rebate: Rebate }) {
   const { rebate } = props;
   const { frf, prf, crf } = rebate;
 
-  const configData = useConfigData();
+  const { email } = useOutletContext<{ email: string }>();
 
-  if (!configData) return null;
+  const configData = useConfigData();
+  const bapSamData = useBapSamData();
+
+  if (!configData || !bapSamData) return null;
+
+  /** matched SAM.gov entity for the FRF submission */
+  const entity = bapSamData.entities.find((entity) => {
+    const { ENTITY_STATUS__c, ENTITY_COMBO_KEY__c } = entity;
+    const comboKey = (frf.formio as FormioFRF2023Submission).data
+      ._bap_entity_combo_key;
+    return ENTITY_STATUS__c === "Active" && ENTITY_COMBO_KEY__c === comboKey;
+  });
+
+  if (!entity) return null;
+
+  const { title, name } = getUserInfo(email, entity);
 
   const frfSubmissionPeriodOpen = configData.submissionPeriodOpen["2023"].frf;
 
@@ -1105,7 +1190,18 @@ function FRF2023Submission(props: { rebate: Rebate }) {
       </td>
 
       <td className={clsx("!tw-text-right")}>
-        <ChangeRequestLink to="/" disabled={frf.formio.state === "draft"} />
+        <ChangeRequestButton
+          data={{
+            formType: "frf",
+            comboKey: "", // TODO
+            mongoId: "", // TODO
+            rebateId: "", // TODO
+            email,
+            title,
+            name,
+          }}
+          disabled={frf.formio.state === "draft"}
+        />
       </td>
     </tr>
   );
@@ -1131,12 +1227,6 @@ function PRF2023Submission(props: { rebate: Rebate }) {
 
   if (!configData || !bapSamData) return null;
 
-  const prfSubmissionPeriodOpen = configData.submissionPeriodOpen["2023"].prf;
-
-  const frfSelected = frf.bap?.status === "Accepted";
-
-  const frfSelectedButNoPRF = frfSelected && !Boolean(prf.formio);
-
   /** matched SAM.gov entity for the FRF submission */
   const entity = bapSamData.entities.find((entity) => {
     const { ENTITY_STATUS__c, ENTITY_COMBO_KEY__c } = entity;
@@ -1144,6 +1234,16 @@ function PRF2023Submission(props: { rebate: Rebate }) {
       ._bap_entity_combo_key;
     return ENTITY_STATUS__c === "Active" && ENTITY_COMBO_KEY__c === comboKey;
   });
+
+  if (!entity) return null;
+
+  const { title, name } = getUserInfo(email, entity);
+
+  const prfSubmissionPeriodOpen = configData.submissionPeriodOpen["2023"].prf;
+
+  const frfSelected = frf.bap?.status === "Accepted";
+
+  const frfSelectedButNoPRF = frfSelected && !Boolean(prf.formio);
 
   if (frfSelectedButNoPRF) {
     return (
@@ -1154,13 +1254,11 @@ function PRF2023Submission(props: { rebate: Rebate }) {
             disabled={!prfSubmissionPeriodOpen}
             onClick={(_ev) => {
               if (!prfSubmissionPeriodOpen) return;
-              if (!frf.bap || !entity) return;
+              if (!frf.bap) return;
 
               // account for when data is posting to prevent double submits
               if (dataIsPosting) return;
               setDataIsPosting(true);
-
-              const { title, name } = getUserInfo(email, entity);
 
               // create a new draft PRF submission
               postData(`${serverUrl}/api/formio/2023/prf-submission/`, {
@@ -1215,7 +1313,7 @@ function PRF2023Submission(props: { rebate: Rebate }) {
                 <use href={`${icons}#add_circle`} />
               </svg>
               <span className="margin-left-1">New Payment Request</span>
-              {dataIsPosting && <LoadingButtonIcon />}
+              {dataIsPosting && <LoadingButtonIcon position="end" />}
             </span>
           </button>
         </th>
@@ -1353,7 +1451,18 @@ function PRF2023Submission(props: { rebate: Rebate }) {
       </td>
 
       <td className={clsx("!tw-text-right")}>
-        <ChangeRequestLink to="/" disabled={prf.formio.state === "draft"} />
+        <ChangeRequestButton
+          data={{
+            formType: "prf",
+            comboKey: "", // TODO
+            mongoId: "", // TODO
+            rebateId: "", // TODO
+            email,
+            title,
+            name,
+          }}
+          disabled={prf.formio.state === "draft"}
+        />
       </td>
     </tr>
   );

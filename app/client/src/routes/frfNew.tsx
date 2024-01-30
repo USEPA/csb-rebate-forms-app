@@ -347,7 +347,7 @@ export function FRFNew() {
                                           New Application
                                         </span>
                                         {postingDataId === comboKey && (
-                                          <LoadingButtonIcon />
+                                          <LoadingButtonIcon position="end" />
                                         )}
                                       </span>
                                     </button>
