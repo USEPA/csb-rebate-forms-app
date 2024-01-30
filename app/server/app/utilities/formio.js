@@ -1149,6 +1149,133 @@ function createChangeRequest({ rebateYear, req, res }) {
     });
 }
 
+/**
+ * @param {Object} param
+ * @param {'2022' | '2023'} param.rebateYear
+ * @param {express.Request} param.req
+ * @param {express.Response} param.res
+ */
+function fetchChangeRequest({ rebateYear, req, res }) {
+  const { bapComboKeys } = req;
+  const { mail } = req.user;
+  const { rebateId } = req.params; // CSB Rebate ID (6 digits)
+
+  const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
+  const rebateIdFieldName = getRebateIdFieldName({ rebateYear });
+
+  const formioFormUrl = formUrl[rebateYear].change;
+
+  if (!formioFormUrl) {
+    const errorStatus = 400;
+    const errorMessage = `Formio form URL does not exist for ${rebateYear} Change Request form.`;
+    return res.status(errorStatus).json({ message: errorMessage });
+  }
+
+  const matchedChangeRequests = `${formioFormUrl}/submission?data.${rebateIdFieldName}=${rebateId}`;
+
+  Promise.all([
+    axiosFormio(req).get(matchedChangeRequests),
+    axiosFormio(req).get(formioFormUrl),
+  ])
+    .then((axiosResponses) => axiosResponses.map((axiosRes) => axiosRes.data))
+    .then(([submissions, schema]) => {
+      const submission = submissions[0];
+      const mongoId = submission._id;
+      const comboKey = submission.data?.[comboKeyFieldName];
+
+      if (!bapComboKeys.includes(comboKey)) {
+        const logMessage =
+          `User with email '${mail}' attempted to access ${rebateYear} ` +
+          `Change Request form submission '${mongoId}' that they do not have access to.`;
+        log({ level: "warn", message: logMessage, req });
+
+        return res.json({
+          userAccess: false,
+          formSchema: null,
+          submission: null,
+        });
+      }
+
+      /** NOTE: verifyMongoObjectId */
+      if (mongoId && !ObjectId.isValid(mongoId)) {
+        const errorStatus = 400;
+        const errorMessage = `MongoDB ObjectId validation error for: '${mongoId}'.`;
+        return res.status(errorStatus).json({ message: errorMessage });
+      }
+
+      return res.json({
+        userAccess: true,
+        formSchema: { url: formioFormUrl, json: schema },
+        submission,
+      });
+    })
+    .catch((error) => {
+      // NOTE: error is logged in axiosFormio response interceptor
+      const errorStatus = error.response?.status || 500;
+      const errorMessage = `Error getting Formio ${rebateYear} Change Request form submission '${rebateId}'.`;
+      return res.status(errorStatus).json({ message: errorMessage });
+    });
+}
+
+/**
+ * @param {Object} param
+ * @param {'2022' | '2023'} param.rebateYear
+ * @param {express.Request} param.req
+ * @param {express.Response} param.res
+ */
+function updateChangeRequest({ rebateYear, req, res }) {
+  const { bapComboKeys, body } = req;
+  const { mail } = req.user;
+  const { rebateId } = req.params; // CSB Rebate ID (6 digits)
+  const { mongoId, submission } = body;
+
+  const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
+  const comboKey = submission.data?.[comboKeyFieldName];
+
+  const formioFormUrl = formUrl[rebateYear].change;
+
+  if (!formioFormUrl) {
+    const errorStatus = 400;
+    const errorMessage = `Formio form URL does not exist for ${rebateYear} Change Request form.`;
+    return res.status(errorStatus).json({ message: errorMessage });
+  }
+
+  if (!bapComboKeys.includes(comboKey)) {
+    const logMessage =
+      `User with email '${mail}' attempted to update ${rebateYear} Change Request form ` +
+      `submission '${rebateId}' without a matching BAP combo key.`;
+    log({ level: "error", message: logMessage, req });
+
+    const errorStatus = 401;
+    const errorMessage = `Unauthorized.`;
+    return res.status(errorStatus).json({ message: errorMessage });
+  }
+
+  /** NOTE: verifyMongoObjectId */
+  if (mongoId && !ObjectId.isValid(mongoId)) {
+    const errorStatus = 400;
+    const errorMessage = `MongoDB ObjectId validation error for: '${mongoId}'.`;
+    return res.status(errorStatus).json({ message: errorMessage });
+  }
+
+  /** Add custom metadata to track formio submissions from wrapper. */
+  submission.metadata = {
+    ...submission.metadata,
+    ...formioCSBMetadata,
+  };
+
+  axiosFormio(req)
+    .put(`${formioFormUrl}/submission/${mongoId}`, submission)
+    .then((axiosRes) => axiosRes.data)
+    .then((submission) => res.json(submission))
+    .catch((error) => {
+      // NOTE: error is logged in axiosFormio response interceptor
+      const errorStatus = error.response?.status || 500;
+      const errorMessage = `Error updating Formio ${rebateYear} Change Request form submission '${rebateId}'.`;
+      return res.status(errorStatus).json({ message: errorMessage });
+    });
+}
+
 module.exports = {
   uploadS3FileMetadata,
   downloadS3FileMetadata,
@@ -1168,4 +1295,6 @@ module.exports = {
   //
   fetchChangeRequests,
   createChangeRequest,
+  fetchChangeRequest,
+  updateChangeRequest,
 };
