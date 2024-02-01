@@ -1543,10 +1543,7 @@ function Submissions2023() {
   const content = useContentData();
   const changeRequestsQuery = useChangeRequestsQuery("2023");
   const submissionsQueries = useSubmissionsQueries("2023");
-  const changeRequests = useChangeRequestsData("2023");
   const submissions = useSubmissions("2023");
-
-  console.log(changeRequests); // TODO: display change requests table if there are any
 
   if (
     changeRequestsQuery.isFetching ||
@@ -1572,6 +1569,8 @@ function Submissions2023() {
 
   return (
     <>
+      <ChangeRequests2023 />
+
       {content && (
         <MarkdownContent
           className="margin-top-4"
@@ -1602,6 +1601,123 @@ function Submissions2023() {
                   )}
                 </Fragment>
               ) : null;
+            })}
+          </tbody>
+        </table>
+      </div>
+    </>
+  );
+}
+
+function ChangeRequests2023() {
+  const content = useContentData();
+  const changeRequests = useChangeRequestsData("2023");
+
+  if (!changeRequests || changeRequests.length === 0) return null;
+
+  return (
+    <>
+      {content && (
+        <MarkdownContent
+          className="margin-top-4"
+          children={content.changeRequestsIntro}
+        />
+      )}
+
+      <div className="usa-table-container--scrollable" tabIndex={0}>
+        <table
+          aria-label="Your 2023 Change Requests"
+          className="usa-table usa-table--stacked usa-table--borderless width-full"
+        >
+          <thead>
+            <tr className="font-sans-2xs text-no-wrap text-bottom">
+              <th scope="col">
+                <span className="usa-sr-only">Open</span>
+              </th>
+
+              <th scope="col">
+                <TextWithTooltip
+                  text="Rebate ID"
+                  tooltip="Unique Clean School Bus Rebate ID"
+                />
+              </th>
+
+              <th scope="col">
+                <TextWithTooltip text="Change Type" tooltip="TODO" />
+                <br />
+                <TextWithTooltip text="Form Status" tooltip="TODO" />
+              </th>
+
+              <th scope="col">
+                <TextWithTooltip
+                  text="Updated By"
+                  tooltip="Last person that updated this form"
+                />
+                <br />
+                <TextWithTooltip
+                  text="Date Updated"
+                  tooltip="Last date this form was updated"
+                />
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {changeRequests.map((request, index) => {
+              const { state, modified, data } = request;
+              const { _request_form, _bap_rebate_id, _user_email } = data;
+
+              const date = new Date(modified).toLocaleDateString();
+              const time = new Date(modified).toLocaleTimeString();
+              const url = `/change/${_request_form}/2023/${_bap_rebate_id}`;
+
+              return (
+                <Fragment key={index}>
+                  <tr className={defaultTableRowClassNames}>
+                    <th scope="row">
+                      {state === "submitted" ? (
+                        <FormLink type="view" to={url} />
+                      ) : state === "draft" ? (
+                        <FormLink type="edit" to={url} />
+                      ) : null}
+                    </th>
+
+                    <td>
+                      <span>{_bap_rebate_id}</span>
+                    </td>
+
+                    <td>
+                      <span>(Change Type Here)</span>
+                      <br />
+                      <span className="display-flex flex-align-center font-sans-2xs">
+                        <svg
+                          className="usa-icon"
+                          aria-hidden="true"
+                          focusable="false"
+                          role="img"
+                        >
+                          <use href={`${icons}#check`} />
+                        </svg>
+                        <span className="margin-left-05">{state}</span>
+                      </span>
+                    </td>
+
+                    <td>
+                      {_user_email}
+                      <br />
+                      <span title={`${date} ${time}`}>{date}</span>
+                    </td>
+                  </tr>
+
+                  {/* blank row after all submissions but the last one */}
+                  {index !== changeRequests.length - 1 && (
+                    <tr className="bg-white">
+                      <th className="p-0" scope="row" colSpan={6}>
+                        &nbsp;
+                      </th>
+                    </tr>
+                  )}
+                </Fragment>
+              );
             })}
           </tbody>
         </table>
