@@ -138,6 +138,8 @@ type FormioChange2023Data = {
   _user_email: string;
   _user_title: string;
   _user_name: string;
+  // fields set by the form definition (among others):
+  request_type: { label: string; value: string };
 };
 
 type FormioFRF2022Data = {

@@ -247,7 +247,7 @@ function SubmissionsTableHeader(props: { rebateYear: RebateYear }) {
         </th>
 
         {rebateYear === "2023" && (
-          <th scope="col">
+          <th scope="col" className={clsx("tw-text-right")}>
             <TextWithTooltip
               text="Change Request"
               tooltip="Submit a change request for an extension, to request edits, or to withdraw from the rebate program"
@@ -1619,108 +1619,131 @@ function ChangeRequests2023() {
     <>
       {content && (
         <MarkdownContent
-          className="margin-top-4"
           children={content.changeRequestsIntro}
+          components={{
+            h2: (props) => (
+              <h2 className={clsx("tw-mb-2 tw-text-xl")}>{props.children}</h2>
+            ),
+          }}
         />
       )}
 
-      <div className="usa-table-container--scrollable" tabIndex={0}>
-        <table
-          aria-label="Your 2023 Change Requests"
-          className="usa-table usa-table--stacked usa-table--borderless width-full"
-        >
-          <thead>
-            <tr className="font-sans-2xs text-no-wrap text-bottom">
-              <th scope="col">
-                <span className="usa-sr-only">Open</span>
-              </th>
+      <div
+        className={clsx(
+          "tw-mt-2 tw-border tw-border-solid tw-border-blue-100 tw-bg-blue-50 tw-p-1",
+          "[&_.usa-table-container--scrollable]:tw-m-0",
+          "[&_.usa-table_:is(th,td)]:tw-text-sm",
+          "[&_.usa-table_tr:last-of-type_:is(th,td)]:tw-border-b-0",
+        )}
+      >
+        <div className="usa-table-container--scrollable" tabIndex={0}>
+          <table
+            aria-label="Your 2023 Change Requests"
+            className="usa-table usa-table--stacked usa-table--borderless width-full"
+          >
+            <thead>
+              <tr>
+                <th scope="col">
+                  <TextWithTooltip
+                    text="Rebate ID"
+                    tooltip="Unique Clean School Bus Rebate ID"
+                  />
+                </th>
 
-              <th scope="col">
-                <TextWithTooltip
-                  text="Rebate ID"
-                  tooltip="Unique Clean School Bus Rebate ID"
-                />
-              </th>
+                <th scope="col">
+                  <TextWithTooltip
+                    text="Request Type"
+                    tooltip="Edit Request, or Withdrawl Request"
+                  />
+                </th>
 
-              <th scope="col">
-                <TextWithTooltip text="Change Type" tooltip="TODO" />
-                <br />
-                <TextWithTooltip text="Form Status" tooltip="TODO" />
-              </th>
+                <th scope="col">
+                  <TextWithTooltip
+                    text="Request Status"
+                    tooltip="Draft or Submitted"
+                  />
+                </th>
 
-              <th scope="col">
-                <TextWithTooltip
-                  text="Updated By"
-                  tooltip="Last person that updated this form"
-                />
-                <br />
-                <TextWithTooltip
-                  text="Date Updated"
-                  tooltip="Last date this form was updated"
-                />
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {changeRequests.map((request, index) => {
-              const { state, modified, data } = request;
-              const { _request_form, _bap_rebate_id, _user_email } = data;
+                <th scope="col">
+                  <TextWithTooltip
+                    text="Submitted By"
+                    tooltip="Person that submitted this request"
+                  />
+                </th>
 
-              const date = new Date(modified).toLocaleDateString();
-              const time = new Date(modified).toLocaleTimeString();
-              const url = `/change/${_request_form}/2023/${_bap_rebate_id}`;
+                <th scope="col" className={clsx("tw-text-right")}>
+                  <TextWithTooltip
+                    text="Date"
+                    tooltip="Date this request was submitted"
+                  />
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {changeRequests.map((request, index) => {
+                const { state, modified, data } = request;
+                const {
+                  _request_form,
+                  _bap_rebate_id,
+                  _user_email,
+                  request_type,
+                } = data;
 
-              return (
-                <Fragment key={index}>
-                  <tr className={defaultTableRowClassNames}>
-                    <th scope="row">
-                      {state === "submitted" ? (
-                        <FormLink type="view" to={url} />
-                      ) : state === "draft" ? (
-                        <FormLink type="edit" to={url} />
-                      ) : null}
-                    </th>
+                const date = new Date(modified).toLocaleDateString();
+                const time = new Date(modified).toLocaleTimeString();
+                const url = `/change/${_request_form}/2023/${_bap_rebate_id}`;
 
-                    <td>
-                      <span>{_bap_rebate_id}</span>
-                    </td>
+                const statusIcon =
+                  state === "draft"
+                    ? `${icons}#more_horiz` // three horizontal dots
+                    : state === "submitted"
+                    ? `${icons}#check` // check
+                    : `${icons}#remove`; // — (fallback, not used)
 
-                    <td>
-                      <span>(Change Type Here)</span>
-                      <br />
-                      <span className="display-flex flex-align-center font-sans-2xs">
-                        <svg
-                          className="usa-icon"
-                          aria-hidden="true"
-                          focusable="false"
-                          role="img"
-                        >
-                          <use href={`${icons}#check`} />
-                        </svg>
-                        <span className="margin-left-05">{state}</span>
-                      </span>
-                    </td>
+                const statusText =
+                  state === "draft"
+                    ? "Draft"
+                    : state === "submitted"
+                    ? "Submitted"
+                    : ""; // fallback, not used
 
-                    <td>
-                      {_user_email}
-                      <br />
-                      <span title={`${date} ${time}`}>{date}</span>
-                    </td>
-                  </tr>
-
-                  {/* blank row after all submissions but the last one */}
-                  {index !== changeRequests.length - 1 && (
-                    <tr className="bg-white">
-                      <th className="p-0" scope="row" colSpan={6}>
-                        &nbsp;
+                return (
+                  <Fragment key={index}>
+                    <tr>
+                      <th scope="row">
+                        <Link to={url}>{_bap_rebate_id}</Link>
                       </th>
+
+                      <td>
+                        <span>{request_type?.label}</span>
+                      </td>
+
+                      <td>
+                        <span className="display-flex flex-align-center">
+                          <svg
+                            className="usa-icon"
+                            aria-hidden="true"
+                            focusable="false"
+                            role="img"
+                          >
+                            <use href={statusIcon} />
+                          </svg>
+                          <span className="margin-left-05">{statusText}</span>
+                        </span>
+                      </td>
+
+                      <td>{_user_email}</td>
+
+                      <td className={clsx("tw-text-right")}>
+                        <span title={`${date} ${time}`}>{date}</span>
+                      </td>
                     </tr>
-                  )}
-                </Fragment>
-              );
-            })}
-          </tbody>
-        </table>
+                  </Fragment>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     </>
   );
