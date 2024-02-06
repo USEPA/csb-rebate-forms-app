@@ -101,7 +101,13 @@ function ChangeRequestButton(props: {
 
   return (
     <button
-      className="usa-button margin-0 padding-x-2 padding-y-1 font-sans-2xs"
+      className={clsx(
+        "tw-border-0 tw-border-b-[1.5px] tw-border-transparent tw-p-0 tw-text-sm tw-leading-tight",
+        "enabled:tw-cursor-pointer",
+        "hover:enabled:tw-border-b-[#1b1b1b]",
+        "focus:enabled:tw-border-b-[#1b1b1b]",
+      )}
+      type="button"
       disabled={disabled || !rebateId}
       onClick={(_ev) => {
         if (disabled || !rebateId) return;
@@ -157,9 +163,9 @@ function ChangeRequestButton(props: {
           });
       }}
     >
-      <span className="display-flex flex-align-center">
+      <span className={clsx("tw-flex tw-items-center")}>
         {dataIsPosting && <LoadingButtonIcon position="start" />}
-        <span className="margin-right-1 text-right">Change</span>
+        <span className={clsx("tw-mr-1")}>Change</span>
         <svg
           className="usa-icon"
           aria-hidden="true"
@@ -1734,7 +1740,7 @@ function ChangeRequests2023() {
 
                       <td>{_user_email}</td>
 
-                      <td className={clsx("tw-text-right")}>
+                      <td className={clsx("min-[480px]:tw-text-right")}>
                         <span title={`${date} ${time}`}>{date}</span>
                       </td>
                     </tr>
