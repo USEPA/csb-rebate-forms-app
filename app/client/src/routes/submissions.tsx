@@ -1520,7 +1520,7 @@ function Submissions2022() {
           className="usa-table usa-table--stacked usa-table--borderless width-full"
         >
           <SubmissionsTableHeader rebateYear="2022" />
-          <tbody>
+          <tbody className={clsx("[&_:is(th,td)]:tw-text-[15px]")}>
             {submissions.map((rebate, index) => {
               return rebate.rebateYear === "2022" ? (
                 <Fragment key={rebate.rebateId}>
@@ -1529,8 +1529,12 @@ function Submissions2022() {
                   <CRF2022Submission rebate={rebate} />
                   {/* blank row after all submissions but the last one */}
                   {index !== submissions.length - 1 && (
-                    <tr className="bg-white">
-                      <th className="p-0" scope="row" colSpan={6}>
+                    <tr className={clsx("tw-bg-white")}>
+                      <th
+                        className={clsx("p-0", "tw-leading-none")}
+                        scope="row"
+                        colSpan={6}
+                      >
                         &nbsp;
                       </th>
                     </tr>
@@ -1590,7 +1594,7 @@ function Submissions2023() {
           className="usa-table usa-table--stacked usa-table--borderless width-full"
         >
           <SubmissionsTableHeader rebateYear="2023" />
-          <tbody>
+          <tbody className={clsx("[&_:is(th,td)]:tw-text-[15px]")}>
             {submissions.map((rebate, index) => {
               return rebate.rebateYear === "2023" ? (
                 <Fragment key={rebate.rebateId}>
@@ -1599,8 +1603,12 @@ function Submissions2023() {
                   {/* <CRF2023Submission rebate={rebate} /> */}
                   {/* blank row after all submissions but the last one */}
                   {index !== submissions.length - 1 && (
-                    <tr className="bg-white">
-                      <th className="p-0" scope="row" colSpan={6}>
+                    <tr className={clsx("tw-bg-white")}>
+                      <th
+                        className={clsx("p-0", "tw-leading-none")}
+                        scope="row"
+                        colSpan={6}
+                      >
                         &nbsp;
                       </th>
                     </tr>
@@ -1637,18 +1645,19 @@ function ChangeRequests2023() {
       <div
         className={clsx(
           "tw-mt-2 tw-border tw-border-solid tw-border-blue-100 tw-bg-blue-50 tw-p-1",
-          "[&_.usa-table-container--scrollable]:tw-m-0",
-          "[&_.usa-table_:is(th,td)]:tw-text-sm",
-          "[&_.usa-table_tr:last-of-type_:is(th,td)]:tw-border-b-0",
+          "[&_tr:last-of-type_:is(th,td)]:tw-border-b-0",
         )}
       >
-        <div className="usa-table-container--scrollable" tabIndex={0}>
+        <div
+          className={clsx("usa-table-container--scrollable", "tw-m-0")}
+          tabIndex={0}
+        >
           <table
             aria-label="Your 2023 Change Requests"
             className="usa-table usa-table--stacked usa-table--borderless width-full"
           >
             <thead>
-              <tr>
+              <tr className="font-sans-2xs text-no-wrap text-bottom">
                 <th scope="col">
                   <TextWithTooltip
                     text="Rebate ID"
@@ -1685,7 +1694,7 @@ function ChangeRequests2023() {
                 </th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className={clsx("[&_:is(th,td)]:tw-text-[15px]")}>
               {changeRequests.map((request, index) => {
                 const { state, modified, data } = request;
                 const {
