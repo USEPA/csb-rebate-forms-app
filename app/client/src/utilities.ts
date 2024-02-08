@@ -19,7 +19,6 @@ type Content = {
   draftCRFIntro: string;
   submittedCRFIntro: string;
   changeRequestIntro: string;
-  changeRequestsIntro: string;
 };
 
 type UserData = {
@@ -228,6 +227,7 @@ type FormioPRF2023Data = {
   _user_name: string;
   _bap_entity_combo_key: string;
   _bap_rebate_id: string;
+  // TODO: add more here if helpful
 };
 
 type FormioCRF2023Data = {
