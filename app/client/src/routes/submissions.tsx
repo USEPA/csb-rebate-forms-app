@@ -1652,7 +1652,7 @@ function ChangeRequests2023() {
         </span>
         <ChevronUpIcon
           className={clsx(
-            "tw-h-5 tw-w-5 tw-rotate-90 tw-transform tw-text-blue-500 tw-duration-100",
+            "tw-h-5 tw-w-5 tw-rotate-90 tw-transform tw-text-slate-900 tw-duration-100",
             "group-open:tw-rotate-180",
           )}
           aria-hidden="true"
@@ -1689,13 +1689,6 @@ function ChangeRequests2023() {
 
               <th scope="col">
                 <TextWithTooltip
-                  text="Request Status"
-                  tooltip="Draft or Submitted"
-                />
-              </th>
-
-              <th scope="col">
-                <TextWithTooltip
                   text="Submitted By"
                   tooltip="Person that submitted this request"
                 />
@@ -1723,20 +1716,6 @@ function ChangeRequests2023() {
               const time = new Date(modified).toLocaleTimeString();
               const url = `/change/${_request_form}/2023/${_bap_rebate_id}`;
 
-              const statusIcon =
-                state === "draft"
-                  ? `${icons}#more_horiz` // three horizontal dots
-                  : state === "submitted"
-                  ? `${icons}#check` // check
-                  : `${icons}#remove`; // — (fallback, not used)
-
-              const statusText =
-                state === "draft"
-                  ? "Draft"
-                  : state === "submitted"
-                  ? "Submitted"
-                  : ""; // fallback, not used
-
               return (
                 <Fragment key={index}>
                   <tr>
@@ -1746,20 +1725,6 @@ function ChangeRequests2023() {
 
                     <td>
                       <span>{request_type?.label}</span>
-                    </td>
-
-                    <td>
-                      <span className="display-flex flex-align-center">
-                        <svg
-                          className="usa-icon"
-                          aria-hidden="true"
-                          focusable="false"
-                          role="img"
-                        >
-                          <use href={statusIcon} />
-                        </svg>
-                        <span className="margin-left-05">{statusText}</span>
-                      </span>
                     </td>
 
                     <td>{_user_email}</td>
