@@ -133,8 +133,8 @@ function ChangeRequestButton(props: {
             state: "draft",
           },
         )
-          .then((_res) => {
-            navigate(`/change/${formType}/2023/${rebateId}`);
+          .then((res) => {
+            navigate(`/change/2023/${res._id}`);
           })
           .catch((_err) => {
             displayErrorNotification({
