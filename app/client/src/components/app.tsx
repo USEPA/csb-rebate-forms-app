@@ -255,10 +255,7 @@ export function App() {
         <Route path="prf/2023/:id" element={<PRF2023 />} />
         {/* <Route path="crf/2023/:id" element={<CRF2023 />} /> */}
 
-        <Route
-          path="/change/:formType/2023/:rebateId"
-          element={<Change2023 />}
-        />
+        <Route path="/change/2023/:id" element={<Change2023 />} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

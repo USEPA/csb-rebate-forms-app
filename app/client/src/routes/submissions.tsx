@@ -1711,7 +1711,7 @@ function ChangeRequests2023() {
           </thead>
           <tbody className={clsx("[&_:is(th,td)]:tw-text-[15px]")}>
             {changeRequests.map((request, index) => {
-              const { modified, data } = request;
+              const { _id, modified, data } = request;
               const {
                 _request_form,
                 _bap_rebate_id,
@@ -1721,7 +1721,6 @@ function ChangeRequests2023() {
 
               const date = new Date(modified).toLocaleDateString();
               const time = new Date(modified).toLocaleTimeString();
-              const url = `/change/${_request_form}/2023/${_bap_rebate_id}`;
 
               const formType =
                 _request_form === "frf"
@@ -1736,7 +1735,7 @@ function ChangeRequests2023() {
                 <Fragment key={index}>
                   <tr>
                     <th scope="row">
-                      <Link to={url}>{_bap_rebate_id}</Link>
+                      <Link to={`/change/2023/${_id}`}>{_bap_rebate_id}</Link>
                     </th>
 
                     <th scope="row">

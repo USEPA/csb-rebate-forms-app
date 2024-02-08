@@ -1158,10 +1158,9 @@ function createChangeRequest({ rebateYear, req, res }) {
 function fetchChangeRequest({ rebateYear, req, res }) {
   const { bapComboKeys } = req;
   const { mail } = req.user;
-  const { rebateId } = req.params; // CSB Rebate ID (6 digits)
+  const { mongoId } = req.params;
 
   const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
-  const rebateIdFieldName = getRebateIdFieldName({ rebateYear });
 
   const formioFormUrl = formUrl[rebateYear].change;
 
@@ -1171,16 +1170,12 @@ function fetchChangeRequest({ rebateYear, req, res }) {
     return res.status(errorStatus).json({ message: errorMessage });
   }
 
-  const matchedChangeRequests = `${formioFormUrl}/submission?data.${rebateIdFieldName}=${rebateId}`;
-
   Promise.all([
-    axiosFormio(req).get(matchedChangeRequests),
+    axiosFormio(req).get(`${formioFormUrl}/submission/${mongoId}`),
     axiosFormio(req).get(formioFormUrl),
   ])
     .then((axiosResponses) => axiosResponses.map((axiosRes) => axiosRes.data))
-    .then(([submissions, schema]) => {
-      const submission = submissions[0];
-      const mongoId = submission._id;
+    .then(([submission, schema]) => {
       const comboKey = submission.data?.[comboKeyFieldName];
 
       if (!bapComboKeys.includes(comboKey)) {
@@ -1196,13 +1191,6 @@ function fetchChangeRequest({ rebateYear, req, res }) {
         });
       }
 
-      /** NOTE: verifyMongoObjectId */
-      if (mongoId && !ObjectId.isValid(mongoId)) {
-        const errorStatus = 400;
-        const errorMessage = `MongoDB ObjectId validation error for: '${mongoId}'.`;
-        return res.status(errorStatus).json({ message: errorMessage });
-      }
-
       return res.json({
         userAccess: true,
         formSchema: { url: formioFormUrl, json: schema },
@@ -1212,7 +1200,7 @@ function fetchChangeRequest({ rebateYear, req, res }) {
     .catch((error) => {
       // NOTE: error is logged in axiosFormio response interceptor
       const errorStatus = error.response?.status || 500;
-      const errorMessage = `Error getting Formio ${rebateYear} Change Request form submission '${rebateId}'.`;
+      const errorMessage = `Error getting Formio ${rebateYear} Change Request form submission '${mongoId}'.`;
       return res.status(errorStatus).json({ message: errorMessage });
     });
 }
@@ -1224,10 +1212,10 @@ function fetchChangeRequest({ rebateYear, req, res }) {
  * @param {express.Response} param.res
  */
 function updateChangeRequest({ rebateYear, req, res }) {
-  const { bapComboKeys, body } = req;
+  const { bapComboKeys } = req;
   const { mail } = req.user;
-  const { rebateId } = req.params; // CSB Rebate ID (6 digits)
-  const { mongoId, submission } = body;
+  const { mongoId } = req.params;
+  const submission = req.body;
 
   const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
   const comboKey = submission.data?.[comboKeyFieldName];
@@ -1243,18 +1231,11 @@ function updateChangeRequest({ rebateYear, req, res }) {
   if (!bapComboKeys.includes(comboKey)) {
     const logMessage =
       `User with email '${mail}' attempted to update ${rebateYear} Change Request form ` +
-      `submission '${rebateId}' without a matching BAP combo key.`;
+      `submission '${mongoId}' without a matching BAP combo key.`;
     log({ level: "error", message: logMessage, req });
 
     const errorStatus = 401;
     const errorMessage = `Unauthorized.`;
-    return res.status(errorStatus).json({ message: errorMessage });
-  }
-
-  /** NOTE: verifyMongoObjectId */
-  if (mongoId && !ObjectId.isValid(mongoId)) {
-    const errorStatus = 400;
-    const errorMessage = `MongoDB ObjectId validation error for: '${mongoId}'.`;
     return res.status(errorStatus).json({ message: errorMessage });
   }
 
@@ -1271,7 +1252,7 @@ function updateChangeRequest({ rebateYear, req, res }) {
     .catch((error) => {
       // NOTE: error is logged in axiosFormio response interceptor
       const errorStatus = error.response?.status || 500;
-      const errorMessage = `Error updating Formio ${rebateYear} Change Request form submission '${rebateId}'.`;
+      const errorMessage = `Error updating Formio ${rebateYear} Change Request form submission '${mongoId}'.`;
       return res.status(errorStatus).json({ message: errorMessage });
     });
 }

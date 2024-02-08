@@ -31,35 +31,32 @@ type ServerResponse =
     };
 
 /** Custom hook to fetch Formio submission data */
-function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
+function useFormioSubmissionQueryAndMutation(mongoId: string | undefined) {
   const queryClient = useQueryClient();
 
   useEffect(() => {
     queryClient.resetQueries({ queryKey: ["formio/2023/change"] });
   }, [queryClient]);
 
-  const url = `${serverUrl}/api/formio/2023/change/${rebateId}`;
+  const url = `${serverUrl}/api/formio/2023/change/${mongoId}`;
 
   const query = useQuery({
-    queryKey: ["formio/2023/change", { id: rebateId }],
+    queryKey: ["formio/2023/change", { id: mongoId }],
     queryFn: () => getData<ServerResponse>(url),
     refetchOnWindowFocus: false,
   });
 
   const mutation = useMutation({
     mutationFn: (updatedSubmission: {
-      mongoId: string;
-      submission: {
-        data: { [field: string]: unknown };
-        metadata: { [field: string]: unknown };
-        state: "submitted";
-      };
+      data: { [field: string]: unknown };
+      metadata: { [field: string]: unknown };
+      state: "submitted";
     }) => {
       return postData<FormioChange2023Submission>(url, updatedSubmission);
     },
     onSuccess: (res) => {
       return queryClient.setQueryData<ServerResponse>(
-        ["formio/2023/change", { id: rebateId }],
+        ["formio/2023/change", { id: mongoId }],
         (prevData) => {
           return prevData?.submission
             ? { ...prevData, submission: res }
@@ -74,12 +71,7 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
 
 export function Change2023() {
   const navigate = useNavigate();
-  const { formType } = useParams<"formType">(); // frf | prf | crf
-  const { rebateId } = useParams<"rebateId">(); // CSB Rebate ID (6 digits)
-
-  if (!["frf", "prf", "crf"].includes(formType as string)) {
-    navigate("/");
-  }
+  const { id: mongoId } = useParams<"id">(); // MongoDB ObjectId string
 
   const content = useContentData();
   const {
@@ -88,7 +80,7 @@ export function Change2023() {
     dismissNotification,
   } = useNotificationsActions();
 
-  const { query, mutation } = useFormioSubmissionQueryAndMutation(rebateId);
+  const { query, mutation } = useFormioSubmissionQueryAndMutation(mongoId);
   const { userAccess, formSchema, submission } = query.data ?? {};
 
   /**
@@ -132,7 +124,18 @@ export function Change2023() {
             </svg>
           </div>
           <div className="usa-icon-list__content">
-            <strong>Rebate ID:</strong> {rebateId}
+            <strong>Change Request ID:</strong> {submission._id}
+          </div>
+        </li>
+
+        <li className="usa-icon-list__item">
+          <div className="usa-icon-list__icon text-primary">
+            <svg className="usa-icon" aria-hidden="true" role="img">
+              <use href={`${icons}#local_offer`} />
+            </svg>
+          </div>
+          <div className="usa-icon-list__content">
+            <strong>Rebate ID:</strong> {submission.data._bap_rebate_id}
           </div>
         </li>
       </ul>
@@ -181,11 +184,8 @@ export function Change2023() {
             const data = { ...onSubmitSubmission.data };
 
             const updatedSubmission = {
-              mongoId: submission._id,
-              submission: {
-                ...onSubmitSubmission,
-                data,
-              },
+              ...onSubmitSubmission,
+              data,
             };
 
             dismissNotification({ id: 0 });
@@ -204,7 +204,7 @@ export function Change2023() {
                         "tw-text-sm tw-font-medium tw-text-gray-900",
                       )}
                     >
-                      Change Request <em>{rebateId}</em> submitted successfully.
+                      Change Request <em>{mongoId}</em> submitted successfully.
                     </p>
                   ),
                 });
