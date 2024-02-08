@@ -1682,6 +1682,13 @@ function ChangeRequests2023() {
 
               <th scope="col">
                 <TextWithTooltip
+                  text="Form Type"
+                  tooltip="Application, Payment Request, or Close Out form"
+                />
+              </th>
+
+              <th scope="col">
+                <TextWithTooltip
                   text="Request Type"
                   tooltip="Edit, Extension, or Withdrawl Request"
                 />
@@ -1704,7 +1711,7 @@ function ChangeRequests2023() {
           </thead>
           <tbody className={clsx("[&_:is(th,td)]:tw-text-[15px]")}>
             {changeRequests.map((request, index) => {
-              const { state, modified, data } = request;
+              const { modified, data } = request;
               const {
                 _request_form,
                 _bap_rebate_id,
@@ -1716,11 +1723,24 @@ function ChangeRequests2023() {
               const time = new Date(modified).toLocaleTimeString();
               const url = `/change/${_request_form}/2023/${_bap_rebate_id}`;
 
+              const formType =
+                _request_form === "frf"
+                  ? "Application"
+                  : _request_form === "prf"
+                  ? "Payment Request"
+                  : _request_form === "crf"
+                  ? "Close Out"
+                  : "";
+
               return (
                 <Fragment key={index}>
                   <tr>
                     <th scope="row">
                       <Link to={url}>{_bap_rebate_id}</Link>
+                    </th>
+
+                    <th scope="row">
+                      <span>{formType}</span>
                     </th>
 
                     <td>
