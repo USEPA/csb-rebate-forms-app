@@ -33,7 +33,7 @@ import { Loading, LoadingButtonIcon } from "@/components/loading";
 import { Message } from "@/components/message";
 import { MarkdownContent } from "@/components/markdownContent";
 import { TextWithTooltip } from "@/components/tooltip";
-import { New2023ChangeRequest } from "@/components/change2023New";
+import { ChangeRequest2023Button } from "@/components/change2023New";
 import { useNotificationsActions } from "@/contexts/notifications";
 import {
   type RebateYear,
@@ -1095,7 +1095,7 @@ function FRF2023Submission(props: { rebate: Rebate }) {
       </td>
 
       <td className={clsx("!tw-text-right")}>
-        <New2023ChangeRequest
+        <ChangeRequest2023Button
           disabled={frf.formio.state === "draft"}
           data={{
             formType: "frf",
@@ -1357,7 +1357,7 @@ function PRF2023Submission(props: { rebate: Rebate }) {
       </td>
 
       <td className={clsx("!tw-text-right")}>
-        <New2023ChangeRequest
+        <ChangeRequest2023Button
           disabled={prf.formio.state === "draft"}
           data={{
             formType: "prf",
