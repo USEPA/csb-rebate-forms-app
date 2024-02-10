@@ -24,6 +24,8 @@ router.get("/", (req, res) => {
     "submitted-prf-intro.md",
     "draft-crf-intro.md",
     "submitted-crf-intro.md",
+    "new-change-intro.md",
+    "submitted-change-intro.md",
   ];
 
   const s3BucketUrl = `https://${S3_PUBLIC_BUCKET}.s3-${S3_PUBLIC_REGION}.amazonaws.com`;
@@ -37,7 +39,7 @@ router.get("/", (req, res) => {
       return NODE_ENV === "development"
         ? readFile(resolve(__dirname, "../content", filename), "utf8")
         : axios.get(`${s3BucketUrl}/content/${filename}`);
-    })
+    }),
   )
     .then((stringsOrResponses) => {
       /**
@@ -61,6 +63,8 @@ router.get("/", (req, res) => {
         submittedPRFIntro: data[8],
         draftCRFIntro: data[9],
         submittedCRFIntro: data[10],
+        newChangeIntro: data[11],
+        submittedChangeIntro: data[12],
       });
     })
     .catch((error) => {

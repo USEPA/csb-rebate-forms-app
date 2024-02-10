@@ -53,6 +53,7 @@ jobs:
       FORMIO_2023_FRF_PATH: ${{ secrets.FORMIO_2023_FRF_PATH }}
       FORMIO_2023_PRF_PATH: ${{ secrets.FORMIO_2023_PRF_PATH }}
       FORMIO_2023_CRF_PATH: ${{ secrets.FORMIO_2023_CRF_PATH }}
+      FORMIO_2023_CHANGE_PATH: ${{ secrets.FORMIO_2023_CHANGE_PATH }}
       FORMIO_BASE_URL: ${{ secrets.FORMIO_BASE_URL }}
       FORMIO_PROJECT_NAME: ${{ secrets.FORMIO_PROJECT_NAME }}
       FORMIO_API_KEY: ${{ secrets.FORMIO_API_KEY }}
@@ -142,6 +143,7 @@ jobs:
           cf set-env $APP_NAME "FORMIO_2023_FRF_PATH" "$FORMIO_2023_FRF_PATH" > /dev/null
           cf set-env $APP_NAME "FORMIO_2023_PRF_PATH" "$FORMIO_2023_PRF_PATH" > /dev/null
           cf set-env $APP_NAME "FORMIO_2023_CRF_PATH" "$FORMIO_2023_CRF_PATH" > /dev/null
+          cf set-env $APP_NAME "FORMIO_2023_CHANGE_PATH" "$FORMIO_2023_CHANGE_PATH" > /dev/null
           cf set-env $APP_NAME "FORMIO_BASE_URL" "$FORMIO_BASE_URL" > /dev/null
           cf set-env $APP_NAME "FORMIO_PROJECT_NAME" "$FORMIO_PROJECT_NAME" > /dev/null
           cf set-env $APP_NAME "FORMIO_API_KEY" "$FORMIO_API_KEY" > /dev/null

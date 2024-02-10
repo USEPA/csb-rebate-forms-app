@@ -5,6 +5,7 @@ import {
   useNavigate,
   useOutletContext,
 } from "react-router-dom";
+import { ChevronUpIcon } from "@heroicons/react/20/solid";
 import clsx from "clsx";
 import icons from "uswds/img/sprite.svg";
 // ---
@@ -21,6 +22,8 @@ import {
   useContentData,
   useConfigData,
   useBapSamData,
+  useChangeRequestsQuery,
+  useChangeRequestsData,
   useSubmissionsQueries,
   useSubmissions,
   submissionNeedsEdits,
@@ -30,6 +33,7 @@ import { Loading, LoadingButtonIcon } from "@/components/loading";
 import { Message } from "@/components/message";
 import { MarkdownContent } from "@/components/markdownContent";
 import { TextWithTooltip } from "@/components/tooltip";
+import { ChangeRequest2023Button } from "@/components/change2023New";
 import { useNotificationsActions } from "@/contexts/notifications";
 import {
   type RebateYear,
@@ -40,16 +44,17 @@ import {
 const defaultTableRowClassNames = "bg-gray-5";
 const highlightedTableRowClassNames = "bg-primary-lighter";
 
-function FormButtonLink(props: { type: "edit" | "view"; to: LinkProps["to"] }) {
-  const icon = props.type === "edit" ? "edit" : "visibility";
-  const text = props.type === "edit" ? "Edit" : "View";
+function FormLink(props: { type: "edit" | "view"; to: LinkProps["to"] }) {
+  const { type, to } = props;
+  const icon = type === "edit" ? "edit" : "visibility";
+  const text = type === "edit" ? "Edit" : "View";
 
   return (
     <Link
-      to={props.to}
+      to={to}
       className={clsx(
         "usa-button",
-        props.type === "view" && "usa-button--base",
+        type === "view" && "usa-button--base",
         "font-sans-2xs margin-right-0 padding-x-105 padding-y-1",
       )}
     >
@@ -79,7 +84,9 @@ function NewApplicationIconText() {
   );
 }
 
-function SubmissionsTableHeader() {
+function SubmissionsTableHeader(props: { rebateYear: RebateYear }) {
+  const { rebateYear } = props;
+
   return (
     <thead>
       <tr className="font-sans-2xs text-no-wrap text-bottom">
@@ -138,6 +145,15 @@ function SubmissionsTableHeader() {
             tooltip="Last date this form was updated"
           />
         </th>
+
+        {rebateYear === "2023" && (
+          <th scope="col" className={clsx("tw-text-right")}>
+            <TextWithTooltip
+              text="Change Request"
+              tooltip="Submit a change request for an extension, to request edits, or to withdraw from the rebate program"
+            />
+          </th>
+        )}
       </tr>
     </thead>
   );
@@ -245,11 +261,11 @@ function FRF2022Submission(props: { rebate: Rebate }) {
     >
       <th scope="row" className={statusTableCellClassNames}>
         {frfNeedsEdits ? (
-          <FormButtonLink type="edit" to={frfUrl} />
+          <FormLink type="edit" to={frfUrl} />
         ) : frf.formio.state === "submitted" || !frfSubmissionPeriodOpen ? (
-          <FormButtonLink type="view" to={frfUrl} />
+          <FormLink type="view" to={frfUrl} />
         ) : frf.formio.state === "draft" ? (
-          <FormButtonLink type="edit" to={frfUrl} />
+          <FormLink type="edit" to={frfUrl} />
         ) : null}
       </th>
 
@@ -490,7 +506,7 @@ function PRF2022Submission(props: { rebate: Rebate }) {
                 <use href={`${icons}#add_circle`} />
               </svg>
               <span className="margin-left-1">New Payment Request</span>
-              {dataIsPosting && <LoadingButtonIcon />}
+              {dataIsPosting && <LoadingButtonIcon position="end" />}
             </span>
           </button>
         </th>
@@ -579,13 +595,13 @@ function PRF2022Submission(props: { rebate: Rebate }) {
     >
       <th scope="row" className={statusTableCellClassNames}>
         {frfNeedsEdits ? (
-          <FormButtonLink type="view" to={prfUrl} />
+          <FormLink type="view" to={prfUrl} />
         ) : prfNeedsEdits ? (
-          <FormButtonLink type="edit" to={prfUrl} />
+          <FormLink type="edit" to={prfUrl} />
         ) : prf.formio.state === "submitted" || !prfSubmissionPeriodOpen ? (
-          <FormButtonLink type="view" to={prfUrl} />
+          <FormLink type="view" to={prfUrl} />
         ) : prf.formio.state === "draft" ? (
-          <FormButtonLink type="edit" to={prfUrl} />
+          <FormLink type="edit" to={prfUrl} />
         ) : null}
       </th>
 
@@ -734,7 +750,7 @@ function CRF2022Submission(props: { rebate: Rebate }) {
                 <use href={`${icons}#add_circle`} />
               </svg>
               <span className="margin-left-1">New Close Out</span>
-              {dataIsPosting && <LoadingButtonIcon />}
+              {dataIsPosting && <LoadingButtonIcon position="end" />}
             </span>
           </button>
         </th>
@@ -809,11 +825,11 @@ function CRF2022Submission(props: { rebate: Rebate }) {
     >
       <th scope="row" className={statusTableCellClassNames}>
         {crfNeedsEdits ? (
-          <FormButtonLink type="edit" to={crfUrl} />
+          <FormLink type="edit" to={crfUrl} />
         ) : crf.formio.state === "submitted" || !crfSubmissionPeriodOpen ? (
-          <FormButtonLink type="view" to={crfUrl} />
+          <FormLink type="view" to={crfUrl} />
         ) : crf.formio.state === "draft" ? (
-          <FormButtonLink type="edit" to={crfUrl} />
+          <FormLink type="edit" to={crfUrl} />
         ) : null}
       </th>
 
@@ -868,18 +884,34 @@ function FRF2023Submission(props: { rebate: Rebate }) {
   const { rebate } = props;
   const { frf, prf, crf } = rebate;
 
-  const configData = useConfigData();
+  const { email } = useOutletContext<{ email: string }>();
 
-  if (!configData) return null;
+  const configData = useConfigData();
+  const bapSamData = useBapSamData();
+
+  if (!configData || !bapSamData) return null;
+
+  /** matched SAM.gov entity for the FRF submission */
+  const entity = bapSamData.entities.find((entity) => {
+    const { ENTITY_STATUS__c, ENTITY_COMBO_KEY__c } = entity;
+    const comboKey = (frf.formio as FormioFRF2023Submission).data
+      ._bap_entity_combo_key;
+    return ENTITY_STATUS__c === "Active" && ENTITY_COMBO_KEY__c === comboKey;
+  });
+
+  if (!entity) return null;
+
+  const { title, name } = getUserInfo(email, entity);
 
   const frfSubmissionPeriodOpen = configData.submissionPeriodOpen["2023"].frf;
 
   const {
+    _user_email,
+    _bap_entity_combo_key,
     appInfo_uei,
     appInfo_efti,
     appInfo_orgName,
     _formio_schoolDistrictName,
-    _user_email,
   } = (frf.formio as FormioFRF2023Submission).data;
 
   const date = new Date(frf.formio.modified).toLocaleDateString();
@@ -965,11 +997,11 @@ function FRF2023Submission(props: { rebate: Rebate }) {
     >
       <th scope="row" className={statusTableCellClassNames}>
         {frfNeedsEdits ? (
-          <FormButtonLink type="edit" to={frfUrl} />
+          <FormLink type="edit" to={frfUrl} />
         ) : frf.formio.state === "submitted" || !frfSubmissionPeriodOpen ? (
-          <FormButtonLink type="view" to={frfUrl} />
+          <FormLink type="view" to={frfUrl} />
         ) : frf.formio.state === "draft" ? (
-          <FormButtonLink type="edit" to={frfUrl} />
+          <FormLink type="edit" to={frfUrl} />
         ) : null}
       </th>
 
@@ -1061,6 +1093,21 @@ function FRF2023Submission(props: { rebate: Rebate }) {
         <br />
         <span title={`${date} ${time}`}>{date}</span>
       </td>
+
+      <td className={clsx("!tw-text-right")}>
+        <ChangeRequest2023Button
+          disabled={frf.formio.state === "draft"}
+          data={{
+            formType: "frf",
+            comboKey: _bap_entity_combo_key,
+            mongoId: frf.formio._id,
+            rebateId: frf.bap?.rebateId || null,
+            email,
+            title,
+            name,
+          }}
+        />
+      </td>
     </tr>
   );
 }
@@ -1085,12 +1132,6 @@ function PRF2023Submission(props: { rebate: Rebate }) {
 
   if (!configData || !bapSamData) return null;
 
-  const prfSubmissionPeriodOpen = configData.submissionPeriodOpen["2023"].prf;
-
-  const frfSelected = frf.bap?.status === "Accepted";
-
-  const frfSelectedButNoPRF = frfSelected && !Boolean(prf.formio);
-
   /** matched SAM.gov entity for the FRF submission */
   const entity = bapSamData.entities.find((entity) => {
     const { ENTITY_STATUS__c, ENTITY_COMBO_KEY__c } = entity;
@@ -1098,6 +1139,16 @@ function PRF2023Submission(props: { rebate: Rebate }) {
       ._bap_entity_combo_key;
     return ENTITY_STATUS__c === "Active" && ENTITY_COMBO_KEY__c === comboKey;
   });
+
+  if (!entity) return null;
+
+  const { title, name } = getUserInfo(email, entity);
+
+  const prfSubmissionPeriodOpen = configData.submissionPeriodOpen["2023"].prf;
+
+  const frfSelected = frf.bap?.status === "Accepted";
+
+  const frfSelectedButNoPRF = frfSelected && !Boolean(prf.formio);
 
   if (frfSelectedButNoPRF) {
     return (
@@ -1108,13 +1159,11 @@ function PRF2023Submission(props: { rebate: Rebate }) {
             disabled={!prfSubmissionPeriodOpen}
             onClick={(_ev) => {
               if (!prfSubmissionPeriodOpen) return;
-              if (!frf.bap || !entity) return;
+              if (!frf.bap) return;
 
               // account for when data is posting to prevent double submits
               if (dataIsPosting) return;
               setDataIsPosting(true);
-
-              const { title, name } = getUserInfo(email, entity);
 
               // create a new draft PRF submission
               postData(`${serverUrl}/api/formio/2023/prf-submission/`, {
@@ -1169,7 +1218,7 @@ function PRF2023Submission(props: { rebate: Rebate }) {
                 <use href={`${icons}#add_circle`} />
               </svg>
               <span className="margin-left-1">New Payment Request</span>
-              {dataIsPosting && <LoadingButtonIcon />}
+              {dataIsPosting && <LoadingButtonIcon position="end" />}
             </span>
           </button>
         </th>
@@ -1182,6 +1231,7 @@ function PRF2023Submission(props: { rebate: Rebate }) {
 
   const {
     _user_email,
+    _bap_entity_combo_key,
     _bap_rebate_id, //
   } = (prf.formio as FormioPRF2023Submission).data;
 
@@ -1258,13 +1308,13 @@ function PRF2023Submission(props: { rebate: Rebate }) {
     >
       <th scope="row" className={statusTableCellClassNames}>
         {frfNeedsEdits ? (
-          <FormButtonLink type="view" to={prfUrl} />
+          <FormLink type="view" to={prfUrl} />
         ) : prfNeedsEdits ? (
-          <FormButtonLink type="edit" to={prfUrl} />
+          <FormLink type="edit" to={prfUrl} />
         ) : prf.formio.state === "submitted" || !prfSubmissionPeriodOpen ? (
-          <FormButtonLink type="view" to={prfUrl} />
+          <FormLink type="view" to={prfUrl} />
         ) : prf.formio.state === "draft" ? (
-          <FormButtonLink type="edit" to={prfUrl} />
+          <FormLink type="edit" to={prfUrl} />
         ) : null}
       </th>
 
@@ -1304,6 +1354,21 @@ function PRF2023Submission(props: { rebate: Rebate }) {
         {_user_email}
         <br />
         <span title={`${date} ${time}`}>{date}</span>
+      </td>
+
+      <td className={clsx("!tw-text-right")}>
+        <ChangeRequest2023Button
+          disabled={prf.formio.state === "draft"}
+          data={{
+            formType: "prf",
+            comboKey: _bap_entity_combo_key,
+            mongoId: prf.formio._id,
+            rebateId: _bap_rebate_id,
+            email,
+            title,
+            name,
+          }}
+        />
       </td>
     </tr>
   );
@@ -1348,8 +1413,8 @@ function Submissions2022() {
           aria-label="Your 2022 Rebate Forms"
           className="usa-table usa-table--stacked usa-table--borderless width-full"
         >
-          <SubmissionsTableHeader />
-          <tbody>
+          <SubmissionsTableHeader rebateYear="2022" />
+          <tbody className={clsx("[&_:is(th,td)]:tw-text-[15px]")}>
             {submissions.map((rebate, index) => {
               return rebate.rebateYear === "2022" ? (
                 <Fragment key={rebate.rebateId}>
@@ -1358,8 +1423,12 @@ function Submissions2022() {
                   <CRF2022Submission rebate={rebate} />
                   {/* blank row after all submissions but the last one */}
                   {index !== submissions.length - 1 && (
-                    <tr className="bg-white">
-                      <th className="p-0" scope="row" colSpan={6}>
+                    <tr className={clsx("tw-bg-white")}>
+                      <th
+                        className={clsx("p-0", "tw-leading-none")}
+                        scope="row"
+                        colSpan={6}
+                      >
                         &nbsp;
                       </th>
                     </tr>
@@ -1376,14 +1445,21 @@ function Submissions2022() {
 
 function Submissions2023() {
   const content = useContentData();
+  const changeRequestsQuery = useChangeRequestsQuery("2023");
   const submissionsQueries = useSubmissionsQueries("2023");
   const submissions = useSubmissions("2023");
 
-  if (submissionsQueries.some((query) => query.isFetching)) {
+  if (
+    changeRequestsQuery.isInitialLoading ||
+    submissionsQueries.some((query) => query.isFetching)
+  ) {
     return <Loading />;
   }
 
-  if (submissionsQueries.some((query) => query.isError)) {
+  if (
+    changeRequestsQuery.isError ||
+    submissionsQueries.some((query) => query.isError)
+  ) {
     return <Message type="error" text={messages.formSubmissionsError} />;
   }
 
@@ -1397,6 +1473,8 @@ function Submissions2023() {
 
   return (
     <>
+      <ChangeRequests2023 />
+
       {content && (
         <MarkdownContent
           className="margin-top-4"
@@ -1409,8 +1487,8 @@ function Submissions2023() {
           aria-label="Your 2023 Rebate Forms"
           className="usa-table usa-table--stacked usa-table--borderless width-full"
         >
-          <SubmissionsTableHeader />
-          <tbody>
+          <SubmissionsTableHeader rebateYear="2023" />
+          <tbody className={clsx("[&_:is(th,td)]:tw-text-[15px]")}>
             {submissions.map((rebate, index) => {
               return rebate.rebateYear === "2023" ? (
                 <Fragment key={rebate.rebateId}>
@@ -1419,8 +1497,12 @@ function Submissions2023() {
                   {/* <CRF2023Submission rebate={rebate} /> */}
                   {/* blank row after all submissions but the last one */}
                   {index !== submissions.length - 1 && (
-                    <tr className="bg-white">
-                      <th className="p-0" scope="row" colSpan={6}>
+                    <tr className={clsx("tw-bg-white")}>
+                      <th
+                        className={clsx("p-0", "tw-leading-none")}
+                        scope="row"
+                        colSpan={6}
+                      >
                         &nbsp;
                       </th>
                     </tr>
@@ -1432,6 +1514,149 @@ function Submissions2023() {
         </table>
       </div>
     </>
+  );
+}
+
+function ChangeRequests2023() {
+  const changeRequestsQuery = useChangeRequestsQuery("2023");
+  const changeRequests = useChangeRequestsData("2023");
+
+  if (changeRequestsQuery.isFetching) {
+    return <Loading />;
+  }
+
+  if (!changeRequests || changeRequests.length === 0) return null;
+
+  return (
+    <details
+      className={clsx(
+        "tw-mt-4 tw-border tw-border-solid tw-border-blue-100 tw-bg-blue-50",
+        "tw-group",
+      )}
+      open
+    >
+      <summary
+        className={clsx(
+          "tw-flex tw-cursor-pointer tw-items-center tw-justify-between tw-bg-blue-100 tw-p-2",
+          "marker:tw-content-none",
+        )}
+      >
+        <span
+          className={clsx(
+            "tw-px-1 tw-text-[15px] tw-font-semibold tw-text-slate-800",
+          )}
+        >
+          Your Change Requests
+        </span>
+        <ChevronUpIcon
+          className={clsx(
+            "tw-h-5 tw-w-5 tw-rotate-90 tw-transform tw-text-slate-900 tw-duration-100",
+            "group-open:tw-rotate-180",
+          )}
+          aria-hidden="true"
+        />
+      </summary>
+
+      <div
+        className={clsx(
+          "usa-table-container--scrollable",
+          "tw-m-0 tw-p-1",
+          "[&_tr:last-of-type_:is(th,td)]:tw-border-b-0",
+        )}
+        tabIndex={0}
+      >
+        <table
+          aria-label="Your 2023 Change Requests"
+          className="usa-table usa-table--stacked usa-table--borderless width-full"
+        >
+          <thead>
+            <tr className="font-sans-2xs text-no-wrap text-bottom">
+              <th scope="col">
+                <TextWithTooltip
+                  text="Rebate ID"
+                  tooltip="Unique Clean School Bus Rebate ID"
+                />
+              </th>
+
+              <th scope="col">
+                <TextWithTooltip
+                  text="Form Type"
+                  tooltip="Application, Payment Request, or Close Out form"
+                />
+              </th>
+
+              <th scope="col">
+                <TextWithTooltip
+                  text="Request Type"
+                  tooltip="Edit, Extension, or Withdrawl Request"
+                />
+              </th>
+
+              <th scope="col">
+                <TextWithTooltip
+                  text="Submitted By"
+                  tooltip="Person that submitted this request"
+                />
+              </th>
+
+              <th scope="col" className={clsx("tw-text-right")}>
+                <TextWithTooltip
+                  text="Date"
+                  tooltip="Date this request was submitted"
+                />
+              </th>
+            </tr>
+          </thead>
+          <tbody className={clsx("[&_:is(th,td)]:tw-text-[15px]")}>
+            {changeRequests.map((request, index) => {
+              const { _id, modified, data } = request;
+              const {
+                _request_form,
+                _bap_rebate_id,
+                _user_email,
+                request_type,
+              } = data;
+
+              const date = new Date(modified).toLocaleDateString();
+              const time = new Date(modified).toLocaleTimeString();
+
+              const formType =
+                _request_form === "frf"
+                  ? "Application"
+                  : _request_form === "prf"
+                  ? "Payment Request"
+                  : _request_form === "crf"
+                  ? "Close Out"
+                  : "";
+
+              return (
+                <Fragment key={index}>
+                  <tr>
+                    <th scope="row">
+                      <Link to={`/change/2023/${_id}`}>{_bap_rebate_id}</Link>
+                    </th>
+
+                    <th scope="row">
+                      <span>{formType}</span>
+                    </th>
+
+                    <td>
+                      <span>{request_type?.label}</span>
+                    </td>
+
+                    <td>{_user_email}</td>
+
+                    <td className={clsx("min-[480px]:tw-text-right")}>
+                      <span title={`${date} ${time}`}>{date}</span>
+                    </td>
+                  </tr>
+                </Fragment>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </details>
   );
 }
 

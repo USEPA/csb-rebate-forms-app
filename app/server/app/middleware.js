@@ -171,6 +171,7 @@ function checkClientRouteExists(req, res, next) {
 
   if (
     !clientRoutes.includes(req.path) &&
+    !req.path.includes("/change/") &&
     !req.path.includes("/frf/") &&
     !req.path.includes("/prf/") &&
     !req.path.includes("/crf/")

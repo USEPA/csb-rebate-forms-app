@@ -19,6 +19,11 @@ const {
   fetchPRFSubmission,
   updatePRFSubmission,
   deletePRFSubmission,
+  //
+  fetchChangeRequests,
+  fetchChangeRequestSchema,
+  createChangeRequest,
+  fetchChangeRequest,
 } = require("../utilities/formio");
 
 const rebateYear = "2023";
@@ -99,16 +104,36 @@ router.post("/delete-prf-submission", storeBapComboKeys, (req, res) => {
   deletePRFSubmission({ rebateYear, req, res });
 });
 
-// --- get user's 2022 CRF submissions from Formio
+// --- get user's 2023 CRF submissions from Formio
 router.get("/crf-submissions", storeBapComboKeys, (req, res) => {
   // TODO
   res.json([]);
 });
 
-// --- post a new 2022 CRF submission to Formio
+// --- post a new 2023 CRF submission to Formio
 
-// --- get an existing 2022 CRF's schema and submission data from Formio
+// --- get an existing 2023 CRF's schema and submission data from Formio
 
-// --- post an update to an existing draft 2022 CRF submission to Formio
+// --- post an update to an existing draft 2023 CRF submission to Formio
+
+// --- get user's 2023 Change Request form submissions from Formio
+router.get("/changes", storeBapComboKeys, (req, res) => {
+  fetchChangeRequests({ rebateYear, req, res });
+});
+
+// --- get the 2023 Change Request form's schema from Formio
+router.get("/change", storeBapComboKeys, (req, res) => {
+  fetchChangeRequestSchema({ rebateYear, req, res });
+});
+
+// --- post a new 2023 Change Request form submission to Formio
+router.post("/change", storeBapComboKeys, (req, res) => {
+  createChangeRequest({ rebateYear, req, res });
+});
+
+// --- get an existing 2023 Change Request form's schema and submission data from Formio
+router.get("/change/:mongoId", storeBapComboKeys, async (req, res) => {
+  fetchChangeRequest({ rebateYear, req, res });
+});
 
 module.exports = router;
