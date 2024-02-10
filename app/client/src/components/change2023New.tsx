@@ -231,7 +231,7 @@ function ChangeRequest2023Form(props: {
 
   return (
     <>
-      {content && <MarkdownContent children={content.changeRequestIntro} />}
+      {content && <MarkdownContent children={content.newChangeIntro} />}
 
       <div className="csb-form">
         <Form
