@@ -1450,7 +1450,7 @@ function Submissions2023() {
   const submissions = useSubmissions("2023");
 
   if (
-    changeRequestsQuery.isFetching ||
+    changeRequestsQuery.isInitialLoading ||
     submissionsQueries.some((query) => query.isFetching)
   ) {
     return <Loading />;
@@ -1518,7 +1518,12 @@ function Submissions2023() {
 }
 
 function ChangeRequests2023() {
+  const changeRequestsQuery = useChangeRequestsQuery("2023");
   const changeRequests = useChangeRequestsData("2023");
+
+  if (changeRequestsQuery.isFetching) {
+    return <Loading />;
+  }
 
   if (!changeRequests || changeRequests.length === 0) return null;
 

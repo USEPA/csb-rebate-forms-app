@@ -13,6 +13,7 @@ import {
   getData,
   postData,
   useContentData,
+  useChangeRequestsQuery,
 } from "@/utilities";
 import { Loading } from "@/components/loading";
 import { Message } from "@/components/message";
@@ -205,6 +206,8 @@ function ChangeRequest2023Form(props: {
     dismissNotification,
   } = useNotificationsActions();
 
+  const changeRequestsQuery = useChangeRequestsQuery("2023");
+
   const { query } = useFormioSchemaQuery();
   const formSchema = query.data;
 
@@ -225,13 +228,6 @@ function ChangeRequest2023Form(props: {
   return (
     <>
       {content && <MarkdownContent children={content.changeRequestIntro} />}
-
-      <form>
-        <label>
-          <span>Test</span>
-          <input type="text" />
-        </label>
-      </form>
 
       <div className="csb-form">
         <Form
@@ -281,6 +277,7 @@ function ChangeRequest2023Form(props: {
                 });
 
                 closeDialog();
+                changeRequestsQuery.refetch();
               })
               .catch((_err) => {
                 displayErrorNotification({
