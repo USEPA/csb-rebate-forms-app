@@ -1,5 +1,5 @@
-import { Fragment, useEffect, useRef, useState } from "react";
-import { useQueryClient, useQuery } from "@tanstack/react-query";
+import { Fragment, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Dialog, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Form } from "@formio/react";
@@ -34,12 +34,6 @@ type ServerResponse = { url: string; json: object };
 
 /** Custom hook to fetch Formio schema */
 function useFormioSchemaQuery() {
-  const queryClient = useQueryClient();
-
-  useEffect(() => {
-    queryClient.resetQueries({ queryKey: ["formio/2023/change"] });
-  }, [queryClient]);
-
   const url = `${serverUrl}/api/formio/2023/change`;
 
   const query = useQuery({
