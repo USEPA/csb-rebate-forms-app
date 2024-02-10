@@ -45,6 +45,7 @@ export const messages = {
   formSubmissionError:
     "The requested submission does not exist, or you do not have access. Please contact support if you believe this is a mistake.",
   formSubmissionsError: "Error loading form submissions.",
+  formSchemaError: "Error loading form schema.",
   newApplication:
     "Please select the “New Application” button above to create your first rebate application.",
   helpdeskSubmissionSearchError:

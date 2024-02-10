@@ -1,33 +1,66 @@
-import { type Dispatch, type SetStateAction, Fragment, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { Dialog, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
+import { Form } from "@formio/react";
 import clsx from "clsx";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl } from "@/config";
+import { serverUrl, messages } from "@/config";
 import {
   type FormType,
   type FormioChange2023Submission,
+  getData,
   postData,
+  useContentData,
 } from "@/utilities";
+import { Loading } from "@/components/loading";
+import { Message } from "@/components/message";
+import { MarkdownContent } from "@/components/markdownContent";
 import { useNotificationsActions } from "@/contexts/notifications";
+
+type ChangeRequestData = {
+  formType: FormType;
+  comboKey: string;
+  mongoId: string;
+  rebateId: string | null;
+  email: string;
+  title: string;
+  name: string;
+};
+
+type ServerResponse = { url: string; json: object };
+
+/** Custom hook to fetch Formio schema */
+function useFormioSchemaQuery() {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    queryClient.resetQueries({ queryKey: ["formio/2023/change"] });
+  }, [queryClient]);
+
+  const url = `${serverUrl}/api/formio/2023/change`;
+
+  const query = useQuery({
+    queryKey: ["formio/2023/change"],
+    queryFn: () => getData<ServerResponse>(url),
+    refetchOnWindowFocus: false,
+  });
+
+  return { query };
+}
 
 export function ChangeRequest2023Button(props: {
   disabled: boolean;
-  data: {
-    formType: FormType;
-    comboKey: string;
-    mongoId: string;
-    rebateId: string | null;
-    email: string;
-    title: string;
-    name: string;
-  };
+  data: ChangeRequestData;
 }) {
   const { disabled, data } = props;
-  const { formType, comboKey, mongoId, rebateId, email, title, name } = data;
 
   const [dialogShown, setDialogShown] = useState(false);
+
+  function closeDialog() {
+    setDialogShown(false);
+  }
 
   return (
     <>
@@ -43,19 +76,6 @@ export function ChangeRequest2023Button(props: {
         onClick={(_ev) => {
           if (disabled) return;
           setDialogShown(true);
-
-          console.log({
-            data: {
-              _request_form: formType,
-              _bap_entity_combo_key: comboKey,
-              _bap_rebate_id: rebateId,
-              _mongo_id: mongoId,
-              _user_email: email,
-              _user_title: title,
-              _user_name: name,
-            },
-            state: "draft",
-          });
         }}
       >
         <span className={clsx("tw-flex tw-items-center")}>
@@ -73,7 +93,8 @@ export function ChangeRequest2023Button(props: {
 
       <ChangeRequest2023Dialog
         dialogShown={dialogShown}
-        setDialogShown={setDialogShown}
+        closeDialog={closeDialog}
+        data={data}
       />
     </>
   );
@@ -81,9 +102,10 @@ export function ChangeRequest2023Button(props: {
 
 function ChangeRequest2023Dialog(props: {
   dialogShown: boolean;
-  setDialogShown: Dispatch<SetStateAction<boolean>>;
+  closeDialog: () => void;
+  data: ChangeRequestData;
 }) {
-  const { dialogShown, setDialogShown } = props;
+  const { dialogShown, closeDialog, data } = props;
 
   return (
     <Transition.Root show={dialogShown} as={Fragment}>
@@ -91,7 +113,7 @@ function ChangeRequest2023Dialog(props: {
         as="div"
         className={clsx("tw-relative tw-z-10")}
         open={dialogShown}
-        onClose={(_value) => setDialogShown(false)}
+        onClose={(_value) => closeDialog()}
       >
         <Transition.Child
           as={Fragment}
@@ -143,7 +165,7 @@ function ChangeRequest2023Dialog(props: {
                         "focus:tw-text-gray-700",
                       )}
                       type="button"
-                      onClick={(_ev) => setDialogShown(false)}
+                      onClick={(_ev) => closeDialog()}
                     >
                       <span className={clsx("tw-sr-only")}>Close</span>
                       <XMarkIcon
@@ -155,7 +177,10 @@ function ChangeRequest2023Dialog(props: {
                 </div>
 
                 <div className={clsx("tw-m-auto tw-max-w-6xl tw-p-4")}>
-                  <ChangeRequest2023Form />
+                  <ChangeRequest2023Form
+                    data={data}
+                    closeDialog={closeDialog}
+                  />
                 </div>
               </Dialog.Panel>
             </Transition.Child>
@@ -166,10 +191,128 @@ function ChangeRequest2023Dialog(props: {
   );
 }
 
-function ChangeRequest2023Form() {
+function ChangeRequest2023Form(props: {
+  data: ChangeRequestData;
+  closeDialog: () => void;
+}) {
+  const { data, closeDialog } = props;
+  const { formType, comboKey, rebateId, mongoId, email, title, name } = data;
+
+  const content = useContentData();
+  const {
+    displaySuccessNotification,
+    displayErrorNotification,
+    dismissNotification,
+  } = useNotificationsActions();
+
+  const { query } = useFormioSchemaQuery();
+  const formSchema = query.data;
+
+  /**
+   * Stores when the form is being submitted, so it can be referenced in the
+   * Form component's `onSubmit` event prop to prevent double submits.
+   */
+  const formIsBeingSubmitted = useRef(false);
+
+  if (query.isInitialLoading) {
+    return <Loading />;
+  }
+
+  if (query.isError || !formSchema) {
+    return <Message type="error" text={messages.formSchemaError} />;
+  }
+
   return (
     <>
-      <p>Change Request Form!</p>
+      {content && <MarkdownContent children={content.changeRequestIntro} />}
+
+      <form>
+        <label>
+          <span>Test</span>
+          <input type="text" />
+        </label>
+      </form>
+
+      <div className="csb-form">
+        <Form
+          form={formSchema.json}
+          url={formSchema.url} // NOTE: used for file uploads
+          submission={{
+            data: {
+              _request_form: formType,
+              _bap_entity_combo_key: comboKey,
+              _bap_rebate_id: rebateId,
+              _mongo_id: mongoId,
+              _user_email: email,
+              _user_title: title,
+              _user_name: name,
+            },
+          }}
+          options={{
+            noAlerts: true,
+          }}
+          onSubmit={(onSubmitSubmission: {
+            data: { [field: string]: unknown };
+            metadata: { [field: string]: unknown };
+            state: "submitted";
+          }) => {
+            // account for when form is being submitted to prevent double submits
+            if (formIsBeingSubmitted.current) return;
+            formIsBeingSubmitted.current = true;
+
+            dismissNotification({ id: 0 });
+
+            postData<FormioChange2023Submission>(
+              `${serverUrl}/api/formio/2023/change/`,
+              onSubmitSubmission,
+            )
+              .then((res) => {
+                displaySuccessNotification({
+                  id: Date.now(),
+                  body: (
+                    <p
+                      className={clsx(
+                        "tw-text-sm tw-font-medium tw-text-gray-900",
+                      )}
+                    >
+                      Change Request <em>{res._id}</em> submitted successfully.
+                    </p>
+                  ),
+                });
+
+                closeDialog();
+              })
+              .catch((_err) => {
+                displayErrorNotification({
+                  id: Date.now(),
+                  body: (
+                    <>
+                      <p
+                        className={clsx(
+                          "tw-text-sm tw-font-medium tw-text-gray-900",
+                        )}
+                      >
+                        Error creating Change Request for{" "}
+                        <em>
+                          {formType.toUpperCase()} {rebateId}
+                        </em>
+                        .
+                      </p>
+                      <p
+                        className={clsx("tw-mt-1 tw-text-sm tw-text-gray-500")}
+                      >
+                        Please try again.
+                      </p>
+                    </>
+                  ),
+                });
+              })
+              .finally(() => {
+                formIsBeingSubmitted.current = false;
+              });
+          }}
+        />
+      </div>
     </>
   );
 }
