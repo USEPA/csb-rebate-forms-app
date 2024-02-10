@@ -24,7 +24,6 @@ const {
   fetchChangeRequestSchema,
   createChangeRequest,
   fetchChangeRequest,
-  updateChangeRequest,
 } = require("../utilities/formio");
 
 const rebateYear = "2023";
@@ -122,7 +121,7 @@ router.get("/changes", storeBapComboKeys, (req, res) => {
   fetchChangeRequests({ rebateYear, req, res });
 });
 
-// --- get the 2023 Change Request form schema from Formio
+// --- get the 2023 Change Request form's schema from Formio
 router.get("/change", storeBapComboKeys, (req, res) => {
   fetchChangeRequestSchema({ rebateYear, req, res });
 });
@@ -135,11 +134,6 @@ router.post("/change", storeBapComboKeys, (req, res) => {
 // --- get an existing 2023 Change Request form's schema and submission data from Formio
 router.get("/change/:mongoId", storeBapComboKeys, async (req, res) => {
   fetchChangeRequest({ rebateYear, req, res });
-});
-
-// --- post an update to an existing draft 2023 Change Request form submission to Formio
-router.post("/change/:mongoId", storeBapComboKeys, (req, res) => {
-  updateChangeRequest({ rebateYear, req, res });
 });
 
 module.exports = router;
