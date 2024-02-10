@@ -18,7 +18,8 @@ type Content = {
   submittedPRFIntro: string;
   draftCRFIntro: string;
   submittedCRFIntro: string;
-  changeRequestIntro: string;
+  newChangeIntro: string;
+  submittedChangeIntro: string;
 };
 
 type UserData = {

@@ -24,7 +24,8 @@ router.get("/", (req, res) => {
     "submitted-prf-intro.md",
     "draft-crf-intro.md",
     "submitted-crf-intro.md",
-    "change-request-intro.md",
+    "new-change-intro.md",
+    "submitted-change-intro.md",
   ];
 
   const s3BucketUrl = `https://${S3_PUBLIC_BUCKET}.s3-${S3_PUBLIC_REGION}.amazonaws.com`;
@@ -62,7 +63,8 @@ router.get("/", (req, res) => {
         submittedPRFIntro: data[8],
         draftCRFIntro: data[9],
         submittedCRFIntro: data[10],
-        changeRequestIntro: data[11],
+        newChangeIntro: data[11],
+        submittedChangeIntro: data[12],
       });
     })
     .catch((error) => {
