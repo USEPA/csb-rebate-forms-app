@@ -1108,6 +1108,33 @@ function fetchChangeRequests({ rebateYear, req, res }) {
  * @param {express.Request} param.req
  * @param {express.Response} param.res
  */
+function fetchChangeRequestSchema({ rebateYear, req, res }) {
+  const formioFormUrl = formUrl[rebateYear].change;
+
+  if (!formioFormUrl) {
+    const errorStatus = 400;
+    const errorMessage = `Formio form URL does not exist for ${rebateYear} Change Request form.`;
+    return res.status(errorStatus).json({ message: errorMessage });
+  }
+
+  axiosFormio(req)
+    .get(formioFormUrl)
+    .then((axiosRes) => axiosRes.data)
+    .then((schema) => res.json({ url: formioFormUrl, json: schema }))
+    .catch((error) => {
+      // NOTE: error is logged in axiosFormio response interceptor
+      const errorStatus = error.response?.status || 500;
+      const errorMessage = `Error getting Formio ${rebateYear} Change Request form schema.`;
+      return res.status(errorStatus).json({ message: errorMessage });
+    });
+}
+
+/**
+ * @param {Object} param
+ * @param {'2022' | '2023'} param.rebateYear
+ * @param {express.Request} param.req
+ * @param {express.Response} param.res
+ */
 function createChangeRequest({ rebateYear, req, res }) {
   const { bapComboKeys, body } = req;
   const { mail } = req.user;
@@ -1275,6 +1302,7 @@ module.exports = {
   fetchCRFSubmissions,
   //
   fetchChangeRequests,
+  fetchChangeRequestSchema,
   createChangeRequest,
   fetchChangeRequest,
   updateChangeRequest,

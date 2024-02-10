@@ -21,6 +21,7 @@ const {
   deletePRFSubmission,
   //
   fetchChangeRequests,
+  fetchChangeRequestSchema,
   createChangeRequest,
   fetchChangeRequest,
   updateChangeRequest,
@@ -119,6 +120,11 @@ router.get("/crf-submissions", storeBapComboKeys, (req, res) => {
 // --- get user's 2023 Change Request form submissions from Formio
 router.get("/changes", storeBapComboKeys, (req, res) => {
   fetchChangeRequests({ rebateYear, req, res });
+});
+
+// --- get the 2023 Change Request form schema from Formio
+router.get("/change", storeBapComboKeys, (req, res) => {
+  fetchChangeRequestSchema({ rebateYear, req, res });
 });
 
 // --- post a new 2023 Change Request form submission to Formio
