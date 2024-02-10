@@ -102,6 +102,14 @@ function ChangeRequest2023Dialog(props: {
 }) {
   const { dialogShown, closeDialog, data } = props;
 
+  /*
+   * NOTE: For some reason select inputs from the Formio form won't receive
+   * click events if the Dialog.Panel component is used (strangely, they still
+   * receive keyboard events), so a div is used instead. The downside is we lose
+   * the triggering of the Dialog component's `onClose` event when a user clicks
+   * outside the panel.
+   */
+
   return (
     <Transition.Root show={dialogShown} as={Fragment}>
       <Dialog
@@ -141,7 +149,8 @@ function ChangeRequest2023Dialog(props: {
               leaveFrom={clsx("tw-translate-y-0 tw-opacity-100")}
               leaveTo={clsx("tw-translate-y-0 tw-opacity-0")}
             >
-              <Dialog.Panel
+              {/* <Dialog.Panel */}
+              <div
                 className={clsx(
                   "tw-relative tw-transform tw-overflow-hidden tw-rounded-lg tw-bg-white tw-p-4 tw-shadow-xl tw-transition-all",
                   "sm:tw-w-full sm:tw-max-w-7xl sm:tw-p-6",
@@ -177,7 +186,8 @@ function ChangeRequest2023Dialog(props: {
                     closeDialog={closeDialog}
                   />
                 </div>
-              </Dialog.Panel>
+              </div>
+              {/* </Dialog.Panel> */}
             </Transition.Child>
           </div>
         </div>
