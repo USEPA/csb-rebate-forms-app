@@ -213,7 +213,10 @@ export function FRFNew() {
                     </div>
                   ) : activeSamEntities.length <= 0 ? (
                     <div className={clsx("-tw-mb-4")}>
-                      <Message type="info" text={messages.bapNoSamResults} />
+                      <Message
+                        type="info"
+                        text={messages.bapSamNoActiveEntities}
+                      />
                     </div>
                   ) : (
                     <>
