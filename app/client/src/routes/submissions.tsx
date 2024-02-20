@@ -41,7 +41,7 @@ import {
   useRebateYearActions,
 } from "@/contexts/rebateYear";
 
-const defaultTableRowClassNames = "bg-gray-5";
+const defaultTableRowClassNames = "bg-base-lightest";
 const highlightedTableRowClassNames = "bg-primary-lighter";
 
 function FormLink(props: { type: "edit" | "view"; to: LinkProps["to"] }) {
@@ -422,12 +422,6 @@ function PRF2022Submission(props: { rebate: Rebate }) {
 
   if (!configData || !bapSamData) return null;
 
-  const prfSubmissionPeriodOpen = configData.submissionPeriodOpen["2022"].prf;
-
-  const frfSelected = frf.bap?.status === "Accepted";
-
-  const frfSelectedButNoPRF = frfSelected && !Boolean(prf.formio);
-
   /** matched SAM.gov entity for the FRF submission */
   const entity = bapSamData.entities.find((entity) => {
     const { ENTITY_STATUS__c, ENTITY_COMBO_KEY__c } = entity;
@@ -435,6 +429,16 @@ function PRF2022Submission(props: { rebate: Rebate }) {
       .bap_hidden_entity_combo_key;
     return ENTITY_STATUS__c === "Active" && ENTITY_COMBO_KEY__c === comboKey;
   });
+
+  if (!entity) return null;
+
+  const { title, name } = getUserInfo(email, entity);
+
+  const prfSubmissionPeriodOpen = configData.submissionPeriodOpen["2022"].prf;
+
+  const frfSelected = frf.bap?.status === "Accepted";
+
+  const frfSelectedButNoPRF = frfSelected && !Boolean(prf.formio);
 
   if (frfSelectedButNoPRF) {
     return (
@@ -445,13 +449,11 @@ function PRF2022Submission(props: { rebate: Rebate }) {
             disabled={!prfSubmissionPeriodOpen}
             onClick={(_ev) => {
               if (!prfSubmissionPeriodOpen) return;
-              if (!frf.bap || !entity) return;
+              if (!frf.bap) return;
 
               // account for when data is posting to prevent double submits
               if (dataIsPosting) return;
               setDataIsPosting(true);
-
-              const { title, name } = getUserInfo(email, entity);
 
               // create a new draft PRF submission
               postData(`${serverUrl}/api/formio/2022/prf-submission/`, {
@@ -666,12 +668,6 @@ function CRF2022Submission(props: { rebate: Rebate }) {
 
   if (!configData || !bapSamData) return null;
 
-  const crfSubmissionPeriodOpen = configData.submissionPeriodOpen["2022"].crf;
-
-  const prfFundingApproved = prf.bap?.status === "Accepted";
-
-  const prfFundingApprovedButNoCRF = prfFundingApproved && !Boolean(crf.formio);
-
   /** matched SAM.gov entity for the PRF submission */
   const entity = bapSamData.entities.find((entity) => {
     const { ENTITY_STATUS__c, ENTITY_COMBO_KEY__c } = entity;
@@ -679,6 +675,16 @@ function CRF2022Submission(props: { rebate: Rebate }) {
       .bap_hidden_entity_combo_key;
     return ENTITY_STATUS__c === "Active" && ENTITY_COMBO_KEY__c === comboKey;
   });
+
+  if (!entity) return null;
+
+  const { title, name } = getUserInfo(email, entity);
+
+  const crfSubmissionPeriodOpen = configData.submissionPeriodOpen["2022"].crf;
+
+  const prfFundingApproved = prf.bap?.status === "Accepted";
+
+  const prfFundingApprovedButNoCRF = prfFundingApproved && !Boolean(crf.formio);
 
   if (prfFundingApprovedButNoCRF) {
     return (
@@ -689,13 +695,11 @@ function CRF2022Submission(props: { rebate: Rebate }) {
             disabled={!crfSubmissionPeriodOpen}
             onClick={(_ev) => {
               if (!crfSubmissionPeriodOpen) return;
-              if (!frf.bap || !prf.bap || !entity) return;
+              if (!frf.bap || !prf.bap) return;
 
               // account for when data is posting to prevent double submits
               if (dataIsPosting) return;
               setDataIsPosting(true);
-
-              const { title, name } = getUserInfo(email, entity);
 
               // create a new draft CRF submission
               postData(`${serverUrl}/api/formio/2022/crf-submission/`, {
