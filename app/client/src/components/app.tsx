@@ -11,8 +11,6 @@ import {
 } from "react-router-dom";
 import { useIdleTimer } from "react-idle-timer";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import "uswds/css/uswds.css";
-import "uswds/js/uswds.js";
 import "bootstrap/dist/css/bootstrap-grid.min.css";
 import "@formio/uswds/dist/uswds.min.css";
 import "@formio/choices.js/public/assets/styles/choices.min.css";
