@@ -3,7 +3,7 @@
   "name": "U.S. EPA CSB Rebate Forms Application",
   "icons": [
     {
-      "src": "https://www.epa.gov/themes/epa_theme/images/favicon.ico",
+      "src": "/themes/epa_theme/images/favicon.ico",
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/x-icon"
     }
