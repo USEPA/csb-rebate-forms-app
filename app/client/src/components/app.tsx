@@ -53,7 +53,7 @@ function useSiteAlertBanner() {
     const container = document.querySelector(".usa-site-alert");
     if (!container) return;
 
-    // container.setAttribute("aria-label", "Site alert");
+    container.setAttribute("aria-label", "Site alert");
     container.classList.add("usa-site-alert--emergency");
 
     render(
