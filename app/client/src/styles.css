@@ -8,11 +8,7 @@
 }
 
 .usa-site-alert .usa-alert {
-  max-width: 1400px;
-}
-
-.usa-site-alert .usa-alert__body {
-  display: block;
+  margin-top: 0;
 }
 
 .usa-checkbox__label,
