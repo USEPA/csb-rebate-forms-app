@@ -75,14 +75,13 @@ router.get("/formio/:rebateYear/:formType/:id", (req, res) => {
             mongoId: CSB_Form_ID__c, // MongoDB Object ID
             rebateId: Parent_Rebate_ID__c, // CSB Rebate ID (6 digits)
             reviewItemId: CSB_Review_Item_ID__c, // CSB Rebate ID with form/version ID (9 digits)
-            status:
-              Record_Type_Name__c === "CSB Funding Request"
-                ? Parent_CSB_Rebate__r?.CSB_Funding_Request_Status__c
-                : Record_Type_Name__c === "CSB Payment Request"
-                ? Parent_CSB_Rebate__r?.CSB_Payment_Request_Status__c
-                : Record_Type_Name__c === "CSB Close Out Request"
-                ? Parent_CSB_Rebate__r?.CSB_Closeout_Request_Status__c
-                : "",
+            status: Record_Type_Name__c.startsWith("CSB Funding Request")
+              ? Parent_CSB_Rebate__r?.CSB_Funding_Request_Status__c
+              : Record_Type_Name__c.startsWith("CSB Payment Request")
+              ? Parent_CSB_Rebate__r?.CSB_Payment_Request_Status__c
+              : Record_Type_Name__c.startsWith("CSB Close Out Request")
+              ? Parent_CSB_Rebate__r?.CSB_Closeout_Request_Status__c
+              : "",
           },
         });
       })
