@@ -172,7 +172,11 @@ export function Helpdesk() {
                 "tw-rounded-md tw-border-0 tw-text-sm tw-font-bold tw-leading-4 tw-ring-1 tw-ring-inset tw-ring-gray-300",
               )}
               name="rebate-year"
-              onChange={(ev) => setRebateYear(ev.target.value as RebateYear)}
+              onChange={(ev) => {
+                setRebateYear(ev.target.value as RebateYear);
+                setResultDisplayed(false);
+                queryClient.resetQueries({ queryKey: ["helpdesk"] });
+              }}
               defaultValue={rebateYear}
             >
               <option>2022</option>
