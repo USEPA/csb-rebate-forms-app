@@ -10,9 +10,9 @@ import {
   serverUrl,
   messages,
   formioStatusMap,
-  bapFRFStatusMap,
-  bapPRFStatusMap,
-  bapCRFStatusMap,
+  bapStatusMap,
+  formioNameField,
+  formioEmailField,
 } from "@/config";
 import {
   type FormType,
@@ -80,49 +80,17 @@ function ResultTableRows(props: {
   const bapInternalStatus = bap.status || "";
   const formioStatus = formioStatusMap.get(formio.state);
 
-  /* TODO: update logic once BAP supports 2023 FRF */
+  const id = lastSearchedText.length === 6 ? bap.rebateId : bap.mongoId;
 
-  const id =
-    rebateYear === "2023"
-      ? formio._id
-      : lastSearchedText.length === 6
-      ? bap.rebateId
-      : bap.mongoId;
+  const status = submissionNeedsEdits({ formio, bap })
+    ? "Edits Requested"
+    : bapStatusMap[rebateYear][formType].get(bapInternalStatus) || formioStatus;
 
-  const status =
-    rebateYear === "2023"
-      ? formioStatus
-      : submissionNeedsEdits({ formio, bap })
-      ? "Edits Requested"
-      : formType === "frf"
-      ? bapFRFStatusMap.get(bapInternalStatus) || formioStatus
-      : formType === "prf"
-      ? bapPRFStatusMap.get(bapInternalStatus) || formioStatus
-      : formType === "crf"
-      ? bapCRFStatusMap.get(bapInternalStatus) || formioStatus
-      : "";
+  const nameField = formioNameField[rebateYear][formType];
+  const emailField = formioEmailField[rebateYear][formType];
 
-  const name =
-    rebateYear === "2023"
-      ? (formio as FormioFRF2023Submission).data._bap_applicant_name
-      : formType === "frf"
-      ? (formio as FormioFRF2022Submission).data.sam_hidden_applicant_name
-      : formType === "prf"
-      ? (formio as FormioPRF2022Submission).data.applicantName
-      : formType === "crf"
-      ? (formio as FormioCRF2022Submission).data.signatureName
-      : "";
-
-  const email =
-    rebateYear === "2023"
-      ? (formio as FormioFRF2023Submission).data._user_email
-      : formType === "frf"
-      ? (formio as FormioFRF2022Submission).data.last_updated_by
-      : formType === "prf"
-      ? (formio as FormioPRF2022Submission).data.hidden_current_user_email
-      : formType === "crf"
-      ? (formio as FormioCRF2022Submission).data.hidden_current_user_email
-      : "";
+  const name = (formio.data[nameField] as string) || "";
+  const email = (formio.data[emailField] as string) || "";
 
   return (
     <>

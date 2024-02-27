@@ -64,35 +64,76 @@ export const messages = {
 
 /**
  * Formio status mapping for all form submissions (practically, just capitalizes
- * "draft" or "submitted", but follows same format as BAP status maps).
+ * "draft" or "submitted", but follows same format as BAP status map).
  */
 export const formioStatusMap = new Map<string, string>()
   .set("draft", "Draft")
   .set("submitted", "Submitted");
 
 /**
- * BAP internal to external status mapping for FRF submissions.
+ * BAP internal to external status mapping by year and form type.
  */
-export const bapFRFStatusMap = new Map<string, string>()
-  .set("Needs Clarification", "Needs Clarification")
-  .set("Withdrawn", "Withdrawn")
-  .set("Coordinator Denied", "Not Selected")
-  .set("Accepted", "Selected");
+export const bapStatusMap = {
+  2022: {
+    frf: new Map<string, string>()
+      .set("Needs Clarification", "Needs Clarification")
+      .set("Withdrawn", "Withdrawn")
+      .set("Coordinator Denied", "Not Selected")
+      .set("Accepted", "Selected"),
+    prf: new Map<string, string>()
+      .set("Needs Clarification", "Needs Clarification")
+      .set("Withdrawn", "Withdrawn")
+      .set("Coordinator Denied", "Funding Not Approved")
+      .set("Accepted", "Funding Approved"),
+    crf: new Map<string, string>()
+      .set("Needs Clarification", "Needs Clarification")
+      .set("Reimbursement Needed", "Reimbursement Needed")
+      .set("Branch Director Denied", "Close Out Not Approved")
+      .set("Branch Director Approved", "Close Out Approved"),
+  },
+  2023: {
+    frf: new Map<string, string>()
+      .set("Needs Clarification", "Needs Clarification")
+      .set("Withdrawn", "Withdrawn")
+      .set("Coordinator Denied", "Not Selected")
+      .set("Accepted", "Selected"),
+    prf: new Map<string, string>()
+      .set("Needs Clarification", "Needs Clarification")
+      .set("Withdrawn", "Withdrawn")
+      .set("Coordinator Denied", "Funding Denied")
+      .set("Accepted", "Funding Approved"),
+    crf: new Map<string, string>(),
+  },
+};
 
 /**
- * BAP internal to external status mapping for PRF submissions.
+ * Formio user name field by year and form type.
  */
-export const bapPRFStatusMap = new Map<string, string>()
-  .set("Needs Clarification", "Needs Clarification")
-  .set("Withdrawn", "Withdrawn")
-  .set("Coordinator Denied", "Funding Not Approved")
-  .set("Accepted", "Funding Approved");
+export const formioNameField = {
+  2022: {
+    frf: "sam_hidden_applicant_name",
+    prf: "applicantName",
+    crf: "signatureName",
+  },
+  2023: {
+    frf: "_bap_applicant_name",
+    prf: "",
+    crf: "",
+  },
+};
 
 /**
- * BAP internal to external status mapping for CRF submissions.
+ * Formio user email field by year and form type.
  */
-export const bapCRFStatusMap = new Map<string, string>()
-  .set("Needs Clarification", "Needs Clarification")
-  .set("Reimbursement Needed", "Reimbursement Needed")
-  .set("Branch Director Denied", "Close Out Not Approved")
-  .set("Branch Director Approved", "Close Out Approved");
+export const formioEmailField = {
+  2022: {
+    frf: "last_updated_by",
+    prf: "hidden_current_user_email",
+    crf: "hidden_current_user_email",
+  },
+  2023: {
+    frf: "_user_email",
+    prf: "",
+    crf: "",
+  },
+};
