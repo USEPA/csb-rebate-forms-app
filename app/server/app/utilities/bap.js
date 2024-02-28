@@ -273,9 +273,9 @@ const {
 
 /**
  * Sets up the BAP connection and stores it in the Express app's locals object.
- * @param {express.Application} app
+ * @param {express.Request} req
  */
-function setupConnection(app) {
+function setupConnection(req) {
   const bapConnection = new jsforce.Connection({
     oauth2: {
       clientId: BAP_CLIENT_ID,
@@ -289,14 +289,14 @@ function setupConnection(app) {
     .loginByOAuth2(BAP_USER, BAP_PASSWORD)
     .then((userInfo) => {
       const logMessage = `Initializing BAP connection: ${userInfo.url}.`;
-      log({ level: "info", message: logMessage });
+      log({ level: "info", message: logMessage, req });
 
-      /** Store bapConnection in global express object using app.locals. */
-      app.locals.bapConnection = bapConnection;
+      /** Store bapConnection in global express object using req.app.locals. */
+      req.app.locals.bapConnection = bapConnection;
     })
     .catch((err) => {
       const logMessage = `Error initializing BAP connection.`;
-      log({ level: "info", message: logMessage });
+      log({ level: "info", message: logMessage, req });
 
       throw err;
     });
@@ -311,7 +311,7 @@ function setupConnection(app) {
  */
 async function queryForSamEntities(req, email) {
   const logMessage = `Querying the BAP for SAM.gov entities for user with email: '${email}'.`;
-  log({ level: "info", message: logMessage });
+  log({ level: "info", message: logMessage, req });
 
   /** @type {jsforce.Connection} */
   const { bapConnection } = req.app.locals;
@@ -412,7 +412,7 @@ async function queryForBapFormSubmissionData(
   const logMessage =
     `Querying the BAP for ${formType.toUpperCase()} submission data ` +
     `associated with ${logId}.`;
-  log({ level: "info", message: logMessage });
+  log({ level: "info", message: logMessage, req });
 
   /** @type {jsforce.Connection} */
   const { bapConnection } = req.app.locals;
@@ -518,7 +518,7 @@ async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
   const logMessage =
     `Querying the BAP for form submissions statuses associated with ` +
     `combokeys: '${comboKeys}'.`;
-  log({ level: "info", message: logMessage });
+  log({ level: "info", message: logMessage, req });
 
   /** @type {jsforce.Connection} */
   const { bapConnection } = req.app.locals;
@@ -614,7 +614,7 @@ async function queryBapFor2022PRFData(req, frfReviewItemId) {
   const logMessage =
     `Querying the BAP for 2022 FRF submission associated with ` +
     `FRF Review Item ID: '${frfReviewItemId}'.`;
-  log({ level: "info", message: logMessage });
+  log({ level: "info", message: logMessage, req });
 
   /** @type {jsforce.Connection} */
   const { bapConnection } = req.app.locals;
@@ -778,7 +778,7 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
   const logMessage =
     `Querying the BAP for 2023 FRF submission associated with ` +
     `FRF Review Item ID: '${frfReviewItemId}'.`;
-  log({ level: "info", message: logMessage });
+  log({ level: "info", message: logMessage, req });
 
   /** @type {jsforce.Connection} */
   const { bapConnection } = req.app.locals;
@@ -1035,7 +1035,7 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
     `FRF Review Item ID: '${frfReviewItemId}' ` +
     `and 2022 PRF submission associated with ` +
     `PRF Review Item ID: '${prfReviewItemId}'.`;
-  log({ level: "info", message: logMessage });
+  log({ level: "info", message: logMessage, req });
 
   /** @type {jsforce.Connection} */
   const { bapConnection } = req.app.locals;
@@ -1321,21 +1321,21 @@ function verifyBapConnection(req, { name, args }) {
 
   if (!bapConnection) {
     const logMessage = `BAP connection has not yet been initialized.`;
-    log({ level: "info", message: logMessage });
+    log({ level: "info", message: logMessage, req });
 
-    return setupConnection(req.app).then(() => callback());
+    return setupConnection(req).then(() => callback());
   }
 
   return bapConnection
-    .identity((err, res) => {
+    .identity((err, _res) => {
       if (err) {
         const logMessage = `BAP connection identity error.`;
-        log({ level: "info", message: logMessage });
+        log({ level: "info", message: logMessage, req });
 
-        return setupConnection(req.app).then(() => callback());
+        return setupConnection(req).then(() => callback());
       }
     })
-    .then((res) => callback());
+    .then((_res) => callback());
 }
 
 /**
