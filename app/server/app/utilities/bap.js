@@ -44,7 +44,13 @@ const { submissionPeriodOpen } = require("../config/formio");
  * @property {string} CSB_Modified_Full_String__c
  * @property {string} CSB_Review_Item_ID__c
  * @property {string} Parent_Rebate_ID__c
- * @property {string} Record_Type_Name__c
+ * @property {'CSB Funding Request'
+ *  | 'CSB Payment Request'
+ *  | 'CSB Close Out Request'
+ *  | 'CSB Funding Request 2023'
+ *  | 'CSB Payment Request 2023'
+ *  | 'CSB Close Out Request 2023'
+ * } Record_Type_Name__c
  * @property {string | null} Rebate_Program_Year__c
  * @property {{
  *  CSB_Funding_Request_Status__c: string
@@ -389,12 +395,19 @@ async function queryForSamEntities(req, email) {
  * statuses and related metadata.
  *
  * @param {express.Request} req
+ * @param {'2022' | '2023'} rebateYear
  * @param {'frf' | 'prf' | 'crf'} formType
  * @param {string | null} rebateId
  * @param {string | null} mongoId
  * @returns {Promise<BapFormSubmission | null>} fields associated a form submission
  */
-async function queryForBapFormSubmissionData(req, formType, rebateId, mongoId) {
+async function queryForBapFormSubmissionData(
+  req,
+  rebateYear,
+  formType,
+  rebateId,
+  mongoId,
+) {
   const logId = rebateId ? `rebateId: '${rebateId}'` : `mongoId: '${mongoId}'`;
   const logMessage =
     `Querying the BAP for ${formType.toUpperCase()} submission data ` +
@@ -404,14 +417,20 @@ async function queryForBapFormSubmissionData(req, formType, rebateId, mongoId) {
   /** @type {jsforce.Connection} */
   const { bapConnection } = req.app.locals;
 
-  const developerName =
-    formType === "frf"
-      ? "CSB_Funding_Request"
-      : formType === "prf"
-      ? "CSB_Payment_Request"
-      : formType === "crf"
-      ? "CSB_Closeout_Request"
-      : null; // fallback
+  const developerNameField = {
+    2022: {
+      frf: "CSB_Funding_Request",
+      prf: "CSB_Payment_Request",
+      crf: "CSB_Closeout_Request",
+    },
+    2023: {
+      frf: "CSB_Funding_Request_2023",
+      prf: null, // "CSB_Payment_Request_2023"
+      crf: null, // "CSB_Closeout_Request_2023"
+    },
+  };
+
+  const developerName = developerNameField[rebateYear][formType];
 
   if (!developerName) return null;
 
@@ -448,6 +467,7 @@ async function queryForBapFormSubmissionData(req, formType, rebateId, mongoId) {
   //   CSB_Review_Item_ID__c,
   //   Parent_Rebate_ID__c,
   //   Record_Type_Name__c,
+  //   Rebate_Program_Year__c,
   //   Parent_CSB_Rebate__r.CSB_Funding_Request_Status__c,
   //   Parent_CSB_Rebate__r.CSB_Payment_Request_Status__c,
   //   Parent_CSB_Rebate__r.CSB_Closeout_Request_Status__c
@@ -474,7 +494,8 @@ async function queryForBapFormSubmissionData(req, formType, rebateId, mongoId) {
         CSB_Modified_Full_String__c: 1, // ISO 8601 date time string
         CSB_Review_Item_ID__c: 1, // CSB Rebate ID with form/version ID (9 digits)
         Parent_Rebate_ID__c: 1, // CSB Rebate ID (6 digits)
-        Record_Type_Name__c: 1, // 'CSB Funding Request' | 'CSB Payment Request' | 'CSB Close Out Request'
+        Record_Type_Name__c: 1, // 'CSB Funding Request' | 'CSB Payment Request' | 'CSB Close Out Request' | 'CSB Funding Request 2023' | 'CSB Payment Request 2023' | 'CSB Close Out Request 2023'
+        Rebate_Program_Year__c: 1, // '2022' | '2023'
         "Parent_CSB_Rebate__r.CSB_Funding_Request_Status__c": 1,
         "Parent_CSB_Rebate__r.CSB_Payment_Request_Status__c": 1,
         "Parent_CSB_Rebate__r.CSB_Closeout_Request_Status__c": 1,
@@ -1348,16 +1369,24 @@ function getBapComboKeys(req, email) {
 /**
  * Fetches data associated with a provided form submission.
  *
- * @param {express.Request} req
- * @param {'frf' | 'prf' | 'crf'} formType
- * @param {string | null} rebateId
- * @param {string | null} mongoId
+ * @param {Object} param
+ * @param {'2022' | '2023'} param.rebateYear
+ * @param {'frf' | 'prf' | 'crf'} param.formType
+ * @param {string | null} param.rebateId
+ * @param {string | null} param.mongoId
+ * @param {express.Request} param.req
  * @returns {ReturnType<queryForBapFormSubmissionData>}
  */
-function getBapFormSubmissionData(req, formType, rebateId, mongoId) {
+function getBapFormSubmissionData({
+  rebateYear,
+  formType,
+  rebateId,
+  mongoId,
+  req,
+}) {
   return verifyBapConnection(req, {
     name: queryForBapFormSubmissionData,
-    args: [req, formType, rebateId, mongoId],
+    args: [req, rebateYear, formType, rebateId, mongoId],
   });
 }
 
