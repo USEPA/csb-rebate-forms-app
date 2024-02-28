@@ -11,8 +11,6 @@ import {
 } from "react-router-dom";
 import { useIdleTimer } from "react-idle-timer";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import "uswds/css/uswds.css";
-import "uswds/js/uswds.js";
 import "bootstrap/dist/css/bootstrap-grid.min.css";
 import "@formio/uswds/dist/uswds.min.css";
 import "@formio/choices.js/public/assets/styles/choices.min.css";
@@ -40,6 +38,9 @@ import { FRF2022 } from "@/routes/frf2022";
 import { PRF2022 } from "@/routes/prf2022";
 import { CRF2022 } from "@/routes/crf2022";
 import { FRF2023 } from "@/routes/frf2023";
+import { PRF2023 } from "@/routes/prf2023";
+// import { CRF2023 } from "@/routes/crf2023";
+import { Change2023 } from "@/routes/change2023";
 import { useDialogState, useDialogActions } from "@/contexts/dialog";
 
 /** Custom hook to display a site-wide alert banner */
@@ -57,16 +58,19 @@ function useSiteAlertBanner() {
 
     render(
       <div className="usa-alert">
-        <MarkdownContent
-          className="usa-alert__body"
-          children={content.siteAlert}
-          components={{
-            h1: (props) => <h3 className="usa-alert__heading">{props.children}</h3>, // prettier-ignore
-            h2: (props) => <h3 className="usa-alert__heading">{props.children}</h3>, // prettier-ignore
-            h3: (props) => <h3 className="usa-alert__heading">{props.children}</h3>, // prettier-ignore
-            p: (props) => <p className="usa-alert__text">{props.children}</p>,
-          }}
-        />
+        <div className="usa-alert__body">
+          <div className="usa-alert__content">
+            <MarkdownContent
+              className="usa-alert__text"
+              children={content.siteAlert}
+              components={{
+                h1: (props) => <h3 className="usa-alert__heading">{props.children}</h3>, // prettier-ignore
+                h2: (props) => <h3 className="usa-alert__heading">{props.children}</h3>, // prettier-ignore
+                h3: (props) => <h3 className="usa-alert__heading">{props.children}</h3>, // prettier-ignore
+              }}
+            />
+          </div>
+        </div>
       </div>,
       container,
     );
@@ -249,6 +253,10 @@ export function App() {
         <Route path="crf/2022/:id" element={<CRF2022 />} />
 
         <Route path="frf/2023/:id" element={<FRF2023 />} />
+        <Route path="prf/2023/:id" element={<PRF2023 />} />
+        {/* <Route path="crf/2023/:id" element={<CRF2023 />} /> */}
+
+        <Route path="/change/2023/:id" element={<Change2023 />} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

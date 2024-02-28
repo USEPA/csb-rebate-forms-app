@@ -32,19 +32,22 @@ const formioProjectName = VITE_FORMIO_PROJECT_NAME;
 export const formioProjectUrl = `${formioBaseUrl}/${formioProjectName}`;
 
 export const messages = {
-  genericError: "Something went wrong.",
+  genericError: "The application has encountered an unknown error.",
   authError: "Authentication error. Please log in again or contact support.",
   samlError: "Error logging in. Please try again or contact support.",
   bapSamFetchError: "Error loading SAM.gov data. Please contact support.",
   bapNoSamResults:
-    "No SAM.gov records match your email. Only Government and Electronic Business SAM.gov Points of Contacts (and alternates) may edit and submit Clean School Bus Rebate Forms.",
+    "No SAM.gov accounts match your email. Only Government and Electronic Business SAM.gov Points of Contacts (and alternates) may edit and submit Clean School Bus Rebate Forms.",
   bapSamEntityNotActive:
     "Your SAM.gov account is currently not active. Activate your SAM.gov account to access this submission.",
+  bapSamNoActiveEntities:
+    "There are no active SAM.gov accounts associated with your email. Ensure you have at least one active SAM.gov account to create a new application.",
   bapSamAtLeastOneEntityNotActive:
     "At least one of your SAM.gov accounts is currently not active. Any submissions associated with that SAM.gov account will be inaccessible until the account is re-activated.",
   formSubmissionError:
     "The requested submission does not exist, or you do not have access. Please contact support if you believe this is a mistake.",
   formSubmissionsError: "Error loading form submissions.",
+  formSchemaError: "Error loading form schema.",
   newApplication:
     "Please select the “New Application” button above to create your first rebate application.",
   helpdeskSubmissionSearchError:
