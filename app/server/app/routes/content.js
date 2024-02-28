@@ -3,9 +3,10 @@ const { readFile } = require("node:fs/promises");
 const express = require("express");
 const axios = require("axios").default || require("axios"); // TODO: https://github.com/axios/axios/issues/5011
 // ---
+const { s3BucketUrl } = require("../utilities/s3");
 const log = require("../utilities/logger");
 
-const { NODE_ENV, S3_PUBLIC_BUCKET, S3_PUBLIC_REGION } = process.env;
+const { NODE_ENV } = process.env;
 
 const router = express.Router();
 
@@ -28,28 +29,22 @@ router.get("/", (req, res) => {
     "submitted-change-intro.md",
   ];
 
-  const s3BucketUrl = `https://${S3_PUBLIC_BUCKET}.s3-${S3_PUBLIC_REGION}.amazonaws.com`;
-
   Promise.all(
     filenames.map((filename) => {
+      const localFilePath = resolve(__dirname, "../content", filename);
+      const s3FileUrl = `${s3BucketUrl}/content/${filename}`;
+      const logMessage = `Fetching ${filename} from S3 bucket.`;
+
       /**
        * local development: read files directly from disk
        * Cloud.gov: fetch files from the public s3 bucket
        */
       return NODE_ENV === "development"
-        ? readFile(resolve(__dirname, "../content", filename), "utf8")
-        : axios.get(`${s3BucketUrl}/content/${filename}`);
+        ? readFile(localFilePath, "utf8")
+        : (log({ level: "info", message: logMessage, req }),
+          axios.get(s3FileUrl).then((res) => res.data));
     }),
   )
-    .then((stringsOrResponses) => {
-      /**
-       * local development: no further processing of strings needed
-       * Cloud.gov: get data from responses
-       */
-      return NODE_ENV === "development"
-        ? stringsOrResponses
-        : stringsOrResponses.map((axiosRes) => axiosRes.data);
-    })
     .then((data) => {
       return res.json({
         siteAlert: data[0],
@@ -68,11 +63,6 @@ router.get("/", (req, res) => {
       });
     })
     .catch((error) => {
-      if (typeof error.toJSON === "function") {
-        const logMessage = error.toJSON();
-        log({ level: "debug", message: logMessage, req });
-      }
-
       const errorStatus = error.response?.status || 500;
       const errorMethod = error.response?.config?.method?.toUpperCase();
       const errorUrl = error.response?.config?.url;

@@ -1,13 +1,12 @@
-// const { resolve } = require("node:path");
-// const { readFile } = require("node:fs/promises");
+const { resolve } = require("node:path");
+const { readFile } = require("node:fs/promises");
 const express = require("express");
-// const axios = require("axios").default || require("axios"); // TODO: https://github.com/axios/axios/issues/5011
+const axios = require("axios").default || require("axios"); // TODO: https://github.com/axios/axios/issues/5011
 // ---
+const { s3BucketUrl } = require("../utilities/s3");
 const log = require("../utilities/logger");
-const data = require("../content/nces.json");
 
-const { FORMIO_NCES_API_KEY } = process.env;
-// const { NODE_ENV, S3_PUBLIC_BUCKET, S3_PUBLIC_REGION } = process.env;
+const { NODE_ENV, FORMIO_NCES_API_KEY } = process.env;
 
 const router = express.Router();
 
@@ -29,14 +28,6 @@ router.get("/:searchText?", (req, res) => {
     return res.status(errorStatus).json({ message });
   }
 
-  // const s3BucketUrl = `https://${S3_PUBLIC_BUCKET}.s3-${S3_PUBLIC_REGION}.amazonaws.com`;
-
-  // const data = JSON.parse(
-  //   await (NODE_ENV === "development"
-  //     ? readFile(resolve(__dirname, "../content", "nces.json"), "utf8")
-  //     : axios.get(`${s3BucketUrl}/content/nces.json`).then((res) => res.data))
-  // );
-
   if (!searchText) {
     const logMessage = `No NCES ID passed to NCES data lookup.`;
     log({ level: "info", message: logMessage, req });
@@ -51,14 +42,41 @@ router.get("/:searchText?", (req, res) => {
     return res.json({});
   }
 
-  const result = data.find((item) => item["NCES ID"] === searchText);
+  const localFilePath = resolve(__dirname, "../content", "nces.json");
+  const s3FileUrl = `${s3BucketUrl}/content/nces.json`;
+  const logMessage = `Fetching NCES.json from S3 bucket.`;
 
-  const logMessage =
-    `NCES data searched with NCES ID '${searchText}' resulting in ` +
-    `${result ? "a match" : "no matches"}.`;
-  log({ level: "info", message: logMessage, req });
+  Promise.resolve(
+    /**
+     * local development: read file directly from disk
+     * Cloud.gov: fetch file from the public s3 bucket
+     */
+    NODE_ENV === "development"
+      ? readFile(localFilePath, "utf8").then((string) => JSON.parse(string))
+      : (log({ level: "info", message: logMessage, req }),
+        axios.get(s3FileUrl).then((res) => res.data)),
+  )
+    .then((data) => {
+      const result = data.find((item) => item["NCES ID"] === searchText);
 
-  return res.json({ ...result });
+      const logMessage =
+        `NCES data searched with NCES ID '${searchText}' resulting in ` +
+        `${result ? "a match" : "no matches"}.`;
+      log({ level: "info", message: logMessage, req });
+
+      return res.json({ ...result });
+    })
+    .catch((error) => {
+      const errorStatus = error.response?.status || 500;
+      const errorMethod = error.response?.config?.method?.toUpperCase();
+      const errorUrl = error.response?.config?.url;
+
+      const logMessage = `S3 Error: ${errorStatus} ${errorMethod} ${errorUrl}`;
+      log({ level: "error", message: logMessage, req });
+
+      const errorMessage = `Error getting NCES.json data from S3 bucket.`;
+      return res.status(errorStatus).json({ message: errorMessage });
+    });
 });
 
 module.exports = router;
