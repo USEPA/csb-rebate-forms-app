@@ -64,11 +64,7 @@ const submissionPeriodOpen = {
 function axiosFormio(req) {
   const instance = axios.create();
 
-  /** NOTE: thanks to https://github.com/softonic/axios-retry for the retry logic. */
   instance.interceptors.request.use((config) => {
-    config.csb = config.csb ?? {};
-    config.csb.retryCount = config.csb.retryCount || 0;
-
     config.headers["x-token"] = FORMIO_API_KEY;
     config.headers["b3"] = req.headers["b3"] || "";
     config.headers["x-b3-traceid"] = req.headers["x-b3-traceid"] || "";
@@ -81,28 +77,11 @@ function axiosFormio(req) {
   instance.interceptors.response.use(
     (response) => response,
     (error) => {
-      if (typeof error.toJSON === "function") {
-        log({ level: "debug", message: error.toJSON() });
-      }
-
-      /** Attempt to retry a failed request 3 times, and log the attempts. */
       const { config } = error;
       const { status } = error.response;
 
-      const { retryCount } = config.csb;
       const method = config.method.toUpperCase();
-      const url = { config };
-
-      if (retryCount < 3) {
-        retryCount += 1;
-
-        const logMessage = `Formio Error: ${status} ${method} ${url} - Retrying (${retryCount} of 3)...`;
-        log({ level: "warn", message: logMessage, req: config });
-
-        return new Promise((resolve) =>
-          setTimeout(() => resolve(instance.request(config)), 1000),
-        );
-      }
+      const { url } = config;
 
       const logMessage =
         `Formio Error: ${status} ${method} ${url}. ` +
