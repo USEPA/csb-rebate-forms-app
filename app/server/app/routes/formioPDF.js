@@ -1,16 +1,15 @@
 const express = require("express");
 const ObjectId = require("mongodb").ObjectId;
 // ---
-const { axiosFormio, formUrl } = require("../config/formio");
-const { ensureAuthenticated, storeBapComboKeys } = require("../middleware");
-const log = require("../utilities/logger");
+const { axiosFormio, formioProjectUrl } = require("../config/formio");
+const { ensureAuthenticated } = require("../middleware");
 
 const router = express.Router();
 
 router.use(ensureAuthenticated);
 
 // --- Download a PDF of a submission
-router.get("/:formId/:mongoId", storeBapComboKeys, (req, res) => {
+router.get("/:formId/:mongoId", (req, res) => {
   const { formId, mongoId } = req.params;
 
   /** NOTE: verifyMongoObjectId */
@@ -27,8 +26,50 @@ router.get("/:formId/:mongoId", storeBapComboKeys, (req, res) => {
     return res.status(errorStatus).json({ message: errorMessage });
   }
 
-  // TODO – get download token and download PDF
-  res.json({ formId, mongoId });
+  axiosFormio(req)
+    .get(formioProjectUrl)
+    .then((axiosRes) => axiosRes.data)
+    .then((project) => {
+      const headers = {
+        "x-allow": `GET:/project/${project._id}/form/${formId}/submission/${mongoId}/download`,
+        "x-expire": 3600,
+      };
+
+      axiosFormio(req)
+        .get(`${formioProjectUrl}/token`, { headers })
+        .then((axiosRes) => axiosRes.data)
+        .then((json) => {
+          const url = `${formioProjectUrl}/form/${formId}/submission/${mongoId}/download?token=${json.key}`;
+
+          axiosFormio(req)
+            .get(url, { responseType: "arraybuffer" })
+            .then((axiosRes) => axiosRes.data)
+            .then((fileData) => {
+              const file = Buffer.from(fileData, "base64");
+              res.set("Content-disposition", `attachment; filename=${mongoId}.pdf`); // prettier-ignore
+              res.set("Content-Type", "application/pdf");
+              res.send(file);
+            })
+            .catch((error) => {
+              // NOTE: error is logged in axiosFormio response interceptor
+              const errorStatus = error.response?.status || 500;
+              const errorMessage = `Error getting Formio submission PDF.`;
+              return res.status(errorStatus).json({ message: errorMessage });
+            });
+        })
+        .catch((error) => {
+          // NOTE: error is logged in axiosFormio response interceptor
+          const errorStatus = error.response?.status || 500;
+          const errorMessage = `Error getting Formio download token.`;
+          return res.status(errorStatus).json({ message: errorMessage });
+        });
+    })
+    .catch((error) => {
+      // NOTE: error is logged in axiosFormio response interceptor
+      const errorStatus = error.response?.status || 500;
+      const errorMessage = `Error getting Formio project data.`;
+      return res.status(errorStatus).json({ message: errorMessage });
+    });
 });
 
 module.exports = router;
