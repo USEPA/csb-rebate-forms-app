@@ -117,7 +117,8 @@ export type FormType = "frf" | "prf" | "crf";
 
 type FormioSubmission = {
   [field: string]: unknown;
-  _id: string; // MongoDB ObjectId string
+  _id: string; // MongoDB ObjectId string – submission ID
+  form: string; // MongoDB ObjectId string – form ID
   state: "submitted" | "draft";
   modified: string; // ISO 8601 date time string
   metadata: {

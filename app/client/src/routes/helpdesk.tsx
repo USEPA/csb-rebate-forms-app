@@ -61,7 +61,7 @@ function formatTime(dateTimeString: string | null) {
   return dateTimeString ? new Date(dateTimeString).toLocaleTimeString() : "";
 }
 
-function ResultTableRows(props: {
+function ResultTableRow(props: {
   lastSearchedText: string;
   formType: FormType;
   formio:
@@ -73,6 +73,20 @@ function ResultTableRows(props: {
 }) {
   const { lastSearchedText, formType, formio, bap } = props;
   const { rebateYear } = useRebateYearState();
+
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    queryClient.resetQueries({ queryKey: ["helpdesk/pdf"] });
+  }, [queryClient]);
+
+  const url = `${serverUrl}/api/formio/pdf/${formio.form}/${formio._id}`;
+
+  const query = useQuery({
+    queryKey: ["helpdesk/pdf"],
+    queryFn: () => getData<unknown>(url),
+    enabled: false,
+  });
 
   const date = formatDate(formio.modified);
   const time = formatTime(formio.modified);
@@ -101,6 +115,31 @@ function ResultTableRows(props: {
       <td>
         <span title={`${date} ${time}`}>{date}</span>
       </td>
+
+      <td className={clsx("!tw-text-right")}>
+        <button
+          className={clsx(
+            "tw-border-0 tw-border-b-[1.5px] tw-border-transparent tw-p-0 tw-text-sm tw-leading-tight",
+            "enabled:tw-cursor-pointer",
+            "hover:enabled:tw-border-b-slate-800",
+            "focus:enabled:tw-border-b-slate-800",
+          )}
+          type="button"
+          onClick={(_ev) => query.refetch()}
+        >
+          <span className={clsx("tw-flex tw-items-center")}>
+            <span className={clsx("tw-mr-1")}>Download</span>
+            <svg
+              className="usa-icon"
+              aria-hidden="true"
+              focusable="false"
+              role="img"
+            >
+              <use href={`${icons}#arrow_downward`} />
+            </svg>
+          </span>
+        </button>
+      </td>
     </>
   );
 }
@@ -121,13 +160,13 @@ export function Helpdesk() {
   const [formDisplayed, setFormDisplayed] = useState(false);
 
   useEffect(() => {
-    queryClient.resetQueries({ queryKey: ["helpdesk"] });
+    queryClient.resetQueries({ queryKey: ["helpdesk/submission"] });
   }, [queryClient]);
 
   const url = `${serverUrl}/api/help/formio/${rebateYear}/${formType}/${searchText}`;
 
   const query = useQuery({
-    queryKey: ["helpdesk"],
+    queryKey: ["helpdesk/submission"],
     queryFn: () => getData<ServerResponse>(url),
     onSuccess: (_res) => setResultDisplayed(true),
     enabled: false,
@@ -135,7 +174,7 @@ export function Helpdesk() {
 
   const mutation = useMutation({
     mutationFn: () => postData<ServerResponse>(url, {}),
-    onSuccess: (data) => queryClient.setQueryData(["helpdesk"], data),
+    onSuccess: (res) => queryClient.setQueryData(["helpdesk/submission"], res),
   });
 
   const { formSchema, formio, bap } = query.data ?? {};
@@ -175,7 +214,7 @@ export function Helpdesk() {
               onChange={(ev) => {
                 setRebateYear(ev.target.value as RebateYear);
                 setResultDisplayed(false);
-                queryClient.resetQueries({ queryKey: ["helpdesk"] });
+                queryClient.resetQueries({ queryKey: ["helpdesk/submission"] });
               }}
               defaultValue={rebateYear}
             >
@@ -197,7 +236,9 @@ export function Helpdesk() {
                   onChange={(ev) => {
                     setFormType(ev.target.value as FormType);
                     setResultDisplayed(false);
-                    queryClient.resetQueries({ queryKey: ["helpdesk"] });
+                    queryClient.resetQueries({
+                      queryKey: ["helpdesk/submission"],
+                    });
                   }}
                 />
                 <label
@@ -219,7 +260,9 @@ export function Helpdesk() {
                   onChange={(ev) => {
                     setFormType(ev.target.value as FormType);
                     setResultDisplayed(false);
-                    queryClient.resetQueries({ queryKey: ["helpdesk"] });
+                    queryClient.resetQueries({
+                      queryKey: ["helpdesk/submission"],
+                    });
                   }}
                 />
                 <label
@@ -241,7 +284,9 @@ export function Helpdesk() {
                   onChange={(ev) => {
                     setFormType(ev.target.value as FormType);
                     setResultDisplayed(false);
-                    queryClient.resetQueries({ queryKey: ["helpdesk"] });
+                    queryClient.resetQueries({
+                      queryKey: ["helpdesk/submission"],
+                    });
                   }}
                 />
                 <label
@@ -350,6 +395,13 @@ export function Helpdesk() {
                       tooltip="Last date this form was updated"
                     />
                   </th>
+
+                  <th scope="col" className={clsx("tw-text-right")}>
+                    <TextWithTooltip
+                      text="Download PDF"
+                      tooltip="Download a PDF of this submission"
+                    />
+                  </th>
                 </tr>
               </thead>
 
@@ -374,7 +426,7 @@ export function Helpdesk() {
                     </button>
                   </th>
 
-                  <ResultTableRows
+                  <ResultTableRow
                     lastSearchedText={lastSearchedText}
                     formType={formType}
                     formio={formio}
