@@ -26,7 +26,7 @@ import {
   useHelpdeskAccess,
   submissionNeedsEdits,
 } from "@/utilities";
-import { Loading } from "@/components/loading";
+import { Loading, LoadingButtonIcon } from "@/components/loading";
 import { Message } from "@/components/message";
 import { MarkdownContent } from "@/components/markdownContent";
 import { TextWithTooltip } from "@/components/tooltip";
@@ -79,12 +79,15 @@ function ResultTableRow(props: {
     queryClient.resetQueries({ queryKey: ["helpdesk/pdf"] });
   }, [queryClient]);
 
+  const [downloadPending, setDownloadPending] = useState(false);
+
   const url = `${serverUrl}/api/help/formio/pdf/${formio.form}/${formio._id}`;
 
   const query = useQuery({
     queryKey: ["helpdesk/pdf"],
     queryFn: () => getData<string>(url),
     onSuccess: (res) => {
+      setDownloadPending(false);
       const link = document.createElement("a");
       link.setAttribute("href", `data:application/pdf;base64,${res}`);
       link.setAttribute("download", `${formio._id}.pdf`);
@@ -125,17 +128,13 @@ function ResultTableRow(props: {
 
       <td className={clsx("!tw-text-right")}>
         <button
-          className={clsx(
-            "tw-border-0 tw-border-b-[1.5px] tw-border-transparent tw-p-0 tw-text-sm tw-leading-tight",
-            "enabled:tw-cursor-pointer",
-            "hover:enabled:tw-border-b-slate-800",
-            "focus:enabled:tw-border-b-slate-800",
-          )}
-          type="button"
-          onClick={(_ev) => query.refetch()}
+          className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
+          onClick={(_ev) => {
+            setDownloadPending(true);
+            query.refetch();
+          }}
         >
-          <span className={clsx("tw-flex tw-items-center")}>
-            <span className={clsx("tw-mr-1")}>Download</span>
+          <span className="display-flex flex-align-center">
             <svg
               className="usa-icon"
               aria-hidden="true"
@@ -144,6 +143,8 @@ function ResultTableRow(props: {
             >
               <use href={`${icons}#arrow_downward`} />
             </svg>
+            <span className="margin-left-1">Download</span>
+            {downloadPending && <LoadingButtonIcon position="end" />}
           </span>
         </button>
       </td>
