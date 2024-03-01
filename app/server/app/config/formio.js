@@ -102,6 +102,7 @@ const formioCSBMetadata = {
 
 module.exports = {
   axiosFormio,
+  formioProjectUrl,
   formUrl,
   submissionPeriodOpen,
   formioCSBMetadata,
