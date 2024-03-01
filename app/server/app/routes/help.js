@@ -94,7 +94,7 @@ router.get("/formio/submission/:rebateYear/:formType/:id", (req, res) => {
   });
 });
 
-// --- get an existing form's submission PDF from Formio
+// --- get a PDF of an existing form's submission from Formio
 router.get("/formio/pdf/:formId/:mongoId", (req, res) => {
   const { formId, mongoId } = req.params;
 
