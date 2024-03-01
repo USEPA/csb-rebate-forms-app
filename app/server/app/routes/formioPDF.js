@@ -45,10 +45,10 @@ router.get("/:formId/:mongoId", (req, res) => {
             .get(url, { responseType: "arraybuffer" })
             .then((axiosRes) => axiosRes.data)
             .then((fileData) => {
-              const file = Buffer.from(fileData, "base64");
-              res.set("Content-disposition", `attachment; filename=${mongoId}.pdf`); // prettier-ignore
-              res.set("Content-Type", "application/pdf");
-              res.send(file);
+              const base64String = Buffer.from(fileData).toString("base64");
+              res.attachment(`${mongoId}.pdf`);
+              res.type("application/pdf");
+              res.send(base64String);
             })
             .catch((error) => {
               // NOTE: error is logged in axiosFormio response interceptor

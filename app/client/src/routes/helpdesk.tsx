@@ -106,6 +106,16 @@ function ResultTableRow(props: {
   const name = (formio.data[nameField] as string) || "";
   const email = (formio.data[emailField] as string) || "";
 
+  // TODO: ensure only a single download occurs (two are currently happening in succession)
+  if (query.isSuccess) {
+    const link = document.createElement("a");
+    link.setAttribute("href", `data:application/pdf;base64,${query.data}`);
+    link.setAttribute("download", `${id}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
   return (
     <>
       <td>{id}</td>
