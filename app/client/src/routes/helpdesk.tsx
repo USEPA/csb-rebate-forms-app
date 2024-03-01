@@ -80,7 +80,7 @@ function ResultTableRow(props: {
     queryClient.resetQueries({ queryKey: ["helpdesk/pdf"] });
   }, [queryClient]);
 
-  const url = `${serverUrl}/api/formio/pdf/${formio.form}/${formio._id}`;
+  const url = `${serverUrl}/api/help/formio/pdf/${formio.form}/${formio._id}`;
 
   const query = useQuery({
     queryKey: ["helpdesk/pdf"],
@@ -171,7 +171,7 @@ export function Helpdesk() {
     queryClient.resetQueries({ queryKey: ["helpdesk/submission"] });
   }, [queryClient]);
 
-  const url = `${serverUrl}/api/help/formio/${rebateYear}/${formType}/${searchText}`;
+  const url = `${serverUrl}/api/help/formio/submission/${rebateYear}/${formType}/${searchText}`;
 
   const query = useQuery({
     queryKey: ["helpdesk/submission"],
