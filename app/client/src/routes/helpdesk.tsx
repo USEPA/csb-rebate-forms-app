@@ -84,11 +84,11 @@ function ResultTableRow(props: {
 
   const query = useQuery({
     queryKey: ["helpdesk/pdf"],
-    queryFn: () => getData<Blob>(url),
+    queryFn: () => getData<string>(url),
     onSuccess: (res) => {
       const link = document.createElement("a");
       link.setAttribute("href", `data:application/pdf;base64,${res}`);
-      link.setAttribute("download", `${id}.pdf`);
+      link.setAttribute("download", `${formio._id}.pdf`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
