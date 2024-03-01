@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { Form } from "@formio/react";
 import clsx from "clsx";
 import icon from "uswds/img/usa-icons-bg/search--white.svg";
@@ -22,7 +22,6 @@ import {
   type FormioFRF2023Submission,
   type BapSubmission,
   getData,
-  postData,
   useContentData,
   useHelpdeskAccess,
   submissionNeedsEdits,
@@ -178,11 +177,6 @@ export function Helpdesk() {
     queryFn: () => getData<ServerResponse>(url),
     onSuccess: (_res) => setResultDisplayed(true),
     enabled: false,
-  });
-
-  const mutation = useMutation({
-    mutationFn: () => postData<ServerResponse>(url, {}),
-    onSuccess: (res) => queryClient.setQueryData(["helpdesk/submission"], res),
   });
 
   const { formSchema, formio, bap } = query.data ?? {};
@@ -343,9 +337,9 @@ export function Helpdesk() {
         </div>
       </div>
 
-      {query.isFetching || mutation.isLoading ? (
+      {query.isFetching ? (
         <Loading />
-      ) : query.isError || mutation.isError ? (
+      ) : query.isError ? (
         <Message type="error" text={messages.helpdeskSubmissionSearchError} />
       ) : query.isSuccess && !!formio && !!bap && resultDisplayed ? (
         <>
