@@ -1505,7 +1505,7 @@ function Submissions2023() {
                       <th
                         className={clsx("p-0", "tw-leading-none")}
                         scope="row"
-                        colSpan={6}
+                        colSpan={7}
                       >
                         &nbsp;
                       </th>
