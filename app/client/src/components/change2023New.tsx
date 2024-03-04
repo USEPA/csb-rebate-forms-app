@@ -61,7 +61,7 @@ export function ChangeRequest2023Button(props: {
     <>
       <button
         className={clsx(
-          "tw-border-0 tw-border-b-[1.5px] tw-border-transparent tw-p-0 tw-text-sm tw-leading-tight",
+          "tw-border-0 tw-border-b-[1.5px] tw-border-transparent tw-bg-transparent tw-p-0 tw-text-sm tw-leading-tight",
           "enabled:tw-cursor-pointer",
           "hover:enabled:tw-border-b-slate-800",
           "focus:enabled:tw-border-b-slate-800",

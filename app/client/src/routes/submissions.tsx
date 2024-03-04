@@ -1157,7 +1157,7 @@ function PRF2023Submission(props: { rebate: Rebate }) {
   if (frfSelectedButNoPRF) {
     return (
       <tr className={highlightedTableRowClassNames}>
-        <th scope="row" colSpan={6}>
+        <th scope="row" colSpan={7}>
           <button
             className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
             disabled={!prfSubmissionPeriodOpen}
@@ -1505,7 +1505,7 @@ function Submissions2023() {
                       <th
                         className={clsx("p-0", "tw-leading-none")}
                         scope="row"
-                        colSpan={6}
+                        colSpan={7}
                       >
                         &nbsp;
                       </th>
