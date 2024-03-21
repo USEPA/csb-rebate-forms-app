@@ -3,7 +3,7 @@ const { readFile } = require("node:fs/promises");
 const express = require("express");
 const axios = require("axios").default || require("axios"); // TODO: https://github.com/axios/axios/issues/5011
 // ---
-const { s3BucketUrl } = require("../utilities/s3");
+const { s3BucketUrl } = require("../config/s3");
 const log = require("../utilities/logger");
 
 const { NODE_ENV, FORMIO_NCES_API_KEY } = process.env;
