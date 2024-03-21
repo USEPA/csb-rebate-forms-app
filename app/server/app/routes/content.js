@@ -3,7 +3,7 @@ const { readFile } = require("node:fs/promises");
 const express = require("express");
 const axios = require("axios").default || require("axios"); // TODO: https://github.com/axios/axios/issues/5011
 // ---
-const { s3BucketUrl } = require("../utilities/s3");
+const { s3BucketUrl } = require("../config/s3");
 const log = require("../utilities/logger");
 
 const { NODE_ENV } = process.env;
@@ -33,7 +33,13 @@ router.get("/", (req, res) => {
     filenames.map((filename) => {
       const localFilePath = resolve(__dirname, "../content", filename);
       const s3FileUrl = `${s3BucketUrl}/content/${filename}`;
-      const logMessage = `Fetching ${filename} from S3 bucket.`;
+
+      const logMessage =
+        NODE_ENV === "development"
+          ? `Reading ${filename} file from disk.`
+          : `Fetching ${filename} from S3 bucket.`;
+
+      log({ level: "info", message: logMessage });
 
       /**
        * local development: read files directly from disk
@@ -41,8 +47,7 @@ router.get("/", (req, res) => {
        */
       return NODE_ENV === "development"
         ? readFile(localFilePath, "utf8")
-        : (log({ level: "info", message: logMessage, req }),
-          axios.get(s3FileUrl).then((res) => res.data));
+        : axios.get(s3FileUrl).then((res) => res.data);
     }),
   )
     .then((data) => {
