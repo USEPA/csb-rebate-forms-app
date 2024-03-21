@@ -291,7 +291,7 @@ function setupConnection(req) {
       const logMessage = `Initializing BAP connection: ${userInfo.url}.`;
       log({ level: "info", message: logMessage, req });
 
-      /** Store bapConnection in global express object using req.app.locals. */
+      /** Store BAP connection in the Express app's locals object. */
       req.app.locals.bapConnection = bapConnection;
     })
     .catch((err) => {
