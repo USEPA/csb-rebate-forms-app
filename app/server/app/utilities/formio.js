@@ -191,6 +191,10 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
           Prioritized_as_Rural__c,
         } = frf2023RecordQuery[0];
 
+        const [schoolDistrictAddress1, schoolDistrictAddress2] = (
+          CSB_School_District__r?.BillingStreet ?? "\n"
+        ).split("\n");
+
         // TODO: ask BAP for the query for the fields below.
         // NOTE: the data from the 2023 FRF is in an 'organizations' field (array of objects)
         // which has the exact same fields below, except for "_org_typeCombined"
@@ -330,8 +334,8 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
             _bap_alternate_phone_number: Alternate_Applicant__r?.Phone,
             _bap_district_ncesID: CSB_NCES_ID__c,
             _bap_district_name: CSB_School_District__r?.Name,
-            _bap_district_address_1: CSB_School_District__r?.BillingStreet, // TODO: once BAP returns this field with a new line character, split on it for address line 1 and 2
-            _bap_district_address_2: "", // TODO: see above
+            _bap_district_address_1: schoolDistrictAddress1 || "",
+            _bap_district_address_2: schoolDistrictAddress2 || "",
             _bap_district_city: CSB_School_District__r?.BillingCity,
             _bap_district_state: CSB_School_District__r?.BillingState,
             _bap_district_zip: CSB_School_District__r?.BillingPostalCode,
