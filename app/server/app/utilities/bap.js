@@ -172,8 +172,13 @@ const { submissionPeriodOpen } = require("../config/formio");
  *  Relationship_Type__c: string
  *  Contact_Organization_Name__c: string
  *  Contact__r: {
+ *    Id: string
  *    FirstName: string
  *    LastName: string
+ *    Title: string
+ *    Email: string
+ *    Phone: string
+ *    AccountId: string
  *  } | null
  * }[]} frf2023BusRecordsContactsQueries
  * @property {{
@@ -982,8 +987,13 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
       //   Related_Line_Item__c,
       //   Relationship_Type__c,
       //   Contact_Organization_Name__c,
+      //   Contact__r.Id,
       //   Contact__r.FirstName,
       //   Contact__r.LastName
+      //   Contact__r.Title,
+      //   Contact__r.Email,
+      //   Contact__r.Phone,
+      //   Contact__r.AccountId
       // FROM
       //   Line_Item__c
       // WHERE
@@ -1005,8 +1015,13 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
             Related_Line_Item__c: 1,
             Relationship_Type__c: 1,
             Contact_Organization_Name__c: 1,
+            "Contact__r.Id": 1,
             "Contact__r.FirstName": 1,
             "Contact__r.LastName": 1,
+            "Contact__r.Title": 1,
+            "Contact__r.Email": 1,
+            "Contact__r.Phone": 1,
+            "Contact__r.AccountId": 1,
           },
         )
         .execute(async (err, records) => ((await err) ? err : records));
