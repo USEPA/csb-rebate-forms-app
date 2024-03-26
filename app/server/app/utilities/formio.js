@@ -268,7 +268,6 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
           return {
             bus_busNumber: Rebate_Item_num__c,
             bus_existingOwner: {
-              org: "", // TODO: ask BAP how to get this value
               organization: existingOwnerRecord?.Contact_Organization_Name__c,
               orgContactFName: existingOwnerRecord?.Contact__r?.FirstName,
               orgContactLName: existingOwnerRecord?.Contact__r?.LastName,
@@ -287,7 +286,6 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
             bus_existingRemainingLife: Old_Bus_Estimated_Remaining_Life__c,
             bus_existingIdlingHours: Old_Bus_Annual_Idling_Hours__c,
             bus_newOwner: {
-              org: "", // TODO: ask BAP how to get this value
               organization: newOwnerRecord?.Contact_Organization_Name__c,
               orgContactFName: newOwnerRecord?.Contact__r?.FirstName,
               orgContactLName: newOwnerRecord?.Contact__r?.LastName,
