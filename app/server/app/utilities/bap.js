@@ -978,60 +978,62 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
     )
     .execute(async (err, records) => ((await err) ? err : records));
 
-  const frf2023BusRecordsContactsQueries = await Promise.all(
-    frf2023BusRecordsQuery.map(async (frf2023BusRecord) => {
-      const frf2023BusRecordId = frf2023BusRecord.Id;
+  const frf2023BusRecordsContactsQueries = (
+    await Promise.all(
+      frf2023BusRecordsQuery.map(async (frf2023BusRecord) => {
+        const frf2023BusRecordId = frf2023BusRecord.Id;
 
-      // `SELECT
-      //   Id,
-      //   Related_Line_Item__c,
-      //   Relationship_Type__c,
-      //   Contact_Organization_Name__c,
-      //   Contact__r.Id,
-      //   Contact__r.FirstName,
-      //   Contact__r.LastName
-      //   Contact__r.Title,
-      //   Contact__r.Email,
-      //   Contact__r.Phone,
-      //   Contact__r.AccountId
-      // FROM
-      //   Line_Item__c
-      // WHERE
-      //   RecordTypeId = '${rebateItemRecordTypeId}' AND
-      //   Related_Line_Item__c = '${frf2023BusRecordId}' AND
-      //   CSB_Rebate_Item_Type__c = 'COF Relationship'`
+        // `SELECT
+        //   Id,
+        //   Related_Line_Item__c,
+        //   Relationship_Type__c,
+        //   Contact_Organization_Name__c,
+        //   Contact__r.Id,
+        //   Contact__r.FirstName,
+        //   Contact__r.LastName
+        //   Contact__r.Title,
+        //   Contact__r.Email,
+        //   Contact__r.Phone,
+        //   Contact__r.AccountId
+        // FROM
+        //   Line_Item__c
+        // WHERE
+        //   RecordTypeId = '${rebateItemRecordTypeId}' AND
+        //   Related_Line_Item__c = '${frf2023BusRecordId}' AND
+        //   CSB_Rebate_Item_Type__c = 'COF Relationship'`
 
-      return await bapConnection
-        .sobject("Line_Item__c")
-        .find(
-          {
-            RecordTypeId: rebateItemRecordTypeId,
-            Related_Line_Item__c: frf2023BusRecordId,
-            CSB_Rebate_Item_Type__c: "COF Relationship",
-          },
-          {
-            // "*": 1,
-            Id: 1, // Salesforce record ID
-            Related_Line_Item__c: 1,
-            Relationship_Type__c: 1,
-            Contact_Organization_Name__c: 1,
-            "Contact__r.Id": 1,
-            "Contact__r.FirstName": 1,
-            "Contact__r.LastName": 1,
-            "Contact__r.Title": 1,
-            "Contact__r.Email": 1,
-            "Contact__r.Phone": 1,
-            "Contact__r.AccountId": 1,
-          },
-        )
-        .execute(async (err, records) => ((await err) ? err : records));
-    }),
-  );
+        return await bapConnection
+          .sobject("Line_Item__c")
+          .find(
+            {
+              RecordTypeId: rebateItemRecordTypeId,
+              Related_Line_Item__c: frf2023BusRecordId,
+              CSB_Rebate_Item_Type__c: "COF Relationship",
+            },
+            {
+              // "*": 1,
+              Id: 1, // Salesforce record ID
+              Related_Line_Item__c: 1,
+              Relationship_Type__c: 1,
+              Contact_Organization_Name__c: 1,
+              "Contact__r.Id": 1,
+              "Contact__r.FirstName": 1,
+              "Contact__r.LastName": 1,
+              "Contact__r.Title": 1,
+              "Contact__r.Email": 1,
+              "Contact__r.Phone": 1,
+              "Contact__r.AccountId": 1,
+            },
+          )
+          .execute(async (err, records) => ((await err) ? err : records));
+      }),
+    )
+  ).flat();
 
   return {
     frf2023RecordQuery,
     frf2023BusRecordsQuery,
-    frf2023BusRecordsContactsQueries: frf2023BusRecordsContactsQueries.flat(),
+    frf2023BusRecordsContactsQueries,
   };
 }
 
