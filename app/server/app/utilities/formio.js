@@ -197,7 +197,6 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
         } = frf2023RecordQuery[0];
 
         const frf2023RecordJson = JSON.parse(CSB_Snapshot__r.JSON_Snapshot__c);
-        const frf2023RecordJsonOrgs = frf2023RecordJson.data.organizations;
 
         const [schoolDistrictStreetAddress1, schoolDistrictStreetAddress2] = (
           CSB_School_District__r?.BillingStreet ?? "\n"
@@ -215,7 +214,7 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
               BillingPostalCode,
             } = frf2023BusRecordsContactsOrgs;
 
-            const jsonOrg = frf2023RecordJsonOrgs.find(
+            const jsonOrg = frf2023RecordJson.data.organizations.find(
               (item) => item.org_orgName === Name,
             );
 
