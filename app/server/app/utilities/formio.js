@@ -183,6 +183,7 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
         const newBusOwnerType = "New Bus Owner";
 
         const {
+          CSB_Snapshot__r,
           Primary_Applicant__r,
           Alternate_Applicant__r,
           CSB_School_District__r,
@@ -195,12 +196,15 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
           Prioritized_as_Rural__c,
         } = frf2023RecordQuery[0];
 
+        const frf2023RecordJson = JSON.parse(CSB_Snapshot__r.JSON_Snapshot__c);
+        const frf2023RecordJsonOrgs = frf2023RecordJson.data.organizations;
+
         const [schoolDistrictStreetAddress1, schoolDistrictStreetAddress2] = (
           CSB_School_District__r?.BillingStreet ?? "\n"
         ).split("\n");
 
-        const org_organizations = frf2023BusRecordsContactsOrgsQueries.map(
-          (frf2023BusRecordsContactsOrgs) => {
+        const org_organizations = frf2023BusRecordsContactsOrgsQueries.reduce(
+          (array, frf2023BusRecordsContactsOrgs) => {
             const {
               Id,
               Name,
@@ -211,50 +215,59 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
               BillingPostalCode,
             } = frf2023BusRecordsContactsOrgs;
 
-            const [orgStreetAddress1, orgStreetAddress2] = (
-              BillingStreet ?? "\n"
-            ).split("\n");
-
-            const orgContacts = frf2023BusRecordsContactsQueries.filter(
-              (item) => item.Contact__r.AccountId === Id,
+            const jsonOrg = frf2023RecordJsonOrgs.find(
+              (item) => item.org_orgName === Name,
             );
 
-            const existingBusOwner = orgContacts.some(
-              (item) => item.Relationship_Type__c === existingBusOwnerType,
-            );
+            if (jsonOrg) {
+              const [orgStreetAddress1, orgStreetAddress2] = (
+                BillingStreet ?? "\n"
+              ).split("\n");
 
-            const newBusOwner = orgContacts.some(
-              (item) => item.Relationship_Type__c === newBusOwnerType,
-            );
+              const orgContacts = frf2023BusRecordsContactsQueries.filter(
+                (item) => item.Contact__r.AccountId === Id,
+              );
 
-            const { FirstName, LastName, Title, Email, Phone } =
-              orgContacts[0].Contact__r ?? {};
+              const existingBusOwner = orgContacts.some(
+                (item) => item.Relationship_Type__c === existingBusOwnerType,
+              );
 
-            return {
-              org_number: null,
-              org_type: {
-                existingBusOwner,
-                newBusOwner,
-                // privateFleet: false,
-              },
-              // _org_typeCombined: "", // NOTE: 'Existing Bus Owner, New Bus Owner'
-              org_orgName: Name,
-              org_contactFName: FirstName,
-              org_contactLName: LastName,
-              org_contactTitle: Title,
-              org_contactEmail: Email,
-              org_contactPhone: Phone,
-              org_address1: orgStreetAddress1,
-              org_address2: orgStreetAddress2,
-              org_county: BillingCountry,
-              org_city: BillingCity,
-              org_state: {
-                name: BillingState,
-                // abbreviation: "",
-              },
-              org_zip: BillingPostalCode,
-            };
+              const newBusOwner = orgContacts.some(
+                (item) => item.Relationship_Type__c === newBusOwnerType,
+              );
+
+              const { FirstName, LastName, Title, Email, Phone } =
+                orgContacts[0].Contact__r ?? {};
+
+              array.push({
+                org_number: jsonOrg.org_number,
+                org_type: {
+                  existingBusOwner,
+                  newBusOwner,
+                  // privateFleet: false,
+                },
+                // _org_typeCombined: "", // NOTE: 'Existing Bus Owner, New Bus Owner'
+                org_orgName: Name,
+                org_contactFName: FirstName,
+                org_contactLName: LastName,
+                org_contactTitle: Title,
+                org_contactEmail: Email,
+                org_contactPhone: Phone,
+                org_address1: orgStreetAddress1,
+                org_address2: orgStreetAddress2,
+                org_county: BillingCountry,
+                org_city: BillingCity,
+                org_state: {
+                  name: BillingState,
+                  // abbreviation: "",
+                },
+                org_zip: BillingPostalCode,
+              });
+            }
+
+            return array;
           },
+          [],
         );
 
         const bus_buses = frf2023BusRecordsQuery.map((frf2023BusRecord) => {
