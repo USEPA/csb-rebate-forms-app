@@ -176,7 +176,11 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
           frf2023RecordQuery,
           frf2023BusRecordsQuery,
           frf2023BusRecordsContactsQueries,
+          frf2023BusRecordsContactsOrgsQueries,
         } = results;
+
+        const existingBusOwnerType = "Old Bus Private Fleet Owner (if changed)";
+        const newBusOwnerType = "New Bus Owner";
 
         const {
           Primary_Applicant__r,
@@ -191,37 +195,67 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
           Prioritized_as_Rural__c,
         } = frf2023RecordQuery[0];
 
-        const [schoolDistrictAddress1, schoolDistrictAddress2] = (
+        const [schoolDistrictStreetAddress1, schoolDistrictStreetAddress2] = (
           CSB_School_District__r?.BillingStreet ?? "\n"
         ).split("\n");
 
-        // TODO: ask BAP for the query for the fields below.
-        // NOTE: the data from the 2023 FRF is in an 'organizations' field (array of objects)
-        // which has the exact same fields below, except for "_org_typeCombined"
-        const org_organizations = new Array(0).map((item) => ({
-          org_number: Infinity,
-          org_type: {
-            existingBusOwner: true,
-            newBusOwner: true,
-            privateFleet: false,
+        const org_organizations = frf2023BusRecordsContactsOrgsQueries.map(
+          (frf2023BusRecordsContactsOrgs) => {
+            const {
+              Id,
+              Name,
+              BillingStreet,
+              BillingCountry,
+              BillingCity,
+              BillingState,
+              BillingPostalCode,
+            } = frf2023BusRecordsContactsOrgs;
+
+            const [orgStreetAddress1, orgStreetAddress2] = (
+              BillingStreet ?? "\n"
+            ).split("\n");
+
+            const orgContacts = frf2023BusRecordsContactsQueries.filter(
+              (item) => item.Contact__r.AccountId === Id,
+            );
+
+            const existingBusOwner = orgContacts.some(
+              (item) => item.Relationship_Type__c === existingBusOwnerType,
+            );
+
+            const newBusOwner = orgContacts.some(
+              (item) => item.Relationship_Type__c === newBusOwnerType,
+            );
+
+            const { FirstName, LastName, Title, Email, Phone } =
+              orgContacts[0].Contact__r ?? {};
+
+            return {
+              org_number: null,
+              org_type: {
+                existingBusOwner,
+                newBusOwner,
+                // privateFleet: false,
+              },
+              // _org_typeCombined: "", // NOTE: 'Existing Bus Owner, New Bus Owner'
+              org_orgName: Name,
+              org_contactFName: FirstName,
+              org_contactLName: LastName,
+              org_contactTitle: Title,
+              org_contactEmail: Email,
+              org_contactPhone: Phone,
+              org_address1: orgStreetAddress1,
+              org_address2: orgStreetAddress2,
+              org_county: BillingCountry,
+              org_city: BillingCity,
+              org_state: {
+                name: BillingState,
+                // abbreviation: "",
+              },
+              org_zip: BillingPostalCode,
+            };
           },
-          _org_typeCombined: "", // NOTE: was 'org_hidden_type' in the FRF (example value: 'Existing Bus Owner, New Bus Owner')
-          org_orgName: "",
-          org_contactFName: "",
-          org_contactLName: "",
-          org_contactTitle: "",
-          org_contactEmail: "",
-          org_contactPhone: "",
-          org_address1: "",
-          org_address2: "",
-          org_county: "",
-          org_city: "",
-          org_state: {
-            name: "",
-            abbreviation: "",
-          },
-          org_zip: "",
-        }));
+        );
 
         const bus_buses = frf2023BusRecordsQuery.map((frf2023BusRecord) => {
           const {
@@ -247,22 +281,15 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
           } = frf2023BusRecord;
 
           const existingOwnerRecord = frf2023BusRecordsContactsQueries.find(
-            ({ Related_Line_Item__c, Relationship_Type__c }) => {
-              return (
-                Related_Line_Item__c === Id &&
-                Relationship_Type__c ===
-                  "Old Bus Private Fleet Owner (if changed)"
-              );
-            },
+            (item) =>
+              item.Related_Line_Item__c === Id &&
+              item.Relationship_Type__c === existingBusOwnerType,
           );
 
           const newOwnerRecord = frf2023BusRecordsContactsQueries.find(
-            ({ Related_Line_Item__c, Relationship_Type__c }) => {
-              return (
-                Related_Line_Item__c === Id &&
-                Relationship_Type__c === "New Bus Owner"
-              );
-            },
+            (item) =>
+              item.Related_Line_Item__c === Id &&
+              item.Relationship_Type__c === newBusOwnerType,
           );
 
           return {
@@ -333,8 +360,8 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
             _bap_alternate_phone_number: Alternate_Applicant__r?.Phone,
             _bap_district_ncesID: CSB_NCES_ID__c,
             _bap_district_name: CSB_School_District__r?.Name,
-            _bap_district_address_1: schoolDistrictAddress1 || "",
-            _bap_district_address_2: schoolDistrictAddress2 || "",
+            _bap_district_address_1: schoolDistrictStreetAddress1 || "",
+            _bap_district_address_2: schoolDistrictStreetAddress2 || "",
             _bap_district_city: CSB_School_District__r?.BillingCity,
             _bap_district_state: CSB_School_District__r?.BillingState,
             _bap_district_zip: CSB_School_District__r?.BillingPostalCode,
