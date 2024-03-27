@@ -182,6 +182,15 @@ const { submissionPeriodOpen } = require("../config/formio");
  *  } | null
  * }[]} frf2023BusRecordsContactsQueries
  * @property {{
+ *  Id: string
+ *  Name: string
+ *  BillingStreet: string
+ *  BillingCountry: string
+ *  BillingCity: string
+ *  BillingState: string
+ *  BillingPostalCode: string
+ * }[]} frf2023BusRecordsContactsOrgsQueries
+ * @property {{
  *  type: string
  *  url: string
  * }} attributes
@@ -1030,10 +1039,23 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
     )
   ).flat();
 
+  const frf2023BusRecordsContactsAccountIds = [
+    ...new Set(
+      frf2023BusRecordsContactsQueries.map((item) => item.Contact__r.AccountId),
+    ),
+  ];
+
+  const frf2023BusRecordsContactsOrgsQueries = await bapConnection
+    .sobject("Account")
+    .retrieve(frf2023BusRecordsContactsAccountIds, async (err, records) =>
+      (await err) ? err : records,
+    );
+
   return {
     frf2023RecordQuery,
     frf2023BusRecordsQuery,
     frf2023BusRecordsContactsQueries,
+    frf2023BusRecordsContactsOrgsQueries,
   };
 }
 
