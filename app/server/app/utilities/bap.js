@@ -528,13 +528,15 @@ async function queryForBapFormSubmissionData(
  * and related metadata.
  *
  * @param {express.Request} req
- * @param {string[]} comboKeys
  * @returns {Promise<BapFormSubmission[]>} collection of fields associated with each form submission
  */
-async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
+async function queryForBapFormSubmissionsStatuses(req) {
+  /** @type {{ bapComboKeys: string[] }} */
+  const { bapComboKeys } = req;
+
   const logMessage =
     `Querying the BAP for form submissions statuses associated with ` +
-    `combokeys: '${comboKeys}'.`;
+    `combokeys: '${bapComboKeys}'.`;
   log({ level: "info", message: logMessage, req });
 
   /** @type {jsforce.Connection} */
@@ -545,7 +547,7 @@ async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
   // FROM
   //   Order_Request__c
   // WHERE
-  //   (${comboKeys
+  //   (${bapComboKeys
   //     .map((key) => `UEI_EFTI_Combo_Key__c = '${key}'`)
   //     .join(" OR ")}) AND
   //   Latest_Version__c = TRUE`
@@ -554,7 +556,7 @@ async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
     .sobject("Order_Request__c")
     .find(
       {
-        UEI_EFTI_Combo_Key__c: { $in: comboKeys },
+        UEI_EFTI_Combo_Key__c: { $in: bapComboKeys },
         Latest_Version__c: true,
       },
       {
@@ -1438,13 +1440,12 @@ function getBapFormSubmissionData({
  * Fetches form submissions statuses associated with a provided set of combo keys.
  *
  * @param {express.Request} req
- * @param {string[]} comboKeys
  * @returns {ReturnType<queryForBapFormSubmissionsStatuses>}
  */
-function getBapFormSubmissionsStatuses(req, comboKeys) {
+function getBapFormSubmissionsStatuses(req) {
   return verifyBapConnection(req, {
     name: queryForBapFormSubmissionsStatuses,
-    args: [req, comboKeys],
+    args: [req],
   });
 }
 
