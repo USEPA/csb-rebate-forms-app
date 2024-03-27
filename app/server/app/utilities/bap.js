@@ -330,7 +330,7 @@ async function queryForSamEntities(req, email) {
   const logMessage = `Querying the BAP for SAM.gov entities for user with email: '${email}'.`;
   log({ level: "info", message: logMessage, req });
 
-  /** @type {jsforce.Connection} */
+  /** @type {{ bapConnection: jsforce.Connection }} */
   const { bapConnection } = req.app.locals;
 
   // `SELECT
@@ -431,7 +431,7 @@ async function queryForBapFormSubmissionData(
     `associated with ${logId}.`;
   log({ level: "info", message: logMessage, req });
 
-  /** @type {jsforce.Connection} */
+  /** @type {{ bapConnection: jsforce.Connection }} */
   const { bapConnection } = req.app.locals;
 
   const developerNameField = {
@@ -539,7 +539,7 @@ async function queryForBapFormSubmissionsStatuses(req) {
     `combokeys: '${bapComboKeys}'.`;
   log({ level: "info", message: logMessage, req });
 
-  /** @type {jsforce.Connection} */
+  /** @type {{ bapConnection: jsforce.Connection }} */
   const { bapConnection } = req.app.locals;
 
   // `SELECT
@@ -635,7 +635,7 @@ async function queryBapFor2022PRFData(req, frfReviewItemId) {
     `FRF Review Item ID: '${frfReviewItemId}'.`;
   log({ level: "info", message: logMessage, req });
 
-  /** @type {jsforce.Connection} */
+  /** @type {{ bapConnection: jsforce.Connection }} */
   const { bapConnection } = req.app.locals;
 
   // `SELECT
@@ -799,7 +799,7 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
     `FRF Review Item ID: '${frfReviewItemId}'.`;
   log({ level: "info", message: logMessage, req });
 
-  /** @type {jsforce.Connection} */
+  /** @type {{ bapConnection: jsforce.Connection }} */
   const { bapConnection } = req.app.locals;
 
   // `SELECT
@@ -1083,7 +1083,7 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
     `PRF Review Item ID: '${prfReviewItemId}'.`;
   log({ level: "info", message: logMessage, req });
 
-  /** @type {jsforce.Connection} */
+  /** @type {{ bapConnection: jsforce.Connection }} */
   const { bapConnection } = req.app.locals;
 
   // `SELECT
@@ -1353,7 +1353,7 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
  * @param {any[]} fn.args arguments to pass to the callback function
  */
 function verifyBapConnection(req, { name, args }) {
-  /** @type {jsforce.Connection} */
+  /** @type {{ bapConnection: jsforce.Connection }} */
   const { bapConnection } = req.app.locals;
 
   function callback() {
