@@ -8,6 +8,7 @@ const { submissionPeriodOpen } = require("../config/formio");
 
 /**
  * @typedef {Object} BapSamEntity
+ * @property {string} Id
  * @property {string} ENTITY_COMBO_KEY__c
  * @property {string} ENTITY_STATUS__c
  * @property {string} UNIQUE_ENTITY_ID__c
@@ -114,6 +115,7 @@ const { submissionPeriodOpen } = require("../config/formio");
  *    JSON_Snapshot__c: string
  *  }
  *  Primary_Applicant__r: {
+ *    Id: string
  *    FirstName: string
  *    LastName: string
  *    Title: string
@@ -121,6 +123,7 @@ const { submissionPeriodOpen } = require("../config/formio");
  *    Phone: string
  *  } | null
  *  Alternate_Applicant__r: {
+ *    Id: string
  *    FirstName: string
  *    LastName: string
  *    Title: string
@@ -128,6 +131,7 @@ const { submissionPeriodOpen } = require("../config/formio");
  *    Phone: string
  *  } | null
  *  CSB_School_District__r: {
+ *    Id: string
  *    Name: string
  *    BillingStreet: string
  *    BillingCity: string
@@ -135,6 +139,7 @@ const { submissionPeriodOpen } = require("../config/formio");
  *    BillingPostalCode: string
  *  } | null
  *  School_District_Contact__r: {
+ *    Id: string
  *    FirstName: string
  *    LastName: string
  *    Title: string
@@ -334,6 +339,7 @@ async function queryForSamEntities(req, email) {
   const { bapConnection } = req.app.locals;
 
   // `SELECT
+  //   Id,
   //   ENTITY_COMBO_KEY__c,
   //   ENTITY_STATUS__c,
   //   UNIQUE_ENTITY_ID__c,
@@ -379,6 +385,7 @@ async function queryForSamEntities(req, email) {
       },
       {
         // "*": 1,
+        Id: 1,
         ENTITY_COMBO_KEY__c: 1,
         ENTITY_STATUS__c: 1,
         UNIQUE_ENTITY_ID__c: 1,
@@ -831,21 +838,25 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
   // `SELECT
   //   Id,
   //   CSB_Snapshot__r.JSON_Snapshot__c
+  //   Primary_Applicant__r.Id,
   //   Primary_Applicant__r.FirstName,
   //   Primary_Applicant__r.LastName,
   //   Primary_Applicant__r.Title,
   //   Primary_Applicant__r.Email,
   //   Primary_Applicant__r.Phone,
+  //   Alternate_Applicant__r.Id,
   //   Alternate_Applicant__r.FirstName,
   //   Alternate_Applicant__r.LastName,
   //   Alternate_Applicant__r.Title,
   //   Alternate_Applicant__r.Email,
   //   Alternate_Applicant__r.Phone,
+  //   CSB_School_District__r.Id,
   //   CSB_School_District__r.Name,
   //   CSB_School_District__r.BillingStreet,
   //   CSB_School_District__r.BillingCity,
   //   CSB_School_District__r.BillingState,
   //   CSB_School_District__r.BillingPostalCode,
+  //   School_District_Contact__r.Id,
   //   School_District_Contact__r.FirstName,
   //   School_District_Contact__r.LastName,
   //   School_District_Contact__r.Title,
@@ -876,21 +887,25 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
         // "*": 1,
         Id: 1, // Salesforce record ID
         "CSB_Snapshot__r.JSON_Snapshot__c": 1,
+        "Primary_Applicant__r.Id": 1,
         "Primary_Applicant__r.FirstName": 1,
         "Primary_Applicant__r.LastName": 1,
         "Primary_Applicant__r.Title": 1,
         "Primary_Applicant__r.Email": 1,
         "Primary_Applicant__r.Phone": 1,
+        "Alternate_Applicant__r.Id": 1,
         "Alternate_Applicant__r.FirstName": 1,
         "Alternate_Applicant__r.LastName": 1,
         "Alternate_Applicant__r.Title": 1,
         "Alternate_Applicant__r.Email": 1,
         "Alternate_Applicant__r.Phone": 1,
+        "CSB_School_District__r.Id": 1,
         "CSB_School_District__r.Name": 1,
         "CSB_School_District__r.BillingStreet": 1,
         "CSB_School_District__r.BillingCity": 1,
         "CSB_School_District__r.BillingState": 1,
         "CSB_School_District__r.BillingPostalCode": 1,
+        "School_District_Contact__r.Id": 1,
         "School_District_Contact__r.FirstName": 1,
         "School_District_Contact__r.LastName": 1,
         "School_District_Contact__r.Title": 1,
