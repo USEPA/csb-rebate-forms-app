@@ -8,6 +8,7 @@ const { submissionPeriodOpen } = require("../config/formio");
 
 /**
  * @typedef {Object} BapSamEntity
+ * @property {string} Id
  * @property {string} ENTITY_COMBO_KEY__c
  * @property {string} ENTITY_STATUS__c
  * @property {string} UNIQUE_ENTITY_ID__c
@@ -114,6 +115,7 @@ const { submissionPeriodOpen } = require("../config/formio");
  *    JSON_Snapshot__c: string
  *  }
  *  Primary_Applicant__r: {
+ *    Id: string
  *    FirstName: string
  *    LastName: string
  *    Title: string
@@ -121,6 +123,7 @@ const { submissionPeriodOpen } = require("../config/formio");
  *    Phone: string
  *  } | null
  *  Alternate_Applicant__r: {
+ *    Id: string
  *    FirstName: string
  *    LastName: string
  *    Title: string
@@ -128,6 +131,7 @@ const { submissionPeriodOpen } = require("../config/formio");
  *    Phone: string
  *  } | null
  *  CSB_School_District__r: {
+ *    Id: string
  *    Name: string
  *    BillingStreet: string
  *    BillingCity: string
@@ -135,6 +139,7 @@ const { submissionPeriodOpen } = require("../config/formio");
  *    BillingPostalCode: string
  *  } | null
  *  School_District_Contact__r: {
+ *    Id: string
  *    FirstName: string
  *    LastName: string
  *    Title: string
@@ -173,7 +178,6 @@ const { submissionPeriodOpen } = require("../config/formio");
  *  Id: string
  *  Related_Line_Item__c: string
  *  Relationship_Type__c: string
- *  Contact_Organization_Name__c: string
  *  Contact__r: {
  *    Id: string
  *    FirstName: string
@@ -330,10 +334,11 @@ async function queryForSamEntities(req, email) {
   const logMessage = `Querying the BAP for SAM.gov entities for user with email: '${email}'.`;
   log({ level: "info", message: logMessage, req });
 
-  /** @type {jsforce.Connection} */
+  /** @type {{ bapConnection: jsforce.Connection }} */
   const { bapConnection } = req.app.locals;
 
   // `SELECT
+  //   Id,
   //   ENTITY_COMBO_KEY__c,
   //   ENTITY_STATUS__c,
   //   UNIQUE_ENTITY_ID__c,
@@ -379,6 +384,7 @@ async function queryForSamEntities(req, email) {
       },
       {
         // "*": 1,
+        Id: 1,
         ENTITY_COMBO_KEY__c: 1,
         ENTITY_STATUS__c: 1,
         UNIQUE_ENTITY_ID__c: 1,
@@ -431,7 +437,7 @@ async function queryForBapFormSubmissionData(
     `associated with ${logId}.`;
   log({ level: "info", message: logMessage, req });
 
-  /** @type {jsforce.Connection} */
+  /** @type {{ bapConnection: jsforce.Connection }} */
   const { bapConnection } = req.app.locals;
 
   const developerNameField = {
@@ -528,16 +534,18 @@ async function queryForBapFormSubmissionData(
  * and related metadata.
  *
  * @param {express.Request} req
- * @param {string[]} comboKeys
  * @returns {Promise<BapFormSubmission[]>} collection of fields associated with each form submission
  */
-async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
+async function queryForBapFormSubmissionsStatuses(req) {
+  /** @type {{ bapComboKeys: string[] }} */
+  const { bapComboKeys } = req;
+
   const logMessage =
     `Querying the BAP for form submissions statuses associated with ` +
-    `combokeys: '${comboKeys}'.`;
+    `combokeys: '${bapComboKeys}'.`;
   log({ level: "info", message: logMessage, req });
 
-  /** @type {jsforce.Connection} */
+  /** @type {{ bapConnection: jsforce.Connection }} */
   const { bapConnection } = req.app.locals;
 
   // `SELECT
@@ -545,7 +553,7 @@ async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
   // FROM
   //   Order_Request__c
   // WHERE
-  //   (${comboKeys
+  //   (${bapComboKeys
   //     .map((key) => `UEI_EFTI_Combo_Key__c = '${key}'`)
   //     .join(" OR ")}) AND
   //   Latest_Version__c = TRUE`
@@ -554,7 +562,7 @@ async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
     .sobject("Order_Request__c")
     .find(
       {
-        UEI_EFTI_Combo_Key__c: { $in: comboKeys },
+        UEI_EFTI_Combo_Key__c: { $in: bapComboKeys },
         Latest_Version__c: true,
       },
       {
@@ -633,7 +641,7 @@ async function queryBapFor2022PRFData(req, frfReviewItemId) {
     `FRF Review Item ID: '${frfReviewItemId}'.`;
   log({ level: "info", message: logMessage, req });
 
-  /** @type {jsforce.Connection} */
+  /** @type {{ bapConnection: jsforce.Connection }} */
   const { bapConnection } = req.app.locals;
 
   // `SELECT
@@ -797,7 +805,7 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
     `FRF Review Item ID: '${frfReviewItemId}'.`;
   log({ level: "info", message: logMessage, req });
 
-  /** @type {jsforce.Connection} */
+  /** @type {{ bapConnection: jsforce.Connection }} */
   const { bapConnection } = req.app.locals;
 
   // `SELECT
@@ -829,21 +837,25 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
   // `SELECT
   //   Id,
   //   CSB_Snapshot__r.JSON_Snapshot__c
+  //   Primary_Applicant__r.Id,
   //   Primary_Applicant__r.FirstName,
   //   Primary_Applicant__r.LastName,
   //   Primary_Applicant__r.Title,
   //   Primary_Applicant__r.Email,
   //   Primary_Applicant__r.Phone,
+  //   Alternate_Applicant__r.Id,
   //   Alternate_Applicant__r.FirstName,
   //   Alternate_Applicant__r.LastName,
   //   Alternate_Applicant__r.Title,
   //   Alternate_Applicant__r.Email,
   //   Alternate_Applicant__r.Phone,
+  //   CSB_School_District__r.Id,
   //   CSB_School_District__r.Name,
   //   CSB_School_District__r.BillingStreet,
   //   CSB_School_District__r.BillingCity,
   //   CSB_School_District__r.BillingState,
   //   CSB_School_District__r.BillingPostalCode,
+  //   School_District_Contact__r.Id,
   //   School_District_Contact__r.FirstName,
   //   School_District_Contact__r.LastName,
   //   School_District_Contact__r.Title,
@@ -874,21 +886,25 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
         // "*": 1,
         Id: 1, // Salesforce record ID
         "CSB_Snapshot__r.JSON_Snapshot__c": 1,
+        "Primary_Applicant__r.Id": 1,
         "Primary_Applicant__r.FirstName": 1,
         "Primary_Applicant__r.LastName": 1,
         "Primary_Applicant__r.Title": 1,
         "Primary_Applicant__r.Email": 1,
         "Primary_Applicant__r.Phone": 1,
+        "Alternate_Applicant__r.Id": 1,
         "Alternate_Applicant__r.FirstName": 1,
         "Alternate_Applicant__r.LastName": 1,
         "Alternate_Applicant__r.Title": 1,
         "Alternate_Applicant__r.Email": 1,
         "Alternate_Applicant__r.Phone": 1,
+        "CSB_School_District__r.Id": 1,
         "CSB_School_District__r.Name": 1,
         "CSB_School_District__r.BillingStreet": 1,
         "CSB_School_District__r.BillingCity": 1,
         "CSB_School_District__r.BillingState": 1,
         "CSB_School_District__r.BillingPostalCode": 1,
+        "School_District_Contact__r.Id": 1,
         "School_District_Contact__r.FirstName": 1,
         "School_District_Contact__r.LastName": 1,
         "School_District_Contact__r.Title": 1,
@@ -1001,7 +1017,6 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
         //   Id,
         //   Related_Line_Item__c,
         //   Relationship_Type__c,
-        //   Contact_Organization_Name__c,
         //   Contact__r.Id,
         //   Contact__r.FirstName,
         //   Contact__r.LastName
@@ -1029,7 +1044,6 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
               Id: 1, // Salesforce record ID
               Related_Line_Item__c: 1,
               Relationship_Type__c: 1,
-              Contact_Organization_Name__c: 1,
               "Contact__r.Id": 1,
               "Contact__r.FirstName": 1,
               "Contact__r.LastName": 1,
@@ -1081,7 +1095,7 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
     `PRF Review Item ID: '${prfReviewItemId}'.`;
   log({ level: "info", message: logMessage, req });
 
-  /** @type {jsforce.Connection} */
+  /** @type {{ bapConnection: jsforce.Connection }} */
   const { bapConnection } = req.app.locals;
 
   // `SELECT
@@ -1351,7 +1365,7 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
  * @param {any[]} fn.args arguments to pass to the callback function
  */
 function verifyBapConnection(req, { name, args }) {
-  /** @type {jsforce.Connection} */
+  /** @type {{ bapConnection: jsforce.Connection }} */
   const { bapConnection } = req.app.locals;
 
   function callback() {
@@ -1438,13 +1452,12 @@ function getBapFormSubmissionData({
  * Fetches form submissions statuses associated with a provided set of combo keys.
  *
  * @param {express.Request} req
- * @param {string[]} comboKeys
  * @returns {ReturnType<queryForBapFormSubmissionsStatuses>}
  */
-function getBapFormSubmissionsStatuses(req, comboKeys) {
+function getBapFormSubmissionsStatuses(req) {
   return verifyBapConnection(req, {
     name: queryForBapFormSubmissionsStatuses,
-    args: [req, comboKeys],
+    args: [req],
   });
 }
 

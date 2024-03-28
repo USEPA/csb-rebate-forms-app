@@ -36,6 +36,7 @@ type ConfigData = {
 };
 
 export type BapSamEntity = {
+  Id: string;
   ENTITY_COMBO_KEY__c: string;
   UNIQUE_ENTITY_ID__c: string;
   ENTITY_EFT_INDICATOR__c: string;
