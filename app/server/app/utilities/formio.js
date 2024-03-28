@@ -206,7 +206,7 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
         const org_organizations = frf2023BusRecordsContactsOrgsQueries.reduce(
           (array, frf2023BusRecordsContactsOrgs) => {
             const {
-              Id,
+              Id: orgId,
               Name,
               BillingStreet,
               BillingCountry,
@@ -225,7 +225,7 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
               ).split("\n");
 
               const orgContacts = frf2023BusRecordsContactsQueries.filter(
-                (item) => item.Contact__r.AccountId === Id,
+                (item) => item.Contact__r.AccountId === orgId,
               );
 
               const existingBusOwner = orgContacts.some(
@@ -236,8 +236,14 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
                 (item) => item.Relationship_Type__c === newBusOwnerType,
               );
 
-              const { FirstName, LastName, Title, Email, Phone } =
-                orgContacts[0].Contact__r ?? {};
+              const {
+                Id: contactId,
+                FirstName,
+                LastName,
+                Title,
+                Email,
+                Phone,
+              } = orgContacts[0].Contact__r ?? {};
 
               array.push({
                 org_number: jsonOrg.org_number,
@@ -247,7 +253,9 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
                   // privateFleet: false,
                 },
                 // _org_typeCombined: "", // NOTE: 'Existing Bus Owner, New Bus Owner'
+                org_id: orgId,
                 org_name: Name,
+                org_contact_id: contactId,
                 org_contactFName: FirstName,
                 org_contactLName: LastName,
                 org_contactTitle: Title,
