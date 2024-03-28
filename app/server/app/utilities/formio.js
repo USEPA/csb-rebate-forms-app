@@ -185,6 +185,7 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
 
         const {
           CSB_Snapshot__r,
+          Applicant_Organization__r,
           Primary_Applicant__r,
           Alternate_Applicant__r,
           CSB_School_District__r,
@@ -374,7 +375,7 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
             _bap_applicant_organization_name: LEGAL_BUSINESS_NAME__c,
             _bap_applicant_street_address_1: PHYSICAL_ADDRESS_LINE_1__c,
             _bap_applicant_street_address_2: PHYSICAL_ADDRESS_LINE_2__c,
-            _bap_applicant_county: "", // TODO: ask BAP how to get this value
+            _bap_applicant_county: Applicant_Organization__r?.County__c,
             _bap_applicant_city: PHYSICAL_ADDRESS_CITY__c,
             _bap_applicant_state: PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
             _bap_applicant_zip: PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,

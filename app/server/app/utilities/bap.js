@@ -114,6 +114,10 @@ const { submissionPeriodOpen } = require("../config/formio");
  *  CSB_Snapshot__r: {
  *    JSON_Snapshot__c: string
  *  }
+ *  Applicant_Organization__r: {
+ *    Id: string
+ *    County__c: string
+ *  }
  *  Primary_Applicant__r: {
  *    Id: string
  *    FirstName: string
@@ -837,6 +841,8 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
   // `SELECT
   //   Id,
   //   CSB_Snapshot__r.JSON_Snapshot__c
+  //   Applicant_Organization__r.Id
+  //   Applicant_Organization__r.County__c
   //   Primary_Applicant__r.Id,
   //   Primary_Applicant__r.FirstName,
   //   Primary_Applicant__r.LastName,
@@ -886,6 +892,8 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
         // "*": 1,
         Id: 1, // Salesforce record ID
         "CSB_Snapshot__r.JSON_Snapshot__c": 1,
+        "Applicant_Organization__r.Id": 1,
+        "Applicant_Organization__r.County__c": 1,
         "Primary_Applicant__r.Id": 1,
         "Primary_Applicant__r.FirstName": 1,
         "Primary_Applicant__r.LastName": 1,
