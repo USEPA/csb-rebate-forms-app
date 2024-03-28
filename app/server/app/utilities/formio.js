@@ -280,7 +280,7 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
 
         const bus_buses = frf2023BusRecordsQuery.map((frf2023BusRecord) => {
           const {
-            Id,
+            Id: busRecordId,
             Rebate_Item_num__c,
             CSB_VIN__c,
             CSB_Fuel_Type__c,
@@ -303,13 +303,13 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
 
           const existingOwnerRecord = frf2023BusRecordsContactsQueries.find(
             (item) =>
-              item.Related_Line_Item__c === Id &&
+              item.Related_Line_Item__c === busRecordId &&
               item.Relationship_Type__c === existingBusOwnerType,
           );
 
           const newOwnerRecord = frf2023BusRecordsContactsQueries.find(
             (item) =>
-              item.Related_Line_Item__c === Id &&
+              item.Related_Line_Item__c === busRecordId &&
               item.Relationship_Type__c === newBusOwnerType,
           );
 
@@ -317,6 +317,7 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
             bus_busNumber: Rebate_Item_num__c,
             bus_existingOwner: {
               org_name: existingOwnerRecord?.Contact_Organization_Name__c,
+              org_contact_id: existingOwnerRecord?.Contact__r?.Id,
               org_contact_fname: existingOwnerRecord?.Contact__r?.FirstName,
               org_contact_lname: existingOwnerRecord?.Contact__r?.LastName,
             },
@@ -335,6 +336,7 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
             bus_existingIdlingHours: Old_Bus_Annual_Idling_Hours__c,
             bus_newOwner: {
               org_name: newOwnerRecord?.Contact_Organization_Name__c,
+              org_contact_id: newOwnerRecord?.Contact__r?.Id,
               org_contact_fname: newOwnerRecord?.Contact__r?.FirstName,
               org_contact_lname: newOwnerRecord?.Contact__r?.LastName,
             },
