@@ -178,7 +178,6 @@ const { submissionPeriodOpen } = require("../config/formio");
  *  Id: string
  *  Related_Line_Item__c: string
  *  Relationship_Type__c: string
- *  Contact_Organization_Name__c: string
  *  Contact__r: {
  *    Id: string
  *    FirstName: string
@@ -1018,7 +1017,6 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
         //   Id,
         //   Related_Line_Item__c,
         //   Relationship_Type__c,
-        //   Contact_Organization_Name__c,
         //   Contact__r.Id,
         //   Contact__r.FirstName,
         //   Contact__r.LastName
@@ -1046,7 +1044,6 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
               Id: 1, // Salesforce record ID
               Related_Line_Item__c: 1,
               Relationship_Type__c: 1,
-              Contact_Organization_Name__c: 1,
               "Contact__r.Id": 1,
               "Contact__r.FirstName": 1,
               "Contact__r.LastName": 1,
