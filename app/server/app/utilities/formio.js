@@ -177,7 +177,6 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
           frf2023RecordQuery,
           frf2023BusRecordsQuery,
           frf2023BusRecordsContactsQueries,
-          frf2023BusRecordsContactsOrgsQueries,
         } = results;
 
         const existingBusOwnerType = "Old Bus Private Fleet Owner (if changed)";
@@ -204,47 +203,59 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
           CSB_School_District__r?.BillingStreet ?? "\n"
         ).split("\n");
 
-        const org_organizations = frf2023BusRecordsContactsOrgsQueries.reduce(
-          (array, frf2023BusRecordsContactsOrg) => {
+        const org_organizations = frf2023BusRecordsContactsQueries.reduce(
+          (array, frf2023BusRecordsContact) => {
+            const { Relationship_Type__c, Contact__r } =
+              frf2023BusRecordsContact;
+
+            const {
+              Id: contactId,
+              FirstName,
+              LastName,
+              Title,
+              Email,
+              Phone,
+              Account,
+            } = Contact__r;
+
             const {
               Id: orgId,
-              Name,
+              Name: orgName,
               BillingStreet,
-              BillingCountry,
               BillingCity,
               BillingState,
               BillingPostalCode,
-            } = frf2023BusRecordsContactsOrg;
+              County__c,
+            } = Account;
 
             const jsonOrg = frf2023RecordJson.data.organizations.find(
-              (item) => item.org_orgName === Name,
+              (item) => item.org_orgName === orgName,
             );
 
+            const existingBusOwner = Relationship_Type__c === existingBusOwnerType; // prettier-ignore
+            const newBusOwner = Relationship_Type__c === newBusOwnerType;
+
+            /**
+             * Ensure the org exists in the 2023 FRF submission's
+             * "organizations" array.
+             */
             if (jsonOrg) {
+              /**
+               * If the org has already been added, update org_type as needed
+               * and and advance to the next org in the loop.
+               */
+              if (array.some((item) => item.org_id === orgId)) {
+                const org = array.find((item) => item.org_id === orgId);
+
+                if (existingBusOwner) org.org_type.existingBusOwner = true;
+                if (newBusOwner) org.org_type.newBusOwner = true;
+
+                return array;
+              }
+
               const [orgStreetAddress1, orgStreetAddress2] = (
                 BillingStreet ?? "\n"
               ).split("\n");
-
-              const orgContacts = frf2023BusRecordsContactsQueries.filter(
-                (item) => item.Contact__r.AccountId === orgId,
-              );
-
-              const existingBusOwner = orgContacts.some(
-                (item) => item.Relationship_Type__c === existingBusOwnerType,
-              );
-
-              const newBusOwner = orgContacts.some(
-                (item) => item.Relationship_Type__c === newBusOwnerType,
-              );
-
-              const {
-                Id: contactId,
-                FirstName,
-                LastName,
-                Title,
-                Email,
-                Phone,
-              } = orgContacts[0].Contact__r ?? {};
 
               array.push({
                 org_number: jsonOrg.org_number,
@@ -255,7 +266,7 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
                 },
                 // _org_typeCombined: "", // NOTE: 'Existing Bus Owner, New Bus Owner'
                 org_id: orgId,
-                org_name: Name,
+                org_name: orgName,
                 org_contact_id: contactId,
                 org_contactFName: FirstName,
                 org_contactLName: LastName,
@@ -264,7 +275,7 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
                 org_contactPhone: Phone,
                 org_address1: orgStreetAddress1,
                 org_address2: orgStreetAddress2,
-                org_county: BillingCountry,
+                org_county: County__c,
                 org_city: BillingCity,
                 org_state: {
                   name: BillingState,
@@ -314,19 +325,11 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
               item.Relationship_Type__c === newBusOwnerType,
           );
 
-          const existingOwnerOrg = frf2023BusRecordsContactsOrgsQueries.find(
-            (item) => item.Id === existingOwnerRecord?.Contact__r?.AccountId,
-          );
-
-          const newOwnerOrg = frf2023BusRecordsContactsOrgsQueries.find(
-            (item) => item.Id === newOwnerRecord?.Contact__r?.AccountId,
-          );
-
           return {
             bus_busNumber: Rebate_Item_num__c,
             bus_existingOwner: {
-              org_id: existingOwnerOrg.Id,
-              org_name: existingOwnerOrg.Name,
+              org_id: existingOwnerRecord?.Contact__r?.Account?.Id,
+              org_name: existingOwnerRecord?.Contact__r?.Account?.Name,
               org_contact_id: existingOwnerRecord?.Contact__r?.Id,
               org_contact_fname: existingOwnerRecord?.Contact__r?.FirstName,
               org_contact_lname: existingOwnerRecord?.Contact__r?.LastName,
@@ -345,8 +348,8 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
             bus_existingRemainingLife: Old_Bus_Estimated_Remaining_Life__c,
             bus_existingIdlingHours: Old_Bus_Annual_Idling_Hours__c,
             bus_newOwner: {
-              org_id: newOwnerOrg?.Id,
-              org_name: newOwnerOrg?.Name,
+              org_id: newOwnerRecord?.Contact__r?.Account?.Id,
+              org_name: newOwnerRecord?.Contact__r?.Account?.Name,
               org_contact_id: newOwnerRecord?.Contact__r?.Id,
               org_contact_fname: newOwnerRecord?.Contact__r?.FirstName,
               org_contact_lname: newOwnerRecord?.Contact__r?.LastName,

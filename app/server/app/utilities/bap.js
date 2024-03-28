@@ -189,18 +189,17 @@ const { submissionPeriodOpen } = require("../config/formio");
  *    Title: string
  *    Email: string
  *    Phone: string
- *    AccountId: string
+ *    Account: {
+ *      Id: string
+ *      Name: string
+ *      BillingStreet: string
+ *      BillingCity: string
+ *      BillingState: string
+ *      BillingPostalCode: string
+ *      County__c: string
+ *    }
  *  } | null
  * }[]} frf2023BusRecordsContactsQueries
- * @property {{
- *  Id: string
- *  Name: string
- *  BillingStreet: string
- *  BillingCountry: string
- *  BillingCity: string
- *  BillingState: string
- *  BillingPostalCode: string
- * }[]} frf2023BusRecordsContactsOrgsQueries
  * @property {{
  *  type: string
  *  url: string
@@ -1031,7 +1030,13 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
         //   Contact__r.Title,
         //   Contact__r.Email,
         //   Contact__r.Phone,
-        //   Contact__r.AccountId
+        //   Contact__r.Account.Id,
+        //   Contact__r.Account.Name,
+        //   Contact__r.Account.BillingStreet,
+        //   Contact__r.Account.BillingCity,
+        //   Contact__r.Account.BillingState,
+        //   Contact__r.Account.BillingPostalCode,
+        //   Contact__r.Account.County__c,
         // FROM
         //   Line_Item__c
         // WHERE
@@ -1058,7 +1063,13 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
               "Contact__r.Title": 1,
               "Contact__r.Email": 1,
               "Contact__r.Phone": 1,
-              "Contact__r.AccountId": 1,
+              "Contact__r.Account.Id": 1,
+              "Contact__r.Account.Name": 1,
+              "Contact__r.Account.BillingStreet": 1,
+              "Contact__r.Account.BillingCity": 1,
+              "Contact__r.Account.BillingState": 1,
+              "Contact__r.Account.BillingPostalCode": 1,
+              "Contact__r.Account.County__c": 1,
             },
           )
           .execute(async (err, records) => ((await err) ? err : records));
@@ -1066,23 +1077,10 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
     )
   ).flat();
 
-  const frf2023BusRecordsContactsAccountIds = [
-    ...new Set(
-      frf2023BusRecordsContactsQueries.map((item) => item.Contact__r.AccountId),
-    ),
-  ];
-
-  const frf2023BusRecordsContactsOrgsQueries = await bapConnection
-    .sobject("Account")
-    .retrieve(frf2023BusRecordsContactsAccountIds, async (err, records) =>
-      (await err) ? err : records,
-    );
-
   return {
     frf2023RecordQuery,
     frf2023BusRecordsQuery,
     frf2023BusRecordsContactsQueries,
-    frf2023BusRecordsContactsOrgsQueries,
   };
 }
 
