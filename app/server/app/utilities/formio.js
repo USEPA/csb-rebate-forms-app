@@ -204,7 +204,7 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
         ).split("\n");
 
         const org_organizations = frf2023BusRecordsContactsOrgsQueries.reduce(
-          (array, frf2023BusRecordsContactsOrgs) => {
+          (array, frf2023BusRecordsContactsOrg) => {
             const {
               Id: orgId,
               Name,
@@ -213,7 +213,7 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
               BillingCity,
               BillingState,
               BillingPostalCode,
-            } = frf2023BusRecordsContactsOrgs;
+            } = frf2023BusRecordsContactsOrg;
 
             const jsonOrg = frf2023RecordJson.data.organizations.find(
               (item) => item.org_orgName === Name,
@@ -313,10 +313,19 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
               item.Relationship_Type__c === newBusOwnerType,
           );
 
+          const existingOwnerOrg = frf2023BusRecordsContactsOrgsQueries.find(
+            (item) => item.Id === existingOwnerRecord?.Contact__r?.AccountId,
+          );
+
+          const newOwnerOrg = frf2023BusRecordsContactsOrgsQueries.find(
+            (item) => item.Id === newOwnerRecord?.Contact__r?.AccountId,
+          );
+
           return {
             bus_busNumber: Rebate_Item_num__c,
             bus_existingOwner: {
-              org_name: existingOwnerRecord?.Contact_Organization_Name__c,
+              org_id: existingOwnerOrg.Id,
+              org_name: existingOwnerOrg.Name,
               org_contact_id: existingOwnerRecord?.Contact__r?.Id,
               org_contact_fname: existingOwnerRecord?.Contact__r?.FirstName,
               org_contact_lname: existingOwnerRecord?.Contact__r?.LastName,
@@ -335,7 +344,8 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
             bus_existingRemainingLife: Old_Bus_Estimated_Remaining_Life__c,
             bus_existingIdlingHours: Old_Bus_Annual_Idling_Hours__c,
             bus_newOwner: {
-              org_name: newOwnerRecord?.Contact_Organization_Name__c,
+              org_id: newOwnerOrg?.Id,
+              org_name: newOwnerOrg?.Name,
               org_contact_id: newOwnerRecord?.Contact__r?.Id,
               org_contact_fname: newOwnerRecord?.Contact__r?.FirstName,
               org_contact_lname: newOwnerRecord?.Contact__r?.LastName,
