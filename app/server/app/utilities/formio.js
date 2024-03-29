@@ -413,7 +413,7 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
               tribal: Prioritized_as_Tribal__c,
               rural: Prioritized_as_Rural__c,
             },
-            _bad_district_contact_id: School_District_Contact__r?.Id,
+            _bap_district_contact_id: School_District_Contact__r?.Id,
             _bap_district_contact_fname: School_District_Contact__r?.FirstName,
             _bap_district_contact_lname: School_District_Contact__r?.LastName,
             _bap_district_contact_title: School_District_Contact__r?.Title,
