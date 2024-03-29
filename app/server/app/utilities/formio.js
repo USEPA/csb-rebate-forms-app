@@ -244,8 +244,8 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
                * If the org has already been added, update org_type as needed
                * and and advance to the next org in the loop.
                */
-              if (array.some((item) => item.org_id === orgId)) {
-                const org = array.find((item) => item.org_id === orgId);
+              if (array.some((item) => item._org_id === orgId)) {
+                const org = array.find((item) => item._org_id === orgId);
 
                 if (existingBusOwner) org.org_type.existingBusOwner = true;
                 if (newBusOwner) org.org_type.newBusOwner = true;
