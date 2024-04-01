@@ -228,7 +228,8 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
             } = Account;
 
             const jsonOrg = frf2023RecordJson.data.organizations.find(
-              (item) => item.org_orgName === orgName,
+              (org) =>
+                org.org_orgName === orgName && org.org_contactEmail === Email,
             );
 
             const orgAlreadyAdded = array.some((org) => org._org_id === orgId);
