@@ -205,8 +205,7 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
 
         const org_organizations = frf2023BusRecordsContactsQueries.reduce(
           (array, frf2023BusRecordsContact) => {
-            const { Relationship_Type__c, Contact__r } =
-              frf2023BusRecordsContact;
+            const { Contact__r } = frf2023BusRecordsContact;
 
             const {
               Id: contactId,
@@ -232,38 +231,20 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
               (item) => item.org_orgName === orgName,
             );
 
-            const existingBusOwner = Relationship_Type__c === existingBusOwnerType; // prettier-ignore
-            const newBusOwner = Relationship_Type__c === newBusOwnerType;
+            const orgAlreadyAdded = array.some((org) => org._org_id === orgId);
 
             /**
              * Ensure the org exists in the 2023 FRF submission's
-             * "organizations" array.
+             * "organizations" array, and it hasn't already been added.
              */
-            if (jsonOrg) {
-              /**
-               * If the org has already been added, update org_type as needed
-               * and and advance to the next org in the loop.
-               */
-              if (array.some((item) => item._org_id === orgId)) {
-                const org = array.find((item) => item._org_id === orgId);
-
-                if (existingBusOwner) org.org_type.existingBusOwner = true;
-                if (newBusOwner) org.org_type.newBusOwner = true;
-
-                return array;
-              }
-
+            if (jsonOrg && !orgAlreadyAdded) {
               const [orgStreetAddress1, orgStreetAddress2] = (
                 BillingStreet ?? "\n"
               ).split("\n");
 
               array.push({
                 org_number: jsonOrg.org_number,
-                org_type: {
-                  existingBusOwner,
-                  newBusOwner,
-                  // privateFleet: false,
-                },
+                org_type: jsonOrg.org_type,
                 // _org_typeCombined: "", // NOTE: 'Existing Bus Owner, New Bus Owner'
                 _org_id: orgId,
                 org_name: orgName,
