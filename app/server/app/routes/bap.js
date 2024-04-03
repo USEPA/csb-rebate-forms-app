@@ -8,7 +8,7 @@ const {
 } = require("../utilities/bap");
 const log = require("../utilities/logger");
 
-const { FORMIO_BAP_DUPLICATES_API_KEY } = process.env;
+const { FORMIO_DUPLICATES_API_KEY } = process.env;
 
 const router = express.Router();
 
@@ -16,7 +16,7 @@ const router = express.Router();
 router.post("/duplicates", (req, res) => {
   const apiKey = req.headers["x-api-key"];
 
-  if (apiKey !== FORMIO_BAP_DUPLICATES_API_KEY) {
+  if (apiKey !== FORMIO_DUPLICATES_API_KEY) {
     const message = `Incorrect or missing Formio BAP Duplicates API key provided.`;
     log({ level: "error", message, req });
 
