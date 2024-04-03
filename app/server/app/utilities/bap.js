@@ -1396,16 +1396,9 @@ async function queryBapForDuplicates(req) {
   /** @type {{ bapConnection: jsforce.Connection }} */
   const { bapConnection } = req.app.locals;
 
-  return bapConnection.apex.post("/v2/recordMatcher/", body, (err, res) => {
-    if (err) {
-      const logMessage = `BAP Error: ${err}.`;
-      log({ level: "error", message: logMessage, req });
+  const url = "/v2/recordMatcher/";
 
-      throw err;
-    }
-
-    return res;
-  });
+  return bapConnection.apex.post(url, body, (_err, res) => res);
 }
 
 /**
