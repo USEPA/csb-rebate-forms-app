@@ -286,6 +286,25 @@ const { submissionPeriodOpen } = require("../config/formio");
  * }} attributes
  */
 
+/**
+ * @typedef {Object.<string, {
+ *  dupeList: {
+ *    Id: string
+ *    dupeFound: {
+ *      RecordTypeId: string
+ *      FirstName: string
+ *      LastName: string
+ *      Title: string
+ *      Phone: string
+ *      Email: string
+ *      AccountId: string
+ *    },
+ *    dupeConfRating: number
+ *  dupeCount: number
+ * }[]
+ * }>} BapDuplicates
+ */
+
 const {
   SERVER_URL,
   BAP_CLIENT_ID,
@@ -1362,6 +1381,27 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
 }
 
 /**
+ * Uses cached JSforce connection to query the BAP for duplicate contacts or
+ * organizations.
+ *
+ * @param {express.Request} req
+ * @returns {Promise<BapDuplicates>}
+ */
+async function queryBapForDuplicates(req) {
+  const { body } = req;
+
+  const logMessage = `Querying the BAP for duplicates.`;
+  log({ level: "info", message: logMessage, req });
+
+  /** @type {{ bapConnection: jsforce.Connection }} */
+  const { bapConnection } = req.app.locals;
+
+  const url = "/v2/recordMatcher/";
+
+  return bapConnection.apex.post(url, body, (_err, res) => res);
+}
+
+/**
  * Verifies the BAP connection has been setup, then calls the provided callback
  * function with the provided arguments.
  *
@@ -1512,6 +1552,19 @@ function getBapDataFor2022CRF(req, frfReviewItemId, prfReviewItemId) {
 }
 
 /**
+ * Checks for duplicate contacts or organizations in the BAP.
+ *
+ * @param {express.Request} req
+ * @returns {ReturnType<queryBapForDuplicates>}
+ */
+function checkForBapDuplicates(req) {
+  return verifyBapConnection(req, {
+    name: queryBapForDuplicates,
+    args: [req],
+  });
+}
+
+/**
  * Returns a resolved or rejected promise, depending on if the given form's
  * submission period is open (as set via environment variables), and if the form
  * submission has the status of "Edits Requested" or not (as stored in and
@@ -1563,5 +1616,6 @@ module.exports = {
   getBapDataFor2022PRF,
   getBapDataFor2023PRF,
   getBapDataFor2022CRF,
+  checkForBapDuplicates,
   checkFormSubmissionPeriodAndBapStatus,
 };
