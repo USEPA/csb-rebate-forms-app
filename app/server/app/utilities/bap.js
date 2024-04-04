@@ -151,7 +151,7 @@ const { submissionPeriodOpen } = require("../config/formio");
  *    Phone: string
  *  } | null
  *  CSB_NCES_ID__c: string
- *  School_District_Prioritized__c: string
+ *  Org_District_Prioritized__c: string
  *  Self_Certification_Category__c: string
  *  Prioritized_as_High_Need__c: string
  *  Prioritized_as_Tribal__c: string
@@ -886,7 +886,7 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
   //   School_District_Contact__r.Email,
   //   School_District_Contact__r.Phone,
   //   CSB_NCES_ID__c,
-  //   School_District_Prioritized__c,
+  //   Org_District_Prioritized__c,
   //   Self_Certification_Category__c,
   //   Prioritized_as_High_Need__c,
   //   Prioritized_as_Tribal__c,
@@ -937,7 +937,7 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
         "School_District_Contact__r.Email": 1,
         "School_District_Contact__r.Phone": 1,
         CSB_NCES_ID__c: 1,
-        School_District_Prioritized__c: 1,
+        Org_District_Prioritized__c: 1,
         Self_Certification_Category__c: 1,
         Prioritized_as_High_Need__c: 1,
         Prioritized_as_Tribal__c: 1,
