@@ -94,6 +94,36 @@ router.get("/formio/submission/:rebateYear/:formType/:id", (req, res) => {
   });
 });
 
+// --- get all actions associated with a form's submission from Formio
+router.get("/formio/actions/:formId/:mongoId", (req, res) => {
+  const { formId, mongoId } = req.params;
+
+  /** NOTE: verifyMongoObjectId */
+  if (!ObjectId.isValid(formId)) {
+    const errorStatus = 400;
+    const errorMessage = `MongoDB ObjectId validation error for: '${formId}'.`;
+    return res.status(errorStatus).json({ message: errorMessage });
+  }
+
+  /** NOTE: verifyMongoObjectId */
+  if (!ObjectId.isValid(mongoId)) {
+    const errorStatus = 400;
+    const errorMessage = `MongoDB ObjectId validation error for: '${mongoId}'.`;
+    return res.status(errorStatus).json({ message: errorMessage });
+  }
+
+  axiosFormio(req)
+    .get(`${formioProjectUrl}/action?form=${formId}&submission=${mongoId}`)
+    .then((axiosRes) => axiosRes.data)
+    .then((actions) => res.json(actions))
+    .catch((error) => {
+      // NOTE: error is logged in axiosFormio response interceptor
+      const errorStatus = error.response?.status || 500;
+      const errorMessage = `Error getting Formio submission actions.`;
+      return res.status(errorStatus).json({ message: errorMessage });
+    });
+});
+
 // --- get a PDF of an existing form's submission from Formio
 router.get("/formio/pdf/:formId/:mongoId", (req, res) => {
   const { formId, mongoId } = req.params;
