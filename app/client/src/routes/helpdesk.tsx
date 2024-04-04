@@ -52,6 +52,29 @@ type ServerResponse =
       bap: BapSubmission;
     };
 
+type SubmissionAction = {
+  _id: string; // MongoDB ObjectId string
+  title: "Save Submission" | "CSB - Email Notification";
+  form: string; // MongoDB ObjectId string
+  submission: string; // MongoDB ObjectId string
+  action: "save" | "email";
+  handler: "before" | "after";
+  method: "update";
+  project: string; // MongoDB ObjectId string
+  state: "complete";
+  messages: {
+    datetime: string; // ISO 8601 date time string
+    info:
+      | "Starting Action"
+      | "Action Resolved (no longer blocking)"
+      | "Sending message"
+      | "Message Sent";
+    data: Record<string, never>;
+  }[];
+  created: string; // ISO 8601 date time string
+  modified: string; // ISO 8601 date time string
+};
+
 function formatDate(dateTimeString: string | null) {
   return dateTimeString ? new Date(dateTimeString).toLocaleDateString() : "";
 }
@@ -73,21 +96,37 @@ function ResultTableRow(props: {
   const { lastSearchedText, formType, formio, bap } = props;
   const { rebateYear } = useRebateYearState();
 
+  const formId = formio.form;
+  const mongoId = formio._id;
+
   const queryClient = useQueryClient();
 
   useEffect(() => {
+    queryClient.resetQueries({ queryKey: ["helpdesk/actions"] });
     queryClient.resetQueries({ queryKey: ["helpdesk/pdf"] });
   }, [queryClient]);
 
-  const [downloadPending, setDownloadPending] = useState(false);
+  const [actionsResultsPending, setActionsResultsPending] = useState(false);
+  const [pdfDownloadPending, setPDFDownloadPending] = useState(false);
 
-  const url = `${serverUrl}/api/help/formio/pdf/${formio.form}/${formio._id}`;
+  const actionsUrl = `${serverUrl}/api/help/formio/actions/${formId}/${mongoId}`;
+  const pdfUrl = `${serverUrl}/api/help/formio/pdf/${formId}/${mongoId}`;
 
-  const query = useQuery({
-    queryKey: ["helpdesk/pdf"],
-    queryFn: () => getData<string>(url),
+  const actionsQuery = useQuery({
+    queryKey: ["helpdesk/actions"],
+    queryFn: () => getData<SubmissionAction[]>(actionsUrl),
     onSuccess: (res) => {
-      setDownloadPending(false);
+      console.log(res); // TODO
+      setActionsResultsPending(false);
+    },
+    enabled: false,
+  });
+
+  const pdfQuery = useQuery({
+    queryKey: ["helpdesk/pdf"],
+    queryFn: () => getData<string>(pdfUrl),
+    onSuccess: (res) => {
+      setPDFDownloadPending(false);
       const link = document.createElement("a");
       link.setAttribute("href", `data:application/pdf;base64,${res}`);
       link.setAttribute("download", `${formio._id}.pdf`);
@@ -126,12 +165,35 @@ function ResultTableRow(props: {
         <span title={`${date} ${time}`}>{date}</span>
       </td>
 
+      <td>
+        <button
+          className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
+          onClick={(_ev) => {
+            setActionsResultsPending(true);
+            actionsQuery.refetch();
+          }}
+        >
+          <span className="display-flex flex-align-center">
+            <svg
+              className="usa-icon"
+              aria-hidden="true"
+              focusable="false"
+              role="img"
+            >
+              <use href={`${icons}#history`} />
+            </svg>
+            <span className="margin-left-1">Actions</span>
+            {actionsResultsPending && <LoadingButtonIcon position="end" />}
+          </span>
+        </button>
+      </td>
+
       <td className={clsx("!tw-text-right")}>
         <button
           className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
           onClick={(_ev) => {
-            setDownloadPending(true);
-            query.refetch();
+            setPDFDownloadPending(true);
+            pdfQuery.refetch();
           }}
         >
           <span className="display-flex flex-align-center">
@@ -144,7 +206,7 @@ function ResultTableRow(props: {
               <use href={`${icons}#arrow_downward`} />
             </svg>
             <span className="margin-left-1">Download</span>
-            {downloadPending && <LoadingButtonIcon position="end" />}
+            {pdfDownloadPending && <LoadingButtonIcon position="end" />}
           </span>
         </button>
       </td>
@@ -396,6 +458,13 @@ export function Helpdesk() {
                     <TextWithTooltip
                       text="Date Updated"
                       tooltip="Last date this form was updated"
+                    />
+                  </th>
+
+                  <th scope="col">
+                    <TextWithTooltip
+                      text="Actions"
+                      tooltip="View all actions associated with this submission"
                     />
                   </th>
 
