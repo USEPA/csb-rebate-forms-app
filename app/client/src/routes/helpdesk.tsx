@@ -106,9 +106,6 @@ function ResultTableRow(props: {
     queryClient.resetQueries({ queryKey: ["helpdesk/pdf"] });
   }, [queryClient]);
 
-  const [actionsResultsPending, setActionsResultsPending] = useState(false);
-  const [pdfDownloadPending, setPDFDownloadPending] = useState(false);
-
   const actionsUrl = `${serverUrl}/api/help/formio/actions/${formId}/${mongoId}`;
   const pdfUrl = `${serverUrl}/api/help/formio/pdf/${formId}/${mongoId}`;
 
@@ -117,7 +114,6 @@ function ResultTableRow(props: {
     queryFn: () => getData<SubmissionAction[]>(actionsUrl),
     onSuccess: (res) => {
       console.log(res); // TODO
-      setActionsResultsPending(false);
     },
     enabled: false,
   });
@@ -126,7 +122,6 @@ function ResultTableRow(props: {
     queryKey: ["helpdesk/pdf"],
     queryFn: () => getData<string>(pdfUrl),
     onSuccess: (res) => {
-      setPDFDownloadPending(false);
       const link = document.createElement("a");
       link.setAttribute("href", `data:application/pdf;base64,${res}`);
       link.setAttribute("download", `${formio._id}.pdf`);
@@ -168,10 +163,9 @@ function ResultTableRow(props: {
       <td>
         <button
           className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-          onClick={(_ev) => {
-            setActionsResultsPending(true);
-            actionsQuery.refetch();
-          }}
+          type="button"
+          disabled={actionsQuery.isFetching || actionsQuery.isSuccess}
+          onClick={(_ev) => actionsQuery.refetch()}
         >
           <span className="display-flex flex-align-center">
             <svg
@@ -183,7 +177,7 @@ function ResultTableRow(props: {
               <use href={`${icons}#history`} />
             </svg>
             <span className="margin-left-1">Actions</span>
-            {actionsResultsPending && <LoadingButtonIcon position="end" />}
+            {actionsQuery.isFetching && <LoadingButtonIcon position="end" />}
           </span>
         </button>
       </td>
@@ -191,10 +185,9 @@ function ResultTableRow(props: {
       <td className={clsx("!tw-text-right")}>
         <button
           className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-          onClick={(_ev) => {
-            setPDFDownloadPending(true);
-            pdfQuery.refetch();
-          }}
+          type="button"
+          disabled={pdfQuery.isFetching}
+          onClick={(_ev) => pdfQuery.refetch()}
         >
           <span className="display-flex flex-align-center">
             <svg
@@ -206,7 +199,7 @@ function ResultTableRow(props: {
               <use href={`${icons}#arrow_downward`} />
             </svg>
             <span className="margin-left-1">Download</span>
-            {pdfDownloadPending && <LoadingButtonIcon position="end" />}
+            {pdfQuery.isFetching && <LoadingButtonIcon position="end" />}
           </span>
         </button>
       </td>
