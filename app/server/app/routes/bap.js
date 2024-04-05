@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require("cors");
 // ---
 const { ensureAuthenticated, storeBapComboKeys } = require("../middleware");
 const {
@@ -13,12 +14,7 @@ const { FORMIO_DUPLICATES_API_KEY } = process.env;
 const router = express.Router();
 
 // --- check for duplicate contacts or organizations in the BAP.
-router.post("/duplicates", (req, res) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  res.setHeader("Access-Control-Allow-Credentials", true);
-
+router.post("/duplicates", cors(), (req, res) => {
   const apiKey = req.headers["x-api-key"];
 
   if (apiKey !== FORMIO_DUPLICATES_API_KEY) {
