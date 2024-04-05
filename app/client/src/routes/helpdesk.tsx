@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { Form } from "@formio/react";
@@ -84,6 +84,7 @@ function formatTime(dateTimeString: string | null) {
 }
 
 function ResultTableRow(props: {
+  setActionsData: Dispatch<SetStateAction<SubmissionAction[]>>;
   lastSearchedText: string;
   formType: FormType;
   formio:
@@ -93,7 +94,7 @@ function ResultTableRow(props: {
     | FormioFRF2023Submission;
   bap: BapSubmission;
 }) {
-  const { lastSearchedText, formType, formio, bap } = props;
+  const { setActionsData, lastSearchedText, formType, formio, bap } = props;
   const { rebateYear } = useRebateYearState();
 
   const formId = formio.form;
@@ -112,9 +113,7 @@ function ResultTableRow(props: {
   const actionsQuery = useQuery({
     queryKey: ["helpdesk/actions"],
     queryFn: () => getData<SubmissionAction[]>(actionsUrl),
-    onSuccess: (res) => {
-      console.log(res); // TODO
-    },
+    onSuccess: (res) => setActionsData(res),
     enabled: false,
   });
 
@@ -221,21 +220,22 @@ export function Helpdesk() {
   const [lastSearchedText, setLastSearchedText] = useState("");
   const [resultDisplayed, setResultDisplayed] = useState(false);
   const [formDisplayed, setFormDisplayed] = useState(false);
+  const [actionsData, setActionsData] = useState<SubmissionAction[]>([]);
 
   useEffect(() => {
     queryClient.resetQueries({ queryKey: ["helpdesk/submission"] });
   }, [queryClient]);
 
-  const url = `${serverUrl}/api/help/formio/submission/${rebateYear}/${formType}/${searchText}`;
+  const submissionUrl = `${serverUrl}/api/help/formio/submission/${rebateYear}/${formType}/${searchText}`;
 
-  const query = useQuery({
+  const submissionQuery = useQuery({
     queryKey: ["helpdesk/submission"],
-    queryFn: () => getData<ServerResponse>(url),
+    queryFn: () => getData<ServerResponse>(submissionUrl),
     onSuccess: (_res) => setResultDisplayed(true),
     enabled: false,
   });
 
-  const { formSchema, formio, bap } = query.data ?? {};
+  const { formSchema, formio, bap } = submissionQuery.data ?? {};
 
   if (helpdeskAccess === "pending") {
     return <Loading />;
@@ -367,7 +367,8 @@ export function Helpdesk() {
               if (searchText === "") return;
               setLastSearchedText(searchText);
               setFormDisplayed(false);
-              query.refetch();
+              setActionsData([]);
+              submissionQuery.refetch();
             }}
           >
             <label className="usa-sr-only" htmlFor="search-submissions-by-id">
@@ -393,15 +394,15 @@ export function Helpdesk() {
         </div>
       </div>
 
-      {query.isFetching ? (
+      {submissionQuery.isFetching ? (
         <Loading />
-      ) : query.isError ? (
+      ) : submissionQuery.isError ? (
         <Message type="error" text={messages.helpdeskSubmissionSearchError} />
-      ) : query.isSuccess && !!formio && !!bap && resultDisplayed ? (
+      ) : submissionQuery.isSuccess && !!formio && !!bap && resultDisplayed ? (
         <>
           <div className="usa-table-container--scrollable" tabIndex={0}>
             <table
-              aria-label="Application Form Search Results"
+              aria-label="Submission Search Results"
               className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full"
             >
               <thead>
@@ -492,6 +493,7 @@ export function Helpdesk() {
                   </th>
 
                   <ResultTableRow
+                    setActionsData={setActionsData}
                     lastSearchedText={lastSearchedText}
                     formType={formType}
                     formio={formio}
@@ -501,6 +503,34 @@ export function Helpdesk() {
               </tbody>
             </table>
           </div>
+
+          {actionsData.length !== 0 && (
+            <>
+              <div className="usa-table-container--scrollable" tabIndex={0}>
+                <table
+                  aria-label="Submission Actions"
+                  className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full"
+                >
+                  <thead>
+                    <tr className="font-sans-2xs text-no-wrap">
+                      <th scope="col">TODO</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {actionsData.map((action) => {
+                      console.log(action);
+                      return (
+                        <tr key={action._id}>
+                          <th scope="row">TODO</th>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
 
           {formDisplayed && !!formSchema && (
             <>
