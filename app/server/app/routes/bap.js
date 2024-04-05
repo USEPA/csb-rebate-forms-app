@@ -14,6 +14,7 @@ const { FORMIO_DUPLICATES_API_KEY } = process.env;
 const router = express.Router();
 
 // --- check for duplicate contacts or organizations in the BAP.
+router.options("/duplicates", cors()); // enable pre-flight request
 router.post("/duplicates", cors(), (req, res) => {
   const apiKey = req.headers["x-api-key"];
 
