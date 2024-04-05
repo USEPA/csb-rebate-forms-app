@@ -14,6 +14,11 @@ const router = express.Router();
 
 // --- check for duplicate contacts or organizations in the BAP.
 router.post("/duplicates", (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Credentials", true);
+
   const apiKey = req.headers["x-api-key"];
 
   if (apiKey !== FORMIO_DUPLICATES_API_KEY) {
