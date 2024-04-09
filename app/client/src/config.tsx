@@ -52,6 +52,8 @@ export const messages = {
     "Please select the “New Application” button above to create your first rebate application.",
   helpdeskSubmissionSearchError:
     "Error loading form submission. Please confirm the form type and ID is correct and search again.",
+  helpdeskSubmissionNoActions:
+    "No actions from the last 30 days associated with this submission.",
   timeout:
     "For security reasons, you have been logged out due to 15 minutes of inactivity.",
   logout: "You have successfully logged out.",

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { Form } from "@formio/react";
@@ -52,6 +52,36 @@ type ServerResponse =
       bap: BapSubmission;
     };
 
+type SubmissionAction = {
+  _id: string; // MongoDB ObjectId string
+  title: "Save Submission" | "CSB - Email Notification";
+  form: string; // MongoDB ObjectId string
+  submission: string; // MongoDB ObjectId string
+  action: "save" | "email";
+  handler: "before" | "after";
+  method: "update";
+  project: string; // MongoDB ObjectId string
+  state: "complete";
+  messages: {
+    datetime: string; // ISO 8601 date time string
+    info:
+      | "Starting Action"
+      | "Action Resolved (no longer blocking)"
+      | "Sending message"
+      | "Message Sent";
+    data: Record<string, never>;
+  }[];
+  created: string; // ISO 8601 date time string
+  modified: string; // ISO 8601 date time string
+};
+
+/**
+ * Formio action mapping (practically, just capitalizes "save" or "email").
+ */
+const formioActionMap = new Map<string, string>()
+  .set("save", "Save")
+  .set("email", "Email");
+
 function formatDate(dateTimeString: string | null) {
   return dateTimeString ? new Date(dateTimeString).toLocaleDateString() : "";
 }
@@ -61,6 +91,9 @@ function formatTime(dateTimeString: string | null) {
 }
 
 function ResultTableRow(props: {
+  setActionsData: Dispatch<
+    SetStateAction<{ fetched: boolean; results: SubmissionAction[] }>
+  >;
   lastSearchedText: string;
   formType: FormType;
   formio:
@@ -70,24 +103,33 @@ function ResultTableRow(props: {
     | FormioFRF2023Submission;
   bap: BapSubmission;
 }) {
-  const { lastSearchedText, formType, formio, bap } = props;
+  const { setActionsData, lastSearchedText, formType, formio, bap } = props;
   const { rebateYear } = useRebateYearState();
+
+  const formId = formio.form;
+  const mongoId = formio._id;
 
   const queryClient = useQueryClient();
 
   useEffect(() => {
+    queryClient.resetQueries({ queryKey: ["helpdesk/actions"] });
     queryClient.resetQueries({ queryKey: ["helpdesk/pdf"] });
   }, [queryClient]);
 
-  const [downloadPending, setDownloadPending] = useState(false);
+  const actionsUrl = `${serverUrl}/api/help/formio/actions/${formId}/${mongoId}`;
+  const pdfUrl = `${serverUrl}/api/help/formio/pdf/${formId}/${mongoId}`;
 
-  const url = `${serverUrl}/api/help/formio/pdf/${formio.form}/${formio._id}`;
+  const actionsQuery = useQuery({
+    queryKey: ["helpdesk/actions"],
+    queryFn: () => getData<SubmissionAction[]>(actionsUrl),
+    onSuccess: (res) => setActionsData({ fetched: true, results: res }),
+    enabled: false,
+  });
 
-  const query = useQuery({
+  const pdfQuery = useQuery({
     queryKey: ["helpdesk/pdf"],
-    queryFn: () => getData<string>(url),
+    queryFn: () => getData<string>(pdfUrl),
     onSuccess: (res) => {
-      setDownloadPending(false);
       const link = document.createElement("a");
       link.setAttribute("href", `data:application/pdf;base64,${res}`);
       link.setAttribute("download", `${formio._id}.pdf`);
@@ -126,13 +168,34 @@ function ResultTableRow(props: {
         <span title={`${date} ${time}`}>{date}</span>
       </td>
 
+      <td>
+        <button
+          className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
+          type="button"
+          disabled={actionsQuery.isFetching || actionsQuery.isSuccess}
+          onClick={(_ev) => actionsQuery.refetch()}
+        >
+          <span className="display-flex flex-align-center">
+            <svg
+              className="usa-icon"
+              aria-hidden="true"
+              focusable="false"
+              role="img"
+            >
+              <use href={`${icons}#history`} />
+            </svg>
+            <span className="margin-left-1">Actions</span>
+            {actionsQuery.isFetching && <LoadingButtonIcon position="end" />}
+          </span>
+        </button>
+      </td>
+
       <td className={clsx("!tw-text-right")}>
         <button
           className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-          onClick={(_ev) => {
-            setDownloadPending(true);
-            query.refetch();
-          }}
+          type="button"
+          disabled={pdfQuery.isFetching}
+          onClick={(_ev) => pdfQuery.refetch()}
         >
           <span className="display-flex flex-align-center">
             <svg
@@ -144,7 +207,7 @@ function ResultTableRow(props: {
               <use href={`${icons}#arrow_downward`} />
             </svg>
             <span className="margin-left-1">Download</span>
-            {downloadPending && <LoadingButtonIcon position="end" />}
+            {pdfQuery.isFetching && <LoadingButtonIcon position="end" />}
           </span>
         </button>
       </td>
@@ -166,21 +229,25 @@ export function Helpdesk() {
   const [lastSearchedText, setLastSearchedText] = useState("");
   const [resultDisplayed, setResultDisplayed] = useState(false);
   const [formDisplayed, setFormDisplayed] = useState(false);
+  const [actionsData, setActionsData] = useState<{
+    fetched: boolean;
+    results: SubmissionAction[];
+  }>({ fetched: false, results: [] });
 
   useEffect(() => {
     queryClient.resetQueries({ queryKey: ["helpdesk/submission"] });
   }, [queryClient]);
 
-  const url = `${serverUrl}/api/help/formio/submission/${rebateYear}/${formType}/${searchText}`;
+  const submissionUrl = `${serverUrl}/api/help/formio/submission/${rebateYear}/${formType}/${searchText}`;
 
-  const query = useQuery({
+  const submissionQuery = useQuery({
     queryKey: ["helpdesk/submission"],
-    queryFn: () => getData<ServerResponse>(url),
+    queryFn: () => getData<ServerResponse>(submissionUrl),
     onSuccess: (_res) => setResultDisplayed(true),
     enabled: false,
   });
 
-  const { formSchema, formio, bap } = query.data ?? {};
+  const { formSchema, formio, bap } = submissionQuery.data ?? {};
 
   if (helpdeskAccess === "pending") {
     return <Loading />;
@@ -312,7 +379,8 @@ export function Helpdesk() {
               if (searchText === "") return;
               setLastSearchedText(searchText);
               setFormDisplayed(false);
-              query.refetch();
+              setActionsData({ fetched: false, results: [] });
+              submissionQuery.refetch();
             }}
           >
             <label className="usa-sr-only" htmlFor="search-submissions-by-id">
@@ -338,15 +406,15 @@ export function Helpdesk() {
         </div>
       </div>
 
-      {query.isFetching ? (
+      {submissionQuery.isFetching ? (
         <Loading />
-      ) : query.isError ? (
+      ) : submissionQuery.isError ? (
         <Message type="error" text={messages.helpdeskSubmissionSearchError} />
-      ) : query.isSuccess && !!formio && !!bap && resultDisplayed ? (
+      ) : submissionQuery.isSuccess && !!formio && !!bap && resultDisplayed ? (
         <>
           <div className="usa-table-container--scrollable" tabIndex={0}>
             <table
-              aria-label="Application Form Search Results"
+              aria-label="Submission Search Results"
               className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full"
             >
               <thead>
@@ -399,6 +467,13 @@ export function Helpdesk() {
                     />
                   </th>
 
+                  <th scope="col">
+                    <TextWithTooltip
+                      text="Actions"
+                      tooltip="View all actions from the last 30 days associated with this submission"
+                    />
+                  </th>
+
                   <th scope="col" className={clsx("tw-text-right")}>
                     <TextWithTooltip
                       text="Download PDF"
@@ -430,6 +505,7 @@ export function Helpdesk() {
                   </th>
 
                   <ResultTableRow
+                    setActionsData={setActionsData}
                     lastSearchedText={lastSearchedText}
                     formType={formType}
                     formio={formio}
@@ -439,6 +515,51 @@ export function Helpdesk() {
               </tbody>
             </table>
           </div>
+
+          {actionsData.fetched && (
+            <>
+              {actionsData.results.length === 0 ? (
+                <Message
+                  type="info"
+                  text={messages.helpdeskSubmissionNoActions}
+                />
+              ) : (
+                <div className="usa-table-container--scrollable" tabIndex={0}>
+                  <table
+                    aria-label="Submission Actions"
+                    className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full"
+                  >
+                    <thead>
+                      <tr className="font-sans-2xs text-no-wrap">
+                        <th scope="col">Date</th>
+                        <th scope="col">Time</th>
+                        <th scope="col">Action</th>
+                        <th scope="col">Status</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {actionsData.results.map((data) => {
+                        const { _id, action, messages } = data;
+                        const event = messages[messages.length - 1];
+                        const { datetime, info } = event;
+                        const date = new Date(datetime).toLocaleDateString();
+                        const time = new Date(datetime).toLocaleTimeString();
+                        return (
+                          <tr key={_id}>
+                            <th scope="row">{date}</th>
+                            <td>{time}</td>
+                            <td>{formioActionMap.get(action) || action}</td>
+                            <td>{info}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
+          )}
 
           {formDisplayed && !!formSchema && (
             <>
