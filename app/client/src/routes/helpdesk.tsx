@@ -91,7 +91,9 @@ function formatTime(dateTimeString: string | null) {
 }
 
 function ResultTableRow(props: {
-  setActionsData: Dispatch<SetStateAction<SubmissionAction[]>>;
+  setActionsData: Dispatch<
+    SetStateAction<{ fetched: boolean; results: SubmissionAction[] }>
+  >;
   lastSearchedText: string;
   formType: FormType;
   formio:
@@ -120,7 +122,7 @@ function ResultTableRow(props: {
   const actionsQuery = useQuery({
     queryKey: ["helpdesk/actions"],
     queryFn: () => getData<SubmissionAction[]>(actionsUrl),
-    onSuccess: (res) => setActionsData(res),
+    onSuccess: (res) => setActionsData({ fetched: true, results: res }),
     enabled: false,
   });
 
@@ -227,7 +229,10 @@ export function Helpdesk() {
   const [lastSearchedText, setLastSearchedText] = useState("");
   const [resultDisplayed, setResultDisplayed] = useState(false);
   const [formDisplayed, setFormDisplayed] = useState(false);
-  const [actionsData, setActionsData] = useState<SubmissionAction[]>([]);
+  const [actionsData, setActionsData] = useState<{
+    fetched: boolean;
+    results: SubmissionAction[];
+  }>({ fetched: false, results: [] });
 
   useEffect(() => {
     queryClient.resetQueries({ queryKey: ["helpdesk/submission"] });
@@ -374,7 +379,7 @@ export function Helpdesk() {
               if (searchText === "") return;
               setLastSearchedText(searchText);
               setFormDisplayed(false);
-              setActionsData([]);
+              setActionsData({ fetched: false, results: [] });
               submissionQuery.refetch();
             }}
           >
@@ -465,7 +470,7 @@ export function Helpdesk() {
                   <th scope="col">
                     <TextWithTooltip
                       text="Actions"
-                      tooltip="View all actions associated with this submission"
+                      tooltip="View all actions from the last 30 days associated with this submission"
                     />
                   </th>
 
@@ -511,41 +516,48 @@ export function Helpdesk() {
             </table>
           </div>
 
-          {actionsData.length !== 0 && (
+          {actionsData.fetched && (
             <>
-              <div className="usa-table-container--scrollable" tabIndex={0}>
-                <table
-                  aria-label="Submission Actions"
-                  className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full"
-                >
-                  <thead>
-                    <tr className="font-sans-2xs text-no-wrap">
-                      <th scope="col">Date</th>
-                      <th scope="col">Time</th>
-                      <th scope="col">Action</th>
-                      <th scope="col">Status</th>
-                    </tr>
-                  </thead>
+              {actionsData.results.length === 0 ? (
+                <Message
+                  type="info"
+                  text={messages.helpdeskSubmissionNoActions}
+                />
+              ) : (
+                <div className="usa-table-container--scrollable" tabIndex={0}>
+                  <table
+                    aria-label="Submission Actions"
+                    className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full"
+                  >
+                    <thead>
+                      <tr className="font-sans-2xs text-no-wrap">
+                        <th scope="col">Date</th>
+                        <th scope="col">Time</th>
+                        <th scope="col">Action</th>
+                        <th scope="col">Status</th>
+                      </tr>
+                    </thead>
 
-                  <tbody>
-                    {actionsData.map((data) => {
-                      const { _id, action, messages } = data;
-                      const event = messages[messages.length - 1];
-                      const { datetime, info } = event;
-                      const date = new Date(datetime).toLocaleDateString();
-                      const time = new Date(datetime).toLocaleTimeString();
-                      return (
-                        <tr key={_id}>
-                          <th scope="row">{date}</th>
-                          <td>{time}</td>
-                          <td>{formioActionMap.get(action) || action}</td>
-                          <td>{info}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                    <tbody>
+                      {actionsData.results.map((data) => {
+                        const { _id, action, messages } = data;
+                        const event = messages[messages.length - 1];
+                        const { datetime, info } = event;
+                        const date = new Date(datetime).toLocaleDateString();
+                        const time = new Date(datetime).toLocaleTimeString();
+                        return (
+                          <tr key={_id}>
+                            <th scope="row">{date}</th>
+                            <td>{time}</td>
+                            <td>{formioActionMap.get(action) || action}</td>
+                            <td>{info}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </>
           )}
 
