@@ -75,6 +75,13 @@ type SubmissionAction = {
   modified: string; // ISO 8601 date time string
 };
 
+/**
+ * Formio action mapping (practically, just capitalizes "save" or "email").
+ */
+const formioActionMap = new Map<string, string>()
+  .set("save", "Save")
+  .set("email", "Email");
+
 function formatDate(dateTimeString: string | null) {
   return dateTimeString ? new Date(dateTimeString).toLocaleDateString() : "";
 }
@@ -513,16 +520,26 @@ export function Helpdesk() {
                 >
                   <thead>
                     <tr className="font-sans-2xs text-no-wrap">
-                      <th scope="col">TODO</th>
+                      <th scope="col">Date</th>
+                      <th scope="col">Time</th>
+                      <th scope="col">Action</th>
+                      <th scope="col">Status</th>
                     </tr>
                   </thead>
 
                   <tbody>
-                    {actionsData.map((action) => {
-                      console.log(action);
+                    {actionsData.map((data) => {
+                      const { _id, action, messages } = data;
+                      const event = messages[messages.length - 1];
+                      const { datetime, info } = event;
+                      const date = new Date(datetime).toLocaleDateString();
+                      const time = new Date(datetime).toLocaleTimeString();
                       return (
-                        <tr key={action._id}>
-                          <th scope="row">TODO</th>
+                        <tr key={_id}>
+                          <th scope="row">{date}</th>
+                          <td>{time}</td>
+                          <td>{formioActionMap.get(action) || action}</td>
+                          <td>{info}</td>
                         </tr>
                       );
                     })}
