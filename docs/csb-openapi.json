@@ -1368,6 +1368,18 @@
         "tags": [],
         "parameters": []
       }
+    },
+    "/api/status/formio/2023/prf": {
+      "get": {
+        "summary": "/api/status/formio/2023/prf",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [],
+        "parameters": []
+      }
     }
   },
   "tags": [],
