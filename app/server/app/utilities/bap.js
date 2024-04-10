@@ -8,6 +8,7 @@ const { submissionPeriodOpen } = require("../config/formio");
 
 /**
  * @typedef {Object} BapSamEntity
+ * @property {string} Id
  * @property {string} ENTITY_COMBO_KEY__c
  * @property {string} ENTITY_STATUS__c
  * @property {string} UNIQUE_ENTITY_ID__c
@@ -44,7 +45,13 @@ const { submissionPeriodOpen } = require("../config/formio");
  * @property {string} CSB_Modified_Full_String__c
  * @property {string} CSB_Review_Item_ID__c
  * @property {string} Parent_Rebate_ID__c
- * @property {string} Record_Type_Name__c
+ * @property {'CSB Funding Request'
+ *  | 'CSB Payment Request'
+ *  | 'CSB Close Out Request'
+ *  | 'CSB Funding Request 2023'
+ *  | 'CSB Payment Request 2023'
+ *  | 'CSB Close Out Request 2023'
+ * } Record_Type_Name__c
  * @property {string | null} Rebate_Program_Year__c
  * @property {{
  *  CSB_Funding_Request_Status__c: string
@@ -104,7 +111,15 @@ const { submissionPeriodOpen } = require("../config/formio");
  * @typedef {Object} BapDataFor2023PRF
  * @property {{
  *  Id: string
+ *  CSB_Snapshot__r: {
+ *    JSON_Snapshot__c: string
+ *  }
+ *  Applicant_Organization__r: {
+ *    Id: string
+ *    County__c: string
+ *  }
  *  Primary_Applicant__r: {
+ *    Id: string
  *    FirstName: string
  *    LastName: string
  *    Title: string
@@ -112,6 +127,7 @@ const { submissionPeriodOpen } = require("../config/formio");
  *    Phone: string
  *  } | null
  *  Alternate_Applicant__r: {
+ *    Id: string
  *    FirstName: string
  *    LastName: string
  *    Title: string
@@ -119,6 +135,7 @@ const { submissionPeriodOpen } = require("../config/formio");
  *    Phone: string
  *  } | null
  *  CSB_School_District__r: {
+ *    Id: string
  *    Name: string
  *    BillingStreet: string
  *    BillingCity: string
@@ -126,6 +143,7 @@ const { submissionPeriodOpen } = require("../config/formio");
  *    BillingPostalCode: string
  *  } | null
  *  School_District_Contact__r: {
+ *    Id: string
  *    FirstName: string
  *    LastName: string
  *    Title: string
@@ -133,7 +151,7 @@ const { submissionPeriodOpen } = require("../config/formio");
  *    Phone: string
  *  } | null
  *  CSB_NCES_ID__c: string
- *  School_District_Prioritized__c: string
+ *  Org_District_Prioritized__c: string
  *  Self_Certification_Category__c: string
  *  Prioritized_as_High_Need__c: string
  *  Prioritized_as_Tribal__c: string
@@ -164,10 +182,22 @@ const { submissionPeriodOpen } = require("../config/formio");
  *  Id: string
  *  Related_Line_Item__c: string
  *  Relationship_Type__c: string
- *  Contact_Organization_Name__c: string
  *  Contact__r: {
+ *    Id: string
  *    FirstName: string
  *    LastName: string
+ *    Title: string
+ *    Email: string
+ *    Phone: string
+ *    Account: {
+ *      Id: string
+ *      Name: string
+ *      BillingStreet: string
+ *      BillingCity: string
+ *      BillingState: string
+ *      BillingPostalCode: string
+ *      County__c: string
+ *    }
  *  } | null
  * }[]} frf2023BusRecordsContactsQueries
  * @property {{
@@ -256,6 +286,25 @@ const { submissionPeriodOpen } = require("../config/formio");
  * }} attributes
  */
 
+/**
+ * @typedef {Object.<string, {
+ *  dupeList: {
+ *    Id: string
+ *    dupeFound: {
+ *      RecordTypeId: string
+ *      FirstName: string
+ *      LastName: string
+ *      Title: string
+ *      Phone: string
+ *      Email: string
+ *      AccountId: string
+ *    },
+ *    dupeConfRating: number
+ *  dupeCount: number
+ * }[]
+ * }>} BapDuplicates
+ */
+
 const {
   SERVER_URL,
   BAP_CLIENT_ID,
@@ -267,9 +316,9 @@ const {
 
 /**
  * Sets up the BAP connection and stores it in the Express app's locals object.
- * @param {express.Application} app
+ * @param {express.Request} req
  */
-function setupConnection(app) {
+function setupConnection(req) {
   const bapConnection = new jsforce.Connection({
     oauth2: {
       clientId: BAP_CLIENT_ID,
@@ -283,14 +332,14 @@ function setupConnection(app) {
     .loginByOAuth2(BAP_USER, BAP_PASSWORD)
     .then((userInfo) => {
       const logMessage = `Initializing BAP connection: ${userInfo.url}.`;
-      log({ level: "info", message: logMessage });
+      log({ level: "info", message: logMessage, req });
 
-      /** Store bapConnection in global express object using app.locals. */
-      app.locals.bapConnection = bapConnection;
+      /** Store BAP connection in the Express app's locals object. */
+      req.app.locals.bapConnection = bapConnection;
     })
     .catch((err) => {
       const logMessage = `Error initializing BAP connection.`;
-      log({ level: "info", message: logMessage });
+      log({ level: "info", message: logMessage, req });
 
       throw err;
     });
@@ -305,12 +354,13 @@ function setupConnection(app) {
  */
 async function queryForSamEntities(req, email) {
   const logMessage = `Querying the BAP for SAM.gov entities for user with email: '${email}'.`;
-  log({ level: "info", message: logMessage });
+  log({ level: "info", message: logMessage, req });
 
-  /** @type {jsforce.Connection} */
+  /** @type {{ bapConnection: jsforce.Connection }} */
   const { bapConnection } = req.app.locals;
 
   // `SELECT
+  //   Id,
   //   ENTITY_COMBO_KEY__c,
   //   ENTITY_STATUS__c,
   //   UNIQUE_ENTITY_ID__c,
@@ -356,6 +406,7 @@ async function queryForSamEntities(req, email) {
       },
       {
         // "*": 1,
+        Id: 1,
         ENTITY_COMBO_KEY__c: 1,
         ENTITY_STATUS__c: 1,
         UNIQUE_ENTITY_ID__c: 1,
@@ -389,29 +440,42 @@ async function queryForSamEntities(req, email) {
  * statuses and related metadata.
  *
  * @param {express.Request} req
+ * @param {'2022' | '2023'} rebateYear
  * @param {'frf' | 'prf' | 'crf'} formType
  * @param {string | null} rebateId
  * @param {string | null} mongoId
  * @returns {Promise<BapFormSubmission | null>} fields associated a form submission
  */
-async function queryForBapFormSubmissionData(req, formType, rebateId, mongoId) {
+async function queryForBapFormSubmissionData(
+  req,
+  rebateYear,
+  formType,
+  rebateId,
+  mongoId,
+) {
   const logId = rebateId ? `rebateId: '${rebateId}'` : `mongoId: '${mongoId}'`;
   const logMessage =
     `Querying the BAP for ${formType.toUpperCase()} submission data ` +
     `associated with ${logId}.`;
-  log({ level: "info", message: logMessage });
+  log({ level: "info", message: logMessage, req });
 
-  /** @type {jsforce.Connection} */
+  /** @type {{ bapConnection: jsforce.Connection }} */
   const { bapConnection } = req.app.locals;
 
-  const developerName =
-    formType === "frf"
-      ? "CSB_Funding_Request"
-      : formType === "prf"
-      ? "CSB_Payment_Request"
-      : formType === "crf"
-      ? "CSB_Closeout_Request"
-      : null; // fallback
+  const developerNameField = {
+    2022: {
+      frf: "CSB_Funding_Request",
+      prf: "CSB_Payment_Request",
+      crf: "CSB_Closeout_Request",
+    },
+    2023: {
+      frf: "CSB_Funding_Request_2023",
+      prf: null, // "CSB_Payment_Request_2023"
+      crf: null, // "CSB_Closeout_Request_2023"
+    },
+  };
+
+  const developerName = developerNameField[rebateYear][formType];
 
   if (!developerName) return null;
 
@@ -448,6 +512,7 @@ async function queryForBapFormSubmissionData(req, formType, rebateId, mongoId) {
   //   CSB_Review_Item_ID__c,
   //   Parent_Rebate_ID__c,
   //   Record_Type_Name__c,
+  //   Rebate_Program_Year__c,
   //   Parent_CSB_Rebate__r.CSB_Funding_Request_Status__c,
   //   Parent_CSB_Rebate__r.CSB_Payment_Request_Status__c,
   //   Parent_CSB_Rebate__r.CSB_Closeout_Request_Status__c
@@ -474,7 +539,8 @@ async function queryForBapFormSubmissionData(req, formType, rebateId, mongoId) {
         CSB_Modified_Full_String__c: 1, // ISO 8601 date time string
         CSB_Review_Item_ID__c: 1, // CSB Rebate ID with form/version ID (9 digits)
         Parent_Rebate_ID__c: 1, // CSB Rebate ID (6 digits)
-        Record_Type_Name__c: 1, // 'CSB Funding Request' | 'CSB Payment Request' | 'CSB Close Out Request'
+        Record_Type_Name__c: 1, // 'CSB Funding Request' | 'CSB Payment Request' | 'CSB Close Out Request' | 'CSB Funding Request 2023' | 'CSB Payment Request 2023' | 'CSB Close Out Request 2023'
+        Rebate_Program_Year__c: 1, // '2022' | '2023'
         "Parent_CSB_Rebate__r.CSB_Funding_Request_Status__c": 1,
         "Parent_CSB_Rebate__r.CSB_Payment_Request_Status__c": 1,
         "Parent_CSB_Rebate__r.CSB_Closeout_Request_Status__c": 1,
@@ -490,16 +556,18 @@ async function queryForBapFormSubmissionData(req, formType, rebateId, mongoId) {
  * and related metadata.
  *
  * @param {express.Request} req
- * @param {string[]} comboKeys
  * @returns {Promise<BapFormSubmission[]>} collection of fields associated with each form submission
  */
-async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
+async function queryForBapFormSubmissionsStatuses(req) {
+  /** @type {{ bapComboKeys: string[] }} */
+  const { bapComboKeys } = req;
+
   const logMessage =
     `Querying the BAP for form submissions statuses associated with ` +
-    `combokeys: '${comboKeys}'.`;
-  log({ level: "info", message: logMessage });
+    `combokeys: '${bapComboKeys}'.`;
+  log({ level: "info", message: logMessage, req });
 
-  /** @type {jsforce.Connection} */
+  /** @type {{ bapConnection: jsforce.Connection }} */
   const { bapConnection } = req.app.locals;
 
   // `SELECT
@@ -507,7 +575,7 @@ async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
   // FROM
   //   Order_Request__c
   // WHERE
-  //   (${comboKeys
+  //   (${bapComboKeys
   //     .map((key) => `UEI_EFTI_Combo_Key__c = '${key}'`)
   //     .join(" OR ")}) AND
   //   Latest_Version__c = TRUE`
@@ -516,7 +584,7 @@ async function queryForBapFormSubmissionsStatuses(req, comboKeys) {
     .sobject("Order_Request__c")
     .find(
       {
-        UEI_EFTI_Combo_Key__c: { $in: comboKeys },
+        UEI_EFTI_Combo_Key__c: { $in: bapComboKeys },
         Latest_Version__c: true,
       },
       {
@@ -593,9 +661,9 @@ async function queryBapFor2022PRFData(req, frfReviewItemId) {
   const logMessage =
     `Querying the BAP for 2022 FRF submission associated with ` +
     `FRF Review Item ID: '${frfReviewItemId}'.`;
-  log({ level: "info", message: logMessage });
+  log({ level: "info", message: logMessage, req });
 
-  /** @type {jsforce.Connection} */
+  /** @type {{ bapConnection: jsforce.Connection }} */
   const { bapConnection } = req.app.locals;
 
   // `SELECT
@@ -757,9 +825,9 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
   const logMessage =
     `Querying the BAP for 2023 FRF submission associated with ` +
     `FRF Review Item ID: '${frfReviewItemId}'.`;
-  log({ level: "info", message: logMessage });
+  log({ level: "info", message: logMessage, req });
 
-  /** @type {jsforce.Connection} */
+  /** @type {{ bapConnection: jsforce.Connection }} */
   const { bapConnection } = req.app.locals;
 
   // `SELECT
@@ -790,28 +858,35 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
 
   // `SELECT
   //   Id,
+  //   CSB_Snapshot__r.JSON_Snapshot__c
+  //   Applicant_Organization__r.Id
+  //   Applicant_Organization__r.County__c
+  //   Primary_Applicant__r.Id,
   //   Primary_Applicant__r.FirstName,
   //   Primary_Applicant__r.LastName,
   //   Primary_Applicant__r.Title,
   //   Primary_Applicant__r.Email,
   //   Primary_Applicant__r.Phone,
+  //   Alternate_Applicant__r.Id,
   //   Alternate_Applicant__r.FirstName,
   //   Alternate_Applicant__r.LastName,
   //   Alternate_Applicant__r.Title,
   //   Alternate_Applicant__r.Email,
   //   Alternate_Applicant__r.Phone,
+  //   CSB_School_District__r.Id,
   //   CSB_School_District__r.Name,
   //   CSB_School_District__r.BillingStreet,
   //   CSB_School_District__r.BillingCity,
   //   CSB_School_District__r.BillingState,
   //   CSB_School_District__r.BillingPostalCode,
+  //   School_District_Contact__r.Id,
   //   School_District_Contact__r.FirstName,
   //   School_District_Contact__r.LastName,
   //   School_District_Contact__r.Title,
   //   School_District_Contact__r.Email,
   //   School_District_Contact__r.Phone,
   //   CSB_NCES_ID__c,
-  //   School_District_Prioritized__c,
+  //   Org_District_Prioritized__c,
   //   Self_Certification_Category__c,
   //   Prioritized_as_High_Need__c,
   //   Prioritized_as_Tribal__c,
@@ -834,28 +909,35 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
       {
         // "*": 1,
         Id: 1, // Salesforce record ID
+        "CSB_Snapshot__r.JSON_Snapshot__c": 1,
+        "Applicant_Organization__r.Id": 1,
+        "Applicant_Organization__r.County__c": 1,
+        "Primary_Applicant__r.Id": 1,
         "Primary_Applicant__r.FirstName": 1,
         "Primary_Applicant__r.LastName": 1,
         "Primary_Applicant__r.Title": 1,
         "Primary_Applicant__r.Email": 1,
         "Primary_Applicant__r.Phone": 1,
+        "Alternate_Applicant__r.Id": 1,
         "Alternate_Applicant__r.FirstName": 1,
         "Alternate_Applicant__r.LastName": 1,
         "Alternate_Applicant__r.Title": 1,
         "Alternate_Applicant__r.Email": 1,
         "Alternate_Applicant__r.Phone": 1,
+        "CSB_School_District__r.Id": 1,
         "CSB_School_District__r.Name": 1,
         "CSB_School_District__r.BillingStreet": 1,
         "CSB_School_District__r.BillingCity": 1,
         "CSB_School_District__r.BillingState": 1,
         "CSB_School_District__r.BillingPostalCode": 1,
+        "School_District_Contact__r.Id": 1,
         "School_District_Contact__r.FirstName": 1,
         "School_District_Contact__r.LastName": 1,
         "School_District_Contact__r.Title": 1,
         "School_District_Contact__r.Email": 1,
         "School_District_Contact__r.Phone": 1,
         CSB_NCES_ID__c: 1,
-        School_District_Prioritized__c: 1,
+        Org_District_Prioritized__c: 1,
         Self_Certification_Category__c: 1,
         Prioritized_as_High_Need__c: 1,
         Prioritized_as_Tribal__c: 1,
@@ -952,50 +1034,72 @@ async function queryBapFor2023PRFData(req, frfReviewItemId) {
     )
     .execute(async (err, records) => ((await err) ? err : records));
 
-  const frf2023BusRecordsContactsQueries = await Promise.all(
-    frf2023BusRecordsQuery.map(async (frf2023BusRecord) => {
-      const frf2023BusRecordId = frf2023BusRecord.Id;
+  const frf2023BusRecordsContactsQueries = (
+    await Promise.all(
+      frf2023BusRecordsQuery.map(async (frf2023BusRecord) => {
+        const frf2023BusRecordId = frf2023BusRecord.Id;
 
-      // `SELECT
-      //   Id,
-      //   Related_Line_Item__c,
-      //   Relationship_Type__c,
-      //   Contact_Organization_Name__c,
-      //   Contact__r.FirstName,
-      //   Contact__r.LastName
-      // FROM
-      //   Line_Item__c
-      // WHERE
-      //   RecordTypeId = '${rebateItemRecordTypeId}' AND
-      //   Related_Line_Item__c = '${frf2023BusRecordId}' AND
-      //   CSB_Rebate_Item_Type__c = 'COF Relationship'`
+        // `SELECT
+        //   Id,
+        //   Related_Line_Item__c,
+        //   Relationship_Type__c,
+        //   Contact__r.Id,
+        //   Contact__r.FirstName,
+        //   Contact__r.LastName
+        //   Contact__r.Title,
+        //   Contact__r.Email,
+        //   Contact__r.Phone,
+        //   Contact__r.Account.Id,
+        //   Contact__r.Account.Name,
+        //   Contact__r.Account.BillingStreet,
+        //   Contact__r.Account.BillingCity,
+        //   Contact__r.Account.BillingState,
+        //   Contact__r.Account.BillingPostalCode,
+        //   Contact__r.Account.County__c,
+        // FROM
+        //   Line_Item__c
+        // WHERE
+        //   RecordTypeId = '${rebateItemRecordTypeId}' AND
+        //   Related_Line_Item__c = '${frf2023BusRecordId}' AND
+        //   CSB_Rebate_Item_Type__c = 'COF Relationship'`
 
-      return await bapConnection
-        .sobject("Line_Item__c")
-        .find(
-          {
-            RecordTypeId: rebateItemRecordTypeId,
-            Related_Line_Item__c: frf2023BusRecordId,
-            CSB_Rebate_Item_Type__c: "COF Relationship",
-          },
-          {
-            // "*": 1,
-            Id: 1, // Salesforce record ID
-            Related_Line_Item__c: 1,
-            Relationship_Type__c: 1,
-            Contact_Organization_Name__c: 1,
-            "Contact__r.FirstName": 1,
-            "Contact__r.LastName": 1,
-          },
-        )
-        .execute(async (err, records) => ((await err) ? err : records));
-    }),
-  );
+        return await bapConnection
+          .sobject("Line_Item__c")
+          .find(
+            {
+              RecordTypeId: rebateItemRecordTypeId,
+              Related_Line_Item__c: frf2023BusRecordId,
+              CSB_Rebate_Item_Type__c: "COF Relationship",
+            },
+            {
+              // "*": 1,
+              Id: 1, // Salesforce record ID
+              Related_Line_Item__c: 1,
+              Relationship_Type__c: 1,
+              "Contact__r.Id": 1,
+              "Contact__r.FirstName": 1,
+              "Contact__r.LastName": 1,
+              "Contact__r.Title": 1,
+              "Contact__r.Email": 1,
+              "Contact__r.Phone": 1,
+              "Contact__r.Account.Id": 1,
+              "Contact__r.Account.Name": 1,
+              "Contact__r.Account.BillingStreet": 1,
+              "Contact__r.Account.BillingCity": 1,
+              "Contact__r.Account.BillingState": 1,
+              "Contact__r.Account.BillingPostalCode": 1,
+              "Contact__r.Account.County__c": 1,
+            },
+          )
+          .execute(async (err, records) => ((await err) ? err : records));
+      }),
+    )
+  ).flat();
 
   return {
     frf2023RecordQuery,
     frf2023BusRecordsQuery,
-    frf2023BusRecordsContactsQueries: frf2023BusRecordsContactsQueries.flat(),
+    frf2023BusRecordsContactsQueries,
   };
 }
 
@@ -1014,9 +1118,9 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
     `FRF Review Item ID: '${frfReviewItemId}' ` +
     `and 2022 PRF submission associated with ` +
     `PRF Review Item ID: '${prfReviewItemId}'.`;
-  log({ level: "info", message: logMessage });
+  log({ level: "info", message: logMessage, req });
 
-  /** @type {jsforce.Connection} */
+  /** @type {{ bapConnection: jsforce.Connection }} */
   const { bapConnection } = req.app.locals;
 
   // `SELECT
@@ -1277,6 +1381,27 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
 }
 
 /**
+ * Uses cached JSforce connection to query the BAP for duplicate contacts or
+ * organizations.
+ *
+ * @param {express.Request} req
+ * @returns {Promise<BapDuplicates>}
+ */
+async function queryBapForDuplicates(req) {
+  const { body } = req;
+
+  const logMessage = `Querying the BAP for duplicates.`;
+  log({ level: "info", message: logMessage, req });
+
+  /** @type {{ bapConnection: jsforce.Connection }} */
+  const { bapConnection } = req.app.locals;
+
+  const url = "/v2/recordMatcher/";
+
+  return bapConnection.apex.post(url, body, (_err, res) => res);
+}
+
+/**
  * Verifies the BAP connection has been setup, then calls the provided callback
  * function with the provided arguments.
  *
@@ -1286,7 +1411,7 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
  * @param {any[]} fn.args arguments to pass to the callback function
  */
 function verifyBapConnection(req, { name, args }) {
-  /** @type {jsforce.Connection} */
+  /** @type {{ bapConnection: jsforce.Connection }} */
   const { bapConnection } = req.app.locals;
 
   function callback() {
@@ -1300,21 +1425,21 @@ function verifyBapConnection(req, { name, args }) {
 
   if (!bapConnection) {
     const logMessage = `BAP connection has not yet been initialized.`;
-    log({ level: "info", message: logMessage });
+    log({ level: "info", message: logMessage, req });
 
-    return setupConnection(req.app).then(() => callback());
+    return setupConnection(req).then(() => callback());
   }
 
   return bapConnection
-    .identity((err, res) => {
+    .identity((err, _res) => {
       if (err) {
         const logMessage = `BAP connection identity error.`;
-        log({ level: "info", message: logMessage });
+        log({ level: "info", message: logMessage, req });
 
-        return setupConnection(req.app).then(() => callback());
+        return setupConnection(req).then(() => callback());
       }
     })
-    .then((res) => callback());
+    .then((_res) => callback());
 }
 
 /**
@@ -1348,16 +1473,24 @@ function getBapComboKeys(req, email) {
 /**
  * Fetches data associated with a provided form submission.
  *
- * @param {express.Request} req
- * @param {'frf' | 'prf' | 'crf'} formType
- * @param {string | null} rebateId
- * @param {string | null} mongoId
+ * @param {Object} param
+ * @param {'2022' | '2023'} param.rebateYear
+ * @param {'frf' | 'prf' | 'crf'} param.formType
+ * @param {string | null} param.rebateId
+ * @param {string | null} param.mongoId
+ * @param {express.Request} param.req
  * @returns {ReturnType<queryForBapFormSubmissionData>}
  */
-function getBapFormSubmissionData(req, formType, rebateId, mongoId) {
+function getBapFormSubmissionData({
+  rebateYear,
+  formType,
+  rebateId,
+  mongoId,
+  req,
+}) {
   return verifyBapConnection(req, {
     name: queryForBapFormSubmissionData,
-    args: [req, formType, rebateId, mongoId],
+    args: [req, rebateYear, formType, rebateId, mongoId],
   });
 }
 
@@ -1365,13 +1498,12 @@ function getBapFormSubmissionData(req, formType, rebateId, mongoId) {
  * Fetches form submissions statuses associated with a provided set of combo keys.
  *
  * @param {express.Request} req
- * @param {string[]} comboKeys
  * @returns {ReturnType<queryForBapFormSubmissionsStatuses>}
  */
-function getBapFormSubmissionsStatuses(req, comboKeys) {
+function getBapFormSubmissionsStatuses(req) {
   return verifyBapConnection(req, {
     name: queryForBapFormSubmissionsStatuses,
-    args: [req, comboKeys],
+    args: [req],
   });
 }
 
@@ -1416,6 +1548,19 @@ function getBapDataFor2022CRF(req, frfReviewItemId, prfReviewItemId) {
   return verifyBapConnection(req, {
     name: queryBapFor2022CRFData,
     args: [req, frfReviewItemId, prfReviewItemId],
+  });
+}
+
+/**
+ * Checks for duplicate contacts or organizations in the BAP.
+ *
+ * @param {express.Request} req
+ * @returns {ReturnType<queryBapForDuplicates>}
+ */
+function checkForBapDuplicates(req) {
+  return verifyBapConnection(req, {
+    name: queryBapForDuplicates,
+    args: [req],
   });
 }
 
@@ -1471,5 +1616,6 @@ module.exports = {
   getBapDataFor2022PRF,
   getBapDataFor2023PRF,
   getBapDataFor2022CRF,
+  checkForBapDuplicates,
   checkFormSubmissionPeriodAndBapStatus,
 };

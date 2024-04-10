@@ -21,16 +21,12 @@ export default ({ mode }) => {
         output: {
           entryFileNames: "static/js/[name]-[hash].js",
           chunkFileNames: "static/js/[name]-[hash].js",
-          assetFileNames: (chunkInfo) => {
-            const extension = [...chunkInfo.name.split(".")].pop();
-            const directory = /\.(css)$/.test(chunkInfo.name)
-              ? "static/css"
-              : /\.(woff|woff2|eot|ttf|otf)$/.test(chunkInfo.name)
-              ? "static/fonts"
-              : /\.(png|jpe?g|gif|svg|webp|webm|mp3)$/.test(chunkInfo.name)
-              ? "static/media"
-              : "static";
-            return `${directory}/[name]-[hash].${extension}`;
+          assetFileNames: ({ name }) => {
+            const css = /\.(css)$/.test(name ?? "");
+            const font = /\.(woff|woff2|eot|ttf|otf)$/.test(name ?? "");
+            const media = /\.(png|jpe?g|gif|svg|webp|webm|mp3)$/.test(name ?? ""); // prettier-ignore
+            const type = css ? "css/" : font ? "fonts/" : media ? "media/" : "/"; // prettier-ignore
+            return `static/${type}[name]-[hash][extname]`;
           },
         },
       },

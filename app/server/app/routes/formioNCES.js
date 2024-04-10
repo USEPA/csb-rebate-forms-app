@@ -1,13 +1,8 @@
-// const { resolve } = require("node:path");
-// const { readFile } = require("node:fs/promises");
 const express = require("express");
-// const axios = require("axios").default || require("axios"); // TODO: https://github.com/axios/axios/issues/5011
 // ---
 const log = require("../utilities/logger");
-const data = require("../content/nces.json");
 
 const { FORMIO_NCES_API_KEY } = process.env;
-// const { NODE_ENV, S3_PUBLIC_BUCKET, S3_PUBLIC_REGION } = process.env;
 
 const router = express.Router();
 
@@ -29,14 +24,6 @@ router.get("/:searchText?", (req, res) => {
     return res.status(errorStatus).json({ message });
   }
 
-  // const s3BucketUrl = `https://${S3_PUBLIC_BUCKET}.s3-${S3_PUBLIC_REGION}.amazonaws.com`;
-
-  // const data = JSON.parse(
-  //   await (NODE_ENV === "development"
-  //     ? readFile(resolve(__dirname, "../content", "nces.json"), "utf8")
-  //     : axios.get(`${s3BucketUrl}/content/nces.json`).then((res) => res.data))
-  // );
-
   if (!searchText) {
     const logMessage = `No NCES ID passed to NCES data lookup.`;
     log({ level: "info", message: logMessage, req });
@@ -51,7 +38,9 @@ router.get("/:searchText?", (req, res) => {
     return res.json({});
   }
 
-  const result = data.find((item) => item["NCES ID"] === searchText);
+  const result = req.app.locals.ncesData.find((item) => {
+    return item["NCES ID"] === searchText;
+  });
 
   const logMessage =
     `NCES data searched with NCES ID '${searchText}' resulting in ` +

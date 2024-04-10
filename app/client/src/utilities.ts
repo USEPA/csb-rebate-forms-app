@@ -36,6 +36,7 @@ type ConfigData = {
 };
 
 export type BapSamEntity = {
+  Id: string;
   ENTITY_COMBO_KEY__c: string;
   UNIQUE_ENTITY_ID__c: string;
   ENTITY_EFT_INDICATOR__c: string;
@@ -117,7 +118,8 @@ export type FormType = "frf" | "prf" | "crf";
 
 type FormioSubmission = {
   [field: string]: unknown;
-  _id: string; // MongoDB ObjectId string
+  _id: string; // MongoDB ObjectId string – submission ID
+  form: string; // MongoDB ObjectId string – form ID
   state: "submitted" | "draft";
   modified: string; // ISO 8601 date time string
   metadata: {

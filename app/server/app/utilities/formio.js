@@ -68,6 +68,7 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
   } = req.body;
 
   const {
+    Id: entityId,
     UNIQUE_ENTITY_ID__c,
     ENTITY_EFT_INDICATOR__c,
     LEGAL_BUSINESS_NAME__c,
@@ -178,50 +179,102 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
           frf2023BusRecordsContactsQueries,
         } = results;
 
+        const existingBusOwnerType = "Old Bus Private Fleet Owner (if changed)";
+        const newBusOwnerType = "New Bus Owner";
+
         const {
+          CSB_Snapshot__r,
+          Applicant_Organization__r,
           Primary_Applicant__r,
           Alternate_Applicant__r,
           CSB_School_District__r,
           School_District_Contact__r,
           CSB_NCES_ID__c,
-          School_District_Prioritized__c,
+          Org_District_Prioritized__c,
           Self_Certification_Category__c,
           Prioritized_as_High_Need__c,
           Prioritized_as_Tribal__c,
           Prioritized_as_Rural__c,
         } = frf2023RecordQuery[0];
 
-        // TODO: ask BAP for the query for the fields below.
-        // NOTE: the data from the 2023 FRF is in an 'organizations' field (array of objects)
-        // which has the exact same fields below, except for "_org_typeCombined"
-        const org_organizations = new Array(0).map((item) => ({
-          org_number: Infinity,
-          org_type: {
-            existingBusOwner: true,
-            newBusOwner: true,
-            privateFleet: false,
+        const frf2023RecordJson = JSON.parse(CSB_Snapshot__r.JSON_Snapshot__c);
+
+        const [schoolDistrictStreetAddress1, schoolDistrictStreetAddress2] = (
+          CSB_School_District__r?.BillingStreet ?? "\n"
+        ).split("\n");
+
+        const org_organizations = frf2023BusRecordsContactsQueries.reduce(
+          (array, frf2023BusRecordsContact) => {
+            const { Contact__r } = frf2023BusRecordsContact;
+
+            const {
+              Id: contactId,
+              FirstName,
+              LastName,
+              Title,
+              Email,
+              Phone,
+              Account,
+            } = Contact__r;
+
+            const {
+              Id: orgId,
+              Name: orgName,
+              BillingStreet,
+              BillingCity,
+              BillingState,
+              BillingPostalCode,
+              County__c,
+            } = Account;
+
+            const jsonOrg = frf2023RecordJson.data.organizations.find(
+              (org) =>
+                org.org_orgName === orgName && org.org_contactEmail === Email,
+            );
+
+            const orgAlreadyAdded = array.some((org) => org._org_id === orgId);
+
+            /**
+             * Ensure the org exists in the 2023 FRF submission's
+             * "organizations" array, and it hasn't already been added.
+             */
+            if (jsonOrg && !orgAlreadyAdded) {
+              const [orgStreetAddress1, orgStreetAddress2] = (
+                BillingStreet ?? "\n"
+              ).split("\n");
+
+              array.push({
+                org_number: jsonOrg.org_number,
+                org_type: jsonOrg.org_type,
+                // _org_typeCombined: "", // NOTE: 'Existing Bus Owner, New Bus Owner'
+                _org_id: orgId,
+                org_name: orgName,
+                _org_contact_id: contactId,
+                org_contact_fname: FirstName,
+                org_contact_lname: LastName,
+                org_contact_title: Title,
+                org_contact_email: Email,
+                org_contact_phone: Phone,
+                org_address_1: orgStreetAddress1,
+                org_address_2: orgStreetAddress2,
+                org_county: County__c,
+                org_city: BillingCity,
+                org_state: {
+                  name: BillingState,
+                  // abbreviation: "",
+                },
+                org_zip: BillingPostalCode,
+              });
+            }
+
+            return array;
           },
-          _org_typeCombined: "", // NOTE: was 'org_hidden_type' in the FRF (example value: 'Existing Bus Owner, New Bus Owner')
-          org_orgName: "",
-          org_contactFName: "",
-          org_contactLName: "",
-          org_contactTitle: "",
-          org_contactEmail: "",
-          org_contactPhone: "",
-          org_address1: "",
-          org_address2: "",
-          org_county: "",
-          org_city: "",
-          org_state: {
-            name: "",
-            abbreviation: "",
-          },
-          org_zip: "",
-        }));
+          [],
+        );
 
         const bus_buses = frf2023BusRecordsQuery.map((frf2023BusRecord) => {
           const {
-            Id,
+            Id: busRecordId,
             Rebate_Item_num__c,
             CSB_VIN__c,
             CSB_Fuel_Type__c,
@@ -243,30 +296,25 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
           } = frf2023BusRecord;
 
           const existingOwnerRecord = frf2023BusRecordsContactsQueries.find(
-            ({ Related_Line_Item__c, Relationship_Type__c }) => {
-              return (
-                Related_Line_Item__c === Id &&
-                Relationship_Type__c === "Existing Bus Owner"
-              );
-            },
+            (item) =>
+              item.Related_Line_Item__c === busRecordId &&
+              item.Relationship_Type__c === existingBusOwnerType,
           );
 
           const newOwnerRecord = frf2023BusRecordsContactsQueries.find(
-            ({ Related_Line_Item__c, Relationship_Type__c }) => {
-              return (
-                Related_Line_Item__c === Id &&
-                Relationship_Type__c === "New Bus Owner"
-              );
-            },
+            (item) =>
+              item.Related_Line_Item__c === busRecordId &&
+              item.Relationship_Type__c === newBusOwnerType,
           );
 
           return {
             bus_busNumber: Rebate_Item_num__c,
             bus_existingOwner: {
-              org: "", // TODO: ask BAP how to get this value
-              organization: existingOwnerRecord?.Contact_Organization_Name__c,
-              orgContactFName: existingOwnerRecord?.Contact__r?.FirstName,
-              orgContactLName: existingOwnerRecord?.Contact__r?.LastName,
+              org_id: existingOwnerRecord?.Contact__r?.Account?.Id,
+              org_name: existingOwnerRecord?.Contact__r?.Account?.Name,
+              org_contact_id: existingOwnerRecord?.Contact__r?.Id,
+              org_contact_fname: existingOwnerRecord?.Contact__r?.FirstName,
+              org_contact_lname: existingOwnerRecord?.Contact__r?.LastName,
             },
             bus_existingVin: CSB_VIN__c,
             bus_existingFuelType: CSB_Fuel_Type__c,
@@ -282,10 +330,11 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
             bus_existingRemainingLife: Old_Bus_Estimated_Remaining_Life__c,
             bus_existingIdlingHours: Old_Bus_Annual_Idling_Hours__c,
             bus_newOwner: {
-              org: "", // TODO: ask BAP how to get this value
-              organization: newOwnerRecord?.Contact_Organization_Name__c,
-              orgContactFName: newOwnerRecord?.Contact__r?.FirstName,
-              orgContactLName: newOwnerRecord?.Contact__r?.LastName,
+              org_id: newOwnerRecord?.Contact__r?.Account?.Id,
+              org_name: newOwnerRecord?.Contact__r?.Account?.Name,
+              org_contact_id: newOwnerRecord?.Contact__r?.Id,
+              org_contact_fname: newOwnerRecord?.Contact__r?.FirstName,
+              org_contact_lname: newOwnerRecord?.Contact__r?.LastName,
             },
             bus_newFuelType: New_Bus_Fuel_Type__c,
             bus_newGvwr: New_Bus_GVWR__c,
@@ -307,10 +356,11 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
             _bap_applicant_name: name,
             _bap_applicant_efti: ENTITY_EFT_INDICATOR__c || "0000",
             _bap_applicant_uei: UNIQUE_ENTITY_ID__c,
+            _bap_applicant_organization_id: entityId,
             _bap_applicant_organization_name: LEGAL_BUSINESS_NAME__c,
             _bap_applicant_street_address_1: PHYSICAL_ADDRESS_LINE_1__c,
             _bap_applicant_street_address_2: PHYSICAL_ADDRESS_LINE_2__c,
-            _bap_applicant_county: "", // TODO: ask BAP how to get this value
+            _bap_applicant_county: Applicant_Organization__r?.County__c,
             _bap_applicant_city: PHYSICAL_ADDRESS_CITY__c,
             _bap_applicant_state: PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
             _bap_applicant_zip: PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
@@ -318,35 +368,39 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
             _bap_alt_elec_bus_poc_email: ALT_ELEC_BUS_POC_EMAIL__c,
             _bap_govt_bus_poc_email: GOVT_BUS_POC_EMAIL__c,
             _bap_alt_govt_bus_poc_email: ALT_GOVT_BUS_POC_EMAIL__c,
+            _bap_primary_id: Primary_Applicant__r?.Id,
             _bap_primary_fname: Primary_Applicant__r?.FirstName,
             _bap_primary_lname: Primary_Applicant__r?.LastName,
             _bap_primary_title: Primary_Applicant__r?.Title,
             _bap_primary_email: Primary_Applicant__r?.Email,
-            _bap_primary_phone_number: Primary_Applicant__r?.Phone,
+            _bap_primary_phone: Primary_Applicant__r?.Phone,
+            _bap_alternate_id: Alternate_Applicant__r?.Id,
             _bap_alternate_fname: Alternate_Applicant__r?.FirstName,
             _bap_alternate_lname: Alternate_Applicant__r?.LastName,
             _bap_alternate_title: Alternate_Applicant__r?.Title,
             _bap_alternate_email: Alternate_Applicant__r?.Email,
-            _bap_alternate_phone_number: Alternate_Applicant__r?.Phone,
-            _bap_district_ncesID: CSB_NCES_ID__c,
+            _bap_alternate_phone: Alternate_Applicant__r?.Phone,
+            _bap_district_id: CSB_School_District__r?.Id,
+            _bap_district_nces_id: CSB_NCES_ID__c,
             _bap_district_name: CSB_School_District__r?.Name,
-            _bap_district_address_1: CSB_School_District__r?.BillingStreet, // TODO: once BAP returns this field with a new line character, split on it for address line 1 and 2
-            _bap_district_address_2: "", // TODO: see above
+            _bap_district_address_1: schoolDistrictStreetAddress1 || "",
+            _bap_district_address_2: schoolDistrictStreetAddress2 || "",
             _bap_district_city: CSB_School_District__r?.BillingCity,
             _bap_district_state: CSB_School_District__r?.BillingState,
             _bap_district_zip: CSB_School_District__r?.BillingPostalCode,
-            _bap_district_priority: School_District_Prioritized__c,
-            _bap_district_selfCertify: Self_Certification_Category__c,
-            _bap_district_priorityReason: {
+            _bap_district_priority: Org_District_Prioritized__c,
+            _bap_district_priority_reason: {
               highNeed: Prioritized_as_High_Need__c,
               tribal: Prioritized_as_Tribal__c,
               rural: Prioritized_as_Rural__c,
             },
-            _bap_district_contactFName: School_District_Contact__r?.FirstName,
-            _bap_district_contactLName: School_District_Contact__r?.LastName,
-            _bap_district_contactTitle: School_District_Contact__r?.Title,
-            _bap_district_contactEmail: School_District_Contact__r?.Email,
-            _bap_district_contactPhone: School_District_Contact__r?.Phone,
+            _bap_district_self_certify: Self_Certification_Category__c,
+            _bap_district_contact_id: School_District_Contact__r?.Id,
+            _bap_district_contact_fname: School_District_Contact__r?.FirstName,
+            _bap_district_contact_lname: School_District_Contact__r?.LastName,
+            _bap_district_contact_title: School_District_Contact__r?.Title,
+            _bap_district_contact_email: School_District_Contact__r?.Email,
+            _bap_district_contact_phone: School_District_Contact__r?.Phone,
             org_organizations,
             bus_buses,
           },

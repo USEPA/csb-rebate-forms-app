@@ -58,6 +58,7 @@ jobs:
       FORMIO_PROJECT_NAME: ${{ secrets.FORMIO_PROJECT_NAME }}
       FORMIO_API_KEY: ${{ secrets.FORMIO_API_KEY }}
       FORMIO_NCES_API_KEY: ${{ secrets.FORMIO_NCES_API_KEY }}
+      FORMIO_DUPLICATES_API_KEY: ${{ secrets.FORMIO_DUPLICATES_API_KEY }}
       FORMIO_PKG_AUTH_TOKEN: ${{ secrets.FORMIO_PKG_AUTH_TOKEN }}
       BAP_CLIENT_ID: ${{ secrets.BAP_CLIENT_ID }}
       BAP_CLIENT_SECRET: ${{ secrets.BAP_CLIENT_SECRET }}
@@ -72,14 +73,14 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       # Set up node and npm
       - uses: actions/setup-node@master
 
       # Run front-end processes (install, lint, test, bundle)
       - name: Cache node modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/client/.npm
           key: v1-npm-client-deps-${{ hashFiles('**/client/package-lock.json') }}
@@ -145,6 +146,7 @@ jobs:
           cf set-env $APP_NAME "FORMIO_PROJECT_NAME" "$FORMIO_PROJECT_NAME" > /dev/null
           cf set-env $APP_NAME "FORMIO_API_KEY" "$FORMIO_API_KEY" > /dev/null
           cf set-env $APP_NAME "FORMIO_NCES_API_KEY" "$FORMIO_NCES_API_KEY" > /dev/null
+          cf set-env $APP_NAME "FORMIO_DUPLICATES_API_KEY" "$FORMIO_DUPLICATES_API_KEY" > /dev/null
           cf set-env $APP_NAME "BAP_CLIENT_ID" "$BAP_CLIENT_ID" > /dev/null
           cf set-env $APP_NAME "BAP_CLIENT_SECRET" "$BAP_CLIENT_SECRET" > /dev/null
           cf set-env $APP_NAME "BAP_URL" "$BAP_URL" > /dev/null
