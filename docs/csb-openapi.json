@@ -125,6 +125,34 @@
         "parameters": []
       }
     },
+    "/api/formio/nces/{searchText}": {
+      "get": {
+        "summary": "/api/formio/nces/{searchText}",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [],
+        "parameters": [
+          {
+            "name": "searchText",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
     "/api/user": {
       "get": {
         "summary": "/api/user",
@@ -185,9 +213,44 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "enrollmentClosed": {
-                      "type": "boolean",
-                      "example": true
+                    "submissionPeriodOpen": {
+                      "type": "object",
+                      "properties": {
+                        "2022": {
+                          "type": "object",
+                          "properties": {
+                            "frf": {
+                              "type": "boolean",
+                              "example": true
+                            },
+                            "prf": {
+                              "type": "boolean",
+                              "example": true
+                            },
+                            "crf": {
+                              "type": "boolean",
+                              "example": true
+                            }
+                          }
+                        },
+                        "2023": {
+                          "type": "object",
+                          "properties": {
+                            "frf": {
+                              "type": "boolean",
+                              "example": true
+                            },
+                            "prf": {
+                              "type": "boolean",
+                              "example": true
+                            },
+                            "crf": {
+                              "type": "boolean",
+                              "example": true
+                            }
+                          }
+                        }
+                      }
                     }
                   }
                 }
@@ -266,34 +329,6 @@
         },
         "tags": [],
         "parameters": []
-      }
-    },
-    "/api/formio/nces/{searchText}": {
-      "get": {
-        "summary": "/api/formio/nces/{searchText}",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object"
-                }
-              }
-            }
-          }
-        },
-        "tags": [],
-        "parameters": [
-          {
-            "name": "searchText",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ]
       }
     },
     "/api/formio/2022/s3/{formType}/{mongoId}/{comboKey}/storage/s3": {
