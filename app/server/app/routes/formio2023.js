@@ -81,7 +81,8 @@ router.post(
 
 // --- get user's 2023 PRF submissions from Formio
 router.get("/prf-submissions", storeBapComboKeys, (req, res) => {
-  fetchPRFSubmissions({ rebateYear, req, res });
+  res.json([]); // TODO: temporary until the PRF is live on prod
+  // fetchPRFSubmissions({ rebateYear, req, res });
 });
 
 // --- post a new 2023 PRF submission to Formio
@@ -118,7 +119,8 @@ router.get("/crf-submissions", storeBapComboKeys, (req, res) => {
 
 // --- get user's 2023 Change Request form submissions from Formio
 router.get("/changes", storeBapComboKeys, (req, res) => {
-  fetchChangeRequests({ rebateYear, req, res });
+  res.json([]); // TODO: temporary until the change request form is live on prod
+  // fetchChangeRequests({ rebateYear, req, res });
 });
 
 // --- get the 2023 Change Request form's schema from Formio
