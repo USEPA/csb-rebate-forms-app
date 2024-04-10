@@ -1108,9 +1108,9 @@
         "parameters": []
       }
     },
-    "/api/help/formio/{rebateYear}/{formType}/{id}": {
+    "/api/help/formio/submission/{rebateYear}/{formType}/{id}": {
       "get": {
-        "summary": "/api/help/formio/{rebateYear}/{formType}/{id}",
+        "summary": "/api/help/formio/submission/{rebateYear}/{formType}/{id}",
         "parameters": [
           {
             "name": "rebateYear",
@@ -1165,6 +1165,114 @@
                       "type": "object"
                     }
                   }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": []
+      }
+    },
+    "/api/help/formio/actions/{formId}/{mongoId}": {
+      "get": {
+        "summary": "/api/help/formio/actions/{formId}/{mongoId}",
+        "parameters": [
+          {
+            "name": "formId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "mongoId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": []
+      }
+    },
+    "/api/help/formio/pdf/{formId}/{mongoId}": {
+      "get": {
+        "summary": "/api/help/formio/pdf/{formId}/{mongoId}",
+        "parameters": [
+          {
+            "name": "formId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "mongoId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "format": "byte"
                 }
               }
             }
