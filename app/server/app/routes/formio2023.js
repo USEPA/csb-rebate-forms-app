@@ -87,22 +87,26 @@ router.get("/prf-submissions", storeBapComboKeys, (req, res) => {
 
 // --- post a new 2023 PRF submission to Formio
 router.post("/prf-submission", storeBapComboKeys, (req, res) => {
-  createPRFSubmission({ rebateYear, req, res });
+  res.json({}); // TODO: temporary until the PRF is live on prod
+  // createPRFSubmission({ rebateYear, req, res });
 });
 
 // --- get an existing 2023 PRF's schema and submission data from Formio
 router.get("/prf-submission/:rebateId", storeBapComboKeys, async (req, res) => {
-  fetchPRFSubmission({ rebateYear, req, res });
+  res.json({}); // TODO: temporary until the PRF is live on prod
+  // fetchPRFSubmission({ rebateYear, req, res });
 });
 
 // --- post an update to an existing draft 2023 PRF submission to Formio
 router.post("/prf-submission/:rebateId", storeBapComboKeys, (req, res) => {
-  updatePRFSubmission({ rebateYear, req, res });
+  res.json({}); // TODO: temporary until the PRF is live on prod
+  // updatePRFSubmission({ rebateYear, req, res });
 });
 
 // --- delete an existing 2023 PRF submission from Formio
 router.post("/delete-prf-submission", storeBapComboKeys, (req, res) => {
-  deletePRFSubmission({ rebateYear, req, res });
+  res.json({}); // TODO: temporary until the PRF is live on prod
+  // deletePRFSubmission({ rebateYear, req, res });
 });
 
 // --- get user's 2023 CRF submissions from Formio
@@ -125,17 +129,20 @@ router.get("/changes", storeBapComboKeys, (req, res) => {
 
 // --- get the 2023 Change Request form's schema from Formio
 router.get("/change", storeBapComboKeys, (req, res) => {
-  fetchChangeRequestSchema({ rebateYear, req, res });
+  res.json({}); // TODO: temporary until the change request form is live on prod
+  // fetchChangeRequestSchema({ rebateYear, req, res });
 });
 
 // --- post a new 2023 Change Request form submission to Formio
 router.post("/change", storeBapComboKeys, (req, res) => {
-  createChangeRequest({ rebateYear, req, res });
+  res.json({}); // TODO: temporary until the change request form is live on prod
+  // createChangeRequest({ rebateYear, req, res });
 });
 
 // --- get an existing 2023 Change Request form's schema and submission data from Formio
 router.get("/change/:mongoId", storeBapComboKeys, async (req, res) => {
-  fetchChangeRequest({ rebateYear, req, res });
+  res.json({}); // TODO: temporary until the change request form is live on prod
+  // fetchChangeRequest({ rebateYear, req, res });
 });
 
 module.exports = router;
