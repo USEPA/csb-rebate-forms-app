@@ -1497,7 +1497,7 @@ function Submissions2023() {
               return rebate.rebateYear === "2023" ? (
                 <Fragment key={rebate.rebateId}>
                   <FRF2023Submission rebate={rebate} />
-                  <PRF2023Submission rebate={rebate} />
+                  {/* <PRF2023Submission rebate={rebate} /> */}
                   {/* <CRF2023Submission rebate={rebate} /> */}
                   {/* blank row after all submissions but the last one */}
                   {index !== submissions.length - 1 && (
