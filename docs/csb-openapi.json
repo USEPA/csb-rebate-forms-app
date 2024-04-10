@@ -106,159 +106,6 @@
         "parameters": []
       }
     },
-    "/api/status/app": {
-      "get": {
-        "summary": "/api/status/app",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [],
-        "parameters": []
-      }
-    },
-    "/api/status/bap/sam": {
-      "get": {
-        "summary": "/api/status/bap/sam",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [],
-        "parameters": []
-      }
-    },
-    "/api/status/formio/2022/frf": {
-      "get": {
-        "summary": "/api/status/formio/2022/frf",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [],
-        "parameters": []
-      }
-    },
-    "/api/status/formio/2022/prf": {
-      "get": {
-        "summary": "/api/status/formio/2022/prf",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [],
-        "parameters": []
-      }
-    },
-    "/api/status/formio/2022/crf": {
-      "get": {
-        "summary": "/api/status/formio/2022/crf",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [],
-        "parameters": []
-      }
-    },
-    "/api/status/formio/2023/frf": {
-      "get": {
-        "summary": "/api/status/formio/2023/frf",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "tags": [],
-        "parameters": []
-      }
-    },
-    "/api/help/formio/{rebateYear}/{formType}/{id}": {
-      "get": {
-        "summary": "/api/help/formio/{rebateYear}/{formType}/{id}",
-        "parameters": [
-          {
-            "name": "rebateYear",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "formType",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "userAccess": {
-                      "type": "boolean",
-                      "example": true
-                    },
-                    "formSchema": {
-                      "type": "object",
-                      "properties": {
-                        "url": {
-                          "type": "string",
-                          "example": "https://formmio/project/form/id"
-                        },
-                        "json": {
-                          "type": "object"
-                        }
-                      }
-                    },
-                    "submission": {
-                      "type": "object"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "Unauthorized"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "tags": []
-      }
-    },
     "/api/content": {
       "get": {
         "summary": "/api/content",
@@ -895,6 +742,159 @@
           }
         },
         "tags": []
+      }
+    },
+    "/api/help/formio/{rebateYear}/{formType}/{id}": {
+      "get": {
+        "summary": "/api/help/formio/{rebateYear}/{formType}/{id}",
+        "parameters": [
+          {
+            "name": "rebateYear",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "formType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "userAccess": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "formSchema": {
+                      "type": "object",
+                      "properties": {
+                        "url": {
+                          "type": "string",
+                          "example": "https://formmio/project/form/id"
+                        },
+                        "json": {
+                          "type": "object"
+                        }
+                      }
+                    },
+                    "submission": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": []
+      }
+    },
+    "/api/status/app": {
+      "get": {
+        "summary": "/api/status/app",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [],
+        "parameters": []
+      }
+    },
+    "/api/status/bap/sam": {
+      "get": {
+        "summary": "/api/status/bap/sam",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [],
+        "parameters": []
+      }
+    },
+    "/api/status/formio/2022/frf": {
+      "get": {
+        "summary": "/api/status/formio/2022/frf",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [],
+        "parameters": []
+      }
+    },
+    "/api/status/formio/2022/prf": {
+      "get": {
+        "summary": "/api/status/formio/2022/prf",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [],
+        "parameters": []
+      }
+    },
+    "/api/status/formio/2022/crf": {
+      "get": {
+        "summary": "/api/status/formio/2022/crf",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [],
+        "parameters": []
+      }
+    },
+    "/api/status/formio/2023/frf": {
+      "get": {
+        "summary": "/api/status/formio/2023/frf",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [],
+        "parameters": []
       }
     }
   },
