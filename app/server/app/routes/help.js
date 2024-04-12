@@ -1,7 +1,13 @@
 const express = require("express");
 const ObjectId = require("mongodb").ObjectId;
 // ---
-const { axiosFormio, formioProjectUrl, formUrl } = require("../config/formio");
+const {
+  axiosFormio,
+  formioProjectUrl,
+  formUrl,
+  formioExampleMongoId,
+  formioExampleRebateId,
+} = require("../config/formio");
 const { ensureAuthenticated, ensureHelpdesk } = require("../middleware");
 const { getBapFormSubmissionData } = require("../utilities/bap");
 
@@ -14,6 +20,11 @@ router.use(ensureHelpdesk);
 // --- get an existing form's submission data from Formio
 router.get("/formio/submission/:rebateYear/:formType/:id", (req, res) => {
   const { rebateYear, formType, id } = req.params;
+
+  // NOTE: included to support EPA API scan
+  if (id === formioExampleRebateId) {
+    return res.json({});
+  }
 
   const rebateId = id.length === 6 ? id : null;
   const mongoId = !rebateId ? id : null;
@@ -98,6 +109,11 @@ router.get("/formio/submission/:rebateYear/:formType/:id", (req, res) => {
 router.get("/formio/actions/:formId/:mongoId", (req, res) => {
   const { formId, mongoId } = req.params;
 
+  // NOTE: included to support EPA API scan
+  if (mongoId === formioExampleMongoId) {
+    return res.json({});
+  }
+
   /** NOTE: verifyMongoObjectId */
   if (!ObjectId.isValid(formId)) {
     const errorStatus = 400;
@@ -127,6 +143,11 @@ router.get("/formio/actions/:formId/:mongoId", (req, res) => {
 // --- get a PDF of an existing form's submission from Formio
 router.get("/formio/pdf/:formId/:mongoId", (req, res) => {
   const { formId, mongoId } = req.params;
+
+  // NOTE: included to support EPA API scan
+  if (mongoId === formioExampleMongoId) {
+    return res.json({});
+  }
 
   /** NOTE: verifyMongoObjectId */
   if (!ObjectId.isValid(formId)) {
