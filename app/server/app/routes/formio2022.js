@@ -390,7 +390,6 @@ router.post("/crf-submission/:rebateId", storeBapComboKeys, (req, res) => {
   const { mail } = req.user;
   const { rebateId } = req.params; // CSB Rebate ID (6 digits)
   const { mongoId, submission } = body;
-  const comboKey = submission.data?.bap_hidden_entity_combo_key;
 
   // NOTE: included to support EPA API scan
   if (rebateId === formioExampleRebateId) {
@@ -402,6 +401,8 @@ router.post("/crf-submission/:rebateId", storeBapComboKeys, (req, res) => {
     const errorMessage = `Missing required data to update ${rebateYear} CRF submission '${rebateId}'.`;
     return res.status(errorStatus).json({ message: errorMessage });
   }
+
+  const comboKey = submission.data?.bap_hidden_entity_combo_key;
 
   checkFormSubmissionPeriodAndBapStatus({
     rebateYear,
