@@ -722,7 +722,7 @@ function updateFRFSubmission({ rebateYear, req, res }) {
 
   // NOTE: included to support EPA API scan
   if (mongoId === formioExampleMongoId) {
-    return res.json(formioNoUserAccess);
+    return res.json({});
   }
 
   const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
@@ -917,7 +917,7 @@ function fetchPRFSubmission({ rebateYear, req, res }) {
     .then((axiosResponses) => axiosResponses.map((axiosRes) => axiosRes.data))
     .then(([submissions, schema]) => {
       if (submissions.length === 0) {
-        return res.json(noUserAccess);
+        return res.json(formioNoUserAccess);
       }
 
       const submission = submissions[0];
