@@ -2,11 +2,11 @@
   "openapi": "3.0.0",
   "info": {
     "title": "epa-csb-server",
-    "version": "1.0.0",
+    "version": "4.1.0",
     "license": {
       "name": "CC0-1.0"
     },
-    "description": "U.S. EPA Clean School Bus data collection system"
+    "description": "U.S. EPA CSB Rebate Forms Application"
   },
   "paths": {
     "/login": {
@@ -16,14 +16,13 @@
           "302": {
             "description": "Found"
           }
-        },
-        "tags": [],
-        "parameters": []
+        }
       }
     },
     "/login/assert": {
       "post": {
         "summary": "/login/assert",
+        "parameters": [],
         "responses": {
           "302": {
             "description": "Found",
@@ -36,45 +35,40 @@
               }
             }
           }
-        },
-        "tags": [],
-        "parameters": []
+        }
       }
     },
     "/login/fail": {
       "get": {
         "summary": "/login/fail",
+        "parameters": [],
         "responses": {
           "200": {
             "description": "OK"
           }
-        },
-        "tags": [],
-        "parameters": []
+        }
       }
     },
     "/logout": {
       "get": {
         "summary": "/logout",
+        "parameters": [],
         "responses": {
           "200": {
             "description": "OK"
           }
-        },
-        "tags": [],
-        "parameters": []
+        }
       }
     },
     "/logout/callback": {
       "get": {
         "summary": "/logout/callback",
+        "parameters": [],
         "responses": {
           "200": {
             "description": "OK"
           }
-        },
-        "tags": [],
-        "parameters": []
+        }
       },
       "post": {
         "summary": "/logout/callback",
@@ -90,6 +84,7 @@
     "/metadata": {
       "get": {
         "summary": "/metadata",
+        "parameters": [],
         "responses": {
           "200": {
             "description": "OK",
@@ -101,17 +96,16 @@
               }
             }
           }
-        },
-        "tags": [],
-        "parameters": []
+        }
       }
     },
     "/api/content": {
       "get": {
-        "summary": "/api/content",
+        "summary": "Get static content from S3.",
+        "parameters": [],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "An object containing text from each static markdown file.",
             "content": {
               "application/json": {
                 "schema": {
@@ -120,17 +114,27 @@
               }
             }
           }
-        },
-        "tags": [],
-        "parameters": []
+        }
       }
     },
     "/api/formio/nces/{searchText}": {
       "get": {
-        "summary": "/api/formio/nces/{searchText}",
+        "summary": "Search the NCES data with the provided NCES ID and return a match.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "searchText",
+            "description": "The NCES ID to search for.",
+            "required": true,
+            "example": "A999999",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "An object containing the matched NCES data.",
             "content": {
               "application/json": {
                 "schema": {
@@ -139,26 +143,16 @@
               }
             }
           }
-        },
-        "tags": [],
-        "parameters": [
-          {
-            "name": "searchText",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ]
+        }
       }
     },
     "/api/user": {
       "get": {
-        "summary": "/api/user",
+        "summary": "Get user data from EPA Gateway/Login.gov.",
+        "parameters": [],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "An object with a user's data from EPA Gateway/Login.gov.",
             "content": {
               "application/json": {
                 "schema": {
@@ -186,28 +180,21 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "Unauthorized"
-                    }
-                  }
+                  "$ref": "#/components/schemas/Unauthorized"
                 }
               }
             }
           }
-        },
-        "tags": [],
-        "parameters": []
+        }
       }
     },
     "/api/config": {
       "get": {
-        "summary": "/api/config",
+        "summary": "Get CSB app specific configuration (form open enrollment status, etc.)",
+        "parameters": [],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Open enrollment status (true/false) for each form, by rebate year.",
             "content": {
               "application/json": {
                 "schema": {
@@ -262,28 +249,21 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "Unauthorized"
-                    }
-                  }
+                  "$ref": "#/components/schemas/Unauthorized"
                 }
               }
             }
           }
-        },
-        "tags": [],
-        "parameters": []
+        }
       }
     },
     "/api/bap/sam": {
       "get": {
-        "summary": "/api/bap/sam",
+        "summary": "Get user's SAM.gov data from the BAP.",
+        "parameters": [],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "A boolean indicating whether any SAM.gov results were returned (to support helpdesk users without SAM.gov entities), along with an array of SAM.gov entities.",
             "content": {
               "application/json": {
                 "schema": {
@@ -304,17 +284,16 @@
               }
             }
           }
-        },
-        "tags": [],
-        "parameters": []
+        }
       }
     },
     "/api/bap/submissions": {
       "get": {
-        "summary": "/api/bap/submissions",
+        "summary": "Get user's form submissions statuses from the BAP.",
+        "parameters": [],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "An array of form submission statuses, and other relevant fields.",
             "content": {
               "application/json": {
                 "schema": {
@@ -326,89 +305,56 @@
               }
             }
           }
-        },
-        "tags": [],
-        "parameters": []
+        }
       }
     },
     "/api/formio/2022/s3/{formType}/{mongoId}/{comboKey}/storage/s3": {
       "get": {
-        "summary": "/api/formio/2022/s3/{formType}/{mongoId}/{comboKey}/storage/s3",
+        "summary": "Download Formio S3 file metadata for a 2022 submission.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/formType"
+          },
+          {
+            "$ref": "#/components/parameters/mongoId"
+          },
+          {
+            "$ref": "#/components/parameters/comboKey"
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
           }
-        },
-        "tags": [],
-        "parameters": [
-          {
-            "name": "formType",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "mongoId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "comboKey",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ]
+        }
       },
       "post": {
-        "summary": "/api/formio/2022/s3/{formType}/{mongoId}/{comboKey}/storage/s3",
+        "summary": "Upload Formio S3 file metadata for a 2022 submission.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/formType"
+          },
+          {
+            "$ref": "#/components/parameters/mongoId"
+          },
+          {
+            "$ref": "#/components/parameters/comboKey"
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
           }
-        },
-        "tags": [],
-        "parameters": [
-          {
-            "name": "formType",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "mongoId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "comboKey",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ]
+        }
       }
     },
     "/api/formio/2022/frf-submissions": {
       "get": {
-        "summary": "/api/formio/2022/frf-submissions",
+        "summary": "Get user's 2022 FRF submissions from Formio.",
+        "parameters": [],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "An array of 2022 FRF submissions.",
             "content": {
               "application/json": {
                 "schema": {
@@ -420,96 +366,58 @@
               }
             }
           }
-        },
-        "tags": [],
-        "parameters": []
+        }
       }
     },
     "/api/formio/2022/frf-submission": {
       "post": {
-        "summary": "/api/formio/2022/frf-submission",
+        "summary": "Post a new 2022 FRF submission to Formio.",
+        "parameters": [],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "The newly created 2022 FRF submission.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object"
-                  }
+                  "type": "object"
                 }
               }
             }
           }
-        },
-        "tags": [],
-        "parameters": []
+        }
       }
     },
     "/api/formio/2022/frf-submission/{mongoId}": {
       "get": {
-        "summary": "/api/formio/2022/frf-submission/{mongoId}",
+        "summary": "Get an existing 2022 FRF's schema and submission data from Formio.",
         "parameters": [
           {
-            "name": "mongoId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/mongoId"
           }
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "The 2022 FRF schema, form submission, and user access status.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "userAccess": {
-                      "type": "boolean",
-                      "example": true
-                    },
-                    "formSchema": {
-                      "type": "object",
-                      "properties": {
-                        "url": {
-                          "type": "string",
-                          "example": "https://formmio/project/form/id"
-                        },
-                        "json": {
-                          "type": "object"
-                        }
-                      }
-                    },
-                    "submission": {
-                      "type": "object"
-                    }
-                  }
+                  "$ref": "#/components/schemas/FormioSchemaAndSubmission"
                 }
               }
             }
           }
-        },
-        "tags": []
+        }
       },
       "post": {
-        "summary": "/api/formio/2022/frf-submission/{mongoId}",
+        "summary": "Post an update to an existing draft 2022 FRF submission to Formio.",
         "parameters": [
           {
-            "name": "mongoId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/mongoId"
           }
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "The updated 2022 FRF submission.",
             "content": {
               "application/json": {
                 "schema": {
@@ -518,16 +426,16 @@
               }
             }
           }
-        },
-        "tags": []
+        }
       }
     },
     "/api/formio/2022/prf-submissions": {
       "get": {
-        "summary": "/api/formio/2022/prf-submissions",
+        "summary": "Get user's 2022 PRF submissions from Formio.",
+        "parameters": [],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "An array of 2022 PRF submissions.",
             "content": {
               "application/json": {
                 "schema": {
@@ -539,96 +447,58 @@
               }
             }
           }
-        },
-        "tags": [],
-        "parameters": []
+        }
       }
     },
     "/api/formio/2022/prf-submission": {
       "post": {
-        "summary": "/api/formio/2022/prf-submission",
+        "summary": "Post a new 2022 PRF submission to Formio.",
+        "parameters": [],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "The newly created 2022 PRF submission.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object"
-                  }
+                  "type": "object"
                 }
               }
             }
           }
-        },
-        "tags": [],
-        "parameters": []
+        }
       }
     },
     "/api/formio/2022/prf-submission/{rebateId}": {
       "get": {
-        "summary": "/api/formio/2022/prf-submission/{rebateId}",
+        "summary": "Get an existing 2022 PRF's schema and submission data from Formio.",
         "parameters": [
           {
-            "name": "rebateId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/rebateId"
           }
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "The 2022 PRF schema, form submission, and user access status.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "userAccess": {
-                      "type": "boolean",
-                      "example": true
-                    },
-                    "formSchema": {
-                      "type": "object",
-                      "properties": {
-                        "url": {
-                          "type": "string",
-                          "example": "https://formmio/project/form/id"
-                        },
-                        "json": {
-                          "type": "object"
-                        }
-                      }
-                    },
-                    "submission": {
-                      "type": "object"
-                    }
-                  }
+                  "$ref": "#/components/schemas/FormioSchemaAndSubmission"
                 }
               }
             }
           }
-        },
-        "tags": []
+        }
       },
       "post": {
-        "summary": "/api/formio/2022/prf-submission/{rebateId}",
+        "summary": "Post an update to an existing draft 2022 PRF submission to Formio.",
         "parameters": [
           {
-            "name": "rebateId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/rebateId"
           }
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "The updated 2022 PRF submission.",
             "content": {
               "application/json": {
                 "schema": {
@@ -637,35 +507,27 @@
               }
             }
           }
-        },
-        "tags": []
+        }
       }
     },
     "/api/formio/2022/delete-prf-submission": {
       "post": {
-        "summary": "/api/formio/2022/delete-prf-submission",
+        "summary": "Delete an existing 2022 PRF submission from Formio.",
+        "parameters": [],
         "responses": {
           "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object"
-                }
-              }
-            }
+            "description": "OK"
           }
-        },
-        "tags": [],
-        "parameters": []
+        }
       }
     },
     "/api/formio/2022/crf-submissions": {
       "get": {
-        "summary": "/api/formio/2022/crf-submissions",
+        "summary": "Get user's 2022 CRF submissions from Formio.",
+        "parameters": [],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "An array of 2022 CRF submissions.",
             "content": {
               "application/json": {
                 "schema": {
@@ -677,96 +539,58 @@
               }
             }
           }
-        },
-        "tags": [],
-        "parameters": []
+        }
       }
     },
     "/api/formio/2022/crf-submission": {
       "post": {
-        "summary": "/api/formio/2022/crf-submission",
+        "summary": "Post a new 2022 CRF submission to Formio.",
+        "parameters": [],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "The newly created 2022 CRF submission.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object"
-                  }
+                  "type": "object"
                 }
               }
             }
           }
-        },
-        "tags": [],
-        "parameters": []
+        }
       }
     },
     "/api/formio/2022/crf-submission/{rebateId}": {
       "get": {
-        "summary": "/api/formio/2022/crf-submission/{rebateId}",
+        "summary": "Get an existing 2022 CRF's schema and submission data from Formio.",
         "parameters": [
           {
-            "name": "rebateId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/rebateId"
           }
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "The 2022 CRF schema, form submission, and user access status.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "userAccess": {
-                      "type": "boolean",
-                      "example": true
-                    },
-                    "formSchema": {
-                      "type": "object",
-                      "properties": {
-                        "url": {
-                          "type": "string",
-                          "example": "https://formmio/project/form/id"
-                        },
-                        "json": {
-                          "type": "object"
-                        }
-                      }
-                    },
-                    "submission": {
-                      "type": "object"
-                    }
-                  }
+                  "$ref": "#/components/schemas/FormioSchemaAndSubmission"
                 }
               }
             }
           }
-        },
-        "tags": []
+        }
       },
       "post": {
-        "summary": "/api/formio/2022/crf-submission/{rebateId}",
+        "summary": "Post an update to an existing draft 2022 CRF submission to Formio.",
         "parameters": [
           {
-            "name": "rebateId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/rebateId"
           }
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "The updated 2022 CRF submission.",
             "content": {
               "application/json": {
                 "schema": {
@@ -775,88 +599,56 @@
               }
             }
           }
-        },
-        "tags": []
+        }
       }
     },
     "/api/formio/2023/s3/{formType}/{mongoId}/{comboKey}/storage/s3": {
       "get": {
-        "summary": "/api/formio/2023/s3/{formType}/{mongoId}/{comboKey}/storage/s3",
+        "summary": "Download Formio S3 file metadata for a 2023 submission.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/formType"
+          },
+          {
+            "$ref": "#/components/parameters/mongoId"
+          },
+          {
+            "$ref": "#/components/parameters/comboKey"
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
           }
-        },
-        "tags": [],
-        "parameters": [
-          {
-            "name": "formType",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "mongoId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "comboKey",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ]
+        }
       },
       "post": {
-        "summary": "/api/formio/2023/s3/{formType}/{mongoId}/{comboKey}/storage/s3",
+        "summary": "Upload Formio S3 file metadata for a 2023 submission.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/formType"
+          },
+          {
+            "$ref": "#/components/parameters/mongoId"
+          },
+          {
+            "$ref": "#/components/parameters/comboKey"
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
           }
-        },
-        "tags": [],
-        "parameters": [
-          {
-            "name": "formType",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "mongoId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "comboKey",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ]
+        }
       }
     },
     "/api/formio/2023/frf-submissions": {
       "get": {
-        "summary": "/api/formio/2023/frf-submissions",
+        "summary": "Get user's 2023 FRF submissions from Formio.",
+        "parameters": [],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "An array of 2023 FRF submissions.",
             "content": {
               "application/json": {
                 "schema": {
@@ -868,17 +660,16 @@
               }
             }
           }
-        },
-        "tags": [],
-        "parameters": []
+        }
       }
     },
     "/api/formio/2023/frf-submission": {
       "post": {
-        "summary": "/api/formio/2023/frf-submission",
+        "summary": "Post a new 2023 FRF submission to Formio.",
+        "parameters": [],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "The newly created 2023 FRF submission.",
             "content": {
               "application/json": {
                 "schema": {
@@ -890,74 +681,40 @@
               }
             }
           }
-        },
-        "tags": [],
-        "parameters": []
+        }
       }
     },
     "/api/formio/2023/frf-submission/{mongoId}": {
       "get": {
-        "summary": "/api/formio/2023/frf-submission/{mongoId}",
+        "summary": "Get an existing 2023 FRF's schema and submission data from Formio.",
         "parameters": [
           {
-            "name": "mongoId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/mongoId"
           }
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "The 2023 FRF schema, form submission, and user access status.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "userAccess": {
-                      "type": "boolean",
-                      "example": true
-                    },
-                    "formSchema": {
-                      "type": "object",
-                      "properties": {
-                        "url": {
-                          "type": "string",
-                          "example": "https://formmio/project/form/id"
-                        },
-                        "json": {
-                          "type": "object"
-                        }
-                      }
-                    },
-                    "submission": {
-                      "type": "object"
-                    }
-                  }
+                  "$ref": "#/components/schemas/FormioSchemaAndSubmission"
                 }
               }
             }
           }
-        },
-        "tags": []
+        }
       },
       "post": {
-        "summary": "/api/formio/2023/frf-submission/{mongoId}",
+        "summary": "Post an update to an existing draft 2023 FRF submission to Formio.",
         "parameters": [
           {
-            "name": "mongoId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/mongoId"
           }
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "The updated 2023 FRF submission.",
             "content": {
               "application/json": {
                 "schema": {
@@ -966,16 +723,16 @@
               }
             }
           }
-        },
-        "tags": []
+        }
       }
     },
     "/api/formio/2023/prf-submissions": {
       "get": {
-        "summary": "/api/formio/2023/prf-submissions",
+        "summary": "Get user's 2023 PRF submissions from Formio.",
+        "parameters": [],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "An array of 2023 PRF submissions.",
             "content": {
               "application/json": {
                 "schema": {
@@ -987,96 +744,58 @@
               }
             }
           }
-        },
-        "tags": [],
-        "parameters": []
+        }
       }
     },
     "/api/formio/2023/prf-submission": {
       "post": {
-        "summary": "/api/formio/2023/prf-submission",
+        "summary": "Post a new 2023 PRF submission to Formio.",
+        "parameters": [],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "The newly created 2023 PRF submission.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object"
-                  }
+                  "type": "object"
                 }
               }
             }
           }
-        },
-        "tags": [],
-        "parameters": []
+        }
       }
     },
     "/api/formio/2023/prf-submission/{rebateId}": {
       "get": {
-        "summary": "/api/formio/2023/prf-submission/{rebateId}",
+        "summary": "Get an existing 2023 PRF's schema and submission data from Formio.",
         "parameters": [
           {
-            "name": "rebateId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/rebateId"
           }
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "The 2023 PRF schema, form submission, and user access status.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "userAccess": {
-                      "type": "boolean",
-                      "example": true
-                    },
-                    "formSchema": {
-                      "type": "object",
-                      "properties": {
-                        "url": {
-                          "type": "string",
-                          "example": "https://formmio/project/form/id"
-                        },
-                        "json": {
-                          "type": "object"
-                        }
-                      }
-                    },
-                    "submission": {
-                      "type": "object"
-                    }
-                  }
+                  "$ref": "#/components/schemas/FormioSchemaAndSubmission"
                 }
               }
             }
           }
-        },
-        "tags": []
+        }
       },
       "post": {
-        "summary": "/api/formio/2023/prf-submission/{rebateId}",
+        "summary": "Post an update to an existing draft 2023 PRF submission to Formio.",
         "parameters": [
           {
-            "name": "rebateId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/rebateId"
           }
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "The updated 2023 PRF submission.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1085,53 +804,36 @@
               }
             }
           }
-        },
-        "tags": []
+        }
       }
     },
     "/api/formio/2023/delete-prf-submission": {
       "post": {
-        "summary": "/api/formio/2023/delete-prf-submission",
+        "summary": "Delete an existing 2023 PRF submission from Formio.",
+        "parameters": [],
         "responses": {
           "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object"
-                }
-              }
-            }
+            "description": "OK"
           }
-        },
-        "tags": [],
-        "parameters": []
+        }
       }
     },
     "/api/help/formio/submission/{rebateYear}/{formType}/{id}": {
       "get": {
-        "summary": "/api/help/formio/submission/{rebateYear}/{formType}/{id}",
+        "summary": "Get an existing form's submission data from Formio.",
         "parameters": [
           {
-            "name": "rebateYear",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/rebateYear"
           },
           {
-            "name": "formType",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/formType"
           },
           {
+            "in": "path",
             "name": "id",
-            "in": "path",
+            "description": "The BAP CSB Rebate Id or Formio MongoDB ObjectId.",
             "required": true,
+            "example": "000000",
             "schema": {
               "type": "string"
             }
@@ -1143,28 +845,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "userAccess": {
-                      "type": "boolean",
-                      "example": true
-                    },
-                    "formSchema": {
-                      "type": "object",
-                      "properties": {
-                        "url": {
-                          "type": "string",
-                          "example": "https://formmio/project/form/id"
-                        },
-                        "json": {
-                          "type": "object"
-                        }
-                      }
-                    },
-                    "submission": {
-                      "type": "object"
-                    }
-                  }
+                  "$ref": "#/components/schemas/FormioSchemaAndSubmission"
                 }
               }
             }
@@ -1174,45 +855,28 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "Unauthorized"
-                    }
-                  }
+                  "$ref": "#/components/schemas/Unauthorized"
                 }
               }
             }
           }
-        },
-        "tags": []
+        }
       }
     },
     "/api/help/formio/actions/{formId}/{mongoId}": {
       "get": {
-        "summary": "/api/help/formio/actions/{formId}/{mongoId}",
+        "summary": "Get all actions associated with a form's submission from Formio.",
         "parameters": [
           {
-            "name": "formId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/formId"
           },
           {
-            "name": "mongoId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/mongoId"
           }
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "An array of actions associated with the form's submission.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1229,45 +893,28 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "Unauthorized"
-                    }
-                  }
+                  "$ref": "#/components/schemas/Unauthorized"
                 }
               }
             }
           }
-        },
-        "tags": []
+        }
       }
     },
     "/api/help/formio/pdf/{formId}/{mongoId}": {
       "get": {
-        "summary": "/api/help/formio/pdf/{formId}/{mongoId}",
+        "summary": "Get a PDF of an existing form's submission from Formio.",
         "parameters": [
           {
-            "name": "formId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/formId"
           },
           {
-            "name": "mongoId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/mongoId"
           }
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "A PDF of the form's submission.",
             "content": {
               "*/*": {
                 "schema": {
@@ -1282,108 +929,189 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "Unauthorized"
-                    }
-                  }
+                  "$ref": "#/components/schemas/Unauthorized"
                 }
               }
             }
           }
-        },
-        "tags": []
+        }
       }
     },
     "/api/status/app": {
       "get": {
-        "summary": "/api/status/app",
+        "summary": "CSB App health check.",
+        "parameters": [],
         "responses": {
           "200": {
             "description": "OK"
           }
-        },
-        "tags": [],
-        "parameters": []
+        }
       }
     },
     "/api/status/bap/sam": {
       "get": {
-        "summary": "/api/status/bap/sam",
+        "summary": "CSB SAM.gov connection check.",
+        "parameters": [],
         "responses": {
           "200": {
             "description": "OK"
           }
-        },
-        "tags": [],
-        "parameters": []
+        }
       }
     },
     "/api/status/formio/2022/frf": {
       "get": {
-        "summary": "/api/status/formio/2022/frf",
+        "summary": "CSB Formio 2022 FRF schema check.",
+        "parameters": [],
         "responses": {
           "200": {
             "description": "OK"
           }
-        },
-        "tags": [],
-        "parameters": []
+        }
       }
     },
     "/api/status/formio/2022/prf": {
       "get": {
-        "summary": "/api/status/formio/2022/prf",
+        "summary": "CSB Formio 2022 PRF schema check.",
+        "parameters": [],
         "responses": {
           "200": {
             "description": "OK"
           }
-        },
-        "tags": [],
-        "parameters": []
+        }
       }
     },
     "/api/status/formio/2022/crf": {
       "get": {
-        "summary": "/api/status/formio/2022/crf",
+        "summary": "CSB Formio 2022 CRF schema check.",
+        "parameters": [],
         "responses": {
           "200": {
             "description": "OK"
           }
-        },
-        "tags": [],
-        "parameters": []
+        }
       }
     },
     "/api/status/formio/2023/frf": {
       "get": {
-        "summary": "/api/status/formio/2023/frf",
+        "summary": "CSB Formio 2023 FRF schema check.",
+        "parameters": [],
         "responses": {
           "200": {
             "description": "OK"
           }
-        },
-        "tags": [],
-        "parameters": []
+        }
       }
     },
     "/api/status/formio/2023/prf": {
       "get": {
-        "summary": "/api/status/formio/2023/prf",
+        "summary": "CSB Formio 2023 PRF schema check.",
+        "parameters": [],
         "responses": {
           "200": {
             "description": "OK"
           }
-        },
-        "tags": [],
-        "parameters": []
+        }
       }
     }
   },
-  "tags": [],
   "components": {
-    "parameters": {}
+    "parameters": {
+      "rebateYear": {
+        "in": "path",
+        "name": "rebateYear",
+        "description": "The Clean School Bus Rebate year (2022, 2023).",
+        "required": true,
+        "example": "2022",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "formType": {
+        "in": "path",
+        "name": "formType",
+        "description": "The Formio form type (frf, prf, crf).",
+        "required": true,
+        "example": "frf",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "formId": {
+        "in": "path",
+        "name": "formId",
+        "description": "The Formio form's MongoDB ObjectId.",
+        "required": true,
+        "example": "000000000000000000000000",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "mongoId": {
+        "in": "path",
+        "name": "mongoId",
+        "description": "The Formio submission's MongoDB ObjectId.",
+        "required": true,
+        "example": "000000000000000000000000",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "rebateId": {
+        "in": "path",
+        "name": "rebateId",
+        "description": "The BAP CSB Rebate Id",
+        "required": true,
+        "example": "000000",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "comboKey": {
+        "in": "path",
+        "name": "comboKey",
+        "description": "The SAM.gov entity's UEI/EFTI combo key.",
+        "required": true,
+        "example": "0000000000000000",
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "schemas": {
+      "Unauthorized": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Unauthorized"
+          }
+        }
+      },
+      "FormioSchemaAndSubmission": {
+        "type": "object",
+        "properties": {
+          "userAccess": {
+            "type": "boolean",
+            "example": true
+          },
+          "formSchema": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "example": "https://base-path/project-name/form-path"
+              },
+              "json": {
+                "type": "object"
+              }
+            }
+          },
+          "submission": {
+            "type": "object"
+          }
+        }
+      }
+    }
   }
 }
