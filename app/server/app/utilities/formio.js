@@ -6,6 +6,10 @@ const {
   formUrl,
   submissionPeriodOpen,
   formioCSBMetadata,
+  formioExampleMongoId,
+  formioExampleRebateId,
+  formioExampleComboKey,
+  formioNoUserAccess,
 } = require("../config/formio");
 const {
   getBapFormSubmissionsStatuses,
@@ -14,22 +18,6 @@ const {
   checkFormSubmissionPeriodAndBapStatus,
 } = require("../utilities/bap");
 const log = require("./logger");
-
-/** Example mongoId value used in OpenAPI docs (used by EPA API scan) */
-const emptyMongoId = "000000000000000000000000";
-
-/** Example rebateId value used in OpenAPI docs (used by EPA API scan) */
-const emptyRebateId = "000000";
-
-/** Example comboKey value used in OpenAPI docs (used by EPA API scan) */
-const emptyComboKey = "0000000000000000";
-
-/** JSON response for forms user doesn't have access to */
-const noUserAccess = {
-  userAccess: false,
-  formSchema: null,
-  submission: null,
-};
 
 /**
  * @param {Object} param
@@ -446,7 +434,7 @@ function uploadS3FileMetadata({ rebateYear, req, res }) {
   const { formType, mongoId, comboKey } = req.params;
 
   // NOTE: included to support EPA API scan
-  if (comboKey === emptyComboKey) {
+  if (comboKey === formioExampleComboKey) {
     return res.json({});
   }
 
@@ -527,7 +515,7 @@ function downloadS3FileMetadata({ rebateYear, req, res }) {
   const { formType, comboKey } = req.params;
 
   // NOTE: included to support EPA API scan
-  if (comboKey === emptyComboKey) {
+  if (comboKey === formioExampleComboKey) {
     return res.json({});
   }
 
@@ -671,8 +659,8 @@ function fetchFRFSubmission({ rebateYear, req, res }) {
   const { mongoId } = req.params;
 
   // NOTE: included to support EPA API scan
-  if (mongoId === emptyMongoId) {
-    return res.json(noUserAccess);
+  if (mongoId === formioExampleMongoId) {
+    return res.json(formioNoUserAccess);
   }
 
   const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
@@ -692,7 +680,7 @@ function fetchFRFSubmission({ rebateYear, req, res }) {
     .then((axiosResponses) => axiosResponses.map((axiosRes) => axiosRes.data))
     .then(([submission, schema]) => {
       if (!submission) {
-        return res.json(noUserAccess);
+        return res.json(formioNoUserAccess);
       }
 
       const comboKey = submission.data?.[comboKeyFieldName];
@@ -703,7 +691,7 @@ function fetchFRFSubmission({ rebateYear, req, res }) {
           `FRF submission '${mongoId}' that they do not have access to.`;
         log({ level: "warn", message: logMessage, req });
 
-        return res.json(noUserAccess);
+        return res.json(formioNoUserAccess);
       }
 
       return res.json({
@@ -733,8 +721,8 @@ function updateFRFSubmission({ rebateYear, req, res }) {
   const submission = req.body;
 
   // NOTE: included to support EPA API scan
-  if (mongoId === emptyMongoId) {
-    return res.json(noUserAccess);
+  if (mongoId === formioExampleMongoId) {
+    return res.json(formioNoUserAccess);
   }
 
   const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
@@ -902,8 +890,8 @@ function fetchPRFSubmission({ rebateYear, req, res }) {
   const { rebateId } = req.params; // CSB Rebate ID (6 digits)
 
   // NOTE: included to support EPA API scan
-  if (rebateId === emptyRebateId) {
-    return res.json(noUserAccess);
+  if (rebateId === formioExampleRebateId) {
+    return res.json(formioNoUserAccess);
   }
 
   const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
@@ -942,7 +930,7 @@ function fetchPRFSubmission({ rebateYear, req, res }) {
           `PRF submission '${mongoId}' that they do not have access to.`;
         log({ level: "warn", message: logMessage, req });
 
-        return res.json(noUserAccess);
+        return res.json(formioNoUserAccess);
       }
 
       /** NOTE: verifyMongoObjectId */
@@ -992,7 +980,7 @@ function updatePRFSubmission({ rebateYear, req, res }) {
   const { mongoId, submission } = body;
 
   // NOTE: included to support EPA API scan
-  if (rebateId === emptyRebateId) {
+  if (rebateId === formioExampleRebateId) {
     return res.json({});
   }
 

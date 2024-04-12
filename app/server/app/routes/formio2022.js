@@ -6,6 +6,8 @@ const {
   formUrl,
   submissionPeriodOpen,
   formioCSBMetadata,
+  formioExampleRebateId,
+  formioNoUserAccess,
 } = require("../config/formio");
 const {
   ensureAuthenticated,
@@ -34,16 +36,6 @@ const {
   fetchCRFSubmissions,
 } = require("../utilities/formio");
 const log = require("../utilities/logger");
-
-/** Example rebateId value used in OpenAPI docs (used by EPA API scan) */
-const emptyRebateId = "000000";
-
-/** JSON response for forms user doesn't have access to */
-const noUserAccess = {
-  userAccess: false,
-  formSchema: null,
-  submission: null,
-};
 
 const formioCRFUrl = formUrl["2022"].crf;
 
@@ -326,8 +318,8 @@ router.get("/crf-submission/:rebateId", storeBapComboKeys, async (req, res) => {
   const { rebateId } = req.params; // CSB Rebate ID (6 digits)
 
   // NOTE: included to support EPA API scan
-  if (rebateId === emptyRebateId) {
-    return res.json(noUserAccess);
+  if (rebateId === formioExampleRebateId) {
+    return res.json(formioNoUserAccess);
   }
 
   const matchedCRFSubmissions =
@@ -342,7 +334,7 @@ router.get("/crf-submission/:rebateId", storeBapComboKeys, async (req, res) => {
     .then((axiosResponses) => axiosResponses.map((axiosRes) => axiosRes.data))
     .then(([submissions, schema]) => {
       if (submissions.length === 0) {
-        return res.json(noUserAccess);
+        return res.json(formioNoUserAccess);
       }
 
       const submission = submissions[0];
@@ -355,7 +347,7 @@ router.get("/crf-submission/:rebateId", storeBapComboKeys, async (req, res) => {
           `that they do not have access to.`;
         log({ level: "warn", message: logMessage, req });
 
-        return res.json(noUserAccess);
+        return res.json(formioNoUserAccess);
       }
 
       /** NOTE: verifyMongoObjectId */
@@ -401,7 +393,7 @@ router.post("/crf-submission/:rebateId", storeBapComboKeys, (req, res) => {
   const comboKey = submission.data?.bap_hidden_entity_combo_key;
 
   // NOTE: included to support EPA API scan
-  if (rebateId === emptyRebateId) {
+  if (rebateId === formioExampleRebateId) {
     return res.json({});
   }
 
