@@ -257,6 +257,24 @@
         }
       }
     },
+    "/api/bap/duplicates": {
+      "post": {
+        "summary": "Check for duplicate contacts or organizations in the BAP.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "An object containing any duplicate contacts or organizations found via the BAP's record matcher API.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/bap/sam": {
       "get": {
         "summary": "Get user's SAM.gov data from the BAP.",
