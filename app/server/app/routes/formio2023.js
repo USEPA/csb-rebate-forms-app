@@ -86,78 +86,27 @@ router.post(
 
 // --- get user's 2023 PRF submissions from Formio
 router.get("/prf-submissions", storeBapComboKeys, (req, res) => {
-  // TODO: temporary until the PRF is live on prod
-  res.json([]);
-
-  // fetchPRFSubmissions({ rebateYear, req, res });
+  fetchPRFSubmissions({ rebateYear, req, res });
 });
 
 // --- post a new 2023 PRF submission to Formio
 router.post("/prf-submission", storeBapComboKeys, (req, res) => {
-  // TODO: temporary until the PRF is live on prod
-  const { body } = req;
-
-  // NOTE: included to support EPA API scan
-  if (Object.keys(body).length === 0) {
-    return res.json({});
-  }
-
-  const errorStatus = 400;
-  const errorMessage = `Formio ${rebateYear} PRF is not yet live.`;
-  return res.status(errorStatus).json({ message: errorMessage });
-
-  // createPRFSubmission({ rebateYear, req, res });
+  createPRFSubmission({ rebateYear, req, res });
 });
 
 // --- get an existing 2023 PRF's schema and submission data from Formio
 router.get("/prf-submission/:rebateId", storeBapComboKeys, async (req, res) => {
-  // TODO: temporary until the PRF is live on prod
-  const { rebateId } = req.params; // CSB Rebate ID (6 digits)
-
-  // NOTE: included to support EPA API scan
-  if (rebateId === formioExampleRebateId) {
-    return res.json(formioNoUserAccess);
-  }
-
-  const errorStatus = 400;
-  const errorMessage = `Formio ${rebateYear} PRF is not yet live.`;
-  return res.status(errorStatus).json({ message: errorMessage });
-
-  // fetchPRFSubmission({ rebateYear, req, res });
+  fetchPRFSubmission({ rebateYear, req, res });
 });
 
 // --- post an update to an existing draft 2023 PRF submission to Formio
 router.post("/prf-submission/:rebateId", storeBapComboKeys, (req, res) => {
-  // TODO: temporary until the PRF is live on prod
-  const { rebateId } = req.params; // CSB Rebate ID (6 digits)
-
-  // NOTE: included to support EPA API scan
-  if (rebateId === formioExampleRebateId) {
-    return res.json({});
-  }
-
-  const errorStatus = 400;
-  const errorMessage = `Formio ${rebateYear} PRF is not yet live.`;
-  return res.status(errorStatus).json({ message: errorMessage });
-
-  // updatePRFSubmission({ rebateYear, req, res });
+  updatePRFSubmission({ rebateYear, req, res });
 });
 
 // --- delete an existing 2023 PRF submission from Formio
 router.post("/delete-prf-submission", storeBapComboKeys, (req, res) => {
-  // TODO: temporary until the PRF is live on prod
-  const { body } = req;
-
-  // NOTE: included to support EPA API scan
-  if (Object.keys(body).length === 0) {
-    return res.json({});
-  }
-
-  const errorStatus = 400;
-  const errorMessage = `Formio ${rebateYear} PRF is not yet live.`;
-  return res.status(errorStatus).json({ message: errorMessage });
-
-  // deletePRFSubmission({ rebateYear, req, res });
+  deletePRFSubmission({ rebateYear, req, res });
 });
 
 // --- get user's 2023 CRF submissions from Formio
@@ -174,52 +123,22 @@ router.get("/crf-submissions", storeBapComboKeys, (req, res) => {
 
 // --- get user's 2023 Change Request form submissions from Formio
 router.get("/changes", storeBapComboKeys, (req, res) => {
-  // TODO: temporary until the change request form is live on prod
-  res.json([]);
-
-  // fetchChangeRequests({ rebateYear, req, res });
+  fetchChangeRequests({ rebateYear, req, res });
 });
 
 // --- get the 2023 Change Request form's schema from Formio
 router.get("/change", storeBapComboKeys, (req, res) => {
-  // TODO: temporary until the change request form is live on prod
-  res.json({});
-
-  // fetchChangeRequestSchema({ rebateYear, req, res });
+  fetchChangeRequestSchema({ rebateYear, req, res });
 });
 
 // --- post a new 2023 Change Request form submission to Formio
 router.post("/change", storeBapComboKeys, (req, res) => {
-  // TODO: temporary until the change request form is live on prod
-  const { body } = req;
-
-  // NOTE: included to support EPA API scan
-  if (Object.keys(body).length === 0) {
-    return res.json({});
-  }
-
-  const errorStatus = 400;
-  const errorMessage = `Formio ${rebateYear} Change Request Form is not yet live.`;
-  return res.status(errorStatus).json({ message: errorMessage });
-
-  // createChangeRequest({ rebateYear, req, res });
+  createChangeRequest({ rebateYear, req, res });
 });
 
 // --- get an existing 2023 Change Request form's schema and submission data from Formio
 router.get("/change/:mongoId", storeBapComboKeys, async (req, res) => {
-  // TODO: temporary until the change request form is live on prod
-  const { mongoId } = req.params; // CSB Rebate ID (6 digits)
-
-  // NOTE: included to support EPA API scan
-  if (mongoId === formioExampleMongoId) {
-    return res.json(formioNoUserAccess);
-  }
-
-  const errorStatus = 400;
-  const errorMessage = `Formio ${rebateYear} Change Request Form is not yet live.`;
-  return res.status(errorStatus).json({ message: errorMessage });
-
-  // fetchChangeRequest({ rebateYear, req, res });
+  fetchChangeRequest({ rebateYear, req, res });
 });
 
 module.exports = router;
