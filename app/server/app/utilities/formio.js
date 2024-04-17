@@ -1254,6 +1254,11 @@ function createChangeRequest({ rebateYear, req, res }) {
   const { bapComboKeys, body } = req;
   const { mail } = req.user;
 
+  // NOTE: included to support EPA API scan
+  if (Object.keys(body).length === 0) {
+    return res.json({});
+  }
+
   const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
   const comboKey = body.data?.[comboKeyFieldName];
 
@@ -1302,6 +1307,11 @@ function fetchChangeRequest({ rebateYear, req, res }) {
   const { mail } = req.user;
   const { mongoId } = req.params;
 
+  // NOTE: included to support EPA API scan
+  if (mongoId === formioExampleMongoId) {
+    return res.json(formioNoUserAccess);
+  }
+
   const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
 
   const formioFormUrl = formUrl[rebateYear].change;
@@ -1318,6 +1328,10 @@ function fetchChangeRequest({ rebateYear, req, res }) {
   ])
     .then((axiosResponses) => axiosResponses.map((axiosRes) => axiosRes.data))
     .then(([submission, schema]) => {
+      if (!submission) {
+        return res.json(formioNoUserAccess);
+      }
+
       const comboKey = submission.data?.[comboKeyFieldName];
 
       if (!bapComboKeys.includes(comboKey)) {
@@ -1326,11 +1340,7 @@ function fetchChangeRequest({ rebateYear, req, res }) {
           `Change Request form submission '${mongoId}' that they do not have access to.`;
         log({ level: "warn", message: logMessage, req });
 
-        return res.json({
-          userAccess: false,
-          formSchema: null,
-          submission: null,
-        });
+        return res.json(formioNoUserAccess);
       }
 
       return res.json({
