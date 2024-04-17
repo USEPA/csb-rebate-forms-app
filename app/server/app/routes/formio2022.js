@@ -6,6 +6,8 @@ const {
   formUrl,
   submissionPeriodOpen,
   formioCSBMetadata,
+  formioExampleRebateId,
+  formioNoUserAccess,
 } = require("../config/formio");
 const {
   ensureAuthenticated,
@@ -135,6 +137,11 @@ router.post("/crf-submission", storeBapComboKeys, (req, res) => {
     prfReviewItemId,
     prfModified,
   } = body;
+
+  // NOTE: included to support EPA API scan
+  if (Object.keys(body).length === 0) {
+    return res.json({});
+  }
 
   if (!submissionPeriodOpen["2022"].crf) {
     const errorStatus = 400;
@@ -310,6 +317,11 @@ router.get("/crf-submission/:rebateId", storeBapComboKeys, async (req, res) => {
   const { mail } = req.user;
   const { rebateId } = req.params; // CSB Rebate ID (6 digits)
 
+  // NOTE: included to support EPA API scan
+  if (rebateId === formioExampleRebateId) {
+    return res.json(formioNoUserAccess);
+  }
+
   const matchedCRFSubmissions =
     `${formioCRFUrl}/submission` +
     `?data.hidden_bap_rebate_id=${rebateId}` +
@@ -321,6 +333,10 @@ router.get("/crf-submission/:rebateId", storeBapComboKeys, async (req, res) => {
   ])
     .then((axiosResponses) => axiosResponses.map((axiosRes) => axiosRes.data))
     .then(([submissions, schema]) => {
+      if (submissions.length === 0) {
+        return res.json(formioNoUserAccess);
+      }
+
       const submission = submissions[0];
       const mongoId = submission._id;
       const comboKey = submission.data.bap_hidden_entity_combo_key;
@@ -331,11 +347,7 @@ router.get("/crf-submission/:rebateId", storeBapComboKeys, async (req, res) => {
           `that they do not have access to.`;
         log({ level: "warn", message: logMessage, req });
 
-        return res.json({
-          userAccess: false,
-          formSchema: null,
-          submission: null,
-        });
+        return res.json(formioNoUserAccess);
       }
 
       /** NOTE: verifyMongoObjectId */
@@ -378,6 +390,18 @@ router.post("/crf-submission/:rebateId", storeBapComboKeys, (req, res) => {
   const { mail } = req.user;
   const { rebateId } = req.params; // CSB Rebate ID (6 digits)
   const { mongoId, submission } = body;
+
+  // NOTE: included to support EPA API scan
+  if (rebateId === formioExampleRebateId) {
+    return res.json({});
+  }
+
+  if (!mongoId || !submission) {
+    const errorStatus = 400;
+    const errorMessage = `Missing required data to update ${rebateYear} CRF submission '${rebateId}'.`;
+    return res.status(errorStatus).json({ message: errorMessage });
+  }
+
   const comboKey = submission.data?.bap_hidden_entity_combo_key;
 
   checkFormSubmissionPeriodAndBapStatus({

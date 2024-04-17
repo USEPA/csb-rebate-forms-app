@@ -100,10 +100,30 @@ const formioCSBMetadata = {
   "csb-app-cloud-origin": SERVER_URL || "localhost",
 };
 
+/** Example mongoId value used in OpenAPI docs (used by EPA API scan) */
+const formioExampleMongoId = "000000000000000000000000";
+
+/** Example rebateId value used in OpenAPI docs (used by EPA API scan) */
+const formioExampleRebateId = "000000";
+
+/** Example comboKey value used in OpenAPI docs (used by EPA API scan) */
+const formioExampleComboKey = "0000000000000000";
+
+/** JSON response for forms user doesn't have access to */
+const formioNoUserAccess = {
+  userAccess: false,
+  formSchema: null,
+  submission: null,
+};
+
 module.exports = {
   axiosFormio,
   formioProjectUrl,
   formUrl,
   submissionPeriodOpen,
   formioCSBMetadata,
+  formioExampleMongoId,
+  formioExampleRebateId,
+  formioExampleComboKey,
+  formioNoUserAccess,
 };

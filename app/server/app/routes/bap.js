@@ -14,27 +14,27 @@ const { FORMIO_DUPLICATES_API_KEY } = process.env;
 const router = express.Router();
 
 // --- check for duplicate contacts or organizations in the BAP.
-router.options("/duplicates", cors()); // enable pre-flight request
-router.post("/duplicates", cors(), (req, res) => {
-  const apiKey = req.headers["x-api-key"];
+// router.options("/duplicates", cors()); // enable pre-flight request
+// router.post("/duplicates", cors(), (req, res) => {
+//   const apiKey = req.headers["x-api-key"];
 
-  if (apiKey !== FORMIO_DUPLICATES_API_KEY) {
-    const message = `Incorrect or missing Formio BAP Duplicates API key provided.`;
-    log({ level: "error", message, req });
+//   if (apiKey !== FORMIO_DUPLICATES_API_KEY) {
+//     const message = `Incorrect or missing Formio BAP Duplicates API key provided.`;
+//     log({ level: "error", message, req });
 
-    const errorStatus = 400;
-    return res.status(errorStatus).json({ message });
-  }
+//     const errorStatus = 400;
+//     return res.status(errorStatus).json({ message });
+//   }
 
-  return checkForBapDuplicates(req)
-    .then((duplicates) => res.json(duplicates))
-    .catch((_error) => {
-      // NOTE: logged in bap verifyBapConnection
-      const errorStatus = 500;
-      const errorMessage = `Error checking duplicates from the BAP.`;
-      return res.status(errorStatus).json({ message: errorMessage });
-    });
-});
+//   return checkForBapDuplicates(req)
+//     .then((duplicates) => res.json(duplicates))
+//     .catch((_error) => {
+//       // NOTE: logged in bap verifyBapConnection
+//       const errorStatus = 500;
+//       const errorMessage = `Error checking duplicates from the BAP.`;
+//       return res.status(errorStatus).json({ message: errorMessage });
+//     });
+// });
 
 router.use(ensureAuthenticated);
 
