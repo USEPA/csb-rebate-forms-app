@@ -1,10 +1,13 @@
 const express = require("express");
 // ---
+const { ensureAuthenticated } = require("../middleware");
 const log = require("../utilities/logger");
 
 const { FORMIO_NCES_API_KEY } = process.env;
 
 const router = express.Router();
+
+router.use(ensureAuthenticated);
 
 // --- Search the NCES data with the provided NCES ID and return a match
 router.get("/:searchText?", (req, res) => {
