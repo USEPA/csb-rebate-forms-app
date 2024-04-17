@@ -146,14 +146,14 @@ function SubmissionsTableHeader(props: { rebateYear: RebateYear }) {
           />
         </th>
 
-        {/* {rebateYear === "2023" && (
+        {rebateYear === "2023" && (
           <th scope="col" className={clsx("tw-text-right")}>
             <TextWithTooltip
               text="Change Request"
               tooltip="Submit a change request for an extension, to request edits, or to withdraw from the rebate program"
             />
           </th>
-        )} */}
+        )}
       </tr>
     </thead>
   );
@@ -1098,7 +1098,7 @@ function FRF2023Submission(props: { rebate: Rebate }) {
         <span title={`${date} ${time}`}>{date}</span>
       </td>
 
-      {/* <td className={clsx("!tw-text-right")}>
+      <td className={clsx("!tw-text-right")}>
         <ChangeRequest2023Button
           disabled={frf.formio.state === "draft"}
           data={{
@@ -1111,7 +1111,7 @@ function FRF2023Submission(props: { rebate: Rebate }) {
             name,
           }}
         />
-      </td> */}
+      </td>
     </tr>
   );
 }
@@ -1477,7 +1477,7 @@ function Submissions2023() {
 
   return (
     <>
-      {/* <ChangeRequests2023 /> */}
+      <ChangeRequests2023 />
 
       {content && (
         <MarkdownContent
@@ -1497,7 +1497,7 @@ function Submissions2023() {
               return rebate.rebateYear === "2023" ? (
                 <Fragment key={rebate.rebateId}>
                   <FRF2023Submission rebate={rebate} />
-                  {/* <PRF2023Submission rebate={rebate} /> */}
+                  <PRF2023Submission rebate={rebate} />
                   {/* <CRF2023Submission rebate={rebate} /> */}
                   {/* blank row after all submissions but the last one */}
                   {index !== submissions.length - 1 && (
