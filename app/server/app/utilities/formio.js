@@ -19,6 +19,8 @@ const {
 } = require("../utilities/bap");
 const log = require("./logger");
 
+const { NODE_ENV } = process.env;
+
 /**
  * @param {Object} param
  * @param {'2022' | '2023'} param.rebateYear
@@ -41,6 +43,34 @@ function getRebateIdFieldName({ rebateYear }) {
     : rebateYear === "2023"
     ? "_bap_rebate_id"
     : "";
+}
+
+/**
+ * Modifies Formio schema to use relative API endpoints for datasource
+ * components (e.g., `/api/...` instead of `https://.../api/...`) which enables
+ * the request to occur when developing locally.
+ *
+ * @param {Object} schema
+ */
+function modifyDatasourceComponentsUrl(schema) {
+  const result = { ...schema };
+
+  ["components", "columns"].forEach((fieldName) => {
+    if (result[fieldName]) {
+      result[fieldName].forEach((component) => {
+        if (component.type === "datasource") {
+          const path = component.fetch.url.split("/api/")[1];
+          component.fetch.url = `/api/${path}`;
+        }
+
+        if (component.components || component.columns) {
+          modifyDatasourceComponentsUrl(component);
+        }
+      });
+    }
+  });
+
+  return result;
 }
 
 /**
@@ -694,9 +724,15 @@ function fetchFRFSubmission({ rebateYear, req, res }) {
         return res.json(formioNoUserAccess);
       }
 
+      /** Modify 2023 FRF's NCES API endpoint URL for local development */
+      const formSchemaJson =
+        NODE_ENV === "development" && rebateYear === "2023"
+          ? modifyDatasourceComponentsUrl(schema)
+          : schema;
+
       return res.json({
         userAccess: true,
-        formSchema: { url: formioFormUrl, json: schema },
+        formSchema: { url: formioFormUrl, json: formSchemaJson },
         submission,
       });
     })

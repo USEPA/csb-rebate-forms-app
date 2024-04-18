@@ -117,35 +117,6 @@
         }
       }
     },
-    "/api/formio/nces/{searchText}": {
-      "get": {
-        "summary": "Search the NCES data with the provided NCES ID and return a match.",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "searchText",
-            "description": "The NCES ID to search for.",
-            "required": true,
-            "example": "A999999",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "An object containing the matched NCES data.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/user": {
       "get": {
         "summary": "Get user data from EPA Gateway/Login.gov.",
@@ -319,6 +290,35 @@
                   "items": {
                     "type": "object"
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/formio/nces/{searchText}": {
+      "get": {
+        "summary": "Search the NCES data with the provided NCES ID and return a match.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "searchText",
+            "description": "The NCES ID to search for.",
+            "required": true,
+            "example": "A999999",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An object containing the matched NCES data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
                 }
               }
             }
