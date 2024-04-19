@@ -115,7 +115,11 @@ export const statusIconMap = new Map<string, string>()
   .set("Edits Requested", "priority_high") // !
   .set("Withdrawn", "close") // ✕
   .set("Not Selected", "cancel") // x inside a circle
+  .set("Funding Not Approved", "cancel")
+  .set("Close Out Not Approved", "cancel")
   .set("Selected", "check_circle") // check inside a circle
+  .set("Funding Approved", "check_circle")
+  .set("Close Out Approved", "check_circle")
   .set("Draft", "more_horiz") // three horizontal dots
   .set("Submitted", "check") // check
   .set("", "remove"); // — (fallback, not used)

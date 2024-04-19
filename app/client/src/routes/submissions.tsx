@@ -634,7 +634,6 @@ function CRF2022Submission(props: { rebate: Rebate }) {
   const crfSubmissionPeriodOpen = configData.submissionPeriodOpen["2022"].crf;
 
   const prfFundingApproved = prf.bap?.status === "Accepted";
-
   const prfFundingApprovedButNoCRF = prfFundingApproved && !Boolean(crf.formio);
 
   if (prfFundingApprovedButNoCRF) {
@@ -729,44 +728,19 @@ function CRF2022Submission(props: { rebate: Rebate }) {
     bap: crf.bap,
   });
 
-  const crfNeedsClarification = crf.bap?.status === "Needs Clarification";
+  const crfBapInternalStatus = crf.bap?.status || "";
+  const crfFormioStatus = formioStatusMap.get(crf.formio.state);
 
-  const crfReimbursementNeeded = crf.bap?.status === "Reimbursement Needed";
-
-  const crfNotApproved = crf.bap?.status === "Branch Director Denied";
-
-  const crfApproved = crf.bap?.status === "Branch Director Approved";
+  const crfStatus = crfNeedsEdits
+    ? "Edits Requested"
+    : bapStatusMap["2022"].crf.get(crfBapInternalStatus) ||
+      crfFormioStatus ||
+      "";
 
   const statusTableCellClassNames =
-    crf.formio.state === "submitted" || !crfSubmissionPeriodOpen
+    crfFormioStatus === "Submitted" || !crfSubmissionPeriodOpen
       ? "text-italic"
       : "";
-
-  const statusIconClassNames = clsx("usa-icon", crfApproved && "text-primary");
-
-  const statusIcon = crfNeedsEdits
-    ? `${icons}#priority_high` // !
-    : crfNotApproved
-    ? `${icons}#cancel` // ✕ inside a circle
-    : crfApproved
-    ? `${icons}#check_circle` // check inside a circle
-    : crf.formio.state === "draft"
-    ? `${icons}#more_horiz` // three horizontal dots
-    : crf.formio.state === "submitted"
-    ? `${icons}#check` // check
-    : `${icons}#remove`; // — (fallback, not used)
-
-  const statusText = crfNeedsEdits
-    ? "Edits Requested"
-    : crfNotApproved
-    ? "Close Out Not Approved"
-    : crfApproved
-    ? "Close Out Approved"
-    : crf.formio.state === "draft"
-    ? "Draft"
-    : crf.formio.state === "submitted"
-    ? "Submitted"
-    : ""; // fallback, not used
 
   const crfUrl = `/crf/2022/${hidden_bap_rebate_id}`;
 
@@ -794,29 +768,32 @@ function CRF2022Submission(props: { rebate: Rebate }) {
         <span>Close Out</span>
         <br />
         <span className="display-flex flex-align-center font-sans-2xs">
-          {crfNeedsClarification ? (
+          {crfStatus === "Needs Clarification" ? (
             <TextWithTooltip
-              text="Needs Clarification"
+              text={crfStatus}
               tooltip="Check your email for instructions on what needs clarification"
               iconClassNames="text-base-darkest"
             />
-          ) : crfReimbursementNeeded ? (
+          ) : crfStatus === "Reimbursement Needed" ? (
             <TextWithTooltip
-              text="Reimbursement Needed"
+              text={crfStatus}
               tooltip="Check your email for information on reimbursement needed"
               iconClassNames="text-base-darkest"
             />
           ) : (
             <>
               <svg
-                className={statusIconClassNames}
+                className={clsx(
+                  "usa-icon",
+                  crfStatus === "Close Out Approved" && "text-primary",
+                )}
                 aria-hidden="true"
                 focusable="false"
                 role="img"
               >
-                <use href={statusIcon} />
+                <use href={`${icons}#${statusIconMap.get(crfStatus)}`} />
               </svg>
-              <span className="margin-left-05">{statusText}</span>
+              <span className="margin-left-05">{crfStatus}</span>
             </>
           )}
         </span>
