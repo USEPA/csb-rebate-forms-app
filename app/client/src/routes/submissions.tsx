@@ -204,8 +204,8 @@ function FRF2022Submission(props: { rebate: Rebate }) {
   const frfSelected = frfStatus === "Selected";
   const frfSelectedButNoPRF = frfSelected && !Boolean(prf.formio);
 
-  const prfFundingApproved = prf.bap?.status === "Accepted";
-  const prfFundingApprovedButNoCRF = prfFundingApproved && !Boolean(crf.formio);
+  const prfApproved = prf.bap?.status === "Accepted";
+  const prfApprovedButNoCRF = prfApproved && !Boolean(crf.formio);
 
   const statusTableCellClassNames =
     frfFormioStatus === "Submitted" || !frfSubmissionPeriodOpen
@@ -231,7 +231,7 @@ function FRF2022Submission(props: { rebate: Rebate }) {
   return (
     <tr
       className={
-        frfNeedsEdits || frfSelectedButNoPRF || prfFundingApprovedButNoCRF
+        frfNeedsEdits || frfSelectedButNoPRF || prfApprovedButNoCRF
           ? highlightedTableRowClassNames
           : defaultTableRowClassNames
       }
@@ -522,8 +522,8 @@ function PRF2022Submission(props: { rebate: Rebate }) {
       prfFormioStatus ||
       "";
 
-  const prfFundingApproved = prfStatus === "Funding Approved";
-  const prfFundingApprovedButNoCRF = prfFundingApproved && !Boolean(crf.formio);
+  const prfApproved = prfStatus === "Funding Approved";
+  const prfApprovedButNoCRF = prfApproved && !Boolean(crf.formio);
 
   const statusTableCellClassNames =
     prfFormioStatus === "Submitted" || !prfSubmissionPeriodOpen
@@ -535,7 +535,7 @@ function PRF2022Submission(props: { rebate: Rebate }) {
   return (
     <tr
       className={
-        prfNeedsEdits || prfFundingApprovedButNoCRF
+        prfNeedsEdits || prfApprovedButNoCRF
           ? highlightedTableRowClassNames
           : defaultTableRowClassNames
       }
@@ -567,10 +567,7 @@ function PRF2022Submission(props: { rebate: Rebate }) {
           ) : (
             <>
               <svg
-                className={clsx(
-                  "usa-icon",
-                  prfFundingApproved && "text-primary",
-                )}
+                className={clsx("usa-icon", prfApproved && "text-primary")}
                 aria-hidden="true"
                 focusable="false"
                 role="img"
@@ -630,10 +627,10 @@ function CRF2022Submission(props: { rebate: Rebate }) {
 
   const crfSubmissionPeriodOpen = configData.submissionPeriodOpen["2022"].crf;
 
-  const prfFundingApproved = prf.bap?.status === "Accepted";
-  const prfFundingApprovedButNoCRF = prfFundingApproved && !Boolean(crf.formio);
+  const prfApproved = prf.bap?.status === "Accepted";
+  const prfApprovedButNoCRF = prfApproved && !Boolean(crf.formio);
 
-  if (prfFundingApprovedButNoCRF) {
+  if (prfApprovedButNoCRF) {
     return (
       <tr className={highlightedTableRowClassNames}>
         <th scope="row" colSpan={6}>
@@ -734,7 +731,7 @@ function CRF2022Submission(props: { rebate: Rebate }) {
       crfFormioStatus ||
       "";
 
-  const crfCloseOutApproved = crfStatus === "Close Out Approved";
+  const crfApproved = crfStatus === "Close Out Approved";
 
   const statusTableCellClassNames =
     crfFormioStatus === "Submitted" || !crfSubmissionPeriodOpen
@@ -746,7 +743,7 @@ function CRF2022Submission(props: { rebate: Rebate }) {
   return (
     <tr
       className={
-        crfNeedsEdits || prfFundingApprovedButNoCRF
+        crfNeedsEdits || prfApprovedButNoCRF
           ? highlightedTableRowClassNames
           : defaultTableRowClassNames
       }
@@ -782,10 +779,7 @@ function CRF2022Submission(props: { rebate: Rebate }) {
           ) : (
             <>
               <svg
-                className={clsx(
-                  "usa-icon",
-                  crfCloseOutApproved && "text-primary",
-                )}
+                className={clsx("usa-icon", crfApproved && "text-primary")}
                 aria-hidden="true"
                 focusable="false"
                 role="img"
@@ -865,8 +859,8 @@ function FRF2023Submission(props: { rebate: Rebate }) {
   const frfSelected = frfStatus === "Selected";
   const frfSelectedButNoPRF = frfSelected && !Boolean(prf.formio);
 
-  const prfFundingApproved = prf.bap?.status === "Accepted";
-  const prfFundingApprovedButNoCRF = prfFundingApproved && !Boolean(crf.formio);
+  const prfApproved = prf.bap?.status === "Accepted";
+  const prfApprovedButNoCRF = prfApproved && !Boolean(crf.formio);
 
   const statusTableCellClassNames =
     frfFormioStatus === "Submitted" || !frfSubmissionPeriodOpen
@@ -892,7 +886,7 @@ function FRF2023Submission(props: { rebate: Rebate }) {
   return (
     <tr
       className={
-        frfNeedsEdits || frfSelectedButNoPRF || prfFundingApprovedButNoCRF
+        frfNeedsEdits || frfSelectedButNoPRF || prfApprovedButNoCRF
           ? highlightedTableRowClassNames
           : defaultTableRowClassNames
       }
@@ -1158,8 +1152,8 @@ function PRF2023Submission(props: { rebate: Rebate }) {
       prfFormioStatus ||
       "";
 
-  const prfFundingApproved = prfStatus === "Funding Approved";
-  const prfFundingApprovedButNoCRF = prfFundingApproved && !Boolean(crf.formio);
+  const prfApproved = prfStatus === "Funding Approved";
+  const prfApprovedButNoCRF = prfApproved && !Boolean(crf.formio);
 
   const statusTableCellClassNames =
     prf.formio.state === "submitted" || !prfSubmissionPeriodOpen
@@ -1171,7 +1165,7 @@ function PRF2023Submission(props: { rebate: Rebate }) {
   return (
     <tr
       className={
-        prfNeedsEdits || prfFundingApprovedButNoCRF
+        prfNeedsEdits || prfApprovedButNoCRF
           ? highlightedTableRowClassNames
           : defaultTableRowClassNames
       }
@@ -1203,10 +1197,7 @@ function PRF2023Submission(props: { rebate: Rebate }) {
           ) : (
             <>
               <svg
-                className={clsx(
-                  "usa-icon",
-                  prfFundingApproved && "text-primary",
-                )}
+                className={clsx("usa-icon", prfApproved && "text-primary")}
                 aria-hidden="true"
                 focusable="false"
                 role="img"
