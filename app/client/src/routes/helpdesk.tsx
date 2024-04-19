@@ -143,14 +143,16 @@ function ResultTableRow(props: {
   const date = formatDate(formio.modified);
   const time = formatTime(formio.modified);
 
+  const id = lastSearchedText.length === 6 ? bap.rebateId : bap.mongoId;
+
   const bapInternalStatus = bap.status || "";
   const formioStatus = formioStatusMap.get(formio.state);
 
-  const id = lastSearchedText.length === 6 ? bap.rebateId : bap.mongoId;
-
   const status = submissionNeedsEdits({ formio, bap })
     ? "Edits Requested"
-    : bapStatusMap[rebateYear][formType].get(bapInternalStatus) || formioStatus;
+    : bapStatusMap[rebateYear][formType].get(bapInternalStatus) ||
+      formioStatus ||
+      "";
 
   const nameField = formioNameField[rebateYear][formType];
   const emailField = formioEmailField[rebateYear][formType];
