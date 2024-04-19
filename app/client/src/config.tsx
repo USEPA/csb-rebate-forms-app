@@ -117,6 +117,7 @@ export const statusIconMap = new Map<string, string>()
   .set("Not Selected", "cancel") // x inside a circle
   .set("Funding Not Approved", "cancel")
   .set("Close Out Not Approved", "cancel")
+  .set("Funding Denied", "cancel")
   .set("Selected", "check_circle") // check inside a circle
   .set("Funding Approved", "check_circle")
   .set("Close Out Approved", "check_circle")

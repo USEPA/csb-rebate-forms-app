@@ -272,10 +272,7 @@ function FRF2022Submission(props: { rebate: Rebate }) {
           ) : (
             <>
               <svg
-                className={clsx(
-                  "usa-icon",
-                  frfStatus === "Selected" && "text-primary",
-                )}
+                className={clsx("usa-icon", frfSelected && "text-primary")}
                 aria-hidden="true"
                 focusable="false"
                 role="img"
@@ -525,8 +522,8 @@ function PRF2022Submission(props: { rebate: Rebate }) {
       prfFormioStatus ||
       "";
 
-  const prfFundingApprovedButNoCRF =
-    prfStatus === "Funding Approved" && !Boolean(crf.formio);
+  const prfFundingApproved = prfStatus === "Funding Approved";
+  const prfFundingApprovedButNoCRF = prfFundingApproved && !Boolean(crf.formio);
 
   const statusTableCellClassNames =
     prfFormioStatus === "Submitted" || !prfSubmissionPeriodOpen
@@ -572,7 +569,7 @@ function PRF2022Submission(props: { rebate: Rebate }) {
               <svg
                 className={clsx(
                   "usa-icon",
-                  prfStatus === "Funding Approved" && "text-primary",
+                  prfFundingApproved && "text-primary",
                 )}
                 aria-hidden="true"
                 focusable="false"
@@ -737,6 +734,8 @@ function CRF2022Submission(props: { rebate: Rebate }) {
       crfFormioStatus ||
       "";
 
+  const crfCloseOutApproved = crfStatus === "Close Out Approved";
+
   const statusTableCellClassNames =
     crfFormioStatus === "Submitted" || !crfSubmissionPeriodOpen
       ? "text-italic"
@@ -785,7 +784,7 @@ function CRF2022Submission(props: { rebate: Rebate }) {
               <svg
                 className={clsx(
                   "usa-icon",
-                  crfStatus === "Close Out Approved" && "text-primary",
+                  crfCloseOutApproved && "text-primary",
                 )}
                 aria-hidden="true"
                 focusable="false"
@@ -934,10 +933,7 @@ function FRF2023Submission(props: { rebate: Rebate }) {
           ) : (
             <>
               <svg
-                className={clsx(
-                  "usa-icon",
-                  frfStatus === "Selected" && "text-primary",
-                )}
+                className={clsx("usa-icon", frfSelected && "text-primary")}
                 aria-hidden="true"
                 focusable="false"
                 role="img"
@@ -1053,7 +1049,6 @@ function PRF2023Submission(props: { rebate: Rebate }) {
   const prfSubmissionPeriodOpen = configData.submissionPeriodOpen["2023"].prf;
 
   const frfSelected = frf.bap?.status === "Accepted";
-
   const frfSelectedButNoPRF = frfSelected && !Boolean(prf.formio);
 
   if (frfSelectedButNoPRF) {
@@ -1154,53 +1149,22 @@ function PRF2023Submission(props: { rebate: Rebate }) {
     bap: prf.bap,
   });
 
-  const prfNeedsClarification = prf.bap?.status === "Needs Clarification";
+  const prfBapInternalStatus = prf.bap?.status || "";
+  const prfFormioStatus = formioStatusMap.get(prf.formio.state);
 
-  const prfHasBeenWithdrawn = prf.bap?.status === "Withdrawn";
+  const prfStatus = prfNeedsEdits
+    ? "Edits Requested"
+    : bapStatusMap["2023"].prf.get(prfBapInternalStatus) ||
+      prfFormioStatus ||
+      "";
 
-  const prfFundingNotApproved = prf.bap?.status === "Coordinator Denied";
-
-  const prfFundingApproved = prf.bap?.status === "Accepted";
-
+  const prfFundingApproved = prfStatus === "Funding Approved";
   const prfFundingApprovedButNoCRF = prfFundingApproved && !Boolean(crf.formio);
 
   const statusTableCellClassNames =
     prf.formio.state === "submitted" || !prfSubmissionPeriodOpen
       ? "text-italic"
       : "";
-
-  const statusIconClassNames = clsx(
-    "usa-icon",
-    prfFundingApproved && "text-primary",
-  );
-
-  const statusIcon = prfNeedsEdits
-    ? `${icons}#priority_high` // !
-    : prfHasBeenWithdrawn
-    ? `${icons}#close` // ✕
-    : prfFundingNotApproved
-    ? `${icons}#cancel` // ✕ inside a circle
-    : prfFundingApproved
-    ? `${icons}#check_circle` // check inside a circle
-    : prf.formio.state === "draft"
-    ? `${icons}#more_horiz` // three horizontal dots
-    : prf.formio.state === "submitted"
-    ? `${icons}#check` // check
-    : `${icons}#remove`; // — (fallback, not used)
-
-  const statusText = prfNeedsEdits
-    ? "Edits Requested"
-    : prfHasBeenWithdrawn
-    ? "Withdrawn"
-    : prfFundingNotApproved
-    ? "Funding Denied"
-    : prfFundingApproved
-    ? "Funding Approved"
-    : prf.formio.state === "draft"
-    ? "Draft"
-    : prf.formio.state === "submitted"
-    ? "Submitted"
-    : ""; // fallback, not used
 
   const prfUrl = `/prf/2023/${_bap_rebate_id}`;
 
@@ -1230,23 +1194,26 @@ function PRF2023Submission(props: { rebate: Rebate }) {
         <span>Payment Request</span>
         <br />
         <span className="display-flex flex-align-center font-sans-2xs">
-          {prfNeedsClarification ? (
+          {prfStatus === "Needs Clarification" ? (
             <TextWithTooltip
-              text="Needs Clarification"
+              text={prfStatus}
               tooltip="Check your email for instructions on what needs clarification"
               iconClassNames="text-base-darkest"
             />
           ) : (
             <>
               <svg
-                className={statusIconClassNames}
+                className={clsx(
+                  "usa-icon",
+                  prfFundingApproved && "text-primary",
+                )}
                 aria-hidden="true"
                 focusable="false"
                 role="img"
               >
-                <use href={statusIcon} />
+                <use href={`${icons}#${statusIconMap.get(prfStatus)}`} />
               </svg>
-              <span className="margin-left-05">{statusText}</span>
+              <span className="margin-left-05">{prfStatus}</span>
             </>
           )}
         </span>
