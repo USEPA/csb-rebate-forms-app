@@ -201,7 +201,9 @@ function FRF2022Submission(props: { rebate: Rebate }) {
       frfFormioStatus ||
       "";
 
-  const frfSelectedButNoPRF = frfStatus === "Selected" && !Boolean(prf.formio);
+  const frfSelected = frfStatus === "Selected";
+  const frfSelectedButNoPRF = frfSelected && !Boolean(prf.formio);
+
   const prfFundingApproved = prf.bap?.status === "Accepted";
   const prfFundingApprovedButNoCRF = prfFundingApproved && !Boolean(crf.formio);
 
@@ -415,7 +417,6 @@ function PRF2022Submission(props: { rebate: Rebate }) {
   const prfSubmissionPeriodOpen = configData.submissionPeriodOpen["2022"].prf;
 
   const frfSelected = frf.bap?.status === "Accepted";
-
   const frfSelectedButNoPRF = frfSelected && !Boolean(prf.formio);
 
   if (frfSelectedButNoPRF) {
@@ -515,53 +516,22 @@ function PRF2022Submission(props: { rebate: Rebate }) {
     bap: prf.bap,
   });
 
-  const prfNeedsClarification = prf.bap?.status === "Needs Clarification";
+  const prfBapInternalStatus = prf.bap?.status || "";
+  const prfFormioStatus = formioStatusMap.get(prf.formio.state);
 
-  const prfHasBeenWithdrawn = prf.bap?.status === "Withdrawn";
+  const prfStatus = prfNeedsEdits
+    ? "Edits Requested"
+    : bapStatusMap["2022"].prf.get(prfBapInternalStatus) ||
+      prfFormioStatus ||
+      "";
 
-  const prfFundingNotApproved = prf.bap?.status === "Coordinator Denied";
-
-  const prfFundingApproved = prf.bap?.status === "Accepted";
-
-  const prfFundingApprovedButNoCRF = prfFundingApproved && !Boolean(crf.formio);
+  const prfFundingApprovedButNoCRF =
+    prfStatus === "Funding Approved" && !Boolean(crf.formio);
 
   const statusTableCellClassNames =
-    prf.formio.state === "submitted" || !prfSubmissionPeriodOpen
+    prfFormioStatus === "Submitted" || !prfSubmissionPeriodOpen
       ? "text-italic"
       : "";
-
-  const statusIconClassNames = clsx(
-    "usa-icon",
-    prfFundingApproved && "text-primary",
-  );
-
-  const statusIcon = prfNeedsEdits
-    ? `${icons}#priority_high` // !
-    : prfHasBeenWithdrawn
-    ? `${icons}#close` // ✕
-    : prfFundingNotApproved
-    ? `${icons}#cancel` // ✕ inside a circle
-    : prfFundingApproved
-    ? `${icons}#check_circle` // check inside a circle
-    : prf.formio.state === "draft"
-    ? `${icons}#more_horiz` // three horizontal dots
-    : prf.formio.state === "submitted"
-    ? `${icons}#check` // check
-    : `${icons}#remove`; // — (fallback, not used)
-
-  const statusText = prfNeedsEdits
-    ? "Edits Requested"
-    : prfHasBeenWithdrawn
-    ? "Withdrawn"
-    : prfFundingNotApproved
-    ? "Funding Not Approved"
-    : prfFundingApproved
-    ? "Funding Approved"
-    : prf.formio.state === "draft"
-    ? "Draft"
-    : prf.formio.state === "submitted"
-    ? "Submitted"
-    : ""; // fallback, not used
 
   const prfUrl = `/prf/2022/${hidden_bap_rebate_id}`;
 
@@ -591,23 +561,26 @@ function PRF2022Submission(props: { rebate: Rebate }) {
         <span>Payment Request</span>
         <br />
         <span className="display-flex flex-align-center font-sans-2xs">
-          {prfNeedsClarification ? (
+          {prfStatus === "Needs Clarification" ? (
             <TextWithTooltip
-              text="Needs Clarification"
+              text={prfStatus}
               tooltip="Check your email for instructions on what needs clarification"
               iconClassNames="text-base-darkest"
             />
           ) : (
             <>
               <svg
-                className={statusIconClassNames}
+                className={clsx(
+                  "usa-icon",
+                  prfStatus === "Funding Approved" && "text-primary",
+                )}
                 aria-hidden="true"
                 focusable="false"
                 role="img"
               >
-                <use href={statusIcon} />
+                <use href={`${icons}#${statusIconMap.get(prfStatus)}`} />
               </svg>
-              <span className="margin-left-05">{statusText}</span>
+              <span className="margin-left-05">{prfStatus}</span>
             </>
           )}
         </span>
