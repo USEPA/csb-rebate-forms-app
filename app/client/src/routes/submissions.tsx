@@ -9,7 +9,13 @@ import { ChevronUpIcon } from "@heroicons/react/20/solid";
 import clsx from "clsx";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl, messages } from "@/config";
+import {
+  serverUrl,
+  messages,
+  formioStatusMap,
+  bapStatusMap,
+  statusIconMap,
+} from "@/config";
 import {
   type FormioFRF2022Submission,
   type FormioPRF2022Submission,
@@ -186,54 +192,23 @@ function FRF2022Submission(props: { rebate: Rebate }) {
     bap: frf.bap,
   });
 
-  const frfNeedsClarification = frf.bap?.status === "Needs Clarification";
+  const frfBapInternalStatus = frf.bap?.status || "";
+  const frfFormioStatus = formioStatusMap.get(frf.formio.state);
 
-  const frfHasBeenWithdrawn = frf.bap?.status === "Withdrawn";
+  const frfStatus = frfNeedsEdits
+    ? "Edits Requested"
+    : bapStatusMap["2022"].frf.get(frfBapInternalStatus) ||
+      frfFormioStatus ||
+      "";
 
-  const frfNotSelected = frf.bap?.status === "Coordinator Denied";
-
-  const frfSelected = frf.bap?.status === "Accepted";
-
-  const frfSelectedButNoPRF = frfSelected && !Boolean(prf.formio);
-
+  const frfSelectedButNoPRF = frfStatus === "Selected" && !Boolean(prf.formio);
   const prfFundingApproved = prf.bap?.status === "Accepted";
-
   const prfFundingApprovedButNoCRF = prfFundingApproved && !Boolean(crf.formio);
 
   const statusTableCellClassNames =
-    frf.formio.state === "submitted" || !frfSubmissionPeriodOpen
+    frfFormioStatus === "Submitted" || !frfSubmissionPeriodOpen
       ? "text-italic"
       : "";
-
-  const statusIconClassNames = clsx("usa-icon", frfSelected && "text-primary");
-
-  const statusIcon = frfNeedsEdits
-    ? `${icons}#priority_high` // !
-    : frfHasBeenWithdrawn
-    ? `${icons}#close` // ✕
-    : frfNotSelected
-    ? `${icons}#cancel` // x inside a circle
-    : frfSelected
-    ? `${icons}#check_circle` // check inside a circle
-    : frf.formio.state === "draft"
-    ? `${icons}#more_horiz` // three horizontal dots
-    : frf.formio.state === "submitted"
-    ? `${icons}#check` // check
-    : `${icons}#remove`; // — (fallback, not used)
-
-  const statusText = frfNeedsEdits
-    ? "Edits Requested"
-    : frfHasBeenWithdrawn
-    ? "Withdrawn"
-    : frfNotSelected
-    ? "Not Selected"
-    : frfSelected
-    ? "Selected"
-    : frf.formio.state === "draft"
-    ? "Draft"
-    : frf.formio.state === "submitted"
-    ? "Submitted"
-    : ""; // fallback, not used
 
   const frfUrl = `/frf/2022/${frf.formio._id}`;
 
@@ -286,23 +261,26 @@ function FRF2022Submission(props: { rebate: Rebate }) {
         <span>Application</span>
         <br />
         <span className="display-flex flex-align-center font-sans-2xs">
-          {frfNeedsClarification ? (
+          {frfStatus === "Needs Clarification" ? (
             <TextWithTooltip
-              text="Needs Clarification"
+              text={frfStatus}
               tooltip="Check your email for instructions on what needs clarification"
               iconClassNames="text-base-darkest"
             />
           ) : (
             <>
               <svg
-                className={statusIconClassNames}
+                className={clsx(
+                  "usa-icon",
+                  frfStatus === "Selected" && "text-primary",
+                )}
                 aria-hidden="true"
                 focusable="false"
                 role="img"
               >
-                <use href={statusIcon} />
+                <use href={`${icons}#${statusIconMap.get(frfStatus)}`} />
               </svg>
-              <span className="margin-left-05">{statusText}</span>
+              <span className="margin-left-05">{frfStatus}</span>
             </>
           )}
         </span>
