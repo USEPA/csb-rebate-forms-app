@@ -951,8 +951,23 @@ function FRF2023Submission(props: { rebate: Rebate }) {
             />
           )}
           <br />
-          {Boolean(appInfo_efti) ? (
-            appInfo_efti
+          {/* NOTE:
+Similar situation with the EFTI field as in the 2022 FRF... A user's EFTI value
+from SAM.gov can be null. In a brand new 2023 FRF, we inject that value without
+modification as the `_bap_applicant_efti` field. The intention was in the 2023
+FRF schema/form definition, the `appInfo_efti` field would be set from the
+`_bap_applicant_efti` field's value, but account for a null/empty string value,
+in which case it would set the value of the field to "0000." Unfortunately, that
+logic didn't make it into the 2023 FRF schema/form definition, so we need to
+account for that situation here.
+
+Similar to the 2022 FRF, if the `appInfo_uei` field's value has been set, we
+know the user has advanced past the first screen (and therefore the form
+definition's logic has kicked in, setting values from the initially injected
+hidden fields), so we'll use the appInfo_efti value, but fall back to "0000" to
+handle when it's value is an empty string. */}
+          {Boolean(appInfo_uei) ? (
+            appInfo_efti || "0000"
           ) : (
             <TextWithTooltip
               text=" "
