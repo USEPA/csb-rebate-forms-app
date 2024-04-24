@@ -453,10 +453,12 @@ async function queryForBapFormSubmissionData(
   rebateId,
   mongoId,
 ) {
-  const logId = rebateId ? `rebateId: '${rebateId}'` : `mongoId: '${mongoId}'`;
+  const loggedId = rebateId
+    ? `rebateId: '${rebateId}'`
+    : `mongoId: '${mongoId}'`;
   const logMessage =
     `Querying the BAP for ${formType.toUpperCase()} submission data ` +
-    `associated with ${logId}.`;
+    `associated with ${loggedId}.`;
   log({ level: "info", message: logMessage, req });
 
   /** @type {{ bapConnection: jsforce.Connection }} */
