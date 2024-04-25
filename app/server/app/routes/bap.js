@@ -9,23 +9,17 @@ const {
 } = require("../utilities/bap");
 const log = require("../utilities/logger");
 
-const { FORMIO_DUPLICATES_API_KEY } = process.env;
-
 const router = express.Router();
+
+/**
+ * TODO: remove cors() once the deduplication prototype form's functionality is
+ * integrated into the other forms and move the `ensureAuthenticated` middleware
+ * above the route.
+ */
 
 // --- check for duplicate contacts or organizations in the BAP.
 router.options("/duplicates", cors()); // enable pre-flight request
 router.post("/duplicates", cors(), (req, res) => {
-  const apiKey = req.headers["x-api-key"];
-
-  if (apiKey !== FORMIO_DUPLICATES_API_KEY) {
-    const message = `Incorrect or missing Formio BAP Duplicates API key provided.`;
-    log({ level: "error", message, req });
-
-    const errorStatus = 400;
-    return res.status(errorStatus).json({ message });
-  }
-
   return checkForBapDuplicates(req)
     .then((duplicates) => res.json(duplicates))
     .catch((_error) => {

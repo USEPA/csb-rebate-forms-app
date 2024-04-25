@@ -57,8 +57,6 @@ jobs:
       FORMIO_BASE_URL: ${{ secrets.FORMIO_BASE_URL }}
       FORMIO_PROJECT_NAME: ${{ secrets.FORMIO_PROJECT_NAME }}
       FORMIO_API_KEY: ${{ secrets.FORMIO_API_KEY }}
-      FORMIO_NCES_API_KEY: ${{ secrets.FORMIO_NCES_API_KEY }}
-      FORMIO_DUPLICATES_API_KEY: ${{ secrets.FORMIO_DUPLICATES_API_KEY }}
       FORMIO_PKG_AUTH_TOKEN: ${{ secrets.FORMIO_PKG_AUTH_TOKEN }}
       BAP_CLIENT_ID: ${{ secrets.BAP_CLIENT_ID }}
       BAP_CLIENT_SECRET: ${{ secrets.BAP_CLIENT_SECRET }}
@@ -145,8 +143,6 @@ jobs:
           cf set-env $APP_NAME "FORMIO_BASE_URL" "$FORMIO_BASE_URL" > /dev/null
           cf set-env $APP_NAME "FORMIO_PROJECT_NAME" "$FORMIO_PROJECT_NAME" > /dev/null
           cf set-env $APP_NAME "FORMIO_API_KEY" "$FORMIO_API_KEY" > /dev/null
-          cf set-env $APP_NAME "FORMIO_NCES_API_KEY" "$FORMIO_NCES_API_KEY" > /dev/null
-          cf set-env $APP_NAME "FORMIO_DUPLICATES_API_KEY" "$FORMIO_DUPLICATES_API_KEY" > /dev/null
           cf set-env $APP_NAME "BAP_CLIENT_ID" "$BAP_CLIENT_ID" > /dev/null
           cf set-env $APP_NAME "BAP_CLIENT_SECRET" "$BAP_CLIENT_SECRET" > /dev/null
           cf set-env $APP_NAME "BAP_URL" "$BAP_URL" > /dev/null
