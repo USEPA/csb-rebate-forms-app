@@ -45,7 +45,6 @@ const requiredEnvironmentVariables = [
   "FORMIO_BASE_URL",
   "FORMIO_PROJECT_NAME",
   "FORMIO_API_KEY",
-  "FORMIO_DUPLICATES_API_KEY",
   "S3_PUBLIC_BUCKET",
   "S3_PUBLIC_REGION",
 ];
