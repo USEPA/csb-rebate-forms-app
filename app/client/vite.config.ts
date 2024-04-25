@@ -25,7 +25,7 @@ export default ({ mode }) => {
             const css = /\.(css)$/.test(name ?? "");
             const font = /\.(woff|woff2|eot|ttf|otf)$/.test(name ?? "");
             const media = /\.(png|jpe?g|gif|svg|webp|webm|mp3)$/.test(name ?? ""); // prettier-ignore
-            const type = css ? "css/" : font ? "fonts/" : media ? "media/" : "/"; // prettier-ignore
+            const type = css ? "css/" : font ? "fonts/" : media ? "media/" : "";
             return `static/${type}[name]-[hash][extname]`;
           },
         },

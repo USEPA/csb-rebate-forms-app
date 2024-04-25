@@ -74,6 +74,10 @@ export const formioStatusMap = new Map<string, string>()
 
 /**
  * BAP internal to external status mapping by year and form type.
+ *
+ * NOTE: The "Edits Requested" BAP status is supported in the app, but not
+ * included in the maps because the BAP status alone can't be used in
+ * "Edits Requested" scenarios. See `submissionNeedsEdits()` in `utilities.ts`.
  */
 export const bapStatusMap = {
   2022: {
