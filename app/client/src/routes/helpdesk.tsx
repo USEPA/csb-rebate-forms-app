@@ -143,14 +143,16 @@ function ResultTableRow(props: {
   const date = formatDate(formio.modified);
   const time = formatTime(formio.modified);
 
+  const bapId = lastSearchedText.length === 6 ? bap.rebateId : bap.mongoId;
+
   const bapInternalStatus = bap.status || "";
   const formioStatus = formioStatusMap.get(formio.state);
 
-  const id = lastSearchedText.length === 6 ? bap.rebateId : bap.mongoId;
-
   const status = submissionNeedsEdits({ formio, bap })
     ? "Edits Requested"
-    : bapStatusMap[rebateYear][formType].get(bapInternalStatus) || formioStatus;
+    : bapStatusMap[rebateYear][formType].get(bapInternalStatus) ||
+      formioStatus ||
+      "";
 
   const nameField = formioNameField[rebateYear][formType];
   const emailField = formioEmailField[rebateYear][formType];
@@ -160,7 +162,7 @@ function ResultTableRow(props: {
 
   return (
     <>
-      <td>{id}</td>
+      <td>{bapId || mongoId}</td>
       <td>{status}</td>
       <td>{name}</td>
       <td>{email}</td>
@@ -571,20 +573,23 @@ export function Helpdesk() {
                     </svg>
                   </div>
                   <div className="usa-icon-list__content">
-                    <strong>MongoDB Object ID:</strong> {bap.mongoId}
+                    <strong>MongoDB Object ID:</strong>{" "}
+                    {bap.mongoId || formio._id}
                   </div>
                 </li>
 
-                <li className="usa-icon-list__item">
-                  <div className="usa-icon-list__icon text-primary">
-                    <svg className="usa-icon" aria-hidden="true" role="img">
-                      <use href={`${icons}#local_offer`} />
-                    </svg>
-                  </div>
-                  <div className="usa-icon-list__content">
-                    <strong>Rebate ID:</strong> {bap.rebateId}
-                  </div>
-                </li>
+                {bap.rebateId && (
+                  <li className="usa-icon-list__item">
+                    <div className="usa-icon-list__icon text-primary">
+                      <svg className="usa-icon" aria-hidden="true" role="img">
+                        <use href={`${icons}#local_offer`} />
+                      </svg>
+                    </div>
+                    <div className="usa-icon-list__content">
+                      <strong>Rebate ID:</strong> {bap.rebateId}
+                    </div>
+                  </li>
+                )}
               </ul>
 
               <Form

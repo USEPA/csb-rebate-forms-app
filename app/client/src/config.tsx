@@ -74,6 +74,10 @@ export const formioStatusMap = new Map<string, string>()
 
 /**
  * BAP internal to external status mapping by year and form type.
+ *
+ * NOTE: The "Edits Requested" BAP status is supported in the app, but not
+ * included in the maps because the BAP status alone can't be used in
+ * "Edits Requested" scenarios. See `submissionNeedsEdits()` in `utilities.ts`.
  */
 export const bapStatusMap = {
   2022: {
@@ -107,6 +111,23 @@ export const bapStatusMap = {
     crf: new Map<string, string>(),
   },
 };
+
+/**
+ * Status icon mapping status to USWDS icon name.
+ */
+export const statusIconMap = new Map<string, string>()
+  .set("Edits Requested", "priority_high") // !
+  .set("Withdrawn", "close") // ✕
+  .set("Not Selected", "cancel") // x inside a circle
+  .set("Funding Not Approved", "cancel")
+  .set("Close Out Not Approved", "cancel")
+  .set("Funding Denied", "cancel")
+  .set("Selected", "check_circle") // check inside a circle
+  .set("Funding Approved", "check_circle")
+  .set("Close Out Approved", "check_circle")
+  .set("Draft", "more_horiz") // three horizontal dots
+  .set("Submitted", "check") // check
+  .set("", "remove"); // — (fallback, not used)
 
 /**
  * Formio user name field by year and form type.

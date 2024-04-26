@@ -17,20 +17,34 @@ const router = express.Router();
 router.use(ensureAuthenticated);
 router.use(ensureHelpdesk);
 
-// --- get an existing form's submission data from Formio
-router.get("/formio/submission/:rebateYear/:formType/:id", (req, res) => {
-  const { rebateYear, formType, id } = req.params;
-
-  // NOTE: included to support EPA API scan
-  if (id === formioExampleRebateId) {
-    return res.json({});
-  }
-
-  const rebateId = id.length === 6 ? id : null;
-  const mongoId = !rebateId ? id : null;
-
+/**
+ * Fetches data associated with a provided form submission from Formio.
+ *
+ * @param {Object} param
+ * @param {'2022' | '2023'} param.rebateYear
+ * @param {'frf' | 'prf' | 'crf'} param.formType
+ * @param {string} param.mongoId
+ * @param {{
+ *  modified: string | null
+ *  comboKey: string | null
+ *  mongoId: string | null
+ *  rebateId: string | null
+ *  reviewItemId: string | null
+ *  status: string | null
+ * }} param.bap
+ * @param {express.Request} param.req
+ * @param {express.Response} param.res
+ */
+function fetchFormioSubmission({
+  rebateYear,
+  formType,
+  mongoId,
+  bap,
+  req,
+  res,
+}) {
   /** NOTE: verifyMongoObjectId */
-  if (mongoId && !ObjectId.isValid(mongoId)) {
+  if (!ObjectId.isValid(mongoId)) {
     const errorStatus = 400;
     const errorMessage = `MongoDB ObjectId validation error for: '${mongoId}'.`;
     return res.status(errorStatus).json({ message: errorMessage });
@@ -47,6 +61,44 @@ router.get("/formio/submission/:rebateYear/:formType/:id", (req, res) => {
 
   const formioFormUrl = formUrl[rebateYear][formType];
 
+  if (!formioFormUrl) {
+    const errorStatus = 400;
+    const errorMessage = `Formio form URL does not exist for ${rebateYear} ${formName}.`;
+    return res.status(errorStatus).json({ message: errorMessage });
+  }
+
+  return Promise.all([
+    axiosFormio(req).get(`${formioFormUrl}/submission/${mongoId}`),
+    axiosFormio(req).get(formioFormUrl),
+  ])
+    .then((responses) => responses.map((axiosRes) => axiosRes.data))
+    .then(([formioSubmission, schema]) => {
+      return res.json({
+        formSchema: { url: formioFormUrl, json: schema },
+        formio: formioSubmission,
+        bap,
+      });
+    })
+    .catch((error) => {
+      // NOTE: error is logged in axiosFormio response interceptor
+      const errorStatus = error.response?.status || 500;
+      const errorMessage = `Error getting Formio ${rebateYear} ${formName} form submission '${mongoId}'.`;
+      return res.status(errorStatus).json({ message: errorMessage });
+    });
+}
+
+// --- get an existing form's submission data from Formio
+router.get("/formio/submission/:rebateYear/:formType/:id", (req, res) => {
+  const { rebateYear, formType, id } = req.params;
+
+  // NOTE: included to support EPA API scan
+  if (id === formioExampleRebateId) {
+    return res.json({});
+  }
+
+  const rebateId = id.length === 6 ? id : null;
+  const mongoId = !rebateId ? id : null;
+
   return getBapFormSubmissionData({
     rebateYear,
     formType,
@@ -54,10 +106,13 @@ router.get("/formio/submission/:rebateYear/:formType/:id", (req, res) => {
     mongoId,
     req,
   }).then((bapSubmission) => {
-    if (!bapSubmission || !formioFormUrl) {
-      const logId = rebateId || mongoId;
-      const errorStatus = 500;
-      const errorMessage = `Error getting ${rebateYear} ${formName} submission '${logId}' from the BAP.`;
+    /**
+     * NOTE: Some submissions will not be returned from the BAP (e.g., drafts or
+     * submissions not yet picked up by the BAP ETLs).
+     */
+    if (!bapSubmission && !mongoId) {
+      const errorStatus = 400;
+      const errorMessage = `A valid MongoDB ObjectId must be provided for submissions not yet picked up by the BAP.`;
       return res.status(errorStatus).json({ message: errorMessage });
     }
 
@@ -69,39 +124,34 @@ router.get("/formio/submission/:rebateYear/:formType/:id", (req, res) => {
       Parent_Rebate_ID__c,
       Record_Type_Name__c,
       Parent_CSB_Rebate__r,
-    } = bapSubmission;
+    } = bapSubmission ?? {};
 
-    return Promise.all([
-      axiosFormio(req).get(`${formioFormUrl}/submission/${CSB_Form_ID__c}`),
-      axiosFormio(req).get(formioFormUrl),
-    ])
-      .then((responses) => responses.map((axiosRes) => axiosRes.data))
-      .then(([formioSubmission, schema]) => {
-        return res.json({
-          formSchema: { url: formioFormUrl, json: schema },
-          formio: formioSubmission,
-          bap: {
-            modified: CSB_Modified_Full_String__c, // ISO 8601 date time string
-            comboKey: UEI_EFTI_Combo_Key__c, // UEI + EFTI combo key
-            mongoId: CSB_Form_ID__c, // MongoDB Object ID
-            rebateId: Parent_Rebate_ID__c, // CSB Rebate ID (6 digits)
-            reviewItemId: CSB_Review_Item_ID__c, // CSB Rebate ID with form/version ID (9 digits)
-            status: Record_Type_Name__c.startsWith("CSB Funding Request")
-              ? Parent_CSB_Rebate__r?.CSB_Funding_Request_Status__c
-              : Record_Type_Name__c.startsWith("CSB Payment Request")
-              ? Parent_CSB_Rebate__r?.CSB_Payment_Request_Status__c
-              : Record_Type_Name__c.startsWith("CSB Close Out Request")
-              ? Parent_CSB_Rebate__r?.CSB_Closeout_Request_Status__c
-              : "",
-          },
-        });
-      })
-      .catch((error) => {
-        // NOTE: error is logged in axiosFormio response interceptor
-        const errorStatus = error.response?.status || 500;
-        const errorMessage = `Error getting ${rebateYear} ${formName} submission '${CSB_Form_ID__c}'.`;
-        return res.status(errorStatus).json({ message: errorMessage });
-      });
+    /**
+     * NOTE: For submissions not in the BAP, each property of the bap object
+     * parameter will be null.
+     */
+    return fetchFormioSubmission({
+      rebateYear,
+      formType,
+      mongoId: CSB_Form_ID__c || mongoId,
+      bap: {
+        modified: CSB_Modified_Full_String__c || null, // ISO 8601 date time string
+        comboKey: UEI_EFTI_Combo_Key__c || null, // UEI + EFTI combo key
+        mongoId: CSB_Form_ID__c || null, // MongoDB Object ID
+        rebateId: Parent_Rebate_ID__c || null, // CSB Rebate ID (6 digits)
+        reviewItemId: CSB_Review_Item_ID__c || null, // CSB Rebate ID with form/version ID (9 digits)
+        status:
+          (Record_Type_Name__c?.startsWith("CSB Funding Request")
+            ? Parent_CSB_Rebate__r?.CSB_Funding_Request_Status__c
+            : Record_Type_Name__c?.startsWith("CSB Payment Request")
+            ? Parent_CSB_Rebate__r?.CSB_Payment_Request_Status__c
+            : Record_Type_Name__c?.startsWith("CSB Close Out Request")
+            ? Parent_CSB_Rebate__r?.CSB_Closeout_Request_Status__c
+            : "") || null,
+      },
+      req,
+      res,
+    });
   });
 });
 

@@ -1,28 +1,15 @@
 const express = require("express");
 // ---
+const { ensureAuthenticated } = require("../middleware");
 const log = require("../utilities/logger");
-
-const { FORMIO_NCES_API_KEY } = process.env;
 
 const router = express.Router();
 
+router.use(ensureAuthenticated);
+
 // --- Search the NCES data with the provided NCES ID and return a match
 router.get("/:searchText?", (req, res) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  res.setHeader("Access-Control-Allow-Credentials", true);
-
   const { searchText } = req.params;
-  const apiKey = req.headers["x-api-key"];
-
-  if (apiKey !== FORMIO_NCES_API_KEY) {
-    const message = `Incorrect or missing Formio NCES API key provided.`;
-    log({ level: "error", message, req });
-
-    const errorStatus = 400;
-    return res.status(errorStatus).json({ message });
-  }
 
   if (!searchText) {
     const logMessage = `No NCES ID passed to NCES data lookup.`;
