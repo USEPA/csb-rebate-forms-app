@@ -81,17 +81,6 @@ export function Change2023() {
             <strong>Change Request ID:</strong> {submission._id}
           </div>
         </li>
-
-        <li className="usa-icon-list__item">
-          <div className="usa-icon-list__icon text-primary">
-            <svg className="usa-icon" aria-hidden="true" role="img">
-              <use href={`${icons}#local_offer`} />
-            </svg>
-          </div>
-          <div className="usa-icon-list__content">
-            <strong>Rebate ID:</strong> {submission.data._bap_rebate_id}
-          </div>
-        </li>
       </ul>
 
       <div className="csb-form">
