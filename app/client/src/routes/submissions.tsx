@@ -58,6 +58,7 @@ function FormLink(props: { type: "edit" | "view"; to: LinkProps["to"] }) {
   return (
     <Link
       to={to}
+      unstable_viewTransition
       className={clsx(
         "usa-button",
         type === "view" && "usa-button--base",
@@ -1007,12 +1008,12 @@ handle when it's value is an empty string. */}
 
       <td className={clsx("!tw-text-right")}>
         <ChangeRequest2023Button
-          disabled={frf.formio.state === "draft"}
           data={{
             formType: "frf",
             comboKey: _bap_entity_combo_key,
-            mongoId: frf.formio._id,
             rebateId: frf.bap?.rebateId || null,
+            mongoId: frf.formio._id,
+            state: frf.formio.state,
             email,
             title,
             name,
@@ -1237,12 +1238,12 @@ function PRF2023Submission(props: { rebate: Rebate }) {
 
       <td className={clsx("!tw-text-right")}>
         <ChangeRequest2023Button
-          disabled={prf.formio.state === "draft"}
           data={{
             formType: "prf",
             comboKey: _bap_entity_combo_key,
-            mongoId: prf.formio._id,
             rebateId: _bap_rebate_id,
+            mongoId: prf.formio._id,
+            state: prf.formio.state,
             email,
             title,
             name,
@@ -1503,16 +1504,18 @@ function ChangeRequests2023() {
                 _request_form === "frf"
                   ? "Application"
                   : _request_form === "prf"
-                  ? "Payment Request"
-                  : _request_form === "crf"
-                  ? "Close Out"
-                  : "";
+                    ? "Payment Request"
+                    : _request_form === "crf"
+                      ? "Close Out"
+                      : "";
 
               return (
                 <Fragment key={index}>
                   <tr>
                     <th scope="row">
-                      <Link to={`/change/2023/${_id}`}>{_bap_rebate_id}</Link>
+                      <Link to={`/change/2023/${_id}`} unstable_viewTransition>
+                        {_bap_rebate_id}
+                      </Link>
                     </th>
 
                     <th scope="row">
@@ -1593,7 +1596,11 @@ export function Submissions() {
                 <NewApplicationIconText />
               </button>
             ) : (
-              <Link to="/frf/new" className={btnClassNames}>
+              <Link
+                to="/frf/new"
+                unstable_viewTransition
+                className={btnClassNames}
+              >
                 <NewApplicationIconText />
               </Link>
             )}

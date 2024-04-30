@@ -23,8 +23,9 @@ import { useNotificationsActions } from "@/contexts/notifications";
 type ChangeRequestData = {
   formType: FormType;
   comboKey: string;
-  mongoId: string;
   rebateId: string | null;
+  mongoId: string;
+  state: "draft" | "submitted";
   email: string;
   title: string;
   name: string;
@@ -45,11 +46,8 @@ function useFormioSchemaQuery() {
   return { query };
 }
 
-export function ChangeRequest2023Button(props: {
-  disabled: boolean;
-  data: ChangeRequestData;
-}) {
-  const { disabled, data } = props;
+export function ChangeRequest2023Button(props: { data: ChangeRequestData }) {
+  const { data } = props;
 
   const [dialogShown, setDialogShown] = useState(false);
 
@@ -67,11 +65,7 @@ export function ChangeRequest2023Button(props: {
           "focus:enabled:tw-border-b-slate-800",
         )}
         type="button"
-        disabled={disabled}
-        onClick={(_ev) => {
-          if (disabled) return;
-          setDialogShown(true);
-        }}
+        onClick={(_ev) => setDialogShown(true)}
       >
         <span className={clsx("tw-flex tw-items-center")}>
           <span className={clsx("tw-mr-1")}>Change</span>
@@ -201,7 +195,8 @@ function ChangeRequest2023Form(props: {
   closeDialog: () => void;
 }) {
   const { data, closeDialog } = props;
-  const { formType, comboKey, rebateId, mongoId, email, title, name } = data;
+  const { formType, comboKey, rebateId, mongoId, state, email, title, name } =
+    data;
 
   const content = useContentData();
   const {
@@ -243,6 +238,7 @@ function ChangeRequest2023Form(props: {
               _bap_entity_combo_key: comboKey,
               _bap_rebate_id: rebateId,
               _mongo_id: mongoId,
+              _formio_state: state,
               _user_email: email,
               _user_title: title,
               _user_name: name,
