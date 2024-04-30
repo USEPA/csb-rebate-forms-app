@@ -1513,9 +1513,7 @@ function ChangeRequests2023() {
                 <Fragment key={index}>
                   <tr>
                     <th scope="row">
-                      <Link to={`/change/2023/${_id}`} unstable_viewTransition>
-                        {_bap_rebate_id}
-                      </Link>
+                      <Link to={`/change/2023/${_id}`}>{_bap_rebate_id}</Link>
                     </th>
 
                     <th scope="row">
