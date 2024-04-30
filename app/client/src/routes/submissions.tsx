@@ -58,7 +58,6 @@ function FormLink(props: { type: "edit" | "view"; to: LinkProps["to"] }) {
   return (
     <Link
       to={to}
-      unstable_viewTransition
       className={clsx(
         "usa-button",
         type === "view" && "usa-button--base",
@@ -1594,11 +1593,7 @@ export function Submissions() {
                 <NewApplicationIconText />
               </button>
             ) : (
-              <Link
-                to="/frf/new"
-                unstable_viewTransition
-                className={btnClassNames}
-              >
+              <Link to="/frf/new" className={btnClassNames}>
                 <NewApplicationIconText />
               </Link>
             )}
