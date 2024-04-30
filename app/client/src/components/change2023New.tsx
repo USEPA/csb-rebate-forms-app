@@ -59,10 +59,9 @@ export function ChangeRequest2023Button(props: { data: ChangeRequestData }) {
     <>
       <button
         className={clsx(
-          "tw-border-0 tw-border-b-[1.5px] tw-border-transparent tw-bg-transparent tw-p-0 tw-text-sm tw-leading-tight",
-          "enabled:tw-cursor-pointer",
-          "hover:enabled:tw-border-b-slate-800",
-          "focus:enabled:tw-border-b-slate-800",
+          "tw-cursor-pointer tw-border-0 tw-border-b-[1.5px] tw-border-transparent tw-bg-transparent tw-p-0 tw-text-sm tw-leading-tight",
+          "hover:tw-border-b-slate-800",
+          "focus:tw-border-b-slate-800",
         )}
         type="button"
         onClick={(_ev) => setDialogShown(true)}
