@@ -2,7 +2,7 @@ const express = require("express");
 // ---
 const { ensureAuthenticated, storeBapComboKeys } = require("../middleware");
 const {
-  checkForBapDuplicates,
+  // checkForBapDuplicates,
   getSamEntities,
   getBapFormSubmissionsStatuses,
 } = require("../utilities/bap");
