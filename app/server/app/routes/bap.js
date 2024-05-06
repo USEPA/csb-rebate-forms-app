@@ -1,5 +1,4 @@
 const express = require("express");
-const cors = require("cors");
 // ---
 const { ensureAuthenticated, storeBapComboKeys } = require("../middleware");
 const {
@@ -11,26 +10,19 @@ const log = require("../utilities/logger");
 
 const router = express.Router();
 
-/**
- * TODO: remove cors() once the deduplication prototype form's functionality is
- * integrated into the other forms and move the `ensureAuthenticated` middleware
- * above the route.
- */
+router.use(ensureAuthenticated);
 
 // --- check for duplicate contacts or organizations in the BAP.
-router.options("/duplicates", cors()); // enable pre-flight request
-router.post("/duplicates", cors(), (req, res) => {
-  return checkForBapDuplicates(req)
-    .then((duplicates) => res.json(duplicates))
-    .catch((_error) => {
-      // NOTE: logged in bap verifyBapConnection
-      const errorStatus = 500;
-      const errorMessage = `Error checking duplicates from the BAP.`;
-      return res.status(errorStatus).json({ message: errorMessage });
-    });
-});
-
-router.use(ensureAuthenticated);
+// router.post("/duplicates", (req, res) => {
+//   return checkForBapDuplicates(req)
+//     .then((duplicates) => res.json(duplicates))
+//     .catch((_error) => {
+//       // NOTE: logged in bap verifyBapConnection
+//       const errorStatus = 500;
+//       const errorMessage = `Error checking duplicates from the BAP.`;
+//       return res.status(errorStatus).json({ message: errorMessage });
+//     });
+// });
 
 // --- get user's SAM.gov data from the BAP
 router.get("/sam", (req, res) => {
