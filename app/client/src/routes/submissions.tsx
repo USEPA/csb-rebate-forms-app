@@ -1492,6 +1492,7 @@ function ChangeRequests2023() {
               const {
                 _request_form,
                 _bap_rebate_id,
+                _mongo_id,
                 _user_email,
                 request_type,
               } = data;
@@ -1512,7 +1513,9 @@ function ChangeRequests2023() {
                 <Fragment key={index}>
                   <tr>
                     <th scope="row">
-                      <Link to={`/change/2023/${_id}`}>{_bap_rebate_id}</Link>
+                      <Link to={`/change/2023/${_id}`}>
+                        {_bap_rebate_id || _mongo_id}
+                      </Link>
                     </th>
 
                     <th scope="row">
