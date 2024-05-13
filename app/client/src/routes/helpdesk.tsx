@@ -30,6 +30,7 @@ import { Loading, LoadingButtonIcon } from "@/components/loading";
 import { Message } from "@/components/message";
 import { MarkdownContent } from "@/components/markdownContent";
 import { TextWithTooltip } from "@/components/tooltip";
+import { useDialogActions } from "@/contexts/dialog";
 import {
   type RebateYear,
   useRebateYearState,
@@ -91,6 +92,7 @@ function formatTime(dateTimeString: string | null) {
 }
 
 function ResultTableRow(props: {
+  setFormDisplayed: Dispatch<SetStateAction<boolean>>;
   setActionsData: Dispatch<
     SetStateAction<{ fetched: boolean; results: SubmissionAction[] }>
   >;
@@ -103,7 +105,16 @@ function ResultTableRow(props: {
     | FormioFRF2023Submission;
   bap: BapSubmission;
 }) {
-  const { setActionsData, lastSearchedText, formType, formio, bap } = props;
+  const {
+    setFormDisplayed,
+    setActionsData,
+    lastSearchedText,
+    formType,
+    formio,
+    bap,
+  } = props;
+
+  const { displayDialog } = useDialogActions();
   const { rebateYear } = useRebateYearState();
 
   const formId = formio.form;
@@ -161,9 +172,93 @@ function ResultTableRow(props: {
   const email = (formio.data[emailField] as string) || "";
 
   return (
-    <>
+    <tr>
+      <th scope="row">
+        <button
+          className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
+          onClick={(_ev) => setFormDisplayed(true)}
+        >
+          <span className="display-flex flex-align-center">
+            <svg
+              className="usa-icon"
+              aria-hidden="true"
+              focusable="false"
+              role="img"
+            >
+              <use href={`${icons}#visibility`} />
+            </svg>
+            <span className="margin-left-1">View</span>
+          </span>
+        </button>
+      </th>
       <td>{bapId || mongoId}</td>
-      <td>{status}</td>
+      <td>
+        {status}
+
+        {!bapId && status === "Submitted" && (
+          <span className="margin-left-2">
+            <button
+              className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
+              onClick={(_ev) => {
+                displayDialog({
+                  dismissable: true,
+                  heading: "Change Submission Status to Draft",
+                  description: (
+                    <>
+                      <div
+                        className="usa-alert usa-alert--warning"
+                        role="alert"
+                      >
+                        <div className="usa-alert__body">
+                          <p className="usa-alert__text">
+                            <strong>
+                              The BAP’s “Edits Requested” workflow enables users
+                              the ability to edit their submitted form
+                              submissions.
+                            </strong>
+                          </p>
+
+                          <p className="margin-bottom-0">
+                            This functionality is only intended to be used when
+                            the BAP’s status change workflow is not yet in place
+                            for a form.
+                          </p>
+                        </div>
+                      </div>
+
+                      <p>
+                        If you’re sure the BAP’s status change workflow is not
+                        yet in place for this form submission, and you would
+                        like to proceed with changing the submission status to
+                        “Draft,” please select the button below.
+                      </p>
+                    </>
+                  ),
+                  confirmText: "Change Submission Status to Draft",
+                  confirmedAction: () => {
+                    //
+                  },
+                  dismissedAction: () => {
+                    //
+                  },
+                });
+              }}
+            >
+              <span className="display-flex flex-align-center">
+                <svg
+                  className="usa-icon"
+                  aria-hidden="true"
+                  focusable="false"
+                  role="img"
+                >
+                  <use href={`${icons}#undo`} />
+                </svg>
+                <span className="margin-left-1">Draft</span>
+              </span>
+            </button>
+          </span>
+        )}
+      </td>
       <td>{name}</td>
       <td>{email}</td>
       <td>
@@ -213,7 +308,7 @@ function ResultTableRow(props: {
           </span>
         </button>
       </td>
-    </>
+    </tr>
   );
 }
 
@@ -486,34 +581,14 @@ export function Helpdesk() {
               </thead>
 
               <tbody>
-                <tr>
-                  <th scope="row">
-                    <button
-                      className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-                      onClick={(_ev) => setFormDisplayed(true)}
-                    >
-                      <span className="display-flex flex-align-center">
-                        <svg
-                          className="usa-icon"
-                          aria-hidden="true"
-                          focusable="false"
-                          role="img"
-                        >
-                          <use href={`${icons}#visibility`} />
-                        </svg>
-                        <span className="margin-left-1">View</span>
-                      </span>
-                    </button>
-                  </th>
-
-                  <ResultTableRow
-                    setActionsData={setActionsData}
-                    lastSearchedText={lastSearchedText}
-                    formType={formType}
-                    formio={formio}
-                    bap={bap}
-                  />
-                </tr>
+                <ResultTableRow
+                  setFormDisplayed={setFormDisplayed}
+                  setActionsData={setActionsData}
+                  lastSearchedText={lastSearchedText}
+                  formType={formType}
+                  formio={formio}
+                  bap={bap}
+                />
               </tbody>
             </table>
           </div>
