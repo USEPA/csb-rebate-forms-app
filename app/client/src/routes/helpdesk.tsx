@@ -205,33 +205,48 @@ function ResultTableRow(props: {
                   heading: "Change Submission Status to Draft",
                   description: (
                     <>
+                      <div className="usa-alert usa-alert--info" role="alert">
+                        <div className="usa-alert__body">
+                          <p className="usa-alert__text">
+                            The BAP’s “Edits Requested” workflow is designed to
+                            give users the ability to revise their submitted
+                            form submissions.
+                          </p>
+
+                          <p>
+                            <strong>
+                              This helpdesk functionality is only intended to be
+                              used when the BAP’s status change workflow is not
+                              yet in place, and the form’s enrollment period is
+                              still open.
+                            </strong>
+                          </p>
+                        </div>
+                      </div>
+
+                      <p>Please select the button below only if:</p>
+
+                      <ul>
+                        <li>
+                          The BAP’s status change workflow is not yet in place
+                          for this form submission.
+                        </li>
+                        <li>The form’s enrollment period is still open.</li>
+                      </ul>
+
                       <div
                         className="usa-alert usa-alert--warning"
                         role="alert"
                       >
                         <div className="usa-alert__body">
                           <p className="usa-alert__text">
-                            <strong>
-                              The BAP’s “Edits Requested” workflow enables users
-                              the ability to edit their submitted form
-                              submissions.
-                            </strong>
-                          </p>
-
-                          <p className="margin-bottom-0">
-                            This functionality is only intended to be used when
-                            the BAP’s status change workflow is not yet in place
-                            for a form.
+                            <strong>Please note:</strong> Once a form’s
+                            enrollment period has been closed, only submissions
+                            with a BAP status of “Edits Requested” are editable,
+                            even if the below button is selected.
                           </p>
                         </div>
                       </div>
-
-                      <p>
-                        If you’re sure the BAP’s status change workflow is not
-                        yet in place for this form submission, and you would
-                        like to proceed with changing the submission status to
-                        “Draft,” please select the button below.
-                      </p>
                     </>
                   ),
                   confirmText: "Change Submission Status to Draft",
