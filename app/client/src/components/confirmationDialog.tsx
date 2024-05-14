@@ -73,10 +73,10 @@ export function ConfirmationDialog() {
               <Dialog.Panel
                 className={clsx(
                   "tw-relative tw-transform tw-overflow-hidden tw-rounded-lg tw-bg-white tw-p-4 tw-shadow-xl tw-transition-all",
-                  "sm:tw-w-full sm:tw-max-w-md sm:tw-p-6",
+                  "sm:tw-w-full sm:tw-max-w-xl sm:tw-p-6",
                 )}
               >
-                {dismissable && dismissText && (
+                {dismissable && (
                   <div className="twpf">
                     <div
                       className={clsx(
