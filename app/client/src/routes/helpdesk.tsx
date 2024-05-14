@@ -1,6 +1,11 @@
 import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQueryClient, useQuery } from "@tanstack/react-query";
+import {
+  type UseMutationResult,
+  useQueryClient,
+  useQuery,
+  useMutation,
+} from "@tanstack/react-query";
 import { Form } from "@formio/react";
 import clsx from "clsx";
 import icon from "uswds/img/usa-icons-bg/search--white.svg";
@@ -22,6 +27,7 @@ import {
   type FormioFRF2023Submission,
   type BapSubmission,
   getData,
+  postData,
   useContentData,
   useHelpdeskAccess,
   submissionNeedsEdits,
@@ -76,6 +82,12 @@ type SubmissionAction = {
   modified: string; // ISO 8601 date time string
 };
 
+type DraftSubmission = {
+  data: { [field: string]: unknown };
+  metadata: { [field: string]: unknown };
+  state: "draft";
+};
+
 /**
  * Formio action mapping (practically, just capitalizes "save" or "email").
  */
@@ -96,6 +108,12 @@ function ResultTableRow(props: {
   setActionsData: Dispatch<
     SetStateAction<{ fetched: boolean; results: SubmissionAction[] }>
   >;
+  submissionMutation: UseMutationResult<
+    ServerResponse["formio"],
+    unknown,
+    DraftSubmission,
+    unknown
+  >;
   lastSearchedText: string;
   formType: FormType;
   formio:
@@ -108,6 +126,7 @@ function ResultTableRow(props: {
   const {
     setFormDisplayed,
     setActionsData,
+    submissionMutation,
     lastSearchedText,
     formType,
     formio,
@@ -251,10 +270,21 @@ function ResultTableRow(props: {
                   ),
                   confirmText: "Change Submission Status to Draft",
                   confirmedAction: () => {
-                    //
-                  },
-                  dismissedAction: () => {
-                    //
+                    const submission = {
+                      metadata: { ...formio.metadata },
+                      data: { ...formio.data },
+                      state: "draft" as const,
+                    };
+
+                    submission.data[emailField] = "cleanschoolbus@epa.gov";
+                    submission.metadata.csbHelpdesk ??= [];
+                    (submission.metadata.csbHelpdesk as object[]).push({
+                      previousUserEmail: email,
+                      previousModified: formio.modified,
+                      updateDatetime: new Date().toISOString(),
+                    });
+
+                    submissionMutation.mutate(submission);
                   },
                 });
               }}
@@ -357,6 +387,24 @@ export function Helpdesk() {
     queryFn: () => getData<ServerResponse>(submissionUrl),
     onSuccess: (_res) => setResultDisplayed(true),
     enabled: false,
+  });
+
+  const submissionMutation = useMutation({
+    mutationFn: (submission: DraftSubmission) => {
+      return postData<ServerResponse["formio"]>(submissionUrl, submission);
+    },
+    onSuccess: (res) => {
+      queryClient.setQueryData<ServerResponse>(
+        ["helpdesk/submission"],
+        (prevData) => {
+          return prevData?.formio
+            ? { ...prevData, formio: { ...prevData.formio, submission: res } }
+            : prevData;
+        },
+      );
+
+      submissionQuery.refetch();
+    },
   });
 
   const { formSchema, formio, bap } = submissionQuery.data ?? {};
@@ -599,6 +647,7 @@ export function Helpdesk() {
                 <ResultTableRow
                   setFormDisplayed={setFormDisplayed}
                   setActionsData={setActionsData}
+                  submissionMutation={submissionMutation}
                   lastSearchedText={lastSearchedText}
                   formType={formType}
                   formio={formio}
