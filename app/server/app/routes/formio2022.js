@@ -1,18 +1,10 @@
 const express = require("express");
-const ObjectId = require("mongodb").ObjectId;
 // ---
-const {
-  axiosFormio,
-  formUrl,
-  formioCSBMetadata,
-  formioExampleRebateId,
-} = require("../config/formio");
 const {
   ensureAuthenticated,
   storeBapComboKeys,
   verifyMongoObjectId,
 } = require("../middleware");
-const { checkFormSubmissionPeriodAndBapStatus } = require("../utilities/bap");
 const {
   uploadS3FileMetadata,
   downloadS3FileMetadata,
@@ -31,11 +23,8 @@ const {
   fetchCRFSubmissions,
   createCRFSubmission,
   fetchCRFSubmission,
-  // updateCRFSubmission,
+  updateCRFSubmission,
 } = require("../utilities/formio");
-const log = require("../utilities/logger");
-
-const formioCRFUrl = formUrl["2022"].crf;
 
 const rebateYear = "2022";
 const router = express.Router();
@@ -132,77 +121,7 @@ router.get("/crf-submission/:rebateId", storeBapComboKeys, async (req, res) => {
 
 // --- post an update to an existing draft 2022 CRF submission to Formio
 router.post("/crf-submission/:rebateId", storeBapComboKeys, (req, res) => {
-  const { bapComboKeys, body } = req;
-  const { mail } = req.user;
-  const { rebateId } = req.params; // CSB Rebate ID (6 digits)
-  const { mongoId, submission } = body;
-
-  // NOTE: included to support EPA API scan
-  if (rebateId === formioExampleRebateId) {
-    return res.json({});
-  }
-
-  if (!mongoId || !submission) {
-    const errorStatus = 400;
-    const errorMessage = `Missing required data to update ${rebateYear} CRF submission '${rebateId}'.`;
-    return res.status(errorStatus).json({ message: errorMessage });
-  }
-
-  const comboKey = submission.data?.bap_hidden_entity_combo_key;
-
-  checkFormSubmissionPeriodAndBapStatus({
-    rebateYear,
-    formType: "crf",
-    mongoId,
-    comboKey,
-    req,
-  })
-    .then(() => {
-      if (!bapComboKeys.includes(comboKey)) {
-        const logMessage =
-          `User with email '${mail}' attempted to update CRF submission '${rebateId}' ` +
-          `without a matching BAP combo key.`;
-        log({ level: "error", message: logMessage, req });
-
-        const errorStatus = 401;
-        const errorMessage = `Unauthorized.`;
-        return res.status(errorStatus).json({ message: errorMessage });
-      }
-
-      /** NOTE: verifyMongoObjectId */
-      if (mongoId && !ObjectId.isValid(mongoId)) {
-        const errorStatus = 400;
-        const errorMessage = `MongoDB ObjectId validation error for: '${mongoId}'.`;
-        return res.status(errorStatus).json({ message: errorMessage });
-      }
-
-      /**  Add custom metadata to track formio submissions from wrapper. */
-      submission.metadata = {
-        ...submission.metadata,
-        ...formioCSBMetadata,
-      };
-
-      axiosFormio(req)
-        .put(`${formioCRFUrl}/submission/${mongoId}`, submission)
-        .then((axiosRes) => axiosRes.data)
-        .then((submission) => res.json(submission))
-        .catch((error) => {
-          // NOTE: error is logged in axiosFormio response interceptor
-          const errorStatus = error.response?.status || 500;
-          const errorMessage = `Error updating Formio Close Out form submission '${rebateId}'.`;
-          return res.status(errorStatus).json({ message: errorMessage });
-        });
-    })
-    .catch((error) => {
-      const logMessage =
-        `User with email '${mail}' attempted to update CRF submission '${rebateId}' ` +
-        `when the CSB CRF enrollment period was closed.`;
-      log({ level: "error", message: logMessage, req });
-
-      const errorStatus = 400;
-      const errorMessage = `CSB Close Out form enrollment period is closed.`;
-      return res.status(errorStatus).json({ message: errorMessage });
-    });
+  updateCRFSubmission({ rebateYear, req, res });
 });
 
 module.exports = router;
