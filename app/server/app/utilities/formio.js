@@ -1470,6 +1470,95 @@ function createCRFSubmission({ rebateYear, req, res }) {
  * @param {express.Request} param.req
  * @param {express.Response} param.res
  */
+function fetchCRFSubmission({ rebateYear, req, res }) {
+  const { bapComboKeys } = req;
+  const { mail } = req.user;
+  const { rebateId } = req.params; // CSB Rebate ID (6 digits)
+
+  // NOTE: included to support EPA API scan
+  if (rebateId === formioExampleRebateId) {
+    return res.json(formioNoUserAccess);
+  }
+
+  const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
+  const rebateIdFieldName = getRebateIdFieldName({ rebateYear });
+
+  const formioFormUrl = formUrl[rebateYear].crf;
+
+  if (!formioFormUrl) {
+    const errorStatus = 400;
+    const errorMessage = `Formio form URL does not exist for ${rebateYear} CRF.`;
+    return res.status(errorStatus).json({ message: errorMessage });
+  }
+
+  const matchedCRFSubmissions =
+    `${formioFormUrl}/submission` +
+    `?data.${rebateIdFieldName}=${rebateId}` +
+    `&select=_id,data.${comboKeyFieldName}`;
+
+  Promise.all([
+    axiosFormio(req).get(matchedCRFSubmissions),
+    axiosFormio(req).get(formioFormUrl),
+  ])
+    .then((axiosResponses) => axiosResponses.map((axiosRes) => axiosRes.data))
+    .then(([submissions, schema]) => {
+      if (submissions.length === 0) {
+        return res.json(formioNoUserAccess);
+      }
+
+      const submission = submissions[0];
+      const mongoId = submission._id;
+      const comboKey = submission.data?.[comboKeyFieldName];
+
+      if (!bapComboKeys.includes(comboKey)) {
+        const logMessage =
+          `User with email '${mail}' attempted to access ${rebateYear} ` +
+          `CRF submission '${mongoId}' that they do not have access to.`;
+        log({ level: "warn", message: logMessage, req });
+
+        return res.json(formioNoUserAccess);
+      }
+
+      /** NOTE: verifyMongoObjectId */
+      if (mongoId && !ObjectId.isValid(mongoId)) {
+        const errorStatus = 400;
+        const errorMessage = `MongoDB ObjectId validation error for: '${mongoId}'.`;
+        return res.status(errorStatus).json({ message: errorMessage });
+      }
+
+      /**
+       * NOTE: We can't just use the returned submission data here because
+       * Formio returns the string literal 'YES' instead of a base64 encoded
+       * image string for signature fields when you query for all submissions
+       * matching on a field's value (`/submission?data.${rebateIdFieldName}=${rebateId}`).
+       * We need to query for a specific submission (e.g. `/submission/${mongoId}`),
+       * to have Formio return the correct signature field data.
+       */
+      axiosFormio(req)
+        .get(`${formioFormUrl}/submission/${mongoId}`)
+        .then((axiosRes) => axiosRes.data)
+        .then((submission) => {
+          return res.json({
+            userAccess: true,
+            formSchema: { url: formioFormUrl, json: schema },
+            submission,
+          });
+        });
+    })
+    .catch((error) => {
+      // NOTE: error is logged in axiosFormio response interceptor
+      const errorStatus = error.response?.status || 500;
+      const errorMessage = `Error getting Formio ${rebateYear} Close Out form submission '${rebateId}'.`;
+      return res.status(errorStatus).json({ message: errorMessage });
+    });
+}
+
+/**
+ * @param {Object} param
+ * @param {'2022' | '2023'} param.rebateYear
+ * @param {express.Request} param.req
+ * @param {express.Response} param.res
+ */
 function fetchChangeRequests({ rebateYear, req, res }) {
   const { bapComboKeys } = req;
 
@@ -1660,6 +1749,7 @@ module.exports = {
   //
   fetchCRFSubmissions,
   createCRFSubmission,
+  fetchCRFSubmission,
   //
   fetchChangeRequests,
   fetchChangeRequestSchema,
