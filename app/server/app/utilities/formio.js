@@ -29,8 +29,8 @@ function getComboKeyFieldName({ rebateYear }) {
   return rebateYear === "2022"
     ? "bap_hidden_entity_combo_key"
     : rebateYear === "2023"
-    ? "_bap_entity_combo_key"
-    : "";
+      ? "_bap_entity_combo_key"
+      : "";
 }
 
 /**
@@ -41,8 +41,8 @@ function getRebateIdFieldName({ rebateYear }) {
   return rebateYear === "2022"
     ? "hidden_bap_rebate_id"
     : rebateYear === "2023"
-    ? "_bap_rebate_id"
-    : "";
+      ? "_bap_rebate_id"
+      : "";
 }
 
 /**
@@ -88,7 +88,7 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
    *  comboKey: ?string
    *  rebateId: ?string
    *  frfReviewItemId: ?string
-   *  frfFormModified: ?string
+   *  frfModified: ?string
    * }} */
   const {
     email,
@@ -98,7 +98,7 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
     comboKey,
     rebateId,
     frfReviewItemId,
-    frfFormModified,
+    frfModified,
   } = req.body;
 
   const {
@@ -162,7 +162,7 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
         return {
           data: {
             bap_hidden_entity_combo_key: comboKey,
-            hidden_application_form_modified: frfFormModified,
+            hidden_application_form_modified: frfModified,
             hidden_current_user_email: email,
             hidden_current_user_title: title,
             hidden_current_user_name: name,
@@ -379,7 +379,7 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
 
         return {
           data: {
-            _application_form_modified: frfFormModified,
+            _application_form_modified: frfModified,
             _bap_entity_combo_key: comboKey,
             _bap_rebate_id: rebateId,
             _user_email: email,
@@ -517,10 +517,10 @@ function uploadS3FileMetadata({ rebateYear, req, res }) {
         formType === "frf"
           ? "CSB Application"
           : formType === "prf"
-          ? "CSB Payment Request"
-          : formType === "cof"
-          ? "CSB Close Out"
-          : "CSB";
+            ? "CSB Payment Request"
+            : formType === "cof"
+              ? "CSB Close Out"
+              : "CSB";
 
       const logMessage =
         `User with email '${mail}' attempted to upload a file when the ` +
