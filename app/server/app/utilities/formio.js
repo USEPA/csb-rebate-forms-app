@@ -1579,7 +1579,7 @@ function updateCRFSubmission({ rebateYear, req, res }) {
   const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
   const comboKey = submission.data?.[comboKeyFieldName];
 
-  const formioFormUrl = formUrl[rebateYear].prf;
+  const formioFormUrl = formUrl[rebateYear].crf;
 
   if (!formioFormUrl) {
     const errorStatus = 400;
