@@ -29,8 +29,8 @@ function getComboKeyFieldName({ rebateYear }) {
   return rebateYear === "2022"
     ? "bap_hidden_entity_combo_key"
     : rebateYear === "2023"
-    ? "_bap_entity_combo_key"
-    : "";
+      ? "_bap_entity_combo_key"
+      : "";
 }
 
 /**
@@ -41,8 +41,8 @@ function getRebateIdFieldName({ rebateYear }) {
   return rebateYear === "2022"
     ? "hidden_bap_rebate_id"
     : rebateYear === "2023"
-    ? "_bap_rebate_id"
-    : "";
+      ? "_bap_rebate_id"
+      : "";
 }
 
 /**
@@ -261,10 +261,14 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
               County__c,
             } = Account;
 
-            const jsonOrg = frf2023RecordJson.data.organizations.find(
-              (org) =>
-                org.org_orgName === orgName && org.org_contactEmail === Email,
-            );
+            const jsonOrg = frf2023RecordJson.data.organizations.find((org) => {
+              const matchedName = org?.org_orgName?.trim() === orgName?.trim();
+              const matchedEmail =
+                org.org_contactEmail?.trim()?.toLowerCase() ===
+                Email?.trim()?.toLowerCase();
+
+              return matchedName && matchedEmail;
+            });
 
             const orgAlreadyAdded = array.some((org) => org._org_id === orgId);
 
@@ -517,10 +521,10 @@ function uploadS3FileMetadata({ rebateYear, req, res }) {
         formType === "frf"
           ? "CSB Application"
           : formType === "prf"
-          ? "CSB Payment Request"
-          : formType === "cof"
-          ? "CSB Close Out"
-          : "CSB";
+            ? "CSB Payment Request"
+            : formType === "crf"
+              ? "CSB Close Out"
+              : "CSB";
 
       const logMessage =
         `User with email '${mail}' attempted to upload a file when the ` +
