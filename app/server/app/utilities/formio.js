@@ -262,10 +262,10 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
             } = Account;
 
             const jsonOrg = frf2023RecordJson.data.organizations.find((org) => {
-              const matchedName = org.org_orgName.trim() === orgName.trim();
+              const matchedName = org?.org_orgName?.trim() === orgName?.trim();
               const matchedEmail =
-                org.org_contactEmail.trim().toLowerCase() ===
-                Email.trim().toLowerCase();
+                org.org_contactEmail?.trim()?.toLowerCase() ===
+                Email?.trim()?.toLowerCase();
 
               return matchedName && matchedEmail;
             });
