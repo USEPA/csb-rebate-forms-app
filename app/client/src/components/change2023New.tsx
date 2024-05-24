@@ -237,6 +237,14 @@ function ChangeRequest2023Form(props: {
    */
   const formIsBeingSubmitted = useRef(false);
 
+  /**
+   * Stores the form data's state right after the user clicks the Submit button.
+   * As soon as a post request to submit the data succeeds, this pending
+   * submission data is reset to an empty object. This pending data is passed
+   * into the Form component's `submission` prop.
+   */
+  const pendingSubmissionData = useRef<{ [field: string]: unknown }>({});
+
   if (query.isInitialLoading) {
     return <Loading />;
   }
@@ -282,6 +290,7 @@ function ChangeRequest2023Form(props: {
               _user_email: email,
               _user_title: title,
               _user_name: name,
+              ...pendingSubmissionData.current,
             },
           }}
           options={{
@@ -292,11 +301,16 @@ function ChangeRequest2023Form(props: {
             if (formIsBeingSubmitted.current) return;
             formIsBeingSubmitted.current = true;
 
+            const data = { ...onSubmitSubmission.data };
+
             dismissNotification({ id: 0 });
             dataIsPosting.current = true;
+            pendingSubmissionData.current = data;
 
             mutation.mutate(onSubmitSubmission, {
               onSuccess: (res, _payload, _context) => {
+                pendingSubmissionData.current = {};
+
                 displaySuccessNotification({
                   id: Date.now(),
                   body: (
