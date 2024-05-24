@@ -328,8 +328,11 @@ function ChangeRequest2023Form(props: {
                 changeRequestsQuery.refetch();
               },
               onError: (_error, _payload, _context) => {
+                /** error notification id */
+                const id = Date.now();
+
                 displayErrorNotification({
-                  id: Date.now(),
+                  id,
                   body: (
                     <>
                       <p
@@ -351,6 +354,8 @@ function ChangeRequest2023Form(props: {
                     </>
                   ),
                 });
+
+                setTimeout(() => dismissNotification({ id }), 5000);
               },
               onSettled: (_data, _error, _payload, _context) => {
                 dataIsPosting.current = false;
