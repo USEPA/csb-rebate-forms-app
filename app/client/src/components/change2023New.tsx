@@ -1,5 +1,5 @@
 import { Fragment, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Dialog, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Form } from "@formio/react";
@@ -44,6 +44,19 @@ function useFormioSchemaQuery() {
   });
 
   return { query };
+}
+
+/** Custom hook to update Formio submission submission data */
+function useFormioSubmissionMutation() {
+  const url = `${serverUrl}/api/formio/2023/change/`;
+
+  const mutation = useMutation({
+    mutationFn: (submission: FormioChange2023Submission) => {
+      return postData<FormioChange2023Submission>(url, submission);
+    },
+  });
+
+  return { mutation };
 }
 
 export function ChangeRequest2023Button(props: { data: ChangeRequestData }) {
@@ -96,11 +109,10 @@ function ChangeRequest2023Dialog(props: {
   const { dialogShown, closeDialog, data } = props;
 
   /*
-   * NOTE: For some reason select inputs from the Formio form won't receive
-   * click events if the Dialog.Panel component is used (strangely, they still
-   * receive keyboard events), so a div is used instead. The downside is we lose
-   * the triggering of the Dialog component's `onClose` event when a user clicks
-   * outside the panel.
+   * NOTE: Formio form Combobox inputs won't receive click events if the
+   * Dialog.Panel component is used (they still receive keyboard events), so a
+   * div is used instead. The downside is we lose the triggering of the Dialog
+   * component's `onClose` event when a user clicks outside the panel.
    */
 
   return (
@@ -142,7 +154,7 @@ function ChangeRequest2023Dialog(props: {
               leaveFrom={clsx("tw-translate-y-0 tw-opacity-100")}
               leaveTo={clsx("tw-translate-y-0 tw-opacity-0")}
             >
-              {/* <Dialog.Panel */}
+              {/* <Dialog.Panel> */}
               <div
                 className={clsx(
                   "tw-relative tw-transform tw-overflow-hidden tw-rounded-lg tw-bg-white tw-p-4 tw-shadow-xl tw-transition-all",
@@ -207,7 +219,17 @@ function ChangeRequest2023Form(props: {
   const changeRequestsQuery = useChangeRequestsQuery("2023");
 
   const { query } = useFormioSchemaQuery();
+  const { mutation } = useFormioSubmissionMutation();
+
   const formSchema = query.data;
+
+  /**
+   * Stores when data is being posted to the server, so a loading overlay can
+   * be rendered over the form, preventing the user from losing input data when
+   * the form is re-rendered with data returned from the server's successful
+   * post response.
+   */
+  const dataIsPosting = useRef(false);
 
   /**
    * Stores when the form is being submitted, so it can be referenced in the
@@ -226,6 +248,25 @@ function ChangeRequest2023Form(props: {
   return (
     <>
       {content && <MarkdownContent children={content.newChangeIntro} />}
+
+      <Dialog as="div" open={dataIsPosting.current} onClose={(_value) => {}}>
+        <div className={clsx("tw-fixed tw-inset-0 tw-z-20 tw-bg-black/30")} />
+        <div className={clsx("tw-fixed tw-inset-0 tw-z-20")}>
+          <div
+            className={clsx(
+              "tw-flex tw-min-h-full tw-items-center tw-justify-center",
+            )}
+          >
+            <Dialog.Panel
+              className={clsx(
+                "tw-rounded-lg tw-bg-white tw-px-4 tw-pb-4 tw-shadow-xl",
+              )}
+            >
+              <Loading />
+            </Dialog.Panel>
+          </div>
+        </div>
+      </Dialog>
 
       <div className="csb-form">
         <Form
@@ -246,22 +287,16 @@ function ChangeRequest2023Form(props: {
           options={{
             noAlerts: true,
           }}
-          onSubmit={(onSubmitSubmission: {
-            data: { [field: string]: unknown };
-            metadata: { [field: string]: unknown };
-            state: "submitted";
-          }) => {
+          onSubmit={(onSubmitSubmission: FormioChange2023Submission) => {
             // account for when form is being submitted to prevent double submits
             if (formIsBeingSubmitted.current) return;
             formIsBeingSubmitted.current = true;
 
             dismissNotification({ id: 0 });
+            dataIsPosting.current = true;
 
-            postData<FormioChange2023Submission>(
-              `${serverUrl}/api/formio/2023/change/`,
-              onSubmitSubmission,
-            )
-              .then((res) => {
+            mutation.mutate(onSubmitSubmission, {
+              onSuccess: (res, _payload, _context) => {
                 displaySuccessNotification({
                   id: Date.now(),
                   body: (
@@ -277,8 +312,8 @@ function ChangeRequest2023Form(props: {
 
                 closeDialog();
                 changeRequestsQuery.refetch();
-              })
-              .catch((_err) => {
+              },
+              onError: (_error, _payload, _context) => {
                 displayErrorNotification({
                   id: Date.now(),
                   body: (
@@ -302,10 +337,12 @@ function ChangeRequest2023Form(props: {
                     </>
                   ),
                 });
-              })
-              .finally(() => {
+              },
+              onSettled: (_data, _error, _payload, _context) => {
+                dataIsPosting.current = false;
                 formIsBeingSubmitted.current = false;
-              });
+              },
+            });
           }}
         />
       </div>
