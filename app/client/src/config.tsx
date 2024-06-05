@@ -139,8 +139,8 @@ export const formioNameField = {
     crf: "signatureName",
   },
   2023: {
-    frf: "_bap_applicant_name",
-    prf: "",
+    frf: "_user_name",
+    prf: "_user_name",
     crf: "",
   },
 };
@@ -156,7 +156,7 @@ export const formioEmailField = {
   },
   2023: {
     frf: "_user_email",
-    prf: "",
+    prf: "_user_email",
     crf: "",
   },
 };

@@ -25,6 +25,7 @@ import {
   type FormioPRF2022Submission,
   type FormioCRF2022Submission,
   type FormioFRF2023Submission,
+  type FormioPRF2023Submission,
   type BapSubmission,
   getData,
   postData,
@@ -55,7 +56,8 @@ type ServerResponse =
         | FormioFRF2022Submission
         | FormioPRF2022Submission
         | FormioCRF2022Submission
-        | FormioFRF2023Submission;
+        | FormioFRF2023Submission
+        | FormioPRF2023Submission;
       bap: BapSubmission;
     };
 
@@ -120,7 +122,8 @@ function ResultTableRow(props: {
     | FormioFRF2022Submission
     | FormioPRF2022Submission
     | FormioCRF2022Submission
-    | FormioFRF2023Submission;
+    | FormioFRF2023Submission
+    | FormioPRF2023Submission;
   bap: BapSubmission;
 }) {
   const {
