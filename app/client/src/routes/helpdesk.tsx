@@ -1,6 +1,11 @@
 import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQueryClient, useQuery } from "@tanstack/react-query";
+import {
+  type UseMutationResult,
+  useQueryClient,
+  useQuery,
+  useMutation,
+} from "@tanstack/react-query";
 import { Form } from "@formio/react";
 import clsx from "clsx";
 import icon from "uswds/img/usa-icons-bg/search--white.svg";
@@ -22,6 +27,7 @@ import {
   type FormioFRF2023Submission,
   type BapSubmission,
   getData,
+  postData,
   useContentData,
   useHelpdeskAccess,
   submissionNeedsEdits,
@@ -30,6 +36,7 @@ import { Loading, LoadingButtonIcon } from "@/components/loading";
 import { Message } from "@/components/message";
 import { MarkdownContent } from "@/components/markdownContent";
 import { TextWithTooltip } from "@/components/tooltip";
+import { useDialogActions } from "@/contexts/dialog";
 import {
   type RebateYear,
   useRebateYearState,
@@ -75,6 +82,12 @@ type SubmissionAction = {
   modified: string; // ISO 8601 date time string
 };
 
+type DraftSubmission = {
+  data: { [field: string]: unknown };
+  metadata: { [field: string]: unknown };
+  state: "draft";
+};
+
 /**
  * Formio action mapping (practically, just capitalizes "save" or "email").
  */
@@ -91,8 +104,15 @@ function formatTime(dateTimeString: string | null) {
 }
 
 function ResultTableRow(props: {
+  setFormDisplayed: Dispatch<SetStateAction<boolean>>;
   setActionsData: Dispatch<
     SetStateAction<{ fetched: boolean; results: SubmissionAction[] }>
+  >;
+  submissionMutation: UseMutationResult<
+    ServerResponse["formio"],
+    unknown,
+    DraftSubmission,
+    unknown
   >;
   lastSearchedText: string;
   formType: FormType;
@@ -103,7 +123,17 @@ function ResultTableRow(props: {
     | FormioFRF2023Submission;
   bap: BapSubmission;
 }) {
-  const { setActionsData, lastSearchedText, formType, formio, bap } = props;
+  const {
+    setFormDisplayed,
+    setActionsData,
+    submissionMutation,
+    lastSearchedText,
+    formType,
+    formio,
+    bap,
+  } = props;
+
+  const { displayDialog } = useDialogActions();
   const { rebateYear } = useRebateYearState();
 
   const formId = formio.form;
@@ -161,9 +191,119 @@ function ResultTableRow(props: {
   const email = (formio.data[emailField] as string) || "";
 
   return (
-    <>
+    <tr>
+      <th scope="row">
+        <button
+          className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
+          onClick={(_ev) => setFormDisplayed(true)}
+        >
+          <span className="display-flex flex-align-center">
+            <svg
+              className="usa-icon"
+              aria-hidden="true"
+              focusable="false"
+              role="img"
+            >
+              <use href={`${icons}#visibility`} />
+            </svg>
+            <span className="margin-left-1">View</span>
+          </span>
+        </button>
+      </th>
       <td>{bapId || mongoId}</td>
-      <td>{status}</td>
+      <td>
+        {status}
+
+        {!bapId && status === "Submitted" && (
+          <span className="margin-left-2">
+            <button
+              className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
+              onClick={(_ev) => {
+                displayDialog({
+                  dismissable: true,
+                  heading: "Change Submission Status to Draft",
+                  description: (
+                    <>
+                      <div className="usa-alert usa-alert--info" role="alert">
+                        <div className="usa-alert__body">
+                          <p className="usa-alert__text">
+                            The BAP’s “Edits Requested” workflow is designed to
+                            give users the ability to revise their submitted
+                            form submissions.
+                          </p>
+
+                          <p>
+                            <strong>
+                              This helpdesk functionality is only intended to be
+                              used when the BAP’s status change workflow is not
+                              yet in place, and the form’s enrollment period is
+                              still open.
+                            </strong>
+                          </p>
+                        </div>
+                      </div>
+
+                      <p>Please select the button below only if:</p>
+
+                      <ul>
+                        <li>
+                          The BAP’s status change workflow is not yet in place
+                          for this form submission.
+                        </li>
+                        <li>The form’s enrollment period is still open.</li>
+                      </ul>
+
+                      <div
+                        className="usa-alert usa-alert--warning"
+                        role="alert"
+                      >
+                        <div className="usa-alert__body">
+                          <p className="usa-alert__text">
+                            <strong>Please note:</strong> Once a form’s
+                            enrollment period has been closed, only submissions
+                            with a BAP status of “Edits Requested” are editable,
+                            even if the below button is selected.
+                          </p>
+                        </div>
+                      </div>
+                    </>
+                  ),
+                  confirmText: "Change Submission Status to Draft",
+                  confirmedAction: () => {
+                    const submission = {
+                      metadata: { ...formio.metadata },
+                      data: { ...formio.data },
+                      state: "draft" as const,
+                    };
+
+                    submission.data[emailField] = "cleanschoolbus@epa.gov";
+                    submission.metadata.csbHelpdesk ??= [];
+                    (submission.metadata.csbHelpdesk as object[]).push({
+                      previousUserEmail: email,
+                      previousModified: formio.modified,
+                      updateDatetime: new Date().toISOString(),
+                    });
+
+                    submissionMutation.mutate(submission);
+                  },
+                });
+              }}
+            >
+              <span className="display-flex flex-align-center">
+                <svg
+                  className="usa-icon"
+                  aria-hidden="true"
+                  focusable="false"
+                  role="img"
+                >
+                  <use href={`${icons}#undo`} />
+                </svg>
+                <span className="margin-left-1">Draft</span>
+              </span>
+            </button>
+          </span>
+        )}
+      </td>
       <td>{name}</td>
       <td>{email}</td>
       <td>
@@ -213,7 +353,7 @@ function ResultTableRow(props: {
           </span>
         </button>
       </td>
-    </>
+    </tr>
   );
 }
 
@@ -247,6 +387,24 @@ export function Helpdesk() {
     queryFn: () => getData<ServerResponse>(submissionUrl),
     onSuccess: (_res) => setResultDisplayed(true),
     enabled: false,
+  });
+
+  const submissionMutation = useMutation({
+    mutationFn: (submission: DraftSubmission) => {
+      return postData<ServerResponse["formio"]>(submissionUrl, submission);
+    },
+    onSuccess: (res) => {
+      queryClient.setQueryData<ServerResponse>(
+        ["helpdesk/submission"],
+        (prevData) => {
+          return prevData?.formio
+            ? { ...prevData, formio: { ...prevData.formio, submission: res } }
+            : prevData;
+        },
+      );
+
+      submissionQuery.refetch();
+    },
   });
 
   const { formSchema, formio, bap } = submissionQuery.data ?? {};
@@ -486,34 +644,15 @@ export function Helpdesk() {
               </thead>
 
               <tbody>
-                <tr>
-                  <th scope="row">
-                    <button
-                      className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
-                      onClick={(_ev) => setFormDisplayed(true)}
-                    >
-                      <span className="display-flex flex-align-center">
-                        <svg
-                          className="usa-icon"
-                          aria-hidden="true"
-                          focusable="false"
-                          role="img"
-                        >
-                          <use href={`${icons}#visibility`} />
-                        </svg>
-                        <span className="margin-left-1">View</span>
-                      </span>
-                    </button>
-                  </th>
-
-                  <ResultTableRow
-                    setActionsData={setActionsData}
-                    lastSearchedText={lastSearchedText}
-                    formType={formType}
-                    formio={formio}
-                    bap={bap}
-                  />
-                </tr>
+                <ResultTableRow
+                  setFormDisplayed={setFormDisplayed}
+                  setActionsData={setActionsData}
+                  submissionMutation={submissionMutation}
+                  lastSearchedText={lastSearchedText}
+                  formType={formType}
+                  formio={formio}
+                  bap={bap}
+                />
               </tbody>
             </table>
           </div>
