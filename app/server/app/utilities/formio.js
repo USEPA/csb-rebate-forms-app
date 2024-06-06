@@ -713,7 +713,7 @@ function uploadS3FileMetadata({ rebateYear, req, res }) {
           ? "CSB Application"
           : formType === "prf"
             ? "CSB Payment Request"
-            : formType === "cof"
+            : formType === "crf"
               ? "CSB Close Out"
               : "CSB";
 
