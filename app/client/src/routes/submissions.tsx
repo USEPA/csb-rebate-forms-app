@@ -440,7 +440,7 @@ function PRF2022Submission(props: { rebate: Rebate }) {
                 comboKey: frf.bap.comboKey,
                 rebateId: frf.bap.rebateId, // CSB Rebate ID (6 digits)
                 frfReviewItemId: frf.bap.reviewItemId, // CSB Rebate ID with form/version ID (9 digits)
-                frfFormModified: frf.bap.modified,
+                frfModified: frf.bap.modified,
               })
                 .then((_res) => {
                   navigate(`/prf/2022/${frf.bap?.rebateId}`);
@@ -1084,7 +1084,7 @@ function PRF2023Submission(props: { rebate: Rebate }) {
                 comboKey: frf.bap.comboKey,
                 rebateId: frf.bap.rebateId, // CSB Rebate ID (6 digits)
                 frfReviewItemId: frf.bap.reviewItemId, // CSB Rebate ID with form/version ID (9 digits)
-                frfFormModified: frf.bap.modified,
+                frfModified: frf.bap.modified,
               })
                 .then((_res) => {
                   navigate(`/prf/2023/${frf.bap?.rebateId}`);

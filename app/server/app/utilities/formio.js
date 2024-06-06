@@ -15,6 +15,7 @@ const {
   getBapFormSubmissionsStatuses,
   getBapDataFor2022PRF,
   getBapDataFor2023PRF,
+  getBapDataFor2022CRF,
   checkFormSubmissionPeriodAndBapStatus,
 } = require("../utilities/bap");
 const log = require("./logger");
@@ -88,7 +89,7 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
    *  comboKey: ?string
    *  rebateId: ?string
    *  frfReviewItemId: ?string
-   *  frfFormModified: ?string
+   *  frfModified: ?string
    * }} */
   const {
     email,
@@ -98,7 +99,7 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
     comboKey,
     rebateId,
     frfReviewItemId,
-    frfFormModified,
+    frfModified,
   } = req.body;
 
   const {
@@ -162,7 +163,7 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
         return {
           data: {
             bap_hidden_entity_combo_key: comboKey,
-            hidden_application_form_modified: frfFormModified,
+            hidden_application_form_modified: frfModified,
             hidden_current_user_email: email,
             hidden_current_user_title: title,
             hidden_current_user_name: name,
@@ -383,7 +384,7 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
 
         return {
           data: {
-            _application_form_modified: frfFormModified,
+            _application_form_modified: frfModified,
             _bap_entity_combo_key: comboKey,
             _bap_rebate_id: rebateId,
             _user_email: email,
@@ -451,6 +452,200 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
         // NOTE: logged in bap verifyBapConnection
         const errorStatus = 500;
         const errorMessage = `Error getting data for a new 2023 Payment Request form submission from the BAP.`;
+        return res.status(errorStatus).json({ message: errorMessage });
+      });
+  }
+}
+
+/**
+ * @param {Object} param
+ * @param {'2022' | '2023'} param.rebateYear
+ * @param {express.Request} param.req
+ * @param {express.Response} param.res
+ */
+function fetchDataForCRFSubmission({ rebateYear, req, res }) {
+  /** @type {{
+   *  email: string
+   *  title: string
+   *  name: string
+   *  entity: import('./bap.js').BapSamEntity
+   *  comboKey: ?string
+   *  rebateId: ?string
+   *  frfReviewItemId: ?string
+   *  prfReviewItemId: ?string
+   *  prfModified: ?string
+   * }} */
+  const {
+    email,
+    title,
+    name,
+    entity,
+    comboKey,
+    rebateId,
+    frfReviewItemId,
+    prfReviewItemId,
+    prfModified,
+  } = req.body;
+
+  const {
+    UNIQUE_ENTITY_ID__c,
+    ENTITY_EFT_INDICATOR__c,
+    ELEC_BUS_POC_EMAIL__c,
+    ALT_ELEC_BUS_POC_EMAIL__c,
+    GOVT_BUS_POC_EMAIL__c,
+    ALT_GOVT_BUS_POC_EMAIL__c,
+  } = entity;
+
+  if (rebateYear === "2022") {
+    return getBapDataFor2022CRF(req, frfReviewItemId, prfReviewItemId)
+      .then((results) => {
+        const {
+          frf2022RecordQuery,
+          prf2022RecordQuery,
+          prf2022busRecordsQuery,
+        } = results;
+
+        const {
+          Fleet_Name__c,
+          Fleet_Street_Address__c,
+          Fleet_City__c,
+          Fleet_State__c,
+          Fleet_Zip__c,
+          Fleet_Contact_Name__c,
+          Fleet_Contact_Title__c,
+          Fleet_Contact_Phone__c,
+          Fleet_Contact_Email__c,
+          School_District_Contact__r,
+        } = frf2022RecordQuery[0];
+
+        const {
+          CSB_NCES_ID__c,
+          Primary_Applicant__r,
+          Alternate_Applicant__r,
+          Applicant_Organization__r,
+          CSB_School_District__r,
+          School_District_Prioritized__c,
+          Total_Rebate_Funds_Requested_PO__c,
+          Total_Bus_And_Infrastructure_Rebate__c,
+          Total_Infrastructure_Funds__c,
+          Num_Of_Buses_Requested_From_Application__c,
+          Total_Price_All_Buses__c,
+          Total_Bus_Rebate_Amount__c,
+          Total_All_Eligible_Infrastructure_Costs__c,
+          Total_Infrastructure_Rebate__c,
+          Total_Level_2_Charger_Costs__c,
+          Total_DC_Fast_Charger_Costs__c,
+          Total_Other_Infrastructure_Costs__c,
+        } = prf2022RecordQuery[0];
+
+        const busInfo = prf2022busRecordsQuery.map((prf2022BusRecord) => {
+          const {
+            Rebate_Item_num__c,
+            CSB_VIN__c,
+            CSB_Model_Year__c,
+            CSB_Fuel_Type__c,
+            Old_Bus_Estimated_Remaining_Life__c,
+            Old_Bus_Exclude__c,
+            Related_Line_Item__r,
+            New_Bus_Fuel_Type__c,
+            New_Bus_Make__c,
+            CSB_Manufacturer_if_Other__c,
+            New_Bus_Model__c,
+            New_Bus_Model_Year__c,
+            New_Bus_GVWR__c,
+            New_Bus_Purchase_Price__c,
+            New_Bus_Rebate_Amount__c,
+          } = prf2022BusRecord;
+
+          return {
+            busNum: Rebate_Item_num__c,
+            oldBusNcesDistrictId: CSB_NCES_ID__c,
+            oldBusVin: CSB_VIN__c,
+            oldBusModelYear: CSB_Model_Year__c,
+            oldBusFuelType: CSB_Fuel_Type__c,
+            oldBusEstimatedRemainingLife: Old_Bus_Estimated_Remaining_Life__c,
+            oldBusExclude: Old_Bus_Exclude__c,
+            hidden_prf_oldBusExclude: Old_Bus_Exclude__c,
+            newBusDealer: Related_Line_Item__r?.Vendor_Name__c,
+            newBusFuelType: New_Bus_Fuel_Type__c,
+            hidden_prf_newBusFuelType: New_Bus_Fuel_Type__c,
+            newBusMake: New_Bus_Make__c,
+            hidden_prf_newBusMake: New_Bus_Make__c,
+            newBusMakeOther: CSB_Manufacturer_if_Other__c,
+            hidden_prf_newBusMakeOther: CSB_Manufacturer_if_Other__c,
+            newBusModel: New_Bus_Model__c,
+            hidden_prf_newBusModel: New_Bus_Model__c,
+            newBusModelYear: New_Bus_Model_Year__c,
+            hidden_prf_newBusModelYear: New_Bus_Model_Year__c,
+            newBusGvwr: New_Bus_GVWR__c,
+            hidden_prf_newBusGvwr: New_Bus_GVWR__c,
+            newBusPurchasePrice: New_Bus_Purchase_Price__c,
+            hidden_prf_newBusPurchasePrice: New_Bus_Purchase_Price__c,
+            hidden_prf_rebate: New_Bus_Rebate_Amount__c,
+          };
+        });
+
+        return {
+          data: {
+            bap_hidden_entity_combo_key: comboKey,
+            hidden_prf_modified: prfModified,
+            hidden_current_user_email: email,
+            hidden_current_user_title: title,
+            hidden_current_user_name: name,
+            hidden_bap_rebate_id: rebateId,
+            hidden_sam_uei: UNIQUE_ENTITY_ID__c,
+            hidden_sam_efti: ENTITY_EFT_INDICATOR__c || "0000",
+            hidden_sam_elec_bus_poc_email: ELEC_BUS_POC_EMAIL__c,
+            hidden_sam_alt_elec_bus_poc_email: ALT_ELEC_BUS_POC_EMAIL__c,
+            hidden_sam_govt_bus_poc_email: GOVT_BUS_POC_EMAIL__c,
+            hidden_sam_alt_govt_bus_poc_email: ALT_GOVT_BUS_POC_EMAIL__c,
+            hidden_bap_district_id: CSB_NCES_ID__c,
+            hidden_bap_district_name: CSB_School_District__r?.Name,
+            hidden_bap_primary_fname: Primary_Applicant__r?.FirstName,
+            hidden_bap_primary_lname: Primary_Applicant__r?.LastName,
+            hidden_bap_primary_title: Primary_Applicant__r?.Title,
+            hidden_bap_primary_phone_number: Primary_Applicant__r?.Phone,
+            hidden_bap_primary_email: Primary_Applicant__r?.Email,
+            hidden_bap_alternate_fname: Alternate_Applicant__r?.FirstName || "",
+            hidden_bap_alternate_lname: Alternate_Applicant__r?.LastName || "",
+            hidden_bap_alternate_title: Alternate_Applicant__r?.Title || "",
+            hidden_bap_alternate_phone_number: Alternate_Applicant__r?.Phone || "", // prettier-ignore
+            hidden_bap_alternate_email: Alternate_Applicant__r?.Email || "",
+            hidden_bap_org_name: Applicant_Organization__r?.Name,
+            hidden_bap_fleet_name: Fleet_Name__c,
+            hidden_bap_fleet_address: Fleet_Street_Address__c,
+            hidden_bap_fleet_city: Fleet_City__c,
+            hidden_bap_fleet_state: Fleet_State__c,
+            hidden_bap_fleet_zip: Fleet_Zip__c,
+            hidden_bap_fleet_contact_name: Fleet_Contact_Name__c,
+            hidden_bap_fleet_contact_title: Fleet_Contact_Title__c,
+            hidden_bap_fleet_phone: Fleet_Contact_Phone__c,
+            hidden_bap_fleet_email: Fleet_Contact_Email__c,
+            hidden_bap_prioritized: School_District_Prioritized__c,
+            hidden_bap_requested_funds: Total_Rebate_Funds_Requested_PO__c,
+            hidden_bap_received_funds: Total_Bus_And_Infrastructure_Rebate__c,
+            hidden_bap_prf_infra_max_rebate: Total_Infrastructure_Funds__c,
+            hidden_bap_buses_requested_app: Num_Of_Buses_Requested_From_Application__c, // prettier-ignore
+            hidden_bap_total_bus_costs_prf: Total_Price_All_Buses__c,
+            hidden_bap_total_bus_rebate_received: Total_Bus_Rebate_Amount__c,
+            hidden_bap_total_infra_costs_prf: Total_All_Eligible_Infrastructure_Costs__c, // prettier-ignore
+            hidden_bap_total_infra_rebate_received: Total_Infrastructure_Rebate__c, // prettier-ignore
+            hidden_bap_total_infra_level2_charger: Total_Level_2_Charger_Costs__c, // prettier-ignore
+            hidden_bap_total_infra_dc_fast_charger: Total_DC_Fast_Charger_Costs__c, // prettier-ignore
+            hidden_bap_total_infra_other_costs: Total_Other_Infrastructure_Costs__c, // prettier-ignore
+            hidden_bap_district_contact_fname: School_District_Contact__r?.FirstName, // prettier-ignore
+            hidden_bap_district_contact_lname: School_District_Contact__r?.LastName, // prettier-ignore
+            busInfo,
+          },
+          /** Add custom metadata to track formio submissions from wrapper. */
+          metadata: { ...formioCSBMetadata },
+          state: "draft",
+        };
+      })
+      .catch((error) => {
+        // NOTE: logged in bap verifyBapConnection
+        const errorStatus = 500;
+        const errorMessage = `Error getting data for a new 2022 Close Out form submission from the BAP.`;
         return res.status(errorStatus).json({ message: errorMessage });
       });
   }
@@ -1224,6 +1419,239 @@ function fetchCRFSubmissions({ rebateYear, req, res }) {
  * @param {express.Request} param.req
  * @param {express.Response} param.res
  */
+function createCRFSubmission({ rebateYear, req, res }) {
+  const { bapComboKeys, body } = req;
+  const { mail } = req.user;
+  const { comboKey } = body;
+
+  // NOTE: included to support EPA API scan
+  if (Object.keys(body).length === 0) {
+    return res.json({});
+  }
+
+  const formioFormUrl = formUrl[rebateYear].crf;
+
+  if (!formioFormUrl) {
+    const errorStatus = 400;
+    const errorMessage = `Formio form URL does not exist for ${rebateYear} CRF.`;
+    return res.status(errorStatus).json({ message: errorMessage });
+  }
+
+  if (!submissionPeriodOpen[rebateYear].crf) {
+    const errorStatus = 400;
+    const errorMessage = `${rebateYear} CSB Close Out form enrollment period is closed.`;
+    return res.status(errorStatus).json({ message: errorMessage });
+  }
+
+  if (!bapComboKeys.includes(comboKey)) {
+    const logMessage =
+      `User with email '${mail}' attempted to post a new ${rebateYear} ` +
+      `CRF submission without a matching BAP combo key.`;
+    log({ level: "error", message: logMessage, req });
+
+    const errorStatus = 401;
+    const errorMessage = `Unauthorized.`;
+    return res.status(errorStatus).json({ message: errorMessage });
+  }
+
+  fetchDataForCRFSubmission({ rebateYear, req, res }).then((submission) => {
+    axiosFormio(req)
+      .post(`${formioFormUrl}/submission`, submission)
+      .then((axiosRes) => axiosRes.data)
+      .then((submission) => res.json(submission))
+      .catch((error) => {
+        // NOTE: error is logged in axiosFormio response interceptor
+        const errorStatus = error.response?.status || 500;
+        const errorMessage = `Error posting Formio ${rebateYear} Close Out form submission.`;
+        return res.status(errorStatus).json({ message: errorMessage });
+      });
+  });
+}
+
+/**
+ * @param {Object} param
+ * @param {'2022' | '2023'} param.rebateYear
+ * @param {express.Request} param.req
+ * @param {express.Response} param.res
+ */
+function fetchCRFSubmission({ rebateYear, req, res }) {
+  const { bapComboKeys } = req;
+  const { mail } = req.user;
+  const { rebateId } = req.params; // CSB Rebate ID (6 digits)
+
+  // NOTE: included to support EPA API scan
+  if (rebateId === formioExampleRebateId) {
+    return res.json(formioNoUserAccess);
+  }
+
+  const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
+  const rebateIdFieldName = getRebateIdFieldName({ rebateYear });
+
+  const formioFormUrl = formUrl[rebateYear].crf;
+
+  if (!formioFormUrl) {
+    const errorStatus = 400;
+    const errorMessage = `Formio form URL does not exist for ${rebateYear} CRF.`;
+    return res.status(errorStatus).json({ message: errorMessage });
+  }
+
+  const matchedCRFSubmissions =
+    `${formioFormUrl}/submission` +
+    `?data.${rebateIdFieldName}=${rebateId}` +
+    `&select=_id,data.${comboKeyFieldName}`;
+
+  Promise.all([
+    axiosFormio(req).get(matchedCRFSubmissions),
+    axiosFormio(req).get(formioFormUrl),
+  ])
+    .then((axiosResponses) => axiosResponses.map((axiosRes) => axiosRes.data))
+    .then(([submissions, schema]) => {
+      if (submissions.length === 0) {
+        return res.json(formioNoUserAccess);
+      }
+
+      const submission = submissions[0];
+      const mongoId = submission._id;
+      const comboKey = submission.data?.[comboKeyFieldName];
+
+      if (!bapComboKeys.includes(comboKey)) {
+        const logMessage =
+          `User with email '${mail}' attempted to access ${rebateYear} ` +
+          `CRF submission '${mongoId}' that they do not have access to.`;
+        log({ level: "warn", message: logMessage, req });
+
+        return res.json(formioNoUserAccess);
+      }
+
+      /** NOTE: verifyMongoObjectId */
+      if (mongoId && !ObjectId.isValid(mongoId)) {
+        const errorStatus = 400;
+        const errorMessage = `MongoDB ObjectId validation error for: '${mongoId}'.`;
+        return res.status(errorStatus).json({ message: errorMessage });
+      }
+
+      /**
+       * NOTE: We can't just use the returned submission data here because
+       * Formio returns the string literal 'YES' instead of a base64 encoded
+       * image string for signature fields when you query for all submissions
+       * matching on a field's value (`/submission?data.${rebateIdFieldName}=${rebateId}`).
+       * We need to query for a specific submission (e.g. `/submission/${mongoId}`),
+       * to have Formio return the correct signature field data.
+       */
+      axiosFormio(req)
+        .get(`${formioFormUrl}/submission/${mongoId}`)
+        .then((axiosRes) => axiosRes.data)
+        .then((submission) => {
+          return res.json({
+            userAccess: true,
+            formSchema: { url: formioFormUrl, json: schema },
+            submission,
+          });
+        });
+    })
+    .catch((error) => {
+      // NOTE: error is logged in axiosFormio response interceptor
+      const errorStatus = error.response?.status || 500;
+      const errorMessage = `Error getting Formio ${rebateYear} Close Out form submission '${rebateId}'.`;
+      return res.status(errorStatus).json({ message: errorMessage });
+    });
+}
+
+/**
+ * @param {Object} param
+ * @param {'2022' | '2023'} param.rebateYear
+ * @param {express.Request} param.req
+ * @param {express.Response} param.res
+ */
+function updateCRFSubmission({ rebateYear, req, res }) {
+  const { bapComboKeys, body } = req;
+  const { mail } = req.user;
+  const { rebateId } = req.params; // CSB Rebate ID (6 digits)
+  const { mongoId, submission } = body;
+
+  // NOTE: included to support EPA API scan
+  if (rebateId === formioExampleRebateId) {
+    return res.json({});
+  }
+
+  if (!mongoId || !submission) {
+    const errorStatus = 400;
+    const errorMessage = `Missing required data to update ${rebateYear} CRF submission '${rebateId}'.`;
+    return res.status(errorStatus).json({ message: errorMessage });
+  }
+
+  const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
+  const comboKey = submission.data?.[comboKeyFieldName];
+
+  const formioFormUrl = formUrl[rebateYear].crf;
+
+  if (!formioFormUrl) {
+    const errorStatus = 400;
+    const errorMessage = `Formio form URL does not exist for ${rebateYear} CRF.`;
+    return res.status(errorStatus).json({ message: errorMessage });
+  }
+
+  checkFormSubmissionPeriodAndBapStatus({
+    rebateYear,
+    formType: "crf",
+    mongoId,
+    comboKey,
+    req,
+  })
+    .then(() => {
+      if (!bapComboKeys.includes(comboKey)) {
+        const logMessage =
+          `User with email '${mail}' attempted to update ${rebateYear} CRF ` +
+          `submission '${rebateId}' without a matching BAP combo key.`;
+        log({ level: "error", message: logMessage, req });
+
+        const errorStatus = 401;
+        const errorMessage = `Unauthorized.`;
+        return res.status(errorStatus).json({ message: errorMessage });
+      }
+
+      /** NOTE: verifyMongoObjectId */
+      if (mongoId && !ObjectId.isValid(mongoId)) {
+        const errorStatus = 400;
+        const errorMessage = `MongoDB ObjectId validation error for: '${mongoId}'.`;
+        return res.status(errorStatus).json({ message: errorMessage });
+      }
+
+      /** Add custom metadata to track formio submissions from wrapper. */
+      submission.metadata = {
+        ...submission.metadata,
+        ...formioCSBMetadata,
+      };
+
+      axiosFormio(req)
+        .put(`${formioFormUrl}/submission/${mongoId}`, submission)
+        .then((axiosRes) => axiosRes.data)
+        .then((submission) => res.json(submission))
+        .catch((error) => {
+          // NOTE: error is logged in axiosFormio response interceptor
+          const errorStatus = error.response?.status || 500;
+          const errorMessage = `Error updating Formio ${rebateYear} Close Out form submission '${rebateId}'.`;
+          return res.status(errorStatus).json({ message: errorMessage });
+        });
+    })
+    .catch((error) => {
+      const logMessage =
+        `User with email '${mail}' attempted to update ${rebateYear} CRF ` +
+        `submission '${rebateId}' when the CSB CRF enrollment period was closed.`;
+      log({ level: "error", message: logMessage, req });
+
+      const errorStatus = 400;
+      const errorMessage = `${rebateYear} CSB Close Out form enrollment period is closed.`;
+      return res.status(errorStatus).json({ message: errorMessage });
+    });
+}
+
+/**
+ * @param {Object} param
+ * @param {'2022' | '2023'} param.rebateYear
+ * @param {express.Request} param.req
+ * @param {express.Response} param.res
+ */
 function fetchChangeRequests({ rebateYear, req, res }) {
   const { bapComboKeys } = req;
 
@@ -1413,6 +1841,9 @@ module.exports = {
   deletePRFSubmission,
   //
   fetchCRFSubmissions,
+  createCRFSubmission,
+  fetchCRFSubmission,
+  updateCRFSubmission,
   //
   fetchChangeRequests,
   fetchChangeRequestSchema,
