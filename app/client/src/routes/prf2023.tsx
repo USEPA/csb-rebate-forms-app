@@ -39,7 +39,7 @@ type ServerResponse =
       submission: FormioPRF2023Submission;
     };
 
-/** Custom hook to fetch Formio submission data */
+/** Custom hook to fetch and update Formio submission data */
 function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
   const queryClient = useQueryClient();
 
