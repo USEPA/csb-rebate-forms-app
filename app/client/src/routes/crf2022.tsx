@@ -227,8 +227,8 @@ function CloseOutRequestForm(props: { email: string }) {
             submission.state === "draft"
               ? content.draftCRFIntro
               : submission.state === "submitted"
-              ? content.submittedCRFIntro
-              : ""
+                ? content.submittedCRFIntro
+                : ""
           }
         />
       )}

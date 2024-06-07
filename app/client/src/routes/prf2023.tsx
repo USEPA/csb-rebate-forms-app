@@ -242,8 +242,8 @@ function PaymentRequestForm(props: { email: string }) {
             submission.state === "draft"
               ? content.draftPRFIntro
               : submission.state === "submitted"
-              ? content.submittedPRFIntro
-              : ""
+                ? content.submittedPRFIntro
+                : ""
           }
         />
       )}

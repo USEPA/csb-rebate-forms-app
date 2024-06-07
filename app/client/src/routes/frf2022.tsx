@@ -362,8 +362,8 @@ function FundingRequestForm(props: { email: string }) {
             submission.state === "draft"
               ? content.draftFRFIntro
               : submission.state === "submitted"
-              ? content.submittedFRFIntro
-              : ""
+                ? content.submittedFRFIntro
+                : ""
           }
         />
       )}

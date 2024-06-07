@@ -70,28 +70,28 @@ function createInitialSubmissionData(options: {
         sam_hidden_applicant_zip_code: PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
       }
     : rebateYear === "2023"
-    ? {
-        _user_email: email,
-        _user_title: title,
-        _user_name: name,
-        _bap_entity_combo_key: ENTITY_COMBO_KEY__c,
-        _bap_elec_bus_poc_email: ELEC_BUS_POC_EMAIL__c,
-        _bap_alt_elec_bus_poc_email: ALT_ELEC_BUS_POC_EMAIL__c,
-        _bap_govt_bus_poc_email: GOVT_BUS_POC_EMAIL__c,
-        _bap_alt_govt_bus_poc_email: ALT_GOVT_BUS_POC_EMAIL__c,
-        _bap_applicant_email: email,
-        _bap_applicant_title: title,
-        _bap_applicant_name: name,
-        _bap_applicant_efti: ENTITY_EFT_INDICATOR__c,
-        _bap_applicant_uei: UNIQUE_ENTITY_ID__c,
-        _bap_applicant_organization_name: LEGAL_BUSINESS_NAME__c,
-        _bap_applicant_street_address_1: PHYSICAL_ADDRESS_LINE_1__c,
-        _bap_applicant_street_address_2: PHYSICAL_ADDRESS_LINE_2__c,
-        _bap_applicant_city: PHYSICAL_ADDRESS_CITY__c,
-        _bap_applicant_state: PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
-        _bap_applicant_zip: PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
-      }
-    : null;
+      ? {
+          _user_email: email,
+          _user_title: title,
+          _user_name: name,
+          _bap_entity_combo_key: ENTITY_COMBO_KEY__c,
+          _bap_elec_bus_poc_email: ELEC_BUS_POC_EMAIL__c,
+          _bap_alt_elec_bus_poc_email: ALT_ELEC_BUS_POC_EMAIL__c,
+          _bap_govt_bus_poc_email: GOVT_BUS_POC_EMAIL__c,
+          _bap_alt_govt_bus_poc_email: ALT_GOVT_BUS_POC_EMAIL__c,
+          _bap_applicant_email: email,
+          _bap_applicant_title: title,
+          _bap_applicant_name: name,
+          _bap_applicant_efti: ENTITY_EFT_INDICATOR__c,
+          _bap_applicant_uei: UNIQUE_ENTITY_ID__c,
+          _bap_applicant_organization_name: LEGAL_BUSINESS_NAME__c,
+          _bap_applicant_street_address_1: PHYSICAL_ADDRESS_LINE_1__c,
+          _bap_applicant_street_address_2: PHYSICAL_ADDRESS_LINE_2__c,
+          _bap_applicant_city: PHYSICAL_ADDRESS_CITY__c,
+          _bap_applicant_state: PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
+          _bap_applicant_zip: PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
+        }
+      : null;
 }
 
 export function FRFNew() {
