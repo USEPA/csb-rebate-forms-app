@@ -197,7 +197,7 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
           state: "draft",
         };
       })
-      .catch((error) => {
+      .catch((_error) => {
         // NOTE: logged in bap verifyBapConnection
         const errorStatus = 500;
         const errorMessage = `Error getting data for a new 2022 Payment Request form submission from the BAP.`;
@@ -448,7 +448,7 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
           state: "draft",
         };
       })
-      .catch((error) => {
+      .catch((_error) => {
         // NOTE: logged in bap verifyBapConnection
         const errorStatus = 500;
         const errorMessage = `Error getting data for a new 2023 Payment Request form submission from the BAP.`;
@@ -711,7 +711,7 @@ function uploadS3FileMetadata({ rebateYear, req, res }) {
           return res.status(errorStatus).json({ message: errorMessage });
         });
     })
-    .catch((error) => {
+    .catch((_error) => {
       const formName =
         formType === "frf"
           ? "CSB Application"
@@ -1007,7 +1007,7 @@ function updateFRFSubmission({ rebateYear, req, res }) {
           return res.status(errorStatus).json({ message: errorMessage });
         });
     })
-    .catch((error) => {
+    .catch((_error) => {
       const logMessage =
         `User with email '${mail}' attempted to update ${rebateYear} FRF ` +
         `submission '${mongoId}' when the CSB FRF enrollment period was closed.`;
@@ -1279,7 +1279,7 @@ function updatePRFSubmission({ rebateYear, req, res }) {
           return res.status(errorStatus).json({ message: errorMessage });
         });
     })
-    .catch((error) => {
+    .catch((_error) => {
       const logMessage =
         `User with email '${mail}' attempted to update ${rebateYear} PRF ` +
         `submission '${rebateId}' when the CSB PRF enrollment period was closed.`;
@@ -1366,7 +1366,7 @@ function deletePRFSubmission({ rebateYear, req, res }) {
           return res.status(errorStatus).json({ message: errorMessage });
         });
     })
-    .catch((error) => {
+    .catch((_error) => {
       // NOTE: logged in bap verifyBapConnection
       const errorStatus = 500;
       const errorMessage = `Error getting form submissions statuses from the BAP.`;
