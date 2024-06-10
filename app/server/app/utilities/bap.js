@@ -1599,10 +1599,10 @@ function checkFormSubmissionPeriodAndBapStatus({
       formType === "frf"
         ? "CSB_Funding_Request_Status__c"
         : formType === "prf"
-        ? "CSB_Payment_Request_Status__c"
-        : formType === "crf"
-        ? "CSB_Closeout_Request_Status__c"
-        : null;
+          ? "CSB_Payment_Request_Status__c"
+          : formType === "crf"
+            ? "CSB_Closeout_Request_Status__c"
+            : null;
 
     return submission?.Parent_CSB_Rebate__r?.[statusField] === "Edits Requested"
       ? Promise.resolve()

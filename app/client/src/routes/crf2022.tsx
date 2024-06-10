@@ -39,7 +39,7 @@ type ServerResponse =
       submission: FormioCRF2022Submission;
     };
 
-/** Custom hook to fetch Formio submission data */
+/** Custom hook to fetch and update Formio submission data */
 function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
   const queryClient = useQueryClient();
 
@@ -227,8 +227,8 @@ function CloseOutRequestForm(props: { email: string }) {
             submission.state === "draft"
               ? content.draftCRFIntro
               : submission.state === "submitted"
-              ? content.submittedCRFIntro
-              : ""
+                ? content.submittedCRFIntro
+                : ""
           }
         />
       )}

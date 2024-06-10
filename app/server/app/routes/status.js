@@ -26,7 +26,7 @@ router.get("/bap/sam", (req, res) => {
 
       return res.json({ status: true });
     })
-    .catch((error) => {
+    .catch((_error) => {
       // NOTE: logged in bap verifyBapConnection
       return res.json({ status: false });
     });
@@ -39,7 +39,7 @@ router.get("/formio/2022/frf", (req, res) => {
     .then((schema) => {
       return res.json({ status: verifySchema(schema) });
     })
-    .catch((error) => {
+    .catch((_error) => {
       // NOTE: error is logged in axiosFormio response interceptor
       return res.json({ status: false });
     });
@@ -52,7 +52,7 @@ router.get("/formio/2022/prf", (req, res) => {
     .then((schema) => {
       return res.json({ status: verifySchema(schema) });
     })
-    .catch((error) => {
+    .catch((_error) => {
       // NOTE: error is logged in axiosFormio response interceptor
       return res.json({ status: false });
     });
@@ -65,7 +65,7 @@ router.get("/formio/2022/crf", (req, res) => {
     .then((schema) => {
       return res.json({ status: verifySchema(schema) });
     })
-    .catch((error) => {
+    .catch((_error) => {
       // NOTE: error is logged in axiosFormio response interceptor
       return res.json({ status: false });
     });
@@ -78,7 +78,7 @@ router.get("/formio/2023/frf", (req, res) => {
     .then((schema) => {
       return res.json({ status: verifySchema(schema) });
     })
-    .catch((error) => {
+    .catch((_error) => {
       // NOTE: error is logged in axiosFormio response interceptor
       return res.json({ status: false });
     });
@@ -91,7 +91,7 @@ router.get("/formio/2023/prf", (req, res) => {
     .then((schema) => {
       return res.json({ status: verifySchema(schema) });
     })
-    .catch((error) => {
+    .catch((_error) => {
       // NOTE: error is logged in axiosFormio response interceptor
       return res.json({ status: false });
     });
@@ -104,7 +104,7 @@ router.get("/formio/2023/prf", (req, res) => {
 //     .then((schema) => {
 //       return res.json({ status: verifySchema(schema) });
 //     })
-//     .catch((error) => {
+//     .catch((_error) => {
 //       // NOTE: error is logged in axiosFormio response interceptor
 //       return res.json({ status: false });
 //     });
