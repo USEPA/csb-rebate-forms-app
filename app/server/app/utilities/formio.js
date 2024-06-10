@@ -260,7 +260,7 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
               BillingState,
               BillingPostalCode,
               County__c,
-            } = Account;
+            } = Account || {};
 
             const jsonOrg = frf2023RecordJson.data.organizations.find((org) => {
               const matchedName = org?.org_orgName?.trim() === orgName?.trim();
