@@ -291,6 +291,7 @@ function PaymentRequestForm(props: { email: string }) {
           form={formSchema.json}
           url={formSchema.url} // NOTE: used for file uploads
           submission={{
+            ...submission,
             data: {
               ...submission.data,
               last_updated_by: email,
