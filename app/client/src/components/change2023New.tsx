@@ -281,6 +281,7 @@ function ChangeRequest2023Form(props: {
           form={formSchema.json}
           url={formSchema.url} // NOTE: used for file uploads
           submission={{
+            state: "draft",
             data: {
               _request_form: formType,
               _bap_entity_combo_key: comboKey,

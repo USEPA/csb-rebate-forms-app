@@ -87,7 +87,10 @@ export function Change2023() {
         <Form
           form={formSchema.json}
           url={formSchema.url} // NOTE: used for file uploads
-          submission={submission}
+          submission={{
+            state: submission.state,
+            data: submission.data,
+          }}
           options={{
             readOnly: true,
             noAlerts: true,
