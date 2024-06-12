@@ -404,7 +404,7 @@ function FundingRequestForm(props: { email: string }) {
           form={formSchema.json}
           url={formSchema.url} // NOTE: used for file uploads
           submission={{
-            ...submission,
+            state: submission.state,
             data: {
               ...submission.data,
               _user_email: email,

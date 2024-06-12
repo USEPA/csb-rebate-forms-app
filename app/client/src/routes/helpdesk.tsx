@@ -737,7 +737,10 @@ export function Helpdesk() {
               <Form
                 form={formSchema.json}
                 url={formSchema.url} // NOTE: used for file uploads
-                submission={{ data: formio.data }}
+                submission={{
+                  state: formio.state,
+                  data: formio.data,
+                }}
                 options={{ readOnly: true }}
               />
             </>
