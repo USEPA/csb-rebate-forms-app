@@ -130,20 +130,6 @@ type FormioSubmission = {
   };
 };
 
-type FormioChange2023Data = {
-  [field: string]: unknown;
-  // fields injected upon a new draft Change Request form submission creation:
-  _request_form: FormType;
-  _bap_entity_combo_key: string;
-  _bap_rebate_id: string;
-  _mongo_id: string;
-  _user_email: string;
-  _user_title: string;
-  _user_name: string;
-  // fields set by the form definition (among others):
-  request_type: { label: string; value: string };
-};
-
 type FormioFRF2022Data = {
   [field: string]: unknown;
   // fields injected upon a new draft FRF submission creation:
@@ -243,8 +229,18 @@ type FormioCRF2023Data = {
   _bap_rebate_id: string;
 };
 
-export type FormioChange2023Submission = FormioSubmission & {
-  data: FormioChange2023Data;
+type FormioChange2023Data = {
+  [field: string]: unknown;
+  // fields injected upon a new draft Change Request form submission creation:
+  _request_form: FormType;
+  _bap_entity_combo_key: string;
+  _bap_rebate_id: string;
+  _mongo_id: string;
+  _user_email: string;
+  _user_title: string;
+  _user_name: string;
+  // fields set by the form definition (among others):
+  request_type: { label: string; value: string };
 };
 
 export type FormioFRF2022Submission = FormioSubmission & {
@@ -269,6 +265,10 @@ export type FormioPRF2023Submission = FormioSubmission & {
 
 export type FormioCRF2023Submission = FormioSubmission & {
   data: FormioCRF2023Data;
+};
+
+export type FormioChange2023Submission = FormioSubmission & {
+  data: FormioChange2023Data;
 };
 
 export type BapSubmission = {
