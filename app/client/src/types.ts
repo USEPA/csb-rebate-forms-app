@@ -110,7 +110,7 @@ export type BapFormSubmissions = {
   };
 };
 
-export type BapSubmission = {
+export type BapSubmissionData = {
   modified: string | null; // ISO 8601 date time string
   comboKey: string | null; // UEI + EFTI combo key
   mongoId: string | null; // MongoDB Object ID
@@ -297,14 +297,14 @@ export type Rebate = {
   rebateYear: RebateYear;
   frf: {
     formio: FormioFRF2022Submission | FormioFRF2023Submission;
-    bap: BapSubmission | null;
+    bap: BapSubmissionData | null;
   };
   prf: {
     formio: FormioPRF2022Submission | FormioPRF2023Submission | null;
-    bap: BapSubmission | null;
+    bap: BapSubmissionData | null;
   };
   crf: {
     formio: FormioCRF2022Submission | FormioCRF2023Submission | null;
-    bap: BapSubmission | null;
+    bap: BapSubmissionData | null;
   };
 };

@@ -11,7 +11,7 @@ import {
   type BapSamData,
   type BapFormSubmission,
   type BapFormSubmissions,
-  type BapSubmission,
+  type BapSubmissionData,
   type FormioSubmission,
   type FormioFRF2022Submission,
   type FormioPRF2022Submission,
@@ -563,7 +563,7 @@ export function useSubmissions(rebateYear: RebateYear) {
  */
 export function submissionNeedsEdits(options: {
   formio: FormioSubmission | null;
-  bap: BapSubmission | null;
+  bap: BapSubmissionData | null;
 }) {
   const { formio, bap } = options;
 

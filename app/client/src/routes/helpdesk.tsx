@@ -13,7 +13,7 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import {
   type FormType,
-  type BapSubmission,
+  type BapSubmissionData,
   type FormioFRF2022Submission,
   type FormioPRF2022Submission,
   type FormioCRF2022Submission,
@@ -51,7 +51,7 @@ type ServerResponse =
   | {
       formSchema: null;
       formio: null;
-      bap: BapSubmission;
+      bap: BapSubmissionData;
     }
   | {
       formSchema: { url: string; json: object };
@@ -61,7 +61,7 @@ type ServerResponse =
         | FormioCRF2022Submission
         | FormioFRF2023Submission
         | FormioPRF2023Submission;
-      bap: BapSubmission;
+      bap: BapSubmissionData;
     };
 
 type SubmissionAction = {
@@ -127,7 +127,7 @@ function ResultTableRow(props: {
     | FormioCRF2022Submission
     | FormioFRF2023Submission
     | FormioPRF2023Submission;
-  bap: BapSubmission;
+  bap: BapSubmissionData;
 }) {
   const {
     setFormDisplayed,
