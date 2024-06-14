@@ -8,9 +8,9 @@ import clsx from "clsx";
 import { cloneDeep, isEqual } from "lodash";
 import icons from "uswds/img/sprite.svg";
 // ---
+import { type FormioCRF2022Submission } from "@/types";
 import { serverUrl, messages } from "@/config";
 import {
-  type FormioCRF2022Submission,
   getData,
   postData,
   useContentData,

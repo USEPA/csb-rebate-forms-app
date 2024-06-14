@@ -4,12 +4,9 @@ import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { Form } from "@formio/react";
 import icons from "uswds/img/sprite.svg";
 // ---
+import { type FormioChange2023Submission } from "@/types";
 import { serverUrl, messages } from "@/config";
-import {
-  type FormioChange2023Submission,
-  getData,
-  useContentData,
-} from "@/utilities";
+import { getData, useContentData } from "@/utilities";
 import { Loading } from "@/components/loading";
 import { Message } from "@/components/message";
 import { MarkdownContent } from "@/components/markdownContent";

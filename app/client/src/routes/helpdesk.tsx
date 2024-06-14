@@ -12,6 +12,16 @@ import icon from "uswds/img/usa-icons-bg/search--white.svg";
 import icons from "uswds/img/sprite.svg";
 // ---
 import {
+  type FormType,
+  type BapSubmission,
+  type FormioFRF2022Submission,
+  type FormioPRF2022Submission,
+  type FormioCRF2022Submission,
+  type FormioFRF2023Submission,
+  type FormioPRF2023Submission,
+  // type FormioCRF2023Submission
+} from "@/types";
+import {
   serverUrl,
   messages,
   formioStatusMap,
@@ -20,13 +30,6 @@ import {
   formioEmailField,
 } from "@/config";
 import {
-  type FormType,
-  type FormioFRF2022Submission,
-  type FormioPRF2022Submission,
-  type FormioCRF2022Submission,
-  type FormioFRF2023Submission,
-  type FormioPRF2023Submission,
-  type BapSubmission,
   getData,
   postData,
   useContentData,

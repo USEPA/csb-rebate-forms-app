@@ -5,11 +5,13 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl, messages } from "@/config";
 import {
   type BapSamEntity,
   type FormioFRF2022Submission,
   type FormioFRF2023Submission,
+} from "@/types";
+import { serverUrl, messages } from "@/config";
+import {
   postData,
   useContentData,
   useConfigData,

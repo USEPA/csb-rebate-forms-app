@@ -6,10 +6,9 @@ import { Form } from "@formio/react";
 import clsx from "clsx";
 import icons from "uswds/img/sprite.svg";
 // ---
+import { type FormType, type FormioChange2023Submission } from "@/types";
 import { serverUrl, messages } from "@/config";
 import {
-  type FormType,
-  type FormioChange2023Submission,
   getData,
   postData,
   useContentData,

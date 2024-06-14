@@ -10,6 +10,15 @@ import clsx from "clsx";
 import icons from "uswds/img/sprite.svg";
 // ---
 import {
+  type FormioFRF2022Submission,
+  type FormioPRF2022Submission,
+  type FormioCRF2022Submission,
+  type FormioFRF2023Submission,
+  type FormioPRF2023Submission,
+  // type FormioCRF2023Submission
+  type Rebate,
+} from "@/types";
+import {
   serverUrl,
   messages,
   formioStatusMap,
@@ -17,13 +26,6 @@ import {
   statusIconMap,
 } from "@/config";
 import {
-  type FormioFRF2022Submission,
-  type FormioPRF2022Submission,
-  type FormioCRF2022Submission,
-  type FormioFRF2023Submission,
-  type FormioPRF2023Submission,
-  // type FormioCRF2023Submission,
-  type Rebate,
   postData,
   useContentData,
   useConfigData,
