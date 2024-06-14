@@ -1,4 +1,4 @@
-export type RebateYear = "2022" | "2023";
+export type RebateYear = "2022" | "2023" | "2024";
 
 export type FormType = "frf" | "prf" | "crf";
 
@@ -28,6 +28,7 @@ export type ConfigData = {
   submissionPeriodOpen: {
     2022: { frf: boolean; prf: boolean; crf: boolean };
     2023: { frf: boolean; prf: boolean; crf: boolean };
+    2024: { frf: boolean; prf: boolean; crf: boolean };
   };
 };
 
@@ -86,7 +87,10 @@ export type BapFormSubmission = {
     | "CSB Close Out Request 2022" // NOTE: not currently used
     | "CSB Funding Request 2023"
     | "CSB Payment Request 2023"
-    | "CSB Close Out Request 2023";
+    | "CSB Close Out Request 2023"
+    | "CSB Funding Request 2024" // TODO: confirm with BAP team
+    | "CSB Payment Request 2024" // TODO: confirm with BAP team
+    | "CSB Close Out Request 2024"; // TODO: confirm with BAP team
   Rebate_Program_Year__c: null | RebateYear;
   Parent_CSB_Rebate__r: {
     CSB_Funding_Request_Status__c: string;
@@ -104,6 +108,11 @@ export type BapFormSubmissions = {
     crfs: BapFormSubmission[];
   };
   2023: {
+    frfs: BapFormSubmission[];
+    prfs: BapFormSubmission[];
+    crfs: BapFormSubmission[];
+  };
+  2024: {
     frfs: BapFormSubmission[];
     prfs: BapFormSubmission[];
     crfs: BapFormSubmission[];
@@ -265,6 +274,38 @@ type FormioFRF2024Data = {
   _bap_applicant_zip: string;
 };
 
+type FormioPRF2024Data = {
+  [field: string]: unknown;
+  // fields injected upon a new draft FRF submission creation:
+  _user_email: string;
+  _user_title: string;
+  _user_name: string;
+  _bap_entity_combo_key: string;
+  _bap_rebate_id: string;
+};
+
+type FormioCRF2024Data = {
+  [field: string]: unknown;
+  // fields injected upon a new draft FRF submission creation:
+  _user_email: string;
+  _user_title: string;
+  _user_name: string;
+  _bap_entity_combo_key: string;
+  _bap_rebate_id: string;
+};
+
+type FormioChange2024Data = {
+  [field: string]: unknown;
+  // fields injected upon a new draft Change Request form submission creation:
+  _request_form: FormType;
+  _bap_entity_combo_key: string;
+  _bap_rebate_id: string;
+  _mongo_id: string;
+  _user_email: string;
+  _user_title: string;
+  _user_name: string;
+};
+
 export type FormioFRF2022Submission = FormioSubmission & {
   data: FormioFRF2022Data;
 };
@@ -293,18 +334,45 @@ export type FormioChange2023Submission = FormioSubmission & {
   data: FormioChange2023Data;
 };
 
+export type FormioFRF2024Submission = FormioSubmission & {
+  data: FormioFRF2024Data;
+};
+
+export type FormioPRF2024Submission = FormioSubmission & {
+  data: FormioPRF2024Data;
+};
+
+export type FormioCRF2024Submission = FormioSubmission & {
+  data: FormioCRF2024Data;
+};
+
+export type FormioChange2024Submission = FormioSubmission & {
+  data: FormioChange2024Data;
+};
+
 export type Rebate = {
   rebateYear: RebateYear;
   frf: {
-    formio: FormioFRF2022Submission | FormioFRF2023Submission;
+    formio:
+      | FormioFRF2022Submission
+      | FormioFRF2023Submission
+      | FormioFRF2024Submission;
     bap: BapSubmissionData | null;
   };
   prf: {
-    formio: FormioPRF2022Submission | FormioPRF2023Submission | null;
+    formio:
+      | FormioPRF2022Submission
+      | FormioPRF2023Submission
+      | FormioPRF2024Submission
+      | null;
     bap: BapSubmissionData | null;
   };
   crf: {
-    formio: FormioCRF2022Submission | FormioCRF2023Submission | null;
+    formio:
+      | FormioCRF2022Submission
+      | FormioCRF2023Submission
+      | FormioCRF2024Submission
+      | null;
     bap: BapSubmissionData | null;
   };
 };
