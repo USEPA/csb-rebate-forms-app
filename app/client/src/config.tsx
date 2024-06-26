@@ -108,7 +108,12 @@ export const bapStatusMap = {
       .set("Withdrawn", "Withdrawn")
       .set("Coordinator Denied", "Funding Denied")
       .set("Accepted", "Funding Approved"),
-    crf: new Map<string, string>(),
+    crf: new Map<string, string>(), // TODO
+  },
+  2024: {
+    frf: new Map<string, string>(), // TODO
+    prf: new Map<string, string>(), // TODO
+    crf: new Map<string, string>(), // TODO
   },
 };
 
@@ -141,7 +146,12 @@ export const formioNameField = {
   2023: {
     frf: "_user_name",
     prf: "_user_name",
-    crf: "",
+    crf: "", // TODO
+  },
+  2024: {
+    frf: "", // TODO
+    prf: "", // TODO
+    crf: "", // TODO
   },
 };
 
@@ -157,6 +167,11 @@ export const formioEmailField = {
   2023: {
     frf: "_user_email",
     prf: "_user_email",
-    crf: "",
+    crf: "", // TODO
+  },
+  2024: {
+    frf: "", // TODO
+    prf: "", // TODO
+    crf: "", // TODO
   },
 };
