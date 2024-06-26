@@ -12,6 +12,7 @@ import icon from "uswds/img/usa-icons-bg/search--white.svg";
 import icons from "uswds/img/sprite.svg";
 // ---
 import {
+  type RebateYear,
   type FormType,
   type BapSubmissionData,
   type FormioFRF2022Submission,
@@ -42,7 +43,6 @@ import { MarkdownContent } from "@/components/markdownContent";
 import { TextWithTooltip } from "@/components/tooltip";
 import { useDialogActions } from "@/contexts/dialog";
 import {
-  type RebateYear,
   useRebateYearState,
   useRebateYearActions,
 } from "@/contexts/rebateYear";
@@ -456,6 +456,7 @@ export function Helpdesk() {
             >
               <option>2022</option>
               <option>2023</option>
+              <option>2024</option>
             </select>
           </div>
 

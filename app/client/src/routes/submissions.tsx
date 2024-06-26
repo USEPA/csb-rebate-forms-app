@@ -10,6 +10,7 @@ import clsx from "clsx";
 import icons from "uswds/img/sprite.svg";
 // ---
 import {
+  type RebateYear,
   type FormioFRF2022Submission,
   type FormioPRF2022Submission,
   type FormioCRF2022Submission,
@@ -44,7 +45,6 @@ import { TextWithTooltip } from "@/components/tooltip";
 import { ChangeRequest2023Button } from "@/components/change2023New";
 import { useNotificationsActions } from "@/contexts/notifications";
 import {
-  type RebateYear,
   useRebateYearState,
   useRebateYearActions,
 } from "@/contexts/rebateYear";
@@ -1589,6 +1589,7 @@ export function Submissions() {
             >
               <option>2022</option>
               <option>2023</option>
+              <option>2024</option>
             </select>
           </div>
 
