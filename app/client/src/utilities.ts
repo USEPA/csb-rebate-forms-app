@@ -28,14 +28,13 @@ import {
 } from "@/types";
 import { serverUrl } from "@/config";
 
-/**
- * Formio Change Request submissions by rebate year.
- */
-interface FormioChangeSubmissions {
-  "2022": never[];
-  "2023": FormioChange2023Submission[];
-  "2024": FormioChange2024Submission[];
-}
+/** Formio Change Request submissions by rebate year. */
+/* prettier-ignore */
+type FormioChangeSubmissions<Year> =
+  Year extends "2022" ? never[] | undefined :
+  Year extends "2023" ? FormioChange2023Submission[] | undefined :
+  Year extends "2024" ? FormioChange2024Submission[] | undefined :
+  never;
 
 async function fetchData<T = unknown>(url: string, options: RequestInit) {
   try {
@@ -156,9 +155,9 @@ export function useBapSamData() {
 }
 
 /** Custom hook to fetch Change Request form submissions from Formio. */
-export function useChangeRequestsQuery<
-  Year extends keyof FormioChangeSubmissions,
->(rebateYear: Year): UseQueryResult<FormioChangeSubmissions[Year], unknown> {
+export function useChangeRequestsQuery<Year extends RebateYear>(
+  rebateYear: Year,
+): UseQueryResult<FormioChangeSubmissions<Year>, unknown> {
   /*
    * NOTE: Change Request form was added in the 2023 rebate year, so there's no
    * change request data to fetch for 2022.
@@ -210,10 +209,11 @@ export function useChangeRequestsQuery<
  * Custom hook that returns cached fetched Change Request form submissions from
  * Formio.
  */
-export function useChangeRequestsData<
-  Year extends keyof FormioChangeSubmissions,
->(rebateYear: Year): FormioChangeSubmissions[Year] {
+export function useChangeRequestsData<Year extends RebateYear>(
+  rebateYear: Year,
+): FormioChangeSubmissions<Year> {
   const queryClient = useQueryClient();
+
   const changeRequest2022Data = queryClient.getQueryData<[]>(["formio/2022/changes"]); // prettier-ignore
   const changeRequest2023Data = queryClient.getQueryData<FormioChange2023Submission[]>(["formio/2023/changes"]); // prettier-ignore
   const changeRequest2024Data = queryClient.getQueryData<FormioChange2024Submission[]>(["formio/2024/changes"]); // prettier-ignore
@@ -227,7 +227,7 @@ export function useChangeRequestsData<
           ? changeRequest2024Data
           : undefined;
 
-  return result as FormioChangeSubmissions[Year];
+  return result as FormioChangeSubmissions<Year>;
 }
 
 /** Custom hook to fetch submissions from the BAP and Formio. */
