@@ -1,5 +1,11 @@
 import { useEffect } from "react";
-import { useQueryClient, useQuery, useQueries } from "@tanstack/react-query";
+import {
+  type UseQueryOptions,
+  type UseQueryResult,
+  useQueryClient,
+  useQuery,
+  useQueries,
+} from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 // ---
 import {
@@ -34,6 +40,14 @@ type FormioChangeRequests<Year> =
   Year extends "2022" ? never[] | undefined :
   Year extends "2023" ? FormioChange2023Submission[] | undefined :
   Year extends "2024" ? FormioChange2024Submission[] | undefined :
+  never;
+
+/** BAP and Formio submissions by rebate year. */
+/* prettier-ignore */
+type BapAndFormioSubmissions<Year> =
+  Year extends "2022" ? BapFormSubmissions | FormioFRF2022Submission[] | FormioPRF2022Submission[] | FormioCRF2022Submission[] :
+  Year extends "2023" ? BapFormSubmissions | FormioFRF2023Submission[] | FormioPRF2023Submission[] | FormioCRF2023Submission[] :
+  Year extends "2024" ? BapFormSubmissions | FormioFRF2024Submission[] | FormioPRF2024Submission[] | FormioCRF2024Submission[] :
   never;
 
 async function fetchData<T = unknown>(url: string, options: RequestInit) {
@@ -231,7 +245,9 @@ export function useChangeRequestsData<Year extends RebateYear>(
 }
 
 /** Custom hook to fetch submissions from the BAP and Formio. */
-export function useSubmissionsQueries(rebateYear: RebateYear) {
+export function useSubmissionsQueries<Year extends RebateYear>(
+  rebateYear: Year,
+): UseQueryResult<BapAndFormioSubmissions<Year>>[] {
   const bapQuery = {
     queryKey: ["bap/submissions"],
     queryFn: () => {
@@ -241,7 +257,7 @@ export function useSubmissionsQueries(rebateYear: RebateYear) {
           return Promise.reject(res);
         }
 
-        const submissions = res.reduce(
+        const submissions: BapFormSubmissions = res.reduce(
           (object, submission) => {
             const { Record_Type_Name__c, Rebate_Program_Year__c } = submission;
 
@@ -369,23 +385,7 @@ export function useSubmissionsQueries(rebateYear: RebateYear) {
     refetchOnWindowFocus: false,
   };
 
-  type Query = {
-    queryKey: string[];
-    queryFn: () =>
-      | Promise<BapFormSubmissions>
-      | Promise<FormioFRF2022Submission[]>
-      | Promise<FormioPRF2022Submission[]>
-      | Promise<FormioCRF2022Submission[]>
-      | Promise<FormioFRF2023Submission[]>
-      | Promise<FormioPRF2023Submission[]>
-      | Promise<FormioCRF2023Submission[]>
-      | Promise<FormioFRF2024Submission[]>
-      | Promise<FormioPRF2024Submission[]>
-      | Promise<FormioCRF2024Submission[]>;
-    refetchOnWindowFocus: boolean;
-  };
-
-  const queries: Query[] =
+  const queries: UseQueryOptions<BapAndFormioSubmissions<Year>>[] =
     rebateYear === "2022"
       ? [bapQuery, formioFRF2022Query, formioPRF2022Query, formioCRF2022Query]
       : rebateYear === "2023"
