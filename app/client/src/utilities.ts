@@ -30,7 +30,7 @@ import { serverUrl } from "@/config";
 
 /** Formio Change Request submissions by rebate year. */
 /* prettier-ignore */
-type FormioChangeSubmissions<Year> =
+type FormioChangeRequests<Year> =
   Year extends "2022" ? never[] | undefined :
   Year extends "2023" ? FormioChange2023Submission[] | undefined :
   Year extends "2024" ? FormioChange2024Submission[] | undefined :
@@ -157,7 +157,7 @@ export function useBapSamData() {
 /** Custom hook to fetch Change Request form submissions from Formio. */
 export function useChangeRequestsQuery<Year extends RebateYear>(
   rebateYear: Year,
-): UseQueryResult<FormioChangeSubmissions<Year>, unknown> {
+): UseQueryResult<FormioChangeRequests<Year>> {
   /*
    * NOTE: Change Request form was added in the 2023 rebate year, so there's no
    * change request data to fetch for 2022.
@@ -211,7 +211,7 @@ export function useChangeRequestsQuery<Year extends RebateYear>(
  */
 export function useChangeRequestsData<Year extends RebateYear>(
   rebateYear: Year,
-): FormioChangeSubmissions<Year> {
+): FormioChangeRequests<Year> {
   const queryClient = useQueryClient();
 
   const changeRequest2022Data = queryClient.getQueryData<[]>(["formio/2022/changes"]); // prettier-ignore
@@ -227,7 +227,7 @@ export function useChangeRequestsData<Year extends RebateYear>(
           ? changeRequest2024Data
           : undefined;
 
-  return result as FormioChangeSubmissions<Year>;
+  return result as FormioChangeRequests<Year>;
 }
 
 /** Custom hook to fetch submissions from the BAP and Formio. */
