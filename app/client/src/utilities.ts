@@ -207,7 +207,9 @@ export function useChangeRequestsQuery<Year extends RebateYear>(
     refetchOnWindowFocus: false,
   };
 
-  const query =
+  const query: UseQueryOptions<
+    BapAndFormioSubmissions<"2022" | "2023" | "2024">
+  > =
     rebateYear === "2022"
       ? changeRequest2022Query
       : rebateYear === "2023"
@@ -216,7 +218,7 @@ export function useChangeRequestsQuery<Year extends RebateYear>(
           ? changeRequest2024Query
           : changeRequestFallbackQuery;
 
-  return useQuery(query);
+  return useQuery(query) as UseQueryResult<FormioChangeRequests<Year>>;
 }
 
 /**
@@ -385,7 +387,9 @@ export function useSubmissionsQueries<Year extends RebateYear>(
     refetchOnWindowFocus: false,
   };
 
-  const queries: UseQueryOptions<BapAndFormioSubmissions<Year>>[] =
+  const queries: UseQueryOptions<
+    BapAndFormioSubmissions<"2022" | "2023" | "2024">
+  >[] =
     rebateYear === "2022"
       ? [bapQuery, formioFRF2022Query, formioPRF2022Query, formioCRF2022Query]
       : rebateYear === "2023"
@@ -394,7 +398,9 @@ export function useSubmissionsQueries<Year extends RebateYear>(
           ? [bapQuery, formioFRF2024Query, formioPRF2024Query, formioCRF2024Query] // prettier-ignore
           : [];
 
-  return useQueries({ queries });
+  return useQueries({ queries }) as UseQueryResult<
+    BapAndFormioSubmissions<Year>
+  >[];
 }
 
 /**
