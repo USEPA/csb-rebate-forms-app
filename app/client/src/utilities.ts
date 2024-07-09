@@ -32,7 +32,7 @@ import {
   type FormioChange2024Submission,
   type Rebate,
 } from "@/types";
-import { serverUrl } from "@/config";
+import { serverUrl, formioBapRebateIdField } from "@/config";
 
 /** Formio Change Request submissions by rebate year. */
 /* prettier-ignore */
@@ -408,36 +408,48 @@ export function useSubmissionsQueries<Year extends RebateYear>(
  * from both the BAP and Formio into a single object, with the BAP assigned
  * rebateId as the object's keys.
  **/
-function useCombinedSubmissions(rebateYear: RebateYear) {
+function useCombinedSubmissions<Year extends RebateYear>(rebateYear: Year) {
   const queryClient = useQueryClient();
 
   const bapFormSubmissions = queryClient.getQueryData<BapFormSubmissions>(["bap/submissions"]); // prettier-ignore
 
+  const formioFRF2022Data = queryClient.getQueryData<FormioFRF2022Submission[]>(["formio/2022/frf-submissions"]); // prettier-ignore
+  const formioFRF2023Data = queryClient.getQueryData<FormioFRF2023Submission[]>(["formio/2023/frf-submissions"]); // prettier-ignore
+  const formioFRF2024Data = queryClient.getQueryData<FormioFRF2024Submission[]>(["formio/2024/frf-submissions"]); // prettier-ignore
+
+  const formioPRF2022Data = queryClient.getQueryData<FormioPRF2022Submission[]>(["formio/2022/prf-submissions"]); // prettier-ignore
+  const formioPRF2023Data = queryClient.getQueryData<FormioPRF2023Submission[]>(["formio/2023/prf-submissions"]); // prettier-ignore
+  const formioPRF2024Data = queryClient.getQueryData<FormioPRF2024Submission[]>(["formio/2024/prf-submissions"]); // prettier-ignore
+
+  const formioCRF2022Data = queryClient.getQueryData<FormioCRF2022Submission[]>(["formio/2022/crf-submissions"]); // prettier-ignore
+  const formioCRF2023Data = queryClient.getQueryData<FormioCRF2023Submission[]>(["formio/2023/crf-submissions"]); // prettier-ignore
+  const formioCRF2024Data = queryClient.getQueryData<FormioCRF2024Submission[]>(["formio/2024/crf-submissions"]); // prettier-ignore
+
   const formioFRFSubmissions =
     rebateYear === "2022"
-      ? queryClient.getQueryData<FormioFRF2022Submission[]>(["formio/2022/frf-submissions"]) // prettier-ignore
+      ? formioFRF2022Data
       : rebateYear === "2023"
-        ? queryClient.getQueryData<FormioFRF2023Submission[]>(["formio/2023/frf-submissions"]) // prettier-ignore
+        ? formioFRF2023Data
         : rebateYear === "2024"
-          ? queryClient.getQueryData<FormioFRF2024Submission[]>(["formio/2024/frf-submissions"]) // prettier-ignore
+          ? formioFRF2024Data
           : undefined;
 
   const formioPRFSubmissions =
     rebateYear === "2022"
-      ? queryClient.getQueryData<FormioPRF2022Submission[]>(["formio/2022/prf-submissions"]) // prettier-ignore
+      ? formioPRF2022Data
       : rebateYear === "2023"
-        ? queryClient.getQueryData<FormioPRF2023Submission[]>(["formio/2023/prf-submissions"]) // prettier-ignore
+        ? formioPRF2023Data
         : rebateYear === "2024"
-          ? queryClient.getQueryData<FormioPRF2024Submission[]>(["formio/2024/prf-submissions"]) // prettier-ignore
+          ? formioPRF2024Data
           : undefined;
 
   const formioCRFSubmissions =
     rebateYear === "2022"
-      ? queryClient.getQueryData<FormioCRF2022Submission[]>(["formio/2022/crf-submissions"]) // prettier-ignore
+      ? formioCRF2022Data
       : rebateYear === "2023"
-        ? queryClient.getQueryData<FormioCRF2023Submission[]>(["formio/2023/crf-submissions"]) // prettier-ignore
+        ? formioCRF2023Data
         : rebateYear === "2024"
-          ? queryClient.getQueryData<FormioCRF2024Submission[]>(["formio/2024/crf-submissions"]) // prettier-ignore
+          ? formioCRF2024Data
           : undefined;
 
   const submissions: {
@@ -496,14 +508,9 @@ function useCombinedSubmissions(rebateYear: RebateYear) {
    * returned from the BAP, so we can set BAP PRF submission data.
    */
   for (const formioPRFSubmission of formioPRFSubmissions) {
+    const formioBapPrfRebateIdField = formioBapRebateIdField[rebateYear].prf;
     const formioBapRebateId =
-      rebateYear === "2022"
-        ? (formioPRFSubmission as FormioPRF2022Submission).data.hidden_bap_rebate_id // prettier-ignore
-        : rebateYear === "2023"
-          ? (formioPRFSubmission as FormioPRF2023Submission).data._bap_rebate_id
-          : rebateYear === "2024"
-            ? (formioPRFSubmission as FormioPRF2024Submission).data._bap_rebate_id // prettier-ignore
-            : null;
+      (formioPRFSubmission.data?.[formioBapPrfRebateIdField] as string) || null;
 
     const bapMatch = bapFormSubmissions[rebateYear].prfs.find((bapPRFSub) => {
       return bapPRFSub.Parent_Rebate_ID__c === formioBapRebateId;
@@ -529,14 +536,9 @@ function useCombinedSubmissions(rebateYear: RebateYear) {
    * returned from the BAP, so we can set BAP CRF submission data.
    */
   for (const formioCRFSubmission of formioCRFSubmissions) {
+    const formioBapCrfRebateIdField = formioBapRebateIdField[rebateYear].crf;
     const formioBapRebateId =
-      rebateYear === "2022"
-        ? (formioCRFSubmission as FormioCRF2022Submission).data.hidden_bap_rebate_id // prettier-ignore
-        : rebateYear === "2023"
-          ? (formioCRFSubmission as FormioCRF2023Submission).data._bap_rebate_id
-          : rebateYear === "2024"
-            ? (formioCRFSubmission as FormioCRF2024Submission).data._bap_rebate_id // prettier-ignore
-            : null;
+      (formioCRFSubmission.data?.[formioBapCrfRebateIdField] as string) || null;
 
     const bapMatch = bapFormSubmissions[rebateYear].crfs.find((bapCRFSub) => {
       return bapCRFSub.Parent_Rebate_ID__c === formioBapRebateId;

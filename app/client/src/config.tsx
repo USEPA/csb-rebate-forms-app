@@ -175,3 +175,24 @@ export const formioEmailField = {
     crf: "", // TODO
   },
 };
+
+/**
+ * Formio BAP rebate ID field by year and form type.
+ */
+export const formioBapRebateIdField = {
+  2022: {
+    frf: "", // NOTE: no BAP rebate ID in the FRF
+    prf: "hidden_bap_rebate_id",
+    crf: "hidden_bap_rebate_id",
+  },
+  2023: {
+    frf: "", // NOTE: no BAP rebate ID in the FRF
+    prf: "_bap_rebate_id",
+    crf: "_bap_rebate_id",
+  },
+  2024: {
+    frf: "", // NOTE: no BAP rebate ID in the FRF
+    prf: "", // TODO
+    crf: "", // TODO
+  },
+};
