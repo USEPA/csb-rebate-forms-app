@@ -25,7 +25,6 @@ import { Loading } from "@/components/loading";
 import { Message } from "@/components/message";
 import { MarkdownContent } from "@/components/markdownContent";
 import { useNotificationsActions } from "@/contexts/notifications";
-import { useRebateYearState } from "@/contexts/rebateYear";
 
 type ServerResponse =
   | {
@@ -127,7 +126,6 @@ function CloseOutRequestForm(props: { email: string }) {
     displayErrorNotification,
     dismissNotification,
   } = useNotificationsActions();
-  const { rebateYear } = useRebateYearState();
 
   const submissionsQueries = useSubmissionsQueries("2022");
   const submissions = useSubmissions("2022");
@@ -195,8 +193,7 @@ function CloseOutRequestForm(props: { email: string }) {
         bap: rebate.crf.bap,
       });
 
-  const crfSubmissionPeriodOpen =
-    configData.submissionPeriodOpen[rebateYear].crf;
+  const crfSubmissionPeriodOpen = configData.submissionPeriodOpen["2022"].crf;
 
   const formIsReadOnly =
     (submission.state === "submitted" || !crfSubmissionPeriodOpen) &&

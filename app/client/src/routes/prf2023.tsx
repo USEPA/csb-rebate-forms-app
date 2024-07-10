@@ -25,7 +25,6 @@ import { Loading } from "@/components/loading";
 import { Message } from "@/components/message";
 import { MarkdownContent } from "@/components/markdownContent";
 import { useNotificationsActions } from "@/contexts/notifications";
-import { useRebateYearState } from "@/contexts/rebateYear";
 
 type ServerResponse =
   | {
@@ -127,7 +126,6 @@ function PaymentRequestForm(props: { email: string }) {
     displayErrorNotification,
     dismissNotification,
   } = useNotificationsActions();
-  const { rebateYear } = useRebateYearState();
 
   const submissionsQueries = useSubmissionsQueries("2023");
   const submissions = useSubmissions("2023");
@@ -202,8 +200,7 @@ function PaymentRequestForm(props: { email: string }) {
         bap: rebate.prf.bap,
       });
 
-  const prfSubmissionPeriodOpen =
-    configData.submissionPeriodOpen[rebateYear].prf;
+  const prfSubmissionPeriodOpen = configData.submissionPeriodOpen["2023"].prf;
 
   const formIsReadOnly =
     frfNeedsEdits ||

@@ -26,7 +26,6 @@ import { Message } from "@/components/message";
 import { MarkdownContent } from "@/components/markdownContent";
 import { useDialogActions } from "@/contexts/dialog";
 import { useNotificationsActions } from "@/contexts/notifications";
-import { useRebateYearState } from "@/contexts/rebateYear";
 
 type ServerResponse =
   | {
@@ -140,7 +139,6 @@ function FundingRequestForm(props: { email: string }) {
     displayErrorNotification,
     dismissNotification,
   } = useNotificationsActions();
-  const { rebateYear } = useRebateYearState();
 
   const submissionsQueries = useSubmissionsQueries("2022");
   const submissions = useSubmissions("2022");
@@ -330,8 +328,7 @@ function FundingRequestForm(props: { email: string }) {
     return null;
   }
 
-  const frfSubmissionPeriodOpen =
-    configData.submissionPeriodOpen[rebateYear].frf;
+  const frfSubmissionPeriodOpen = configData.submissionPeriodOpen["2022"].frf;
 
   const formIsReadOnly =
     (submission.state === "submitted" || !frfSubmissionPeriodOpen) &&
