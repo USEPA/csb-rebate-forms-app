@@ -52,7 +52,10 @@ type BapAndFormioSubmissions<Year> =
   Year extends "2024" ? BapFormSubmissions | FormioFRF2024Submission[] | FormioPRF2024Submission[] | FormioCRF2024Submission[] :
   never;
 
-/** Combined Formio and BAP submissions by rebate year */
+/**
+ * Formio and BAP submissions connected by rebate ID across all three forms
+ * (FRF, PRF, CRF) for a given rebate year.
+ */
 /* prettier-ignore */
 type Rebate<Year> =
   Year extends "2022" ? Rebate2022 :
@@ -217,9 +220,7 @@ export function useChangeRequestsQuery<Year extends RebateYear>(
     refetchOnWindowFocus: false,
   };
 
-  const query: UseQueryOptions<
-    BapAndFormioSubmissions<"2022" | "2023" | "2024">
-  > =
+  const query: UseQueryOptions<BapAndFormioSubmissions<RebateYear>> =
     rebateYear === "2022"
       ? changeRequest2022Query
       : rebateYear === "2023"
@@ -244,7 +245,7 @@ export function useChangeRequestsData<Year extends RebateYear>(
   const changeRequest2023Data = queryClient.getQueryData<FormioChange2023Submission[]>(["formio/2023/changes"]); // prettier-ignore
   const changeRequest2024Data = queryClient.getQueryData<FormioChange2024Submission[]>(["formio/2024/changes"]); // prettier-ignore
 
-  const result: FormioChangeRequests<"2022" | "2023" | "2024"> =
+  const result: FormioChangeRequests<RebateYear> =
     rebateYear === "2022"
       ? changeRequest2022Data
       : rebateYear === "2023"
@@ -397,9 +398,7 @@ export function useSubmissionsQueries<Year extends RebateYear>(
     refetchOnWindowFocus: false,
   };
 
-  const queries: UseQueryOptions<
-    BapAndFormioSubmissions<"2022" | "2023" | "2024">
-  >[] =
+  const queries: UseQueryOptions<BapAndFormioSubmissions<RebateYear>>[] =
     rebateYear === "2022"
       ? [bapQuery, formioFRF2022Query, formioPRF2022Query, formioCRF2022Query]
       : rebateYear === "2023"
