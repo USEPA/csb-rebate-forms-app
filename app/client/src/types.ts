@@ -350,29 +350,50 @@ export type FormioChange2024Submission = FormioSubmission & {
   data: FormioChange2024Data;
 };
 
-export type Rebate = {
-  rebateYear: RebateYear;
+export type Rebate2022 = {
+  rebateYear: "2022";
   frf: {
-    formio:
-      | FormioFRF2022Submission
-      | FormioFRF2023Submission
-      | FormioFRF2024Submission;
+    formio: FormioFRF2022Submission;
     bap: BapSubmissionData | null;
   };
   prf: {
-    formio:
-      | FormioPRF2022Submission
-      | FormioPRF2023Submission
-      | FormioPRF2024Submission
-      | null;
+    formio: FormioPRF2022Submission | null;
     bap: BapSubmissionData | null;
   };
   crf: {
-    formio:
-      | FormioCRF2022Submission
-      | FormioCRF2023Submission
-      | FormioCRF2024Submission
-      | null;
+    formio: FormioCRF2022Submission | null;
+    bap: BapSubmissionData | null;
+  };
+};
+
+export type Rebate2023 = {
+  rebateYear: "2023";
+  frf: {
+    formio: FormioFRF2023Submission;
+    bap: BapSubmissionData | null;
+  };
+  prf: {
+    formio: FormioPRF2023Submission | null;
+    bap: BapSubmissionData | null;
+  };
+  crf: {
+    formio: FormioCRF2023Submission | null;
+    bap: BapSubmissionData | null;
+  };
+};
+
+export type Rebate2024 = {
+  rebateYear: "2024";
+  frf: {
+    formio: FormioFRF2024Submission;
+    bap: BapSubmissionData | null;
+  };
+  prf: {
+    formio: FormioPRF2024Submission | null;
+    bap: BapSubmissionData | null;
+  };
+  crf: {
+    formio: FormioCRF2024Submission | null;
     bap: BapSubmissionData | null;
   };
 };

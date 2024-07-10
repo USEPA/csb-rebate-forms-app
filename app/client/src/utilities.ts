@@ -30,7 +30,9 @@ import {
   type FormioPRF2024Submission,
   type FormioCRF2024Submission,
   type FormioChange2024Submission,
-  type Rebate,
+  type Rebate2022,
+  type Rebate2023,
+  type Rebate2024,
 } from "@/types";
 import { serverUrl, formioBapRebateIdField } from "@/config";
 
@@ -48,6 +50,14 @@ type BapAndFormioSubmissions<Year> =
   Year extends "2022" ? BapFormSubmissions | FormioFRF2022Submission[] | FormioPRF2022Submission[] | FormioCRF2022Submission[] :
   Year extends "2023" ? BapFormSubmissions | FormioFRF2023Submission[] | FormioPRF2023Submission[] | FormioCRF2023Submission[] :
   Year extends "2024" ? BapFormSubmissions | FormioFRF2024Submission[] | FormioPRF2024Submission[] | FormioCRF2024Submission[] :
+  never;
+
+/** Combined Formio and BAP submissions by rebate year */
+/* prettier-ignore */
+type Rebate<Year> =
+  Year extends "2022" ? Rebate2022 :
+  Year extends "2023" ? Rebate2023 :
+  Year extends "2024" ? Rebate2024 :
   never;
 
 async function fetchData<T = unknown>(url: string, options: RequestInit) {
@@ -234,7 +244,7 @@ export function useChangeRequestsData<Year extends RebateYear>(
   const changeRequest2023Data = queryClient.getQueryData<FormioChange2023Submission[]>(["formio/2023/changes"]); // prettier-ignore
   const changeRequest2024Data = queryClient.getQueryData<FormioChange2024Submission[]>(["formio/2024/changes"]); // prettier-ignore
 
-  const result =
+  const result: FormioChangeRequests<"2022" | "2023" | "2024"> =
     rebateYear === "2022"
       ? changeRequest2022Data
       : rebateYear === "2023"
@@ -408,7 +418,9 @@ export function useSubmissionsQueries<Year extends RebateYear>(
  * from both the BAP and Formio into a single object, with the BAP assigned
  * rebateId as the object's keys.
  **/
-function useCombinedSubmissions<Year extends RebateYear>(rebateYear: Year) {
+function useCombinedSubmissions<Year extends RebateYear>(
+  rebateYear: Year,
+): { [rebateId: string]: Rebate<Year> } {
   const queryClient = useQueryClient();
 
   const bapFormSubmissions = queryClient.getQueryData<BapFormSubmissions>(["bap/submissions"]); // prettier-ignore
@@ -453,7 +465,7 @@ function useCombinedSubmissions<Year extends RebateYear>(rebateYear: Year) {
           : undefined;
 
   const submissions: {
-    [rebateId: string]: Rebate;
+    [rebateId: string]: Rebate<Year>;
   } = {};
 
   /* ensure form submissions data has been fetched from both the BAP and Formio */
@@ -463,7 +475,7 @@ function useCombinedSubmissions<Year extends RebateYear>(rebateYear: Year) {
     !formioPRFSubmissions ||
     !formioCRFSubmissions
   ) {
-    return {};
+    return submissions;
   }
 
   /**
@@ -500,7 +512,7 @@ function useCombinedSubmissions<Year extends RebateYear>(rebateYear: Year) {
       },
       prf: { formio: null, bap: null },
       crf: { formio: null, bap: null },
-    };
+    } as Rebate<Year>;
   }
 
   /**
@@ -527,7 +539,7 @@ function useCombinedSubmissions<Year extends RebateYear>(rebateYear: Year) {
       submissions[formioBapRebateId].prf = {
         formio: { ...formioPRFSubmission },
         bap: { modified, comboKey, mongoId, rebateId, reviewItemId, status },
-      };
+      } as Rebate<Year>["prf"];
     }
   }
 
@@ -555,7 +567,7 @@ function useCombinedSubmissions<Year extends RebateYear>(rebateYear: Year) {
       submissions[formioBapRebateId].crf = {
         formio: { ...formioCRFSubmission },
         bap: { modified, comboKey, mongoId, rebateId, reviewItemId, status },
-      };
+      } as Rebate<Year>["crf"];
     }
   }
 
@@ -569,7 +581,9 @@ function useCombinedSubmissions<Year extends RebateYear>(rebateYear: Year) {
  * - Selected FRF submissions without a corresponding PRF submission
  * - Funding Approved PRF submissions without a corresponding CRF submission
  **/
-function useSortedSubmissions(rebates: { [rebateId: string]: Rebate }) {
+function useSortedSubmissions<Year extends RebateYear>(rebates: {
+  [rebateId: string]: Rebate<Year>;
+}): (Rebate<Year> & { rebateId: string })[] {
   return Object.entries(rebates)
     .map(([rebateId, rebate]) => ({ rebateId, ...rebate }))
     .sort((r1, r2) => {
@@ -630,7 +644,7 @@ function useSortedSubmissions(rebates: { [rebateId: string]: Rebate }) {
  * Custom hook that returns sorted submissions, and logs them if 'debug' search
  * parameter exists.
  */
-export function useSubmissions(rebateYear: RebateYear) {
+export function useSubmissions<Year extends RebateYear>(rebateYear: Year) {
   const [searchParams] = useSearchParams();
 
   const combinedSubmissions = useCombinedSubmissions(rebateYear);
