@@ -6,6 +6,7 @@ import clsx from "clsx";
 import icons from "uswds/img/sprite.svg";
 // ---
 import {
+  type RebateYear,
   type BapSamEntity,
   type FormioFRF2022Submission,
   type FormioFRF2023Submission,
@@ -28,7 +29,7 @@ import { useRebateYearState } from "@/contexts/rebateYear";
  * Creates the initial FRF submission data for a given rebate year
  */
 function createInitialSubmissionData(options: {
-  rebateYear: "2022" | "2023";
+  rebateYear: RebateYear;
   email: string;
   entity: BapSamEntity;
 }) {
@@ -93,7 +94,11 @@ function createInitialSubmissionData(options: {
           _bap_applicant_state: PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
           _bap_applicant_zip: PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
         }
-      : null;
+      : rebateYear === "2024"
+        ? {
+            // TODO
+          }
+        : null;
 }
 
 export function FRFNew() {
