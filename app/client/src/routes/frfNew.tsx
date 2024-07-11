@@ -72,7 +72,7 @@ function createInitialSubmissionData(options: {
         sam_hidden_applicant_state: PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
         sam_hidden_applicant_zip_code: PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
       }
-    : rebateYear === "2023"
+    : rebateYear === "2023" || rebateYear === "2024"
       ? {
           _user_email: email,
           _user_title: title,
@@ -94,11 +94,7 @@ function createInitialSubmissionData(options: {
           _bap_applicant_state: PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
           _bap_applicant_zip: PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
         }
-      : rebateYear === "2024"
-        ? {
-            // TODO
-          }
-        : null;
+      : null;
 }
 
 export function FRFNew() {

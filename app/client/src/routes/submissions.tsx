@@ -1592,7 +1592,7 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
       ? "text-italic"
       : "";
 
-  const frfUrl = `/frf/2023/${frf.formio._id}`;
+  const frfUrl = `/frf/2024/${frf.formio._id}`;
 
   /**
    * NOTE on the usage of `TextWithTooltip` below:
