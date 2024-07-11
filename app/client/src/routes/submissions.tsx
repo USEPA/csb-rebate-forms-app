@@ -13,7 +13,7 @@ import {
   type RebateYear,
   type Rebate2022,
   type Rebate2023,
-  // type Rebate2024,
+  type Rebate2024,
 } from "@/types";
 import {
   serverUrl,
@@ -163,7 +163,7 @@ function SubmissionsTableHeader(props: { rebateYear: RebateYear }) {
   );
 }
 
-// --- 2022 Submissions ---
+/* --- 2022 Submissions --- */
 
 function FRF2022Submission(props: { rebate: Rebate2022 }) {
   const { rebate } = props;
@@ -862,7 +862,7 @@ function Submissions2022() {
   );
 }
 
-// --- 2023 Submissions ---
+/* --- 2023 Submissions --- */
 
 function ChangeRequests2023() {
   const changeRequestsQuery = useChangeRequestsQuery("2023");
@@ -1531,29 +1531,291 @@ function Submissions2023() {
   );
 }
 
-// --- 2024 Submissions ---
+/* --- 2024 Submissions --- */
 
 // function ChangeRequests2024() {
 //   //
 // }
 
-// function FRF2024Submission(props: { rebate: Rebate2023 }) {
+function FRF2024Submission(props: { rebate: Rebate2024 }) {
+  const { rebate } = props;
+  const { frf, prf, crf } = rebate;
+
+  // const { email } = useOutletContext<{ email: string }>();
+
+  const configData = useConfigData();
+  const bapSamData = useBapSamData();
+
+  if (!configData || !bapSamData) return null;
+
+  /** matched SAM.gov entity for the FRF submission */
+  const entity = bapSamData.entities.find((entity) => {
+    const { ENTITY_STATUS__c, ENTITY_COMBO_KEY__c } = entity;
+    const comboKey = frf.formio.data._bap_entity_combo_key;
+    return ENTITY_STATUS__c === "Active" && ENTITY_COMBO_KEY__c === comboKey;
+  });
+
+  if (!entity) return null;
+
+  // const { title, name } = getUserInfo(email, entity);
+
+  const frfSubmissionPeriodOpen = configData.submissionPeriodOpen["2024"].frf;
+
+  const { _user_email } = frf.formio.data;
+  const placeholder = true; // TODO: remove once we have UEI, EFTI, org name, and school district fields above
+
+  const date = new Date(frf.formio.modified).toLocaleDateString();
+  const time = new Date(frf.formio.modified).toLocaleTimeString();
+
+  const frfNeedsEdits = submissionNeedsEdits({
+    formio: frf.formio,
+    bap: frf.bap,
+  });
+
+  const frfBapInternalStatus = frf.bap?.status || "";
+  const frfFormioStatus = formioStatusMap.get(frf.formio.state);
+
+  const frfStatus = frfNeedsEdits
+    ? "Edits Requested"
+    : bapStatusMap["2024"].frf.get(frfBapInternalStatus) ||
+      frfFormioStatus ||
+      "";
+
+  const frfSelected = frfStatus === "Selected";
+  const frfSelectedButNoPRF = frfSelected && !Boolean(prf.formio);
+
+  const prfApproved = prf.bap?.status === "Accepted";
+  const prfApprovedButNoCRF = prfApproved && !Boolean(crf.formio);
+
+  const statusTableCellClassNames =
+    frfFormioStatus === "Submitted" || !frfSubmissionPeriodOpen
+      ? "text-italic"
+      : "";
+
+  const frfUrl = `/frf/2023/${frf.formio._id}`;
+
+  /**
+   * NOTE on the usage of `TextWithTooltip` below:
+   * When a form is first initially created, and the user has not yet clicked
+   * the "Next" or "Save" buttons, any fields that the Formio form definition
+   * sets automatically (based on hidden fields we inject on form creation) will
+   * not yet be part of the form submission data. As soon as the user clicks the
+   * "Next" or "Save" buttons the first time, those fields will be set and
+   * stored in the submission. Since we display some of those fields in the
+   * table below, we need to check if their values exist, and if they don't (for
+   * cases where the user has not yet advanced past the first screen of the
+   * form...which we believe is a bit of an edge case, as most users will likely
+   * do that after starting a new application), indicate to the user they need
+   * to first save the form for the fields to be displayed.
+   */
+  return (
+    <tr
+      className={
+        frfNeedsEdits || frfSelectedButNoPRF || prfApprovedButNoCRF
+          ? highlightedTableRowClassNames
+          : defaultTableRowClassNames
+      }
+    >
+      <th scope="row" className={statusTableCellClassNames}>
+        {frfNeedsEdits ? (
+          <FormLink type="edit" to={frfUrl} />
+        ) : frf.formio.state === "submitted" || !frfSubmissionPeriodOpen ? (
+          <FormLink type="view" to={frfUrl} />
+        ) : frf.formio.state === "draft" ? (
+          <FormLink type="edit" to={frfUrl} />
+        ) : null}
+      </th>
+
+      <td className={statusTableCellClassNames}>
+        {frf.bap?.rebateId ? (
+          <span title={`Application ID: ${frf.formio._id}`}>
+            {frf.bap.rebateId}
+          </span>
+        ) : (
+          <TextWithTooltip
+            text=" "
+            tooltip="Rebate ID should be displayed within 24hrs. after submitting a rebate form application"
+          />
+        )}
+      </td>
+
+      <td className={statusTableCellClassNames}>
+        <span>Application</span>
+        <br />
+        <span className="display-flex flex-align-center font-sans-2xs">
+          {frfStatus === "Needs Clarification" ? (
+            <TextWithTooltip
+              text={frfStatus}
+              tooltip="Check your email for instructions on what needs clarification"
+              iconClassNames="text-base-darkest"
+            />
+          ) : (
+            <>
+              <svg
+                className={clsx("usa-icon", frfSelected && "text-primary")}
+                aria-hidden="true"
+                focusable="false"
+                role="img"
+              >
+                <use href={`${icons}#${statusIconMap.get(frfStatus)}`} />
+              </svg>
+              <span className="margin-left-05">{frfStatus}</span>
+            </>
+          )}
+        </span>
+      </td>
+
+      <td className={statusTableCellClassNames}>
+        <>
+          {Boolean(placeholder) ? (
+            "TODO"
+          ) : (
+            <TextWithTooltip
+              text=" "
+              tooltip="Please edit and save the form and the UEI will be displayed"
+            />
+          )}
+          <br />
+          {Boolean(placeholder) ? (
+            "TODO"
+          ) : (
+            <TextWithTooltip
+              text=" "
+              tooltip="Please edit and save the form and the EFT Indicator will be displayed"
+            />
+          )}
+        </>
+      </td>
+
+      <td className={statusTableCellClassNames}>
+        <>
+          {Boolean(placeholder) ? (
+            "TODO"
+          ) : (
+            <TextWithTooltip
+              text=" "
+              tooltip="Please edit and save the form and the Applicant will be displayed"
+            />
+          )}
+          <br />
+          {Boolean(placeholder) ? (
+            "TODO"
+          ) : (
+            <TextWithTooltip
+              text=" "
+              tooltip="School District will be displayed after that field has been entered in the form"
+            />
+          )}
+        </>
+      </td>
+
+      <td className={statusTableCellClassNames}>
+        {_user_email}
+        <br />
+        <span title={`${date} ${time}`}>{date}</span>
+      </td>
+
+      {/* <td className={clsx("!tw-text-right")}>
+        <ChangeRequest2024Button
+          data={{
+            formType: "frf",
+            comboKey: _bap_entity_combo_key,
+            rebateId: frf.bap?.rebateId || null,
+            mongoId: frf.formio._id,
+            state: frf.formio.state,
+            email,
+            title,
+            name,
+          }}
+        />
+      </td> */}
+    </tr>
+  );
+}
+
+// function PRF2024Submission(props: { rebate: Rebate2024 }) {
 //   //
 // }
 
-// function PRF2024Submission(props: { rebate: Rebate2023 }) {
+// function CRF2024Submission(props: { rebate: Rebate2024 }) {
 //   //
 // }
 
-// function CRF2024Submission(props: { rebate: Rebate2023 }) {
-//   //
-// }
+function Submissions2024() {
+  const content = useContentData();
+  // const changeRequestsQuery = useChangeRequestsQuery("2024");
+  const submissionsQueries = useSubmissionsQueries("2024");
+  const submissions = useSubmissions("2024");
 
-// function Submissions2024() {
-//   //
-// }
+  if (
+    // changeRequestsQuery.isInitialLoading ||
+    submissionsQueries.some((query) => query.isFetching)
+  ) {
+    return <Loading />;
+  }
 
-// --- Submissions ---
+  if (
+    // changeRequestsQuery.isError ||
+    submissionsQueries.some((query) => query.isError)
+  ) {
+    return <Message type="error" text={messages.formSubmissionsError} />;
+  }
+
+  if (submissions.length === 0) {
+    return (
+      <div className="margin-top-4">
+        <Message type="info" text={messages.newApplication} />
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {/* <ChangeRequests2024 /> */}
+
+      {content && (
+        <MarkdownContent
+          className="margin-top-4"
+          children={content.allRebatesIntro}
+        />
+      )}
+
+      <div className="usa-table-container--scrollable" tabIndex={0}>
+        <table
+          aria-label="Your 2023 Rebate Forms"
+          className="usa-table usa-table--stacked usa-table--borderless width-full"
+        >
+          <SubmissionsTableHeader rebateYear="2024" />
+          <tbody className={clsx("[&_:is(th,td)]:tw-text-[15px]")}>
+            {submissions.map((rebate, index) => {
+              return rebate.rebateYear === "2024" ? (
+                <Fragment key={rebate.rebateId}>
+                  <FRF2024Submission rebate={rebate} />
+                  {/* <PRF2024Submission rebate={rebate} /> */}
+                  {/* <CRF2024Submission rebate={rebate} /> */}
+                  {/* blank row after all submissions but the last one */}
+                  {index !== submissions.length - 1 && (
+                    <tr className={clsx("tw-bg-white")}>
+                      <th
+                        className={clsx("p-0", "tw-leading-none")}
+                        scope="row"
+                        colSpan={7}
+                      >
+                        &nbsp;
+                      </th>
+                    </tr>
+                  )}
+                </Fragment>
+              ) : null;
+            })}
+          </tbody>
+        </table>
+      </div>
+    </>
+  );
+}
+
+/* --- Submissions --- */
 
 export function Submissions() {
   const content = useContentData();
@@ -1620,7 +1882,7 @@ export function Submissions() {
 
       {rebateYear === "2022" && <Submissions2022 />}
       {rebateYear === "2023" && <Submissions2023 />}
-      {/* {rebateYear === "2024" && <Submissions2024 />} */}
+      {rebateYear === "2024" && <Submissions2024 />}
 
       {content && (
         <MarkdownContent

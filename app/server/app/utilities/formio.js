@@ -36,7 +36,7 @@ function getComboKeyFieldName({ rebateYear }) {
     : rebateYear === "2023"
       ? "_bap_entity_combo_key"
       : rebateYear === "2024"
-        ? "" // TODO
+        ? "_bap_entity_combo_key"
         : "";
 }
 
