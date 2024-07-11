@@ -236,7 +236,7 @@ export function useChangeRequestsQuery<Year extends RebateYear>(
  * Custom hook that returns cached fetched Change Request form submissions from
  * Formio.
  */
-export function useChangeRequestsData<Year extends RebateYear>(
+export function useChangeRequests<Year extends RebateYear>(
   rebateYear: Year,
 ): FormioChangeRequests<Year> {
   const queryClient = useQueryClient();

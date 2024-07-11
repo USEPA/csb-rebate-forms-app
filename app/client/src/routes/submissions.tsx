@@ -28,7 +28,7 @@ import {
   useConfigData,
   useBapSamData,
   useChangeRequestsQuery,
-  useChangeRequestsData,
+  useChangeRequests,
   useSubmissionsQueries,
   useSubmissions,
   submissionNeedsEdits,
@@ -866,7 +866,7 @@ function Submissions2022() {
 
 function ChangeRequests2023() {
   const changeRequestsQuery = useChangeRequestsQuery("2023");
-  const changeRequests = useChangeRequestsData("2023");
+  const changeRequests = useChangeRequests("2023");
 
   if (changeRequestsQuery.isFetching) {
     return <Loading />;
