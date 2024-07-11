@@ -7,6 +7,14 @@ const log = require("../utilities/logger");
 const { submissionPeriodOpen } = require("../config/formio");
 
 /**
+ * @typedef {'2022' | '2023' | '2024'} RebateYear
+ */
+
+/**
+ * @typedef {'frf' | 'prf' | 'crf'} FormType
+ */
+
+/**
  * @typedef {Object} BapSamEntity
  * @property {string} Id
  * @property {string} ENTITY_COMBO_KEY__c
@@ -440,8 +448,8 @@ async function queryForSamEntities(req, email) {
  * statuses and related metadata.
  *
  * @param {express.Request} req
- * @param {'2022' | '2023'} rebateYear
- * @param {'frf' | 'prf' | 'crf'} formType
+ * @param {RebateYear} rebateYear
+ * @param {FormType} formType
  * @param {string | null} rebateId
  * @param {string | null} mongoId
  * @returns {Promise<BapFormSubmission | null>} fields associated a form submission
@@ -472,8 +480,13 @@ async function queryForBapFormSubmissionData(
     },
     2023: {
       frf: "CSB_Funding_Request_2023",
-      prf: null, // "CSB_Payment_Request_2023"
-      crf: null, // "CSB_Closeout_Request_2023"
+      prf: null, // TODO: "CSB_Payment_Request_2023"
+      crf: null, // TODO: "CSB_Closeout_Request_2023"
+    },
+    2024: {
+      frf: null, // TODO: "CSB_Funding_Request_2024"
+      prf: null, // TODO: "CSB_Payment_Request_2024"
+      crf: null, // TODO: "CSB_Closeout_Request_2024"
     },
   };
 
@@ -542,7 +555,7 @@ async function queryForBapFormSubmissionData(
         CSB_Review_Item_ID__c: 1, // CSB Rebate ID with form/version ID (9 digits)
         Parent_Rebate_ID__c: 1, // CSB Rebate ID (6 digits)
         Record_Type_Name__c: 1, // 'CSB Funding Request' | 'CSB Payment Request' | 'CSB Close Out Request' | 'CSB Funding Request 2023' | 'CSB Payment Request 2023' | 'CSB Close Out Request 2023'
-        Rebate_Program_Year__c: 1, // '2022' | '2023'
+        Rebate_Program_Year__c: 1, // '2022' | '2023' | '2024'
         "Parent_CSB_Rebate__r.CSB_Funding_Request_Status__c": 1,
         "Parent_CSB_Rebate__r.CSB_Payment_Request_Status__c": 1,
         "Parent_CSB_Rebate__r.CSB_Closeout_Request_Status__c": 1,
@@ -639,7 +652,7 @@ async function queryForBapFormSubmissionsStatuses(req) {
         CSB_Review_Item_ID__c: 1, // CSB Rebate ID with form/version ID (9 digits)
         Parent_Rebate_ID__c: 1, // CSB Rebate ID (6 digits)
         Record_Type_Name__c: 1, // 'CSB Funding Request' | 'CSB Payment Request' | 'CSB Close Out Request' | 'CSB Funding Request 2023' | 'CSB Payment Request 2023' | 'CSB Close Out Request 2023'
-        Rebate_Program_Year__c: 1, // '2022' | '2023'
+        Rebate_Program_Year__c: 1, // '2022' | '2023' | '2024'
         "Parent_CSB_Rebate__r.CSB_Funding_Request_Status__c": 1,
         "Parent_CSB_Rebate__r.CSB_Payment_Request_Status__c": 1,
         "Parent_CSB_Rebate__r.CSB_Closeout_Request_Status__c": 1,
@@ -1476,8 +1489,8 @@ function getBapComboKeys(req, email) {
  * Fetches data associated with a provided form submission.
  *
  * @param {Object} param
- * @param {'2022' | '2023'} param.rebateYear
- * @param {'frf' | 'prf' | 'crf'} param.formType
+ * @param {RebateYear} param.rebateYear
+ * @param {FormType} param.formType
  * @param {string | null} param.rebateId
  * @param {string | null} param.mongoId
  * @param {express.Request} param.req
@@ -1573,8 +1586,8 @@ function checkForBapDuplicates(req) {
  * returned from the BAP).
  *
  * @param {Object} param
- * @param {'2022' | '2023'} param.rebateYear
- * @param {'frf' | 'prf' | 'crf'} param.formType
+ * @param {RebateYear} param.rebateYear
+ * @param {FormType} param.formType
  * @param {string} param.mongoId
  * @param {string} param.comboKey
  * @param {express.Request} param.req
