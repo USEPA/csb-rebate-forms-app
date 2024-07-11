@@ -111,7 +111,11 @@ export const bapStatusMap = {
     crf: new Map<string, string>(), // TODO
   },
   2024: {
-    frf: new Map<string, string>(), // TODO
+    frf: new Map<string, string>()
+      .set("Needs Clarification", "Needs Clarification")
+      .set("Withdrawn", "Withdrawn")
+      .set("Coordinator Denied", "Not Selected")
+      .set("Accepted", "Selected"),
     prf: new Map<string, string>(), // TODO
     crf: new Map<string, string>(), // TODO
   },
