@@ -8,9 +8,12 @@ import clsx from "clsx";
 import { cloneDeep, isEqual } from "lodash";
 import icons from "uswds/img/sprite.svg";
 // ---
+import {
+  type FormioSchemaAndSubmission,
+  type FormioFRF2022Submission,
+} from "@/types";
 import { serverUrl, messages } from "@/config";
 import {
-  type FormioFRF2022Submission,
   getData,
   postData,
   useContentData,
@@ -26,19 +29,8 @@ import { Message } from "@/components/message";
 import { MarkdownContent } from "@/components/markdownContent";
 import { useDialogActions } from "@/contexts/dialog";
 import { useNotificationsActions } from "@/contexts/notifications";
-import { useRebateYearState } from "@/contexts/rebateYear";
 
-type ServerResponse =
-  | {
-      userAccess: false;
-      formSchema: null;
-      submission: null;
-    }
-  | {
-      userAccess: true;
-      formSchema: { url: string; json: object };
-      submission: FormioFRF2022Submission;
-    };
+type Response = FormioSchemaAndSubmission<FormioFRF2022Submission>;
 
 /** Custom hook to fetch and update Formio submission data */
 function useFormioSubmissionQueryAndMutation(mongoId: string | undefined) {
@@ -53,7 +45,7 @@ function useFormioSubmissionQueryAndMutation(mongoId: string | undefined) {
   const query = useQuery({
     queryKey: ["formio/2022/frf-submission", { id: mongoId }],
     queryFn: () => {
-      return getData<ServerResponse>(url).then((res) => {
+      return getData<Response>(url).then((res) => {
         const comboKey = res.submission?.data.bap_hidden_entity_combo_key;
 
         /**
@@ -102,7 +94,7 @@ function useFormioSubmissionQueryAndMutation(mongoId: string | undefined) {
       return postData<FormioFRF2022Submission>(url, updatedSubmission);
     },
     onSuccess: (res) => {
-      return queryClient.setQueryData<ServerResponse>(
+      return queryClient.setQueryData<Response>(
         ["formio/2022/frf-submission", { id: mongoId }],
         (prevData) => {
           return prevData?.submission
@@ -140,7 +132,6 @@ function FundingRequestForm(props: { email: string }) {
     displayErrorNotification,
     dismissNotification,
   } = useNotificationsActions();
-  const { rebateYear } = useRebateYearState();
 
   const submissionsQueries = useSubmissionsQueries("2022");
   const submissions = useSubmissions("2022");
@@ -330,8 +321,7 @@ function FundingRequestForm(props: { email: string }) {
     return null;
   }
 
-  const frfSubmissionPeriodOpen =
-    configData.submissionPeriodOpen[rebateYear].frf;
+  const frfSubmissionPeriodOpen = configData.submissionPeriodOpen["2022"].frf;
 
   const formIsReadOnly =
     (submission.state === "submitted" || !frfSubmissionPeriodOpen) &&

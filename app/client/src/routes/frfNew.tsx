@@ -5,11 +5,14 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl, messages } from "@/config";
 import {
+  type RebateYear,
   type BapSamEntity,
   type FormioFRF2022Submission,
   type FormioFRF2023Submission,
+} from "@/types";
+import { serverUrl, messages } from "@/config";
+import {
   postData,
   useContentData,
   useConfigData,
@@ -26,7 +29,7 @@ import { useRebateYearState } from "@/contexts/rebateYear";
  * Creates the initial FRF submission data for a given rebate year
  */
 function createInitialSubmissionData(options: {
-  rebateYear: "2022" | "2023";
+  rebateYear: RebateYear;
   email: string;
   entity: BapSamEntity;
 }) {
@@ -69,7 +72,7 @@ function createInitialSubmissionData(options: {
         sam_hidden_applicant_state: PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
         sam_hidden_applicant_zip_code: PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
       }
-    : rebateYear === "2023"
+    : rebateYear === "2023" || rebateYear === "2024"
       ? {
           _user_email: email,
           _user_title: title,

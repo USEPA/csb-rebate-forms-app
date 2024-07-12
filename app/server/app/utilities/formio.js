@@ -23,27 +23,35 @@ const log = require("./logger");
 const { NODE_ENV } = process.env;
 
 /**
+ * @typedef {'2022' | '2023' | '2024'} RebateYear
+ */
+
+/**
  * @param {Object} param
- * @param {'2022' | '2023'} param.rebateYear
+ * @param {RebateYear} param.rebateYear
  */
 function getComboKeyFieldName({ rebateYear }) {
   return rebateYear === "2022"
     ? "bap_hidden_entity_combo_key"
     : rebateYear === "2023"
       ? "_bap_entity_combo_key"
-      : "";
+      : rebateYear === "2024"
+        ? "_bap_entity_combo_key"
+        : "";
 }
 
 /**
  * @param {Object} param
- * @param {'2022' | '2023'} param.rebateYear
+ * @param {RebateYear} param.rebateYear
  */
 function getRebateIdFieldName({ rebateYear }) {
   return rebateYear === "2022"
     ? "hidden_bap_rebate_id"
     : rebateYear === "2023"
       ? "_bap_rebate_id"
-      : "";
+      : rebateYear === "2024"
+        ? "" // TODO
+        : "";
 }
 
 /**
@@ -76,7 +84,7 @@ function modifyDatasourceComponentsUrl(schema) {
 
 /**
  * @param {Object} param
- * @param {'2022' | '2023'} param.rebateYear
+ * @param {RebateYear} param.rebateYear
  * @param {express.Request} param.req
  * @param {express.Response} param.res
  */
@@ -455,11 +463,15 @@ function fetchDataForPRFSubmission({ rebateYear, req, res }) {
         return res.status(errorStatus).json({ message: errorMessage });
       });
   }
+
+  if (rebateYear === "2024") {
+    // TODO
+  }
 }
 
 /**
  * @param {Object} param
- * @param {'2022' | '2023'} param.rebateYear
+ * @param {RebateYear} param.rebateYear
  * @param {express.Request} param.req
  * @param {express.Response} param.res
  */
@@ -649,11 +661,19 @@ function fetchDataForCRFSubmission({ rebateYear, req, res }) {
         return res.status(errorStatus).json({ message: errorMessage });
       });
   }
+
+  if (rebateYear === "2023") {
+    // TODO
+  }
+
+  if (rebateYear === "2024") {
+    // TODO
+  }
 }
 
 /**
  * @param {Object} param
- * @param {'2022' | '2023'} param.rebateYear
+ * @param {RebateYear} param.rebateYear
  * @param {express.Request} param.req
  * @param {express.Response} param.res
  */
@@ -734,7 +754,7 @@ function uploadS3FileMetadata({ rebateYear, req, res }) {
 
 /**
  * @param {Object} param
- * @param {'2022' | '2023'} param.rebateYear
+ * @param {RebateYear} param.rebateYear
  * @param {express.Request} param.req
  * @param {express.Response} param.res
  */
@@ -781,7 +801,7 @@ function downloadS3FileMetadata({ rebateYear, req, res }) {
 
 /**
  * @param {Object} param
- * @param {'2022' | '2023'} param.rebateYear
+ * @param {RebateYear} param.rebateYear
  * @param {express.Request} param.req
  * @param {express.Response} param.res
  */
@@ -820,7 +840,7 @@ function fetchFRFSubmissions({ rebateYear, req, res }) {
 
 /**
  * @param {Object} param
- * @param {'2022' | '2023'} param.rebateYear
+ * @param {RebateYear} param.rebateYear
  * @param {express.Request} param.req
  * @param {express.Response} param.res
  */
@@ -878,7 +898,7 @@ function createFRFSubmission({ rebateYear, req, res }) {
 
 /**
  * @param {Object} param
- * @param {'2022' | '2023'} param.rebateYear
+ * @param {RebateYear} param.rebateYear
  * @param {express.Request} param.req
  * @param {express.Response} param.res
  */
@@ -945,7 +965,7 @@ function fetchFRFSubmission({ rebateYear, req, res }) {
 
 /**
  * @param {Object} param
- * @param {'2022' | '2023'} param.rebateYear
+ * @param {RebateYear} param.rebateYear
  * @param {express.Request} param.req
  * @param {express.Response} param.res
  */
@@ -1021,7 +1041,7 @@ function updateFRFSubmission({ rebateYear, req, res }) {
 
 /**
  * @param {Object} param
- * @param {'2022' | '2023'} param.rebateYear
+ * @param {RebateYear} param.rebateYear
  * @param {express.Request} param.req
  * @param {express.Response} param.res
  */
@@ -1060,7 +1080,7 @@ function fetchPRFSubmissions({ rebateYear, req, res }) {
 
 /**
  * @param {Object} param
- * @param {'2022' | '2023'} param.rebateYear
+ * @param {RebateYear} param.rebateYear
  * @param {express.Request} param.req
  * @param {express.Response} param.res
  */
@@ -1115,7 +1135,7 @@ function createPRFSubmission({ rebateYear, req, res }) {
 
 /**
  * @param {Object} param
- * @param {'2022' | '2023'} param.rebateYear
+ * @param {RebateYear} param.rebateYear
  * @param {express.Request} param.req
  * @param {express.Response} param.res
  */
@@ -1204,7 +1224,7 @@ function fetchPRFSubmission({ rebateYear, req, res }) {
 
 /**
  * @param {Object} param
- * @param {'2022' | '2023'} param.rebateYear
+ * @param {RebateYear} param.rebateYear
  * @param {express.Request} param.req
  * @param {express.Response} param.res
  */
@@ -1293,7 +1313,7 @@ function updatePRFSubmission({ rebateYear, req, res }) {
 
 /**
  * @param {Object} param
- * @param {'2022' | '2023'} param.rebateYear
+ * @param {RebateYear} param.rebateYear
  * @param {express.Request} param.req
  * @param {express.Response} param.res
  */
@@ -1376,7 +1396,7 @@ function deletePRFSubmission({ rebateYear, req, res }) {
 
 /**
  * @param {Object} param
- * @param {'2022' | '2023'} param.rebateYear
+ * @param {RebateYear} param.rebateYear
  * @param {express.Request} param.req
  * @param {express.Response} param.res
  */
@@ -1415,7 +1435,7 @@ function fetchCRFSubmissions({ rebateYear, req, res }) {
 
 /**
  * @param {Object} param
- * @param {'2022' | '2023'} param.rebateYear
+ * @param {RebateYear} param.rebateYear
  * @param {express.Request} param.req
  * @param {express.Response} param.res
  */
@@ -1470,7 +1490,7 @@ function createCRFSubmission({ rebateYear, req, res }) {
 
 /**
  * @param {Object} param
- * @param {'2022' | '2023'} param.rebateYear
+ * @param {RebateYear} param.rebateYear
  * @param {express.Request} param.req
  * @param {express.Response} param.res
  */
@@ -1559,7 +1579,7 @@ function fetchCRFSubmission({ rebateYear, req, res }) {
 
 /**
  * @param {Object} param
- * @param {'2022' | '2023'} param.rebateYear
+ * @param {RebateYear} param.rebateYear
  * @param {express.Request} param.req
  * @param {express.Response} param.res
  */
@@ -1648,7 +1668,7 @@ function updateCRFSubmission({ rebateYear, req, res }) {
 
 /**
  * @param {Object} param
- * @param {'2022' | '2023'} param.rebateYear
+ * @param {RebateYear} param.rebateYear
  * @param {express.Request} param.req
  * @param {express.Response} param.res
  */
@@ -1687,7 +1707,7 @@ function fetchChangeRequests({ rebateYear, req, res }) {
 
 /**
  * @param {Object} param
- * @param {'2022' | '2023'} param.rebateYear
+ * @param {RebateYear} param.rebateYear
  * @param {express.Request} param.req
  * @param {express.Response} param.res
  */
@@ -1714,7 +1734,7 @@ function fetchChangeRequestSchema({ rebateYear, req, res }) {
 
 /**
  * @param {Object} param
- * @param {'2022' | '2023'} param.rebateYear
+ * @param {RebateYear} param.rebateYear
  * @param {express.Request} param.req
  * @param {express.Response} param.res
  */
@@ -1766,7 +1786,7 @@ function createChangeRequest({ rebateYear, req, res }) {
 
 /**
  * @param {Object} param
- * @param {'2022' | '2023'} param.rebateYear
+ * @param {RebateYear} param.rebateYear
  * @param {express.Request} param.req
  * @param {express.Response} param.res
  */

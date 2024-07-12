@@ -12,6 +12,17 @@ import icon from "uswds/img/usa-icons-bg/search--white.svg";
 import icons from "uswds/img/sprite.svg";
 // ---
 import {
+  type RebateYear,
+  type FormType,
+  type BapSubmissionData,
+  type FormioFRF2022Submission,
+  type FormioPRF2022Submission,
+  type FormioCRF2022Submission,
+  type FormioFRF2023Submission,
+  type FormioPRF2023Submission,
+  // type FormioCRF2023Submission
+} from "@/types";
+import {
   serverUrl,
   messages,
   formioStatusMap,
@@ -20,13 +31,6 @@ import {
   formioEmailField,
 } from "@/config";
 import {
-  type FormType,
-  type FormioFRF2022Submission,
-  type FormioPRF2022Submission,
-  type FormioCRF2022Submission,
-  type FormioFRF2023Submission,
-  type FormioPRF2023Submission,
-  type BapSubmission,
   getData,
   postData,
   useContentData,
@@ -39,16 +43,15 @@ import { MarkdownContent } from "@/components/markdownContent";
 import { TextWithTooltip } from "@/components/tooltip";
 import { useDialogActions } from "@/contexts/dialog";
 import {
-  type RebateYear,
   useRebateYearState,
   useRebateYearActions,
 } from "@/contexts/rebateYear";
 
-type ServerResponse =
+type Response =
   | {
       formSchema: null;
       formio: null;
-      bap: BapSubmission;
+      bap: BapSubmissionData;
     }
   | {
       formSchema: { url: string; json: object };
@@ -58,7 +61,7 @@ type ServerResponse =
         | FormioCRF2022Submission
         | FormioFRF2023Submission
         | FormioPRF2023Submission;
-      bap: BapSubmission;
+      bap: BapSubmissionData;
     };
 
 type SubmissionAction = {
@@ -111,7 +114,7 @@ function ResultTableRow(props: {
     SetStateAction<{ fetched: boolean; results: SubmissionAction[] }>
   >;
   submissionMutation: UseMutationResult<
-    ServerResponse["formio"],
+    Response["formio"],
     unknown,
     DraftSubmission,
     unknown
@@ -124,7 +127,7 @@ function ResultTableRow(props: {
     | FormioCRF2022Submission
     | FormioFRF2023Submission
     | FormioPRF2023Submission;
-  bap: BapSubmission;
+  bap: BapSubmissionData;
 }) {
   const {
     setFormDisplayed,
@@ -387,17 +390,17 @@ export function Helpdesk() {
 
   const submissionQuery = useQuery({
     queryKey: ["helpdesk/submission"],
-    queryFn: () => getData<ServerResponse>(submissionUrl),
+    queryFn: () => getData<Response>(submissionUrl),
     onSuccess: (_res) => setResultDisplayed(true),
     enabled: false,
   });
 
   const submissionMutation = useMutation({
     mutationFn: (submission: DraftSubmission) => {
-      return postData<ServerResponse["formio"]>(submissionUrl, submission);
+      return postData<Response["formio"]>(submissionUrl, submission);
     },
     onSuccess: (res) => {
-      queryClient.setQueryData<ServerResponse>(
+      queryClient.setQueryData<Response>(
         ["helpdesk/submission"],
         (prevData) => {
           return prevData?.formio
@@ -453,6 +456,7 @@ export function Helpdesk() {
             >
               <option>2022</option>
               <option>2023</option>
+              <option>2024</option>
             </select>
           </div>
 

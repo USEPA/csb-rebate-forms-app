@@ -7,12 +7,12 @@ import {
   useContext,
   useReducer,
 } from "react";
+// ---
+import { type RebateYear } from "@/types";
 
 type Props = {
   children: ReactNode;
 };
-
-export type RebateYear = "2022" | "2023";
 
 type State = {
   rebateYear: RebateYear;

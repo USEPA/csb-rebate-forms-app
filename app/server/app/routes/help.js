@@ -11,13 +11,21 @@ const {
 const { ensureAuthenticated, ensureHelpdesk } = require("../middleware");
 const { getBapFormSubmissionData } = require("../utilities/bap");
 
+/**
+ * @typedef {'2022' | '2023' | '2024'} RebateYear
+ */
+
+/**
+ * @typedef {'frf' | 'prf' | 'crf'} FormType
+ */
+
 const router = express.Router();
 
 /** Confirm user is both authenticated and authorized with valid helpdesk roles. */
 router.use(ensureAuthenticated);
 router.use(ensureHelpdesk);
 
-/** @type {Map<'frf' | 'prf' | 'crf', 'CSB Application' | 'CSB Payment Request' | 'CSB Close Out'} */
+/** @type {Map<FormType, 'CSB Application' | 'CSB Payment Request' | 'CSB Close Out'} */
 const formioFormNameMap = new Map()
   .set("frf", "CSB Application")
   .set("prf", "CSB Payment Request")
@@ -27,8 +35,8 @@ const formioFormNameMap = new Map()
  * Fetches data associated with a provided form submission from Formio.
  *
  * @param {Object} param
- * @param {'2022' | '2023'} param.rebateYear
- * @param {'frf' | 'prf' | 'crf'} param.formType
+ * @param {RebateYear} param.rebateYear
+ * @param {FormType} param.formType
  * @param {string} param.mongoId
  * @param {{
  *  modified: string | null
