@@ -47,7 +47,7 @@ import {
   useRebateYearActions,
 } from "@/contexts/rebateYear";
 
-type ServerResponse =
+type Response =
   | {
       formSchema: null;
       formio: null;
@@ -114,7 +114,7 @@ function ResultTableRow(props: {
     SetStateAction<{ fetched: boolean; results: SubmissionAction[] }>
   >;
   submissionMutation: UseMutationResult<
-    ServerResponse["formio"],
+    Response["formio"],
     unknown,
     DraftSubmission,
     unknown
@@ -390,17 +390,17 @@ export function Helpdesk() {
 
   const submissionQuery = useQuery({
     queryKey: ["helpdesk/submission"],
-    queryFn: () => getData<ServerResponse>(submissionUrl),
+    queryFn: () => getData<Response>(submissionUrl),
     onSuccess: (_res) => setResultDisplayed(true),
     enabled: false,
   });
 
   const submissionMutation = useMutation({
     mutationFn: (submission: DraftSubmission) => {
-      return postData<ServerResponse["formio"]>(submissionUrl, submission);
+      return postData<Response["formio"]>(submissionUrl, submission);
     },
     onSuccess: (res) => {
-      queryClient.setQueryData<ServerResponse>(
+      queryClient.setQueryData<Response>(
         ["helpdesk/submission"],
         (prevData) => {
           return prevData?.formio

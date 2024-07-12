@@ -308,6 +308,18 @@ type FormioChange2024Data = {
   request_type: { label: string; value: string };
 };
 
+export type FormioSchemaAndSubmission<Submission> =
+  | {
+      userAccess: false;
+      formSchema: null;
+      submission: null;
+    }
+  | {
+      userAccess: true;
+      formSchema: { url: string; json: object };
+      submission: Submission;
+    };
+
 export type FormioFRF2022Submission = FormioSubmission & {
   data: FormioFRF2022Data;
 };

@@ -8,7 +8,10 @@ import clsx from "clsx";
 import { cloneDeep, isEqual } from "lodash";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { type FormioCRF2022Submission } from "@/types";
+import {
+  type FormioSchemaAndSubmission,
+  type FormioCRF2022Submission,
+} from "@/types";
 import { serverUrl, messages } from "@/config";
 import {
   getData,
@@ -26,17 +29,7 @@ import { Message } from "@/components/message";
 import { MarkdownContent } from "@/components/markdownContent";
 import { useNotificationsActions } from "@/contexts/notifications";
 
-type ServerResponse =
-  | {
-      userAccess: false;
-      formSchema: null;
-      submission: null;
-    }
-  | {
-      userAccess: true;
-      formSchema: { url: string; json: object };
-      submission: FormioCRF2022Submission;
-    };
+type Response = FormioSchemaAndSubmission<FormioCRF2022Submission>;
 
 /** Custom hook to fetch and update Formio submission data */
 function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
@@ -51,7 +44,7 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
   const query = useQuery({
     queryKey: ["formio/2022/crf-submission", { id: rebateId }],
     queryFn: () => {
-      return getData<ServerResponse>(url).then((res) => {
+      return getData<Response>(url).then((res) => {
         const mongoId = res.submission?._id;
         const comboKey = res.submission?.data.bap_hidden_entity_combo_key;
 
@@ -90,7 +83,7 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
       return postData<FormioCRF2022Submission>(url, updatedSubmission);
     },
     onSuccess: (res) => {
-      return queryClient.setQueryData<ServerResponse>(
+      return queryClient.setQueryData<Response>(
         ["formio/2022/crf-submission", { id: rebateId }],
         (prevData) => {
           return prevData?.submission

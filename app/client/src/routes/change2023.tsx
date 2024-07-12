@@ -4,24 +4,17 @@ import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { Form } from "@formio/react";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { type FormioChange2023Submission } from "@/types";
+import {
+  type FormioSchemaAndSubmission,
+  type FormioChange2023Submission,
+} from "@/types";
 import { serverUrl, messages } from "@/config";
 import { getData, useContentData } from "@/utilities";
 import { Loading } from "@/components/loading";
 import { Message } from "@/components/message";
 import { MarkdownContent } from "@/components/markdownContent";
 
-type ServerResponse =
-  | {
-      userAccess: false;
-      formSchema: null;
-      submission: null;
-    }
-  | {
-      userAccess: true;
-      formSchema: { url: string; json: object };
-      submission: FormioChange2023Submission;
-    };
+type Response = FormioSchemaAndSubmission<FormioChange2023Submission>;
 
 /** Custom hook to fetch Formio submission data */
 function useFormioSubmissionQuery(mongoId: string | undefined) {
@@ -35,7 +28,7 @@ function useFormioSubmissionQuery(mongoId: string | undefined) {
 
   const query = useQuery({
     queryKey: ["formio/2023/change", { id: mongoId }],
-    queryFn: () => getData<ServerResponse>(url),
+    queryFn: () => getData<Response>(url),
     refetchOnWindowFocus: false,
   });
 

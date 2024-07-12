@@ -30,7 +30,7 @@ type ChangeRequestData = {
   name: string;
 };
 
-type ServerResponse = { url: string; json: object };
+type Response = { url: string; json: object };
 
 /** Custom hook to fetch Formio schema */
 function useFormioSchemaQuery() {
@@ -38,7 +38,7 @@ function useFormioSchemaQuery() {
 
   const query = useQuery({
     queryKey: ["formio/2024/change"],
-    queryFn: () => getData<ServerResponse>(url),
+    queryFn: () => getData<Response>(url),
     refetchOnWindowFocus: false,
   });
 

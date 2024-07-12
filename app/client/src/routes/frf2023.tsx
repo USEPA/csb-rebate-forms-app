@@ -8,7 +8,10 @@ import clsx from "clsx";
 import { cloneDeep, isEqual } from "lodash";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { type FormioFRF2023Submission } from "@/types";
+import {
+  type FormioSchemaAndSubmission,
+  type FormioFRF2023Submission,
+} from "@/types";
 import { serverUrl, messages } from "@/config";
 import {
   getData,
@@ -27,17 +30,7 @@ import { MarkdownContent } from "@/components/markdownContent";
 import { useDialogActions } from "@/contexts/dialog";
 import { useNotificationsActions } from "@/contexts/notifications";
 
-type ServerResponse =
-  | {
-      userAccess: false;
-      formSchema: null;
-      submission: null;
-    }
-  | {
-      userAccess: true;
-      formSchema: { url: string; json: object };
-      submission: FormioFRF2023Submission;
-    };
+type Response = FormioSchemaAndSubmission<FormioFRF2023Submission>;
 
 /** Custom hook to fetch and update Formio submission data */
 function useFormioSubmissionQueryAndMutation(mongoId: string | undefined) {
@@ -52,7 +45,7 @@ function useFormioSubmissionQueryAndMutation(mongoId: string | undefined) {
   const query = useQuery({
     queryKey: ["formio/2023/frf-submission", { id: mongoId }],
     queryFn: () => {
-      return getData<ServerResponse>(url).then((res) => {
+      return getData<Response>(url).then((res) => {
         const comboKey = res.submission?.data._bap_entity_combo_key;
 
         /**
@@ -87,7 +80,7 @@ function useFormioSubmissionQueryAndMutation(mongoId: string | undefined) {
       return postData<FormioFRF2023Submission>(url, updatedSubmission);
     },
     onSuccess: (res) => {
-      return queryClient.setQueryData<ServerResponse>(
+      return queryClient.setQueryData<Response>(
         ["formio/2023/frf-submission", { id: mongoId }],
         (prevData) => {
           return prevData?.submission
