@@ -41,7 +41,7 @@ import { Change2023 } from "@/routes/change2023";
 import { FRF2023 } from "@/routes/frf2023";
 import { PRF2023 } from "@/routes/prf2023";
 // import { CRF2023 } from "@/routes/crf2023";
-// import { Change2024 } from "@/routes/change2024";
+import { Change2024 } from "@/routes/change2024";
 import { FRF2024 } from "@/routes/frf2024";
 // import { PRF2024 } from "@/routes/prf2024";
 // import { CRF2024 } from "@/routes/crf2024";
@@ -261,7 +261,7 @@ export function App() {
         <Route path="prf/2023/:id" element={<PRF2023 />} />
         {/* <Route path="crf/2023/:id" element={<CRF2023 />} /> */}
 
-        {/* <Route path="/change/2024/:id" element={<Change2024 />} /> */}
+        <Route path="/change/2024/:id" element={<Change2024 />} />
         <Route path="frf/2024/:id" element={<FRF2024 />} />
         {/* <Route path="prf/2024/:id" element={<PRF2024 />} /> */}
         {/* <Route path="crf/2024/:id" element={<CRF2024 />} /> */}
