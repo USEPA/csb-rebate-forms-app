@@ -304,6 +304,8 @@ type FormioChange2024Data = {
   _user_email: string;
   _user_title: string;
   _user_name: string;
+  // fields set by the form definition (among others):
+  request_type: { label: string; value: string };
 };
 
 export type FormioFRF2022Submission = FormioSubmission & {

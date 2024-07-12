@@ -39,6 +39,7 @@ import { Message } from "@/components/message";
 import { MarkdownContent } from "@/components/markdownContent";
 import { TextWithTooltip } from "@/components/tooltip";
 import { ChangeRequest2023Button } from "@/components/change2023New";
+import { ChangeRequest2024Button } from "@/components/change2024New";
 import { useNotificationsActions } from "@/contexts/notifications";
 import {
   useRebateYearState,
@@ -150,14 +151,14 @@ function SubmissionsTableHeader(props: { rebateYear: RebateYear }) {
           />
         </th>
 
-        {rebateYear === "2023" && (
+        {rebateYear === "2023" || rebateYear === "2024" ? (
           <th scope="col" className={clsx("tw-text-right")}>
             <TextWithTooltip
               text="Change Request"
               tooltip="Submit a change request for an extension, to request edits, or to withdraw from the rebate program"
             />
           </th>
-        )}
+        ) : null}
       </tr>
     </thead>
   );
@@ -1533,15 +1534,157 @@ function Submissions2023() {
 
 /* --- 2024 Submissions --- */
 
-// function ChangeRequests2024() {
-//   //
-// }
+function ChangeRequests2024() {
+  const changeRequestsQuery = useChangeRequestsQuery("2024");
+  const changeRequests = useChangeRequests("2024");
+
+  if (changeRequestsQuery.isFetching) {
+    return <Loading />;
+  }
+
+  if (!changeRequests || changeRequests.length === 0) return null;
+
+  return (
+    <details
+      className={clsx(
+        "tw-mt-4 tw-border tw-border-solid tw-border-blue-100 tw-bg-blue-50",
+        "tw-group",
+      )}
+      open
+    >
+      <summary
+        className={clsx(
+          "tw-flex tw-cursor-pointer tw-items-center tw-justify-between tw-bg-blue-100 tw-p-2",
+          "marker:tw-content-none",
+        )}
+      >
+        <span
+          className={clsx(
+            "tw-px-1 tw-text-[15px] tw-font-semibold tw-text-slate-800",
+          )}
+        >
+          Your Change Requests
+        </span>
+        <ChevronUpIcon
+          className={clsx(
+            "tw-h-5 tw-w-5 tw-rotate-90 tw-transform tw-text-slate-900 tw-duration-100",
+            "group-open:tw-rotate-180",
+          )}
+          aria-hidden="true"
+        />
+      </summary>
+
+      <div
+        className={clsx(
+          "usa-table-container--scrollable",
+          "tw-m-0 tw-p-1",
+          "[&_tr:last-of-type_:is(th,td)]:tw-border-b-0",
+        )}
+        tabIndex={0}
+      >
+        <table
+          aria-label="Your 2023 Change Requests"
+          className="usa-table usa-table--stacked usa-table--borderless width-full"
+        >
+          <thead>
+            <tr className="font-sans-2xs text-no-wrap text-bottom">
+              <th scope="col">
+                <TextWithTooltip
+                  text="Rebate ID"
+                  tooltip="Unique Clean School Bus Rebate ID"
+                />
+              </th>
+
+              <th scope="col">
+                <TextWithTooltip
+                  text="Form Type"
+                  tooltip="Application, Payment Request, or Close Out form"
+                />
+              </th>
+
+              <th scope="col">
+                <TextWithTooltip
+                  text="Request Type"
+                  tooltip="Edit, Extension, or Withdrawl Request"
+                />
+              </th>
+
+              <th scope="col">
+                <TextWithTooltip
+                  text="Submitted By"
+                  tooltip="Person that submitted this request"
+                />
+              </th>
+
+              <th scope="col" className={clsx("tw-text-right")}>
+                <TextWithTooltip
+                  text="Date"
+                  tooltip="Date this request was submitted"
+                />
+              </th>
+            </tr>
+          </thead>
+          <tbody className={clsx("[&_:is(th,td)]:tw-text-[15px]")}>
+            {changeRequests.map((request, index) => {
+              const { _id, modified, data } = request;
+              const {
+                _request_form,
+                _bap_rebate_id,
+                _mongo_id,
+                _user_email,
+                request_type,
+              } = data;
+
+              const date = new Date(modified).toLocaleDateString();
+              const time = new Date(modified).toLocaleTimeString();
+
+              const formType =
+                _request_form === "frf"
+                  ? "Application"
+                  : _request_form === "prf"
+                    ? "Payment Request"
+                    : _request_form === "crf"
+                      ? "Close Out"
+                      : "";
+
+              return (
+                <Fragment key={index}>
+                  <tr>
+                    <th scope="row">
+                      <Link to={`/change/2023/${_id}`}>
+                        {_bap_rebate_id || _mongo_id}
+                      </Link>
+                    </th>
+
+                    <th scope="row">
+                      <span>{formType}</span>
+                    </th>
+
+                    <td>
+                      <span>{request_type?.label}</span>
+                    </td>
+
+                    <td>{_user_email}</td>
+
+                    <td className={clsx("min-[480px]:tw-text-right")}>
+                      <span title={`${date} ${time}`}>{date}</span>
+                    </td>
+                  </tr>
+                </Fragment>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </details>
+  );
+}
 
 function FRF2024Submission(props: { rebate: Rebate2024 }) {
   const { rebate } = props;
   const { frf, prf, crf } = rebate;
 
-  // const { email } = useOutletContext<{ email: string }>();
+  const { email } = useOutletContext<{ email: string }>();
 
   const configData = useConfigData();
   const bapSamData = useBapSamData();
@@ -1557,11 +1700,11 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 
   if (!entity) return null;
 
-  // const { title, name } = getUserInfo(email, entity);
+  const { title, name } = getUserInfo(email, entity);
 
   const frfSubmissionPeriodOpen = configData.submissionPeriodOpen["2024"].frf;
 
-  const { _user_email } = frf.formio.data;
+  const { _user_email, _bap_entity_combo_key } = frf.formio.data;
   const placeholder = true; // TODO: remove once we have UEI, EFTI, org name, and school district fields above
 
   const date = new Date(frf.formio.modified).toLocaleDateString();
@@ -1715,7 +1858,7 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
         <span title={`${date} ${time}`}>{date}</span>
       </td>
 
-      {/* <td className={clsx("!tw-text-right")}>
+      <td className={clsx("!tw-text-right")}>
         <ChangeRequest2024Button
           data={{
             formType: "frf",
@@ -1728,7 +1871,7 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
             name,
           }}
         />
-      </td> */}
+      </td>
     </tr>
   );
 }
@@ -1743,19 +1886,19 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 
 function Submissions2024() {
   const content = useContentData();
-  // const changeRequestsQuery = useChangeRequestsQuery("2024");
+  const changeRequestsQuery = useChangeRequestsQuery("2024");
   const submissionsQueries = useSubmissionsQueries("2024");
   const submissions = useSubmissions("2024");
 
   if (
-    // changeRequestsQuery.isInitialLoading ||
+    changeRequestsQuery.isInitialLoading ||
     submissionsQueries.some((query) => query.isFetching)
   ) {
     return <Loading />;
   }
 
   if (
-    // changeRequestsQuery.isError ||
+    changeRequestsQuery.isError ||
     submissionsQueries.some((query) => query.isError)
   ) {
     return <Message type="error" text={messages.formSubmissionsError} />;
@@ -1771,7 +1914,7 @@ function Submissions2024() {
 
   return (
     <>
-      {/* <ChangeRequests2024 /> */}
+      <ChangeRequests2024 />
 
       {content && (
         <MarkdownContent
