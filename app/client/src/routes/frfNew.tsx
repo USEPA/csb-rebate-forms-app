@@ -282,13 +282,15 @@ export function FRFNew() {
                           </thead>
                           <tbody>
                             {activeSamEntities.map((entity) => {
-                              const comboKey = entity.ENTITY_COMBO_KEY__c;
-                              const uei = entity.UNIQUE_ENTITY_ID__c;
-                              const efti = entity.ENTITY_EFT_INDICATOR__c;
-                              const orgName = entity.LEGAL_BUSINESS_NAME__c;
+                              const {
+                                ENTITY_COMBO_KEY__c,
+                                UNIQUE_ENTITY_ID__c,
+                                ENTITY_EFT_INDICATOR__c,
+                                LEGAL_BUSINESS_NAME__c,
+                              } = entity;
 
                               return (
-                                <tr key={comboKey}>
+                                <tr key={ENTITY_COMBO_KEY__c}>
                                   <th
                                     scope="row"
                                     className="width-15 font-sans-2xs"
@@ -303,7 +305,7 @@ export function FRFNew() {
 
                                         // account for when data is posting to prevent double submits
                                         if (postingDataId !== "0") return;
-                                        setPostingDataId(comboKey);
+                                        setPostingDataId(ENTITY_COMBO_KEY__c);
 
                                         const data =
                                           createInitialSubmissionData({
@@ -335,8 +337,9 @@ export function FRFNew() {
                                       }}
                                     >
                                       <span className="usa-sr-only">
-                                        New Application with UEI: {uei} and
-                                        EFTI: {efti}
+                                        New Application with UEI:{" "}
+                                        {UNIQUE_ENTITY_ID__c} and EFTI:{" "}
+                                        {ENTITY_EFT_INDICATOR__c}
                                       </span>
                                       <span className="display-flex flex-align-center">
                                         <svg
@@ -352,17 +355,22 @@ export function FRFNew() {
                                         <span className="mobile-lg:display-none margin-left-1">
                                           New Application
                                         </span>
-                                        {postingDataId === comboKey && (
+                                        {postingDataId ===
+                                          ENTITY_COMBO_KEY__c && (
                                           <LoadingButtonIcon position="end" />
                                         )}
                                       </span>
                                     </button>
                                   </th>
-                                  <td className="font-sans-2xs">{uei}</td>
                                   <td className="font-sans-2xs">
-                                    {efti || "0000"}
+                                    {UNIQUE_ENTITY_ID__c}
                                   </td>
-                                  <td className="font-sans-2xs">{orgName}</td>
+                                  <td className="font-sans-2xs">
+                                    {ENTITY_EFT_INDICATOR__c || "0000"}
+                                  </td>
+                                  <td className="font-sans-2xs">
+                                    {LEGAL_BUSINESS_NAME__c}
+                                  </td>
                                 </tr>
                               );
                             })}

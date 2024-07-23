@@ -36,8 +36,10 @@ export type BapSamEntity = {
   Id: string;
   ENTITY_COMBO_KEY__c: string;
   UNIQUE_ENTITY_ID__c: string;
-  ENTITY_EFT_INDICATOR__c: string;
-  ENTITY_STATUS__c: "Active" | string;
+  ENTITY_EFT_INDICATOR__c: string | null;
+  ENTITY_STATUS__c: "Active" | string | null;
+  EXCLUSION_STATUS_FLAG__c: string | null;
+  DEBT_SUBJECT_TO_OFFSET_FLAG__c: "Y" | "N" | null;
   LEGAL_BUSINESS_NAME__c: string;
   PHYSICAL_ADDRESS_LINE_1__c: string;
   PHYSICAL_ADDRESS_LINE_2__c: string | null;

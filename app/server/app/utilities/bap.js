@@ -21,6 +21,8 @@ const { submissionPeriodOpen } = require("../config/formio");
  * @property {string} UNIQUE_ENTITY_ID__c
  * @property {?string} ENTITY_EFT_INDICATOR__c
  * @property {string} ENTITY_STATUS__c
+ * @property {?string} EXCLUSION_STATUS_FLAG__c
+ * @property {?string} DEBT_SUBJECT_TO_OFFSET_FLAG__c
  * @property {string} LEGAL_BUSINESS_NAME__c
  * @property {string} PHYSICAL_ADDRESS_LINE_1__c
  * @property {?string} PHYSICAL_ADDRESS_LINE_2__c
@@ -373,6 +375,8 @@ async function queryForSamEntities(req, email) {
   //   UNIQUE_ENTITY_ID__c,
   //   ENTITY_EFT_INDICATOR__c,
   //   ENTITY_STATUS__c,
+  //   EXCLUSION_STATUS_FLAG__c,
+  //   DEBT_SUBJECT_TO_OFFSET_FLAG__c,
   //   LEGAL_BUSINESS_NAME__c,
   //   PHYSICAL_ADDRESS_LINE_1__c,
   //   PHYSICAL_ADDRESS_LINE_2__c,
@@ -418,6 +422,8 @@ async function queryForSamEntities(req, email) {
         UNIQUE_ENTITY_ID__c: 1,
         ENTITY_EFT_INDICATOR__c: 1,
         ENTITY_STATUS__c: 1,
+        EXCLUSION_STATUS_FLAG__c: 1,
+        DEBT_SUBJECT_TO_OFFSET_FLAG__c: 1,
         LEGAL_BUSINESS_NAME__c: 1,
         PHYSICAL_ADDRESS_LINE_1__c: 1,
         PHYSICAL_ADDRESS_LINE_2__c: 1,
