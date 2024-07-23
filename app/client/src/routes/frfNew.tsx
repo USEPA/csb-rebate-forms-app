@@ -137,8 +137,10 @@ export function FRFNew() {
       } = entity;
 
       const isActive = ENTITY_STATUS__c === "Active";
-      const isEligible =
-        !EXCLUSION_STATUS_FLAG__c && !DEBT_SUBJECT_TO_OFFSET_FLAG__c;
+      const hasExclusionStatus = EXCLUSION_STATUS_FLAG__c !== null;
+      const hasDebtSubjectToOffset = DEBT_SUBJECT_TO_OFFSET_FLAG__c === "Y";
+
+      const isEligible = !hasExclusionStatus && !hasDebtSubjectToOffset;
 
       if (isActive && isEligible) object.eligible.push(entity);
       if (isActive && !isEligible) object.ineligible.push(entity);
@@ -397,51 +399,57 @@ export function FRFNew() {
                               );
                             })}
 
-                            <tr>
-                              <td
-                                colSpan={4}
-                                className="font-sans-2xs !tw-whitespace-normal"
-                              >
-                                <strong>Ineligible SAM.gov Entities:</strong>
-                                <br />
-                                The following SAM.gov entities are ineligible
-                                due to their exclusion status or a debt subject
-                                to offset. Please visit SAM.gov to resolve these
-                                issues.
-                              </td>
-                            </tr>
-
-                            {samEntities.ineligible.map((entity) => {
-                              const {
-                                ENTITY_COMBO_KEY__c,
-                                UNIQUE_ENTITY_ID__c,
-                                ENTITY_EFT_INDICATOR__c,
-                                LEGAL_BUSINESS_NAME__c,
-                              } = entity;
-
-                              return (
-                                <tr key={ENTITY_COMBO_KEY__c}>
-                                  <th
-                                    scope="row"
-                                    className="width-15 font-sans-2xs"
+                            {samEntities.ineligible.length > 0 && (
+                              <>
+                                <tr>
+                                  <td
+                                    colSpan={4}
+                                    className="font-sans-2xs !tw-whitespace-normal"
                                   >
-                                    <TextWithTooltip
-                                      text=" "
-                                      tooltip="Ineligible SAM.gov entity"
-                                    />
-                                  </th>
-                                  <td className="font-sans-2xs">
-                                    {UNIQUE_ENTITY_ID__c}
-                                  </td>
-                                  <td className="font-sans-2xs">
-                                    {ENTITY_EFT_INDICATOR__c || "0000"}
-                                  </td>
-                                  <td className="font-sans-2xs">
-                                    {LEGAL_BUSINESS_NAME__c}
+                                    <strong>
+                                      Ineligible SAM.gov Entities:
+                                    </strong>
+                                    <br />
+                                    The following SAM.gov entities are
+                                    ineligible due to their exclusion status or
+                                    a debt subject to offset. Please visit
+                                    SAM.gov to resolve these issues.
                                   </td>
                                 </tr>
-                              );
-                            })}
+
+                                {samEntities.ineligible.map((entity) => {
+                                  const {
+                                    ENTITY_COMBO_KEY__c,
+                                    UNIQUE_ENTITY_ID__c,
+                                    ENTITY_EFT_INDICATOR__c,
+                                    LEGAL_BUSINESS_NAME__c,
+                                  } = entity;
+
+                                  return (
+                                    <tr key={ENTITY_COMBO_KEY__c}>
+                                      <th
+                                        scope="row"
+                                        className="width-15 font-sans-2xs"
+                                      >
+                                        <TextWithTooltip
+                                          text=" "
+                                          tooltip="Ineligible SAM.gov entity"
+                                        />
+                                      </th>
+                                      <td className="font-sans-2xs">
+                                        {UNIQUE_ENTITY_ID__c}
+                                      </td>
+                                      <td className="font-sans-2xs">
+                                        {ENTITY_EFT_INDICATOR__c || "0000"}
+                                      </td>
+                                      <td className="font-sans-2xs">
+                                        {LEGAL_BUSINESS_NAME__c}
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                              </>
+                            )}
                           </tbody>
                         </table>
                       </div>
