@@ -128,9 +128,31 @@ export function FRFNew() {
   const frfSubmissionPeriodOpen =
     configData.submissionPeriodOpen[rebateYear].frf;
 
-  const activeSamEntities = bapSamData.entities.filter((entity) => {
-    return entity.ENTITY_STATUS__c === "Active";
-  });
+  const samEntities = bapSamData.entities.reduce(
+    (object, entity) => {
+      const {
+        ENTITY_STATUS__c,
+        EXCLUSION_STATUS_FLAG__c,
+        DEBT_SUBJECT_TO_OFFSET_FLAG__c,
+      } = entity;
+
+      const isActive = ENTITY_STATUS__c === "Active";
+      const isEligible =
+        !EXCLUSION_STATUS_FLAG__c && !DEBT_SUBJECT_TO_OFFSET_FLAG__c;
+
+      if (isActive && isEligible) object.eligible.push(entity);
+      if (isActive && !isEligible) object.ineligible.push(entity);
+
+      return object;
+    },
+    {
+      eligible: [] as BapSamEntity[],
+      ineligible: [] as BapSamEntity[],
+    },
+  );
+
+  const totalActiveSamEntities =
+    samEntities.eligible.length + samEntities.ineligible.length;
 
   return (
     <Transition.Root show={true} as={Fragment}>
@@ -214,7 +236,7 @@ export function FRFNew() {
                     <div className={clsx("-tw-mb-4")}>
                       <Message type="info" text={messages.frfClosed} />
                     </div>
-                  ) : activeSamEntities.length <= 0 ? (
+                  ) : totalActiveSamEntities === 0 ? (
                     <div className={clsx("-tw-mb-4")}>
                       <Message
                         type="info"
@@ -281,7 +303,7 @@ export function FRFNew() {
                             </tr>
                           </thead>
                           <tbody>
-                            {activeSamEntities.map((entity) => {
+                            {samEntities.eligible.map((entity) => {
                               const {
                                 ENTITY_COMBO_KEY__c,
                                 UNIQUE_ENTITY_ID__c,
