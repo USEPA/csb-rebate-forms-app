@@ -137,7 +137,7 @@ export function FRFNew() {
       } = entity;
 
       const isActive = ENTITY_STATUS__c === "Active";
-      const hasExclusionStatus = EXCLUSION_STATUS_FLAG__c !== null;
+      const hasExclusionStatus = EXCLUSION_STATUS_FLAG__c === "D";
       const hasDebtSubjectToOffset = DEBT_SUBJECT_TO_OFFSET_FLAG__c === "Y";
 
       const isEligible = !hasExclusionStatus && !hasDebtSubjectToOffset;
