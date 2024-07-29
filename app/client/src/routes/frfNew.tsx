@@ -128,9 +128,33 @@ export function FRFNew() {
   const frfSubmissionPeriodOpen =
     configData.submissionPeriodOpen[rebateYear].frf;
 
-  const activeSamEntities = bapSamData.entities.filter((entity) => {
-    return entity.ENTITY_STATUS__c === "Active";
-  });
+  const samEntities = bapSamData.entities.reduce(
+    (object, entity) => {
+      const {
+        ENTITY_STATUS__c,
+        EXCLUSION_STATUS_FLAG__c,
+        DEBT_SUBJECT_TO_OFFSET_FLAG__c,
+      } = entity;
+
+      const isActive = ENTITY_STATUS__c === "Active";
+      const hasExclusionStatus = EXCLUSION_STATUS_FLAG__c === "D";
+      const hasDebtSubjectToOffset = DEBT_SUBJECT_TO_OFFSET_FLAG__c === "Y";
+
+      const isEligible = !hasExclusionStatus && !hasDebtSubjectToOffset;
+
+      if (isActive && isEligible) object.eligible.push(entity);
+      if (isActive && !isEligible) object.ineligible.push(entity);
+
+      return object;
+    },
+    {
+      eligible: [] as BapSamEntity[],
+      ineligible: [] as BapSamEntity[],
+    },
+  );
+
+  const totalActiveSamEntities =
+    samEntities.eligible.length + samEntities.ineligible.length;
 
   return (
     <Transition.Root show={true} as={Fragment}>
@@ -214,7 +238,7 @@ export function FRFNew() {
                     <div className={clsx("-tw-mb-4")}>
                       <Message type="info" text={messages.frfClosed} />
                     </div>
-                  ) : activeSamEntities.length <= 0 ? (
+                  ) : totalActiveSamEntities === 0 ? (
                     <div className={clsx("-tw-mb-4")}>
                       <Message
                         type="info"
@@ -281,14 +305,16 @@ export function FRFNew() {
                             </tr>
                           </thead>
                           <tbody>
-                            {activeSamEntities.map((entity) => {
-                              const comboKey = entity.ENTITY_COMBO_KEY__c;
-                              const uei = entity.UNIQUE_ENTITY_ID__c;
-                              const efti = entity.ENTITY_EFT_INDICATOR__c;
-                              const orgName = entity.LEGAL_BUSINESS_NAME__c;
+                            {samEntities.eligible.map((entity) => {
+                              const {
+                                ENTITY_COMBO_KEY__c,
+                                UNIQUE_ENTITY_ID__c,
+                                ENTITY_EFT_INDICATOR__c,
+                                LEGAL_BUSINESS_NAME__c,
+                              } = entity;
 
                               return (
-                                <tr key={comboKey}>
+                                <tr key={ENTITY_COMBO_KEY__c}>
                                   <th
                                     scope="row"
                                     className="width-15 font-sans-2xs"
@@ -303,7 +329,7 @@ export function FRFNew() {
 
                                         // account for when data is posting to prevent double submits
                                         if (postingDataId !== "0") return;
-                                        setPostingDataId(comboKey);
+                                        setPostingDataId(ENTITY_COMBO_KEY__c);
 
                                         const data =
                                           createInitialSubmissionData({
@@ -335,8 +361,9 @@ export function FRFNew() {
                                       }}
                                     >
                                       <span className="usa-sr-only">
-                                        New Application with UEI: {uei} and
-                                        EFTI: {efti}
+                                        New Application with UEI:{" "}
+                                        {UNIQUE_ENTITY_ID__c} and EFTI:{" "}
+                                        {ENTITY_EFT_INDICATOR__c}
                                       </span>
                                       <span className="display-flex flex-align-center">
                                         <svg
@@ -352,20 +379,77 @@ export function FRFNew() {
                                         <span className="mobile-lg:display-none margin-left-1">
                                           New Application
                                         </span>
-                                        {postingDataId === comboKey && (
+                                        {postingDataId ===
+                                          ENTITY_COMBO_KEY__c && (
                                           <LoadingButtonIcon position="end" />
                                         )}
                                       </span>
                                     </button>
                                   </th>
-                                  <td className="font-sans-2xs">{uei}</td>
                                   <td className="font-sans-2xs">
-                                    {efti || "0000"}
+                                    {UNIQUE_ENTITY_ID__c}
                                   </td>
-                                  <td className="font-sans-2xs">{orgName}</td>
+                                  <td className="font-sans-2xs">
+                                    {ENTITY_EFT_INDICATOR__c || "0000"}
+                                  </td>
+                                  <td className="font-sans-2xs">
+                                    {LEGAL_BUSINESS_NAME__c}
+                                  </td>
                                 </tr>
                               );
                             })}
+
+                            {samEntities.ineligible.length > 0 && (
+                              <>
+                                <tr>
+                                  <td
+                                    colSpan={4}
+                                    className="font-sans-2xs !tw-whitespace-normal"
+                                  >
+                                    <strong>
+                                      Ineligible SAM.gov Entities:
+                                    </strong>
+                                    <br />
+                                    The following SAM.gov entities are
+                                    ineligible due to their exclusion status or
+                                    a debt subject to offset. Please visit
+                                    SAM.gov to resolve these issues.
+                                  </td>
+                                </tr>
+
+                                {samEntities.ineligible.map((entity) => {
+                                  const {
+                                    ENTITY_COMBO_KEY__c,
+                                    UNIQUE_ENTITY_ID__c,
+                                    ENTITY_EFT_INDICATOR__c,
+                                    LEGAL_BUSINESS_NAME__c,
+                                  } = entity;
+
+                                  return (
+                                    <tr key={ENTITY_COMBO_KEY__c}>
+                                      <th
+                                        scope="row"
+                                        className="width-15 font-sans-2xs"
+                                      >
+                                        <TextWithTooltip
+                                          text=" "
+                                          tooltip="Ineligible SAM.gov entity"
+                                        />
+                                      </th>
+                                      <td className="font-sans-2xs">
+                                        {UNIQUE_ENTITY_ID__c}
+                                      </td>
+                                      <td className="font-sans-2xs">
+                                        {ENTITY_EFT_INDICATOR__c || "0000"}
+                                      </td>
+                                      <td className="font-sans-2xs">
+                                        {LEGAL_BUSINESS_NAME__c}
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                              </>
+                            )}
                           </tbody>
                         </table>
                       </div>

@@ -18,28 +18,30 @@ const { submissionPeriodOpen } = require("../config/formio");
  * @typedef {Object} BapSamEntity
  * @property {string} Id
  * @property {string} ENTITY_COMBO_KEY__c
- * @property {string} ENTITY_STATUS__c
  * @property {string} UNIQUE_ENTITY_ID__c
  * @property {?string} ENTITY_EFT_INDICATOR__c
+ * @property {string} ENTITY_STATUS__c
+ * @property {?string} EXCLUSION_STATUS_FLAG__c
+ * @property {?string} DEBT_SUBJECT_TO_OFFSET_FLAG__c
  * @property {string} LEGAL_BUSINESS_NAME__c
- * @property {?string} GOVT_BUS_POC_NAME__c
- * @property {?string} GOVT_BUS_POC_EMAIL__c
- * @property {?string} GOVT_BUS_POC_TITLE__c
- * @property {?string} ALT_GOVT_BUS_POC_NAME__c
- * @property {?string} ALT_GOVT_BUS_POC_EMAIL__c
- * @property {?string} ALT_GOVT_BUS_POC_TITLE__c
- * @property {?string} ELEC_BUS_POC_NAME__c
- * @property {?string} ELEC_BUS_POC_EMAIL__c
- * @property {?string} ELEC_BUS_POC_TITLE__c
- * @property {?string} ALT_ELEC_BUS_POC_NAME__c
- * @property {?string} ALT_ELEC_BUS_POC_EMAIL__c
- * @property {?string} ALT_ELEC_BUS_POC_TITLE__c
  * @property {string} PHYSICAL_ADDRESS_LINE_1__c
  * @property {?string} PHYSICAL_ADDRESS_LINE_2__c
  * @property {string} PHYSICAL_ADDRESS_CITY__c
  * @property {string} PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c
  * @property {string} PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c
  * @property {string} PHYSICAL_ADDRESS_ZIP_CODE_4__c
+ * @property {?string} ELEC_BUS_POC_EMAIL__c
+ * @property {?string} ELEC_BUS_POC_NAME__c
+ * @property {?string} ELEC_BUS_POC_TITLE__c
+ * @property {?string} ALT_ELEC_BUS_POC_EMAIL__c
+ * @property {?string} ALT_ELEC_BUS_POC_NAME__c
+ * @property {?string} ALT_ELEC_BUS_POC_TITLE__c
+ * @property {?string} GOVT_BUS_POC_EMAIL__c
+ * @property {?string} GOVT_BUS_POC_NAME__c
+ * @property {?string} GOVT_BUS_POC_TITLE__c
+ * @property {?string} ALT_GOVT_BUS_POC_EMAIL__c
+ * @property {?string} ALT_GOVT_BUS_POC_NAME__c
+ * @property {?string} ALT_GOVT_BUS_POC_TITLE__c
  * @property {{
  *  type: string
  *  url: string
@@ -370,29 +372,30 @@ async function queryForSamEntities(req, email) {
   // `SELECT
   //   Id,
   //   ENTITY_COMBO_KEY__c,
-  //   ENTITY_STATUS__c,
   //   UNIQUE_ENTITY_ID__c,
   //   ENTITY_EFT_INDICATOR__c,
-  //   CAGE_CODE__c,
+  //   ENTITY_STATUS__c,
+  //   EXCLUSION_STATUS_FLAG__c,
+  //   DEBT_SUBJECT_TO_OFFSET_FLAG__c,
   //   LEGAL_BUSINESS_NAME__c,
-  //   GOVT_BUS_POC_NAME__c,
-  //   GOVT_BUS_POC_EMAIL__c,
-  //   GOVT_BUS_POC_TITLE__c,
-  //   ALT_GOVT_BUS_POC_NAME__c,
-  //   ALT_GOVT_BUS_POC_EMAIL__c,
-  //   ALT_GOVT_BUS_POC_TITLE__c,
-  //   ELEC_BUS_POC_NAME__c,
-  //   ELEC_BUS_POC_EMAIL__c,
-  //   ELEC_BUS_POC_TITLE__c,
-  //   ALT_ELEC_BUS_POC_NAME__c,
-  //   ALT_ELEC_BUS_POC_EMAIL__c,
-  //   ALT_ELEC_BUS_POC_TITLE__c,
   //   PHYSICAL_ADDRESS_LINE_1__c,
   //   PHYSICAL_ADDRESS_LINE_2__c,
   //   PHYSICAL_ADDRESS_CITY__c,
   //   PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
   //   PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
-  //   PHYSICAL_ADDRESS_ZIP_CODE_4__c
+  //   PHYSICAL_ADDRESS_ZIP_CODE_4__c,
+  //   ELEC_BUS_POC_EMAIL__c,
+  //   ELEC_BUS_POC_NAME__c,
+  //   ELEC_BUS_POC_TITLE__c,
+  //   ALT_ELEC_BUS_POC_EMAIL__c,
+  //   ALT_ELEC_BUS_POC_NAME__c,
+  //   ALT_ELEC_BUS_POC_TITLE__c,
+  //   GOVT_BUS_POC_EMAIL__c,
+  //   GOVT_BUS_POC_NAME__c,
+  //   GOVT_BUS_POC_TITLE__c,
+  //   ALT_GOVT_BUS_POC_EMAIL__c,
+  //   ALT_GOVT_BUS_POC_NAME__c,
+  //   ALT_GOVT_BUS_POC_TITLE__c
   // FROM
   //   Data_Staging__c
   // WHERE
@@ -416,28 +419,30 @@ async function queryForSamEntities(req, email) {
         // "*": 1,
         Id: 1,
         ENTITY_COMBO_KEY__c: 1,
-        ENTITY_STATUS__c: 1,
         UNIQUE_ENTITY_ID__c: 1,
         ENTITY_EFT_INDICATOR__c: 1,
+        ENTITY_STATUS__c: 1,
+        EXCLUSION_STATUS_FLAG__c: 1,
+        DEBT_SUBJECT_TO_OFFSET_FLAG__c: 1,
         LEGAL_BUSINESS_NAME__c: 1,
-        GOVT_BUS_POC_NAME__c: 1,
-        GOVT_BUS_POC_EMAIL__c: 1,
-        GOVT_BUS_POC_TITLE__c: 1,
-        ALT_GOVT_BUS_POC_NAME__c: 1,
-        ALT_GOVT_BUS_POC_EMAIL__c: 1,
-        ALT_GOVT_BUS_POC_TITLE__c: 1,
-        ELEC_BUS_POC_NAME__c: 1,
-        ELEC_BUS_POC_EMAIL__c: 1,
-        ELEC_BUS_POC_TITLE__c: 1,
-        ALT_ELEC_BUS_POC_NAME__c: 1,
-        ALT_ELEC_BUS_POC_EMAIL__c: 1,
-        ALT_ELEC_BUS_POC_TITLE__c: 1,
         PHYSICAL_ADDRESS_LINE_1__c: 1,
         PHYSICAL_ADDRESS_LINE_2__c: 1,
         PHYSICAL_ADDRESS_CITY__c: 1,
         PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c: 1,
         PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c: 1,
         PHYSICAL_ADDRESS_ZIP_CODE_4__c: 1,
+        ELEC_BUS_POC_EMAIL__c: 1,
+        ELEC_BUS_POC_NAME__c: 1,
+        ELEC_BUS_POC_TITLE__c: 1,
+        ALT_ELEC_BUS_POC_EMAIL__c: 1,
+        ALT_ELEC_BUS_POC_NAME__c: 1,
+        ALT_ELEC_BUS_POC_TITLE__c: 1,
+        GOVT_BUS_POC_EMAIL__c: 1,
+        GOVT_BUS_POC_NAME__c: 1,
+        GOVT_BUS_POC_TITLE__c: 1,
+        ALT_GOVT_BUS_POC_EMAIL__c: 1,
+        ALT_GOVT_BUS_POC_NAME__c: 1,
+        ALT_GOVT_BUS_POC_TITLE__c: 1,
       },
     )
     .execute(async (err, records) => ((await err) ? err : records));
