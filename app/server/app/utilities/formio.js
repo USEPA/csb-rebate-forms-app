@@ -943,9 +943,10 @@ function fetchFRFSubmission({ rebateYear, req, res }) {
         return res.json(formioNoUserAccess);
       }
 
-      /** Modify 2023 FRF's NCES API endpoint URL for local development */
+      /** Modify 2023 and 2024 FRF's NCES API endpoint URL for local development */
       const formSchemaJson =
-        NODE_ENV === "development" && rebateYear === "2023"
+        NODE_ENV === "development" &&
+        (rebateYear === "2023" || rebateYear === "2024")
           ? modifyDatasourceComponentsUrl(schema)
           : schema;
 

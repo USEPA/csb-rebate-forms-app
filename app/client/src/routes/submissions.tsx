@@ -1704,8 +1704,14 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 
   const frfSubmissionPeriodOpen = configData.submissionPeriodOpen["2024"].frf;
 
-  const { _user_email, _bap_entity_combo_key } = frf.formio.data;
-  const placeholder = true; // TODO: remove once we have UEI, EFTI, org name, and school district fields above
+  const {
+    _user_email,
+    _bap_entity_combo_key,
+    appInfo_uei,
+    appInfo_efti,
+    appInfo_organization_name,
+    _formio_schoolDistrictName,
+  } = frf.formio.data;
 
   const date = new Date(frf.formio.modified).toLocaleDateString();
   const time = new Date(frf.formio.modified).toLocaleTimeString();
@@ -1810,8 +1816,8 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 
       <td className={statusTableCellClassNames}>
         <>
-          {Boolean(placeholder) ? (
-            "TODO"
+          {Boolean(appInfo_uei) ? (
+            appInfo_uei
           ) : (
             <TextWithTooltip
               text=" "
@@ -1819,8 +1825,8 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
             />
           )}
           <br />
-          {Boolean(placeholder) ? (
-            "TODO"
+          {Boolean(appInfo_efti) ? (
+            appInfo_efti
           ) : (
             <TextWithTooltip
               text=" "
@@ -1832,8 +1838,8 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 
       <td className={statusTableCellClassNames}>
         <>
-          {Boolean(placeholder) ? (
-            "TODO"
+          {Boolean(appInfo_organization_name) ? (
+            appInfo_organization_name
           ) : (
             <TextWithTooltip
               text=" "
@@ -1841,8 +1847,8 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
             />
           )}
           <br />
-          {Boolean(placeholder) ? (
-            "TODO"
+          {Boolean(_formio_schoolDistrictName) ? (
+            _formio_schoolDistrictName
           ) : (
             <TextWithTooltip
               text=" "

@@ -274,6 +274,11 @@ type FormioFRF2024Data = {
   _bap_applicant_city: string;
   _bap_applicant_state: string;
   _bap_applicant_zip: string;
+  // fields set by form definition (among others):
+  appInfo_uei: string;
+  appInfo_efti: string;
+  appInfo_organization_name: string;
+  _formio_schoolDistrictName: string;
 };
 
 type FormioPRF2024Data = {
