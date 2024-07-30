@@ -75,9 +75,14 @@ export const formioStatusMap = new Map<string, string>()
 /**
  * BAP internal to external status mapping by year and form type.
  *
- * NOTE: The "Edits Requested" BAP status is supported in the app, but not
- * included in the maps because the BAP status alone can't be used in
- * "Edits Requested" scenarios. See `submissionNeedsEdits()` in `utilities.ts`.
+ * NOTES:
+ * 1. The "Edits Requested" BAP status is supported in the app, but not included
+ * in the maps because the BAP status alone can't be used in "Edits Requested"
+ * scenarios (See `submissionNeedsEdits()` in `utilities.ts`).
+ * 2. The 2022 CRF status "Reimbursement Needed" is supported in the app, but
+ * not included in the map because it relies on both the BAP internal status of
+ * "Branch Director Approved" and the BAP's "Reimbursement_Needed__c" field
+ * (see `submissionNeedsReimbursement()` in `utilities.ts`).
  */
 export const bapStatusMap = {
   2022: {
@@ -93,9 +98,8 @@ export const bapStatusMap = {
       .set("Accepted", "Funding Approved"),
     crf: new Map<string, string>()
       .set("Needs Clarification", "Needs Clarification")
-      .set("Reimbursement Needed", "Reimbursement Needed")
       .set("Branch Director Denied", "Close Out Not Approved")
-      .set("Branch Director Approved", "Close Out Approved"),
+      .set("Accepted", "Close Out Approved"),
   },
   2023: {
     frf: new Map<string, string>()
@@ -108,7 +112,7 @@ export const bapStatusMap = {
       .set("Withdrawn", "Withdrawn")
       .set("Coordinator Denied", "Funding Denied")
       .set("Accepted", "Funding Approved"),
-    crf: new Map<string, string>(),
+    crf: new Map<string, string>(), // TODO
   },
 };
 
