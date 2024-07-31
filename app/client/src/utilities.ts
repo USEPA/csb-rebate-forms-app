@@ -96,6 +96,7 @@ type BapFormSubmission = {
     CSB_Funding_Request_Status__c: string;
     CSB_Payment_Request_Status__c: string;
     CSB_Closeout_Request_Status__c: string;
+    Reimbursement_Needed__c: boolean;
     attributes: { type: string; url: string };
   };
   attributes: { type: string; url: string };
@@ -278,6 +279,7 @@ export type BapSubmission = {
   rebateId: string | null; // CSB Rebate ID (6 digits)
   reviewItemId: string | null; // CSB Rebate ID with form/version ID (9 digits)
   status: string | null;
+  reimbursementNeeded: boolean;
 };
 
 export type Rebate = {
@@ -372,8 +374,8 @@ export function useHelpdeskAccess() {
   return !user
     ? "pending"
     : userRoles.includes("csb_admin") || userRoles.includes("csb_helpdesk")
-    ? "success"
-    : "failure";
+      ? "success"
+      : "failure";
 }
 
 /** Custom hook to fetch CSB config. */
@@ -446,8 +448,8 @@ export function useChangeRequestsQuery(rebateYear: RebateYear) {
     rebateYear === "2022"
       ? changeRequest2022Query
       : rebateYear === "2023"
-      ? changeRequest2023Query
-      : changeRequestQuery;
+        ? changeRequest2023Query
+        : changeRequestQuery;
 
   return useQuery(query);
 }
@@ -461,8 +463,8 @@ export function useChangeRequestsData(rebateYear: RebateYear) {
   return rebateYear === "2022"
     ? queryClient.getQueryData<[]>(["formio/2022/changes"])
     : rebateYear === "2023"
-    ? queryClient.getQueryData<FormioChange2023Submission[]>(["formio/2023/changes"]) // prettier-ignore
-    : undefined;
+      ? queryClient.getQueryData<FormioChange2023Submission[]>(["formio/2023/changes"]) // prettier-ignore
+      : undefined;
 }
 
 /** Custom hook to fetch submissions from the BAP and Formio. */
@@ -487,10 +489,10 @@ export function useSubmissionsQueries(rebateYear: RebateYear) {
               Record_Type_Name__c.startsWith("CSB Funding Request") // prettier-ignore
                 ? "frfs"
                 : Record_Type_Name__c.startsWith("CSB Payment Request")
-                ? "prfs"
-                : Record_Type_Name__c.startsWith("CSB Close Out Request")
-                ? "crfs"
-                : null;
+                  ? "prfs"
+                  : Record_Type_Name__c.startsWith("CSB Close Out Request")
+                    ? "crfs"
+                    : null;
 
             if (rebateYear && formType) {
               object[rebateYear][formType].push(submission);
@@ -589,8 +591,8 @@ export function useSubmissionsQueries(rebateYear: RebateYear) {
     rebateYear === "2022"
       ? [bapQuery, formioFRF2022Query, formioPRF2022Query, formioCRF2022Query]
       : rebateYear === "2023"
-      ? [bapQuery, formioFRF2023Query, formioPRF2023Query, formioCRF2023Query]
-      : [];
+        ? [bapQuery, formioFRF2023Query, formioPRF2023Query, formioCRF2023Query]
+        : [];
 
   return useQueries({ queries });
 }
@@ -609,22 +611,22 @@ function useCombinedSubmissions(rebateYear: RebateYear) {
     rebateYear === "2022"
       ? queryClient.getQueryData<FormioFRF2022Submission[]>(["formio/2022/frf-submissions"]) // prettier-ignore
       : rebateYear === "2023"
-      ? queryClient.getQueryData<FormioFRF2023Submission[]>(["formio/2023/frf-submissions"]) // prettier-ignore
-      : undefined;
+        ? queryClient.getQueryData<FormioFRF2023Submission[]>(["formio/2023/frf-submissions"]) // prettier-ignore
+        : undefined;
 
   const formioPRFSubmissions =
     rebateYear === "2022"
       ? queryClient.getQueryData<FormioPRF2022Submission[]>(["formio/2022/prf-submissions"]) // prettier-ignore
       : rebateYear === "2023"
-      ? queryClient.getQueryData<FormioPRF2023Submission[]>(["formio/2023/prf-submissions"]) // prettier-ignore
-      : undefined;
+        ? queryClient.getQueryData<FormioPRF2023Submission[]>(["formio/2023/prf-submissions"]) // prettier-ignore
+        : undefined;
 
   const formioCRFSubmissions =
     rebateYear === "2022"
       ? queryClient.getQueryData<FormioCRF2022Submission[]>(["formio/2022/crf-submissions"]) // prettier-ignore
       : rebateYear === "2023"
-      ? queryClient.getQueryData<FormioCRF2023Submission[]>(["formio/2023/crf-submissions"]) // prettier-ignore
-      : undefined;
+        ? queryClient.getQueryData<FormioCRF2023Submission[]>(["formio/2023/crf-submissions"]) // prettier-ignore
+        : undefined;
 
   const submissions: {
     [rebateId: string]: Rebate;
@@ -657,6 +659,7 @@ function useCombinedSubmissions(rebateYear: RebateYear) {
     const rebateId = bapMatch?.Parent_Rebate_ID__c || null;
     const reviewItemId = bapMatch?.CSB_Review_Item_ID__c || null;
     const status = bapMatch?.Parent_CSB_Rebate__r?.CSB_Funding_Request_Status__c || null; // prettier-ignore
+    const reimbursementNeeded = bapMatch?.Parent_CSB_Rebate__r?.Reimbursement_Needed__c || false; // prettier-ignore
 
     /**
      * NOTE: If new FRF submissions have been reciently created in Formio and
@@ -670,7 +673,15 @@ function useCombinedSubmissions(rebateYear: RebateYear) {
       rebateYear,
       frf: {
         formio: { ...formioFRFSubmission },
-        bap: { modified, comboKey, mongoId, rebateId, reviewItemId, status },
+        bap: {
+          modified,
+          comboKey,
+          mongoId,
+          rebateId,
+          reviewItemId,
+          status,
+          reimbursementNeeded,
+        },
       },
       prf: { formio: null, bap: null },
       crf: { formio: null, bap: null },
@@ -686,8 +697,8 @@ function useCombinedSubmissions(rebateYear: RebateYear) {
       rebateYear === "2022"
         ? (formioPRFSubmission as FormioPRF2022Submission).data.hidden_bap_rebate_id // prettier-ignore
         : rebateYear === "2023"
-        ? (formioPRFSubmission as FormioPRF2023Submission).data._bap_rebate_id
-        : null;
+          ? (formioPRFSubmission as FormioPRF2023Submission).data._bap_rebate_id
+          : null;
 
     const bapMatch = bapFormSubmissions[rebateYear].prfs.find((bapPRFSub) => {
       return bapPRFSub.Parent_Rebate_ID__c === formioBapRebateId;
@@ -699,11 +710,20 @@ function useCombinedSubmissions(rebateYear: RebateYear) {
     const rebateId = bapMatch?.Parent_Rebate_ID__c || null;
     const reviewItemId = bapMatch?.CSB_Review_Item_ID__c || null;
     const status = bapMatch?.Parent_CSB_Rebate__r?.CSB_Payment_Request_Status__c || null; // prettier-ignore
+    const reimbursementNeeded = bapMatch?.Parent_CSB_Rebate__r?.Reimbursement_Needed__c || false; // prettier-ignore
 
     if (formioBapRebateId && submissions[formioBapRebateId]) {
       submissions[formioBapRebateId].prf = {
         formio: { ...formioPRFSubmission },
-        bap: { modified, comboKey, mongoId, rebateId, reviewItemId, status },
+        bap: {
+          modified,
+          comboKey,
+          mongoId,
+          rebateId,
+          reviewItemId,
+          status,
+          reimbursementNeeded,
+        },
       };
     }
   }
@@ -717,8 +737,8 @@ function useCombinedSubmissions(rebateYear: RebateYear) {
       rebateYear === "2022"
         ? (formioCRFSubmission as FormioCRF2022Submission).data.hidden_bap_rebate_id // prettier-ignore
         : rebateYear === "2023"
-        ? (formioCRFSubmission as FormioCRF2023Submission).data._bap_rebate_id
-        : null;
+          ? (formioCRFSubmission as FormioCRF2023Submission).data._bap_rebate_id
+          : null;
 
     const bapMatch = bapFormSubmissions[rebateYear].crfs.find((bapCRFSub) => {
       return bapCRFSub.Parent_Rebate_ID__c === formioBapRebateId;
@@ -730,11 +750,20 @@ function useCombinedSubmissions(rebateYear: RebateYear) {
     const rebateId = bapMatch?.Parent_Rebate_ID__c || null;
     const reviewItemId = bapMatch?.CSB_Review_Item_ID__c || null;
     const status = bapMatch?.Parent_CSB_Rebate__r?.CSB_Closeout_Request_Status__c || null; // prettier-ignore
+    const reimbursementNeeded = bapMatch?.Parent_CSB_Rebate__r?.Reimbursement_Needed__c || false; // prettier-ignore
 
     if (formioBapRebateId && submissions[formioBapRebateId]) {
       submissions[formioBapRebateId].crf = {
         formio: { ...formioCRFSubmission },
-        bap: { modified, comboKey, mongoId, rebateId, reviewItemId, status },
+        bap: {
+          modified,
+          comboKey,
+          mongoId,
+          rebateId,
+          reviewItemId,
+          status,
+          reimbursementNeeded,
+        },
       };
     }
   }
@@ -854,6 +883,19 @@ export function submissionNeedsEdits(options: {
     (formio.state === "draft" ||
       (formio.state === "submitted" && !submissionHasBeenUpdatedSinceLastETL))
   );
+}
+
+/**
+ * Determines whether a submission needs reimbursement, based on the BAP status
+ * and reimbursement status.
+ */
+export function submissionNeedsReimbursement(options: {
+  status: string;
+  reimbursementNeeded: boolean;
+}) {
+  const { status, reimbursementNeeded } = options;
+
+  return status === "Branch Director Approved" && reimbursementNeeded;
 }
 
 /**

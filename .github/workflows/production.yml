@@ -21,7 +21,7 @@ jobs:
 
     # Set environment variables
     env:
-      APP_VERSION: 5.0
+      APP_VERSION: 5.0.2
       CLOUD_SPACE: production
       SERVER_BASE_PATH: /csb
       FORMIO_BASE_URL: ${{ secrets.FORMIO_BASE_URL }}

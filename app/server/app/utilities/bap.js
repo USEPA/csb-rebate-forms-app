@@ -57,6 +57,7 @@ const { submissionPeriodOpen } = require("../config/formio");
  *  CSB_Funding_Request_Status__c: string
  *  CSB_Payment_Request_Status__c: string
  *  CSB_Closeout_Request_Status__c: string
+ *  Reimbursement_Needed__c: boolean
  * }} Parent_CSB_Rebate__r
  * @property {{
  *  type: string
@@ -517,7 +518,8 @@ async function queryForBapFormSubmissionData(
   //   Rebate_Program_Year__c,
   //   Parent_CSB_Rebate__r.CSB_Funding_Request_Status__c,
   //   Parent_CSB_Rebate__r.CSB_Payment_Request_Status__c,
-  //   Parent_CSB_Rebate__r.CSB_Closeout_Request_Status__c
+  //   Parent_CSB_Rebate__r.CSB_Closeout_Request_Status__c,
+  //   Parent_CSB_Rebate__r.Reimbursement_Needed__c
   // FROM
   //   Order_Request__c
   // WHERE
@@ -546,6 +548,7 @@ async function queryForBapFormSubmissionData(
         "Parent_CSB_Rebate__r.CSB_Funding_Request_Status__c": 1,
         "Parent_CSB_Rebate__r.CSB_Payment_Request_Status__c": 1,
         "Parent_CSB_Rebate__r.CSB_Closeout_Request_Status__c": 1,
+        "Parent_CSB_Rebate__r.Reimbursement_Needed__c": 1,
       },
     )
     .execute(async (err, records) => ((await err) ? err : records));
@@ -613,7 +616,8 @@ async function queryForBapFormSubmissionsStatuses(req) {
   //   Rebate_Program_Year__c,
   //   Parent_CSB_Rebate__r.CSB_Funding_Request_Status__c,
   //   Parent_CSB_Rebate__r.CSB_Payment_Request_Status__c,
-  //   Parent_CSB_Rebate__r.CSB_Closeout_Request_Status__c
+  //   Parent_CSB_Rebate__r.CSB_Closeout_Request_Status__c,
+  //   Parent_CSB_Rebate__r.Reimbursement_Needed__c
   // FROM
   //   Order_Request__c
   // WHERE
@@ -643,6 +647,7 @@ async function queryForBapFormSubmissionsStatuses(req) {
         "Parent_CSB_Rebate__r.CSB_Funding_Request_Status__c": 1,
         "Parent_CSB_Rebate__r.CSB_Payment_Request_Status__c": 1,
         "Parent_CSB_Rebate__r.CSB_Closeout_Request_Status__c": 1,
+        "Parent_CSB_Rebate__r.Reimbursement_Needed__c": 1,
       },
     )
     .sort({ CreatedDate: -1 })
@@ -1599,10 +1604,10 @@ function checkFormSubmissionPeriodAndBapStatus({
       formType === "frf"
         ? "CSB_Funding_Request_Status__c"
         : formType === "prf"
-        ? "CSB_Payment_Request_Status__c"
-        : formType === "crf"
-        ? "CSB_Closeout_Request_Status__c"
-        : null;
+          ? "CSB_Payment_Request_Status__c"
+          : formType === "crf"
+            ? "CSB_Closeout_Request_Status__c"
+            : null;
 
     return submission?.Parent_CSB_Rebate__r?.[statusField] === "Edits Requested"
       ? Promise.resolve()
