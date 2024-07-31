@@ -494,6 +494,7 @@ function useCombinedSubmissions<Year extends RebateYear>(
     const rebateId = bapMatch?.Parent_Rebate_ID__c || null;
     const reviewItemId = bapMatch?.CSB_Review_Item_ID__c || null;
     const status = bapMatch?.Parent_CSB_Rebate__r?.CSB_Funding_Request_Status__c || null; // prettier-ignore
+    const reimbursementNeeded = bapMatch?.Parent_CSB_Rebate__r?.Reimbursement_Needed__c || false; // prettier-ignore
 
     /**
      * NOTE: If new FRF submissions have been reciently created in Formio and
@@ -507,7 +508,15 @@ function useCombinedSubmissions<Year extends RebateYear>(
       rebateYear,
       frf: {
         formio: { ...formioFRFSubmission },
-        bap: { modified, comboKey, mongoId, rebateId, reviewItemId, status },
+        bap: {
+          modified,
+          comboKey,
+          mongoId,
+          rebateId,
+          reviewItemId,
+          status,
+          reimbursementNeeded,
+        },
       },
       prf: { formio: null, bap: null },
       crf: { formio: null, bap: null },
@@ -533,11 +542,20 @@ function useCombinedSubmissions<Year extends RebateYear>(
     const rebateId = bapMatch?.Parent_Rebate_ID__c || null;
     const reviewItemId = bapMatch?.CSB_Review_Item_ID__c || null;
     const status = bapMatch?.Parent_CSB_Rebate__r?.CSB_Payment_Request_Status__c || null; // prettier-ignore
+    const reimbursementNeeded = bapMatch?.Parent_CSB_Rebate__r?.Reimbursement_Needed__c || false; // prettier-ignore
 
     if (formioBapRebateId && submissions[formioBapRebateId]) {
       submissions[formioBapRebateId].prf = {
         formio: { ...formioPRFSubmission },
-        bap: { modified, comboKey, mongoId, rebateId, reviewItemId, status },
+        bap: {
+          modified,
+          comboKey,
+          mongoId,
+          rebateId,
+          reviewItemId,
+          status,
+          reimbursementNeeded,
+        },
       } as Rebate<Year>["prf"];
     }
   }
@@ -561,11 +579,20 @@ function useCombinedSubmissions<Year extends RebateYear>(
     const rebateId = bapMatch?.Parent_Rebate_ID__c || null;
     const reviewItemId = bapMatch?.CSB_Review_Item_ID__c || null;
     const status = bapMatch?.Parent_CSB_Rebate__r?.CSB_Closeout_Request_Status__c || null; // prettier-ignore
+    const reimbursementNeeded = bapMatch?.Parent_CSB_Rebate__r?.Reimbursement_Needed__c || false; // prettier-ignore
 
     if (formioBapRebateId && submissions[formioBapRebateId]) {
       submissions[formioBapRebateId].crf = {
         formio: { ...formioCRFSubmission },
-        bap: { modified, comboKey, mongoId, rebateId, reviewItemId, status },
+        bap: {
+          modified,
+          comboKey,
+          mongoId,
+          rebateId,
+          reviewItemId,
+          status,
+          reimbursementNeeded,
+        },
       } as Rebate<Year>["crf"];
     }
   }
@@ -687,6 +714,19 @@ export function submissionNeedsEdits(options: {
     (formio.state === "draft" ||
       (formio.state === "submitted" && !submissionHasBeenUpdatedSinceLastETL))
   );
+}
+
+/**
+ * Determines whether a submission needs reimbursement, based on the BAP status
+ * and reimbursement status.
+ */
+export function submissionNeedsReimbursement(options: {
+  status: string;
+  reimbursementNeeded: boolean;
+}) {
+  const { status, reimbursementNeeded } = options;
+
+  return status === "Branch Director Approved" && reimbursementNeeded;
 }
 
 /**

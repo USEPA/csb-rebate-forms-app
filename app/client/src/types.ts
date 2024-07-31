@@ -98,6 +98,7 @@ export type BapFormSubmission = {
     CSB_Funding_Request_Status__c: string;
     CSB_Payment_Request_Status__c: string;
     CSB_Closeout_Request_Status__c: string;
+    Reimbursement_Needed__c: boolean;
     attributes: { type: string; url: string };
   };
   attributes: { type: string; url: string };
@@ -128,6 +129,7 @@ export type BapSubmissionData = {
   rebateId: string | null; // CSB Rebate ID (6 digits)
   reviewItemId: string | null; // CSB Rebate ID with form/version ID (9 digits)
   status: string | null;
+  reimbursementNeeded: boolean;
 };
 
 export type FormioSubmission = {

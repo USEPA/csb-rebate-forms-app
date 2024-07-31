@@ -32,6 +32,7 @@ import {
   useSubmissionsQueries,
   useSubmissions,
   submissionNeedsEdits,
+  submissionNeedsReimbursement,
   getUserInfo,
 } from "@/utilities";
 import { Loading, LoadingButtonIcon } from "@/components/loading";
@@ -717,12 +718,20 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
 
   const crfBapInternalStatus = crf.bap?.status || "";
   const crfFormioStatus = formioStatusMap.get(crf.formio.state);
+  const crfBapReimbursementNeeded = crf.bap?.reimbursementNeeded || false;
+
+  const crfNeedsReimbursement = submissionNeedsReimbursement({
+    status: crfBapInternalStatus,
+    reimbursementNeeded: crfBapReimbursementNeeded,
+  });
 
   const crfStatus = crfNeedsEdits
     ? "Edits Requested"
-    : bapStatusMap["2022"].crf.get(crfBapInternalStatus) ||
-      crfFormioStatus ||
-      "";
+    : crfNeedsReimbursement
+      ? "Reimbursement Needed"
+      : bapStatusMap["2022"].crf.get(crfBapInternalStatus) ||
+        crfFormioStatus ||
+        "";
 
   const crfApproved = crfStatus === "Close Out Approved";
 
