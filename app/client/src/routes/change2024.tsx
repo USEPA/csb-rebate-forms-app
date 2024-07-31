@@ -6,7 +6,7 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import {
   type FormioSchemaAndSubmission,
-  type FormioChange2023Submission,
+  type FormioChange2024Submission,
 } from "@/types";
 import { serverUrl, messages } from "@/config";
 import { getData, useContentData } from "@/utilities";
@@ -14,20 +14,20 @@ import { Loading } from "@/components/loading";
 import { Message } from "@/components/message";
 import { MarkdownContent } from "@/components/markdownContent";
 
-type Response = FormioSchemaAndSubmission<FormioChange2023Submission>;
+type Response = FormioSchemaAndSubmission<FormioChange2024Submission>;
 
 /** Custom hook to fetch Formio submission data */
 function useFormioSubmissionQuery(mongoId: string | undefined) {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    queryClient.resetQueries({ queryKey: ["formio/2023/change"] });
+    queryClient.resetQueries({ queryKey: ["formio/2024/change"] });
   }, [queryClient]);
 
-  const url = `${serverUrl}/api/formio/2023/change/${mongoId}`;
+  const url = `${serverUrl}/api/formio/2024/change/${mongoId}`;
 
   const query = useQuery({
-    queryKey: ["formio/2023/change", { id: mongoId }],
+    queryKey: ["formio/2024/change", { id: mongoId }],
     queryFn: () => getData<Response>(url),
     refetchOnWindowFocus: false,
   });
@@ -35,7 +35,7 @@ function useFormioSubmissionQuery(mongoId: string | undefined) {
   return { query };
 }
 
-export function Change2023() {
+export function Change2024() {
   const { id: mongoId } = useParams<"id">(); // MongoDB ObjectId string
 
   const content = useContentData();

@@ -12,6 +12,9 @@ const {
   CSB_2023_FRF_OPEN,
   CSB_2023_PRF_OPEN,
   CSB_2023_CRF_OPEN,
+  CSB_2024_FRF_OPEN,
+  CSB_2024_PRF_OPEN,
+  CSB_2024_CRF_OPEN,
   FORMIO_BASE_URL,
   FORMIO_PROJECT_NAME,
   FORMIO_API_KEY,
@@ -22,6 +25,10 @@ const {
   FORMIO_2023_PRF_PATH,
   FORMIO_2023_CRF_PATH,
   FORMIO_2023_CHANGE_PATH,
+  FORMIO_2024_FRF_PATH,
+  FORMIO_2024_PRF_PATH,
+  FORMIO_2024_CRF_PATH,
+  FORMIO_2024_CHANGE_PATH,
 } = process.env;
 
 const formioProjectUrl = `${FORMIO_BASE_URL}/${FORMIO_PROJECT_NAME}`;
@@ -42,6 +49,12 @@ const formUrl = {
     crf: `${formioProjectUrl}/${FORMIO_2023_CRF_PATH}`,
     change: `${formioProjectUrl}/${FORMIO_2023_CHANGE_PATH}`,
   },
+  2024: {
+    frf: `${formioProjectUrl}/${FORMIO_2024_FRF_PATH}`,
+    prf: `${formioProjectUrl}/${FORMIO_2024_PRF_PATH}`,
+    crf: `${formioProjectUrl}/${FORMIO_2024_CRF_PATH}`,
+    change: `${formioProjectUrl}/${FORMIO_2024_CHANGE_PATH}`,
+  },
 };
 
 /**
@@ -57,6 +70,11 @@ const submissionPeriodOpen = {
     frf: CSB_2023_FRF_OPEN === "true",
     prf: CSB_2023_PRF_OPEN === "true",
     crf: CSB_2023_CRF_OPEN === "true",
+  },
+  2024: {
+    frf: CSB_2024_FRF_OPEN === "true",
+    prf: CSB_2024_PRF_OPEN === "true",
+    crf: CSB_2024_CRF_OPEN === "true",
   },
 };
 

@@ -6,7 +6,7 @@ import { Form } from "@formio/react";
 import clsx from "clsx";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { type FormType, type FormioChange2023Submission } from "@/types";
+import { type FormType, type FormioChange2024Submission } from "@/types";
 import { serverUrl, messages } from "@/config";
 import {
   getData,
@@ -34,10 +34,10 @@ type Response = { url: string; json: object };
 
 /** Custom hook to fetch Formio schema */
 function useFormioSchemaQuery() {
-  const url = `${serverUrl}/api/formio/2023/change`;
+  const url = `${serverUrl}/api/formio/2024/change`;
 
   const query = useQuery({
-    queryKey: ["formio/2023/change"],
+    queryKey: ["formio/2024/change"],
     queryFn: () => getData<Response>(url),
     refetchOnWindowFocus: false,
   });
@@ -47,18 +47,18 @@ function useFormioSchemaQuery() {
 
 /** Custom hook to update Formio submission submission data */
 function useFormioSubmissionMutation() {
-  const url = `${serverUrl}/api/formio/2023/change/`;
+  const url = `${serverUrl}/api/formio/2024/change/`;
 
   const mutation = useMutation({
-    mutationFn: (submission: FormioChange2023Submission) => {
-      return postData<FormioChange2023Submission>(url, submission);
+    mutationFn: (submission: FormioChange2024Submission) => {
+      return postData<FormioChange2024Submission>(url, submission);
     },
   });
 
   return { mutation };
 }
 
-export function ChangeRequest2023Button(props: { data: ChangeRequestData }) {
+export function ChangeRequest2024Button(props: { data: ChangeRequestData }) {
   const { data } = props;
 
   const [dialogShown, setDialogShown] = useState(false);
@@ -91,7 +91,7 @@ export function ChangeRequest2023Button(props: { data: ChangeRequestData }) {
         </span>
       </button>
 
-      <ChangeRequest2023Dialog
+      <ChangeRequest2024Dialog
         dialogShown={dialogShown}
         closeDialog={closeDialog}
         data={data}
@@ -100,7 +100,7 @@ export function ChangeRequest2023Button(props: { data: ChangeRequestData }) {
   );
 }
 
-function ChangeRequest2023Dialog(props: {
+function ChangeRequest2024Dialog(props: {
   dialogShown: boolean;
   closeDialog: () => void;
   data: ChangeRequestData;
@@ -185,7 +185,7 @@ function ChangeRequest2023Dialog(props: {
                 </div>
 
                 <div className={clsx("tw-m-auto tw-max-w-6xl tw-p-4")}>
-                  <ChangeRequest2023Form
+                  <ChangeRequest2024Form
                     data={data}
                     closeDialog={closeDialog}
                   />
@@ -200,7 +200,7 @@ function ChangeRequest2023Dialog(props: {
   );
 }
 
-function ChangeRequest2023Form(props: {
+function ChangeRequest2024Form(props: {
   data: ChangeRequestData;
   closeDialog: () => void;
 }) {
@@ -215,7 +215,7 @@ function ChangeRequest2023Form(props: {
     dismissNotification,
   } = useNotificationsActions();
 
-  const changeRequestsQuery = useChangeRequestsQuery("2023");
+  const changeRequestsQuery = useChangeRequestsQuery("2024");
 
   const { query } = useFormioSchemaQuery();
   const { mutation } = useFormioSubmissionMutation();
@@ -296,7 +296,7 @@ function ChangeRequest2023Form(props: {
           options={{
             noAlerts: true,
           }}
-          onSubmit={(onSubmitSubmission: FormioChange2023Submission) => {
+          onSubmit={(onSubmitSubmission: FormioChange2024Submission) => {
             // account for when form is being submitted to prevent double submits
             if (formIsBeingSubmitted.current) return;
             formIsBeingSubmitted.current = true;

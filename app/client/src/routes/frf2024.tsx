@@ -10,7 +10,7 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import {
   type FormioSchemaAndSubmission,
-  type FormioPRF2023Submission,
+  type FormioFRF2024Submission,
 } from "@/types";
 import { serverUrl, messages } from "@/config";
 import {
@@ -27,25 +27,25 @@ import {
 import { Loading } from "@/components/loading";
 import { Message } from "@/components/message";
 import { MarkdownContent } from "@/components/markdownContent";
+import { useDialogActions } from "@/contexts/dialog";
 import { useNotificationsActions } from "@/contexts/notifications";
 
-type Response = FormioSchemaAndSubmission<FormioPRF2023Submission>;
+type Response = FormioSchemaAndSubmission<FormioFRF2024Submission>;
 
 /** Custom hook to fetch and update Formio submission data */
-function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
+function useFormioSubmissionQueryAndMutation(mongoId: string | undefined) {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    queryClient.resetQueries({ queryKey: ["formio/2023/prf-submission"] });
+    queryClient.resetQueries({ queryKey: ["formio/2024/frf-submission"] });
   }, [queryClient]);
 
-  const url = `${serverUrl}/api/formio/2023/prf-submission/${rebateId}`;
+  const url = `${serverUrl}/api/formio/2024/frf-submission/${mongoId}`;
 
   const query = useQuery({
-    queryKey: ["formio/2023/prf-submission", { id: rebateId }],
+    queryKey: ["formio/2024/frf-submission", { id: mongoId }],
     queryFn: () => {
       return getData<Response>(url).then((res) => {
-        const mongoId = res.submission?._id;
         const comboKey = res.submission?.data._bap_entity_combo_key;
 
         /**
@@ -61,7 +61,7 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
           [field: string]: unknown;
         }) {
           const s3Formio = cloneDeep(formio);
-          s3Formio.formUrl = `${serverUrl}/api/formio/2023/s3/prf/${mongoId}/${comboKey}`;
+          s3Formio.formUrl = `${serverUrl}/api/formio/2024/s3/frf/${mongoId}/${comboKey}`;
           return s3(s3Formio);
         };
 
@@ -73,18 +73,15 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
 
   const mutation = useMutation({
     mutationFn: (updatedSubmission: {
-      mongoId: string;
-      submission: {
-        data: { [field: string]: unknown };
-        metadata: { [field: string]: unknown };
-        state: "submitted" | "draft";
-      };
+      data: { [field: string]: unknown };
+      metadata: { [field: string]: unknown };
+      state: "submitted" | "draft";
     }) => {
-      return postData<FormioPRF2023Submission>(url, updatedSubmission);
+      return postData<FormioFRF2024Submission>(url, updatedSubmission);
     },
     onSuccess: (res) => {
       return queryClient.setQueryData<Response>(
-        ["formio/2023/prf-submission", { id: rebateId }],
+        ["formio/2024/frf-submission", { id: mongoId }],
         (prevData) => {
           return prevData?.submission
             ? { ...prevData, submission: res }
@@ -97,33 +94,35 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
   return { query, mutation };
 }
 
-export function PRF2023() {
+export function FRF2024() {
   const { email } = useOutletContext<{ email: string }>();
   /* ensure user verification (JWT refresh) doesn't cause form to re-render */
   return useMemo(() => {
-    return <PaymentRequestForm email={email} />;
+    return <FundingRequestForm email={email} />;
   }, [email]);
 }
 
-function PaymentRequestForm(props: { email: string }) {
+function FundingRequestForm(props: { email: string }) {
   const { email } = props;
 
   const navigate = useNavigate();
-  const { id: rebateId } = useParams<"id">(); // CSB Rebate ID (6 digits)
+  const { id: mongoId } = useParams<"id">(); // MongoDB ObjectId string
 
   const content = useContentData();
   const configData = useConfigData();
   const bapSamData = useBapSamData();
+  const { displayDialog } = useDialogActions();
   const {
+    displayInfoNotification,
     displaySuccessNotification,
     displayErrorNotification,
     dismissNotification,
   } = useNotificationsActions();
 
-  const submissionsQueries = useSubmissionsQueries("2023");
-  const submissions = useSubmissions("2023");
+  const submissionsQueries = useSubmissionsQueries("2024");
+  const submissions = useSubmissions("2024");
 
-  const { query, mutation } = useFormioSubmissionQueryAndMutation(rebateId);
+  const { query, mutation } = useFormioSubmissionQueryAndMutation(mongoId);
   const { userAccess, formSchema, submission } = query.data ?? {};
 
   /**
@@ -177,7 +176,7 @@ function PaymentRequestForm(props: { email: string }) {
     return <Message type="error" text={messages.formSubmissionError} />;
   }
 
-  const rebate = submissions.find((r) => r.rebateId === rebateId);
+  const rebate = submissions.find((r) => r.frf.formio._id === mongoId);
 
   const frfNeedsEdits = !rebate
     ? false
@@ -186,21 +185,135 @@ function PaymentRequestForm(props: { email: string }) {
         bap: rebate.frf.bap,
       });
 
-  const prfNeedsEdits = !rebate
-    ? false
-    : submissionNeedsEdits({
-        formio: rebate.prf.formio,
-        bap: rebate.prf.bap,
-      });
+  const frfNeedsEditsAndPRFExists = frfNeedsEdits && !!rebate?.prf.formio;
 
-  const prfSubmissionPeriodOpen = configData.submissionPeriodOpen["2023"].prf;
+  /**
+   * NOTE: If the FRF submission needs edits and there's a corresponding PRF
+   * submission, display a confirmation dialog prompting the user to delete the
+   * PRF submission, as it's data will no longer valid when the FRF submission's
+   * data is changed.
+   */
+  if (frfNeedsEditsAndPRFExists) {
+    displayDialog({
+      dismissable: true,
+      heading: "Submission Edits Requested",
+      description: (
+        <>
+          <p>
+            This Application form submission has been opened at the request of
+            the applicant to make edits, but before you can make edits, the
+            associated Payment Request form submission needs to be deleted. If
+            the request to make edits to your Application form submission was
+            made in error, contact the Clean School Bus Program helpline at{" "}
+            <a href="mailto:cleanschoolbus@epa.gov">cleanschoolbus@epa.gov</a>.
+          </p>
+
+          <p>
+            If you’d like to view the Payment Request form submission before
+            deletion, please close this dialog box, and you will be re-directed
+            to the associated Payment Request form.
+          </p>
+
+          <p>
+            To proceed with deleting the associated Payment Request form
+            submission, please select the{" "}
+            <strong>Delete Payment Request Form Submission</strong> button
+            below, and the Payment Request form submission will be deleted. The
+            Application form will then be open for editing.
+          </p>
+
+          <div className="usa-alert usa-alert--error" role="alert">
+            <div className="usa-alert__body">
+              <p className="usa-alert__text">
+                <strong>Please note:</strong> Once deleted, the Payment Request
+                form submission will be removed from your dashboard and cannot
+                be recovered.
+              </p>
+            </div>
+          </div>
+        </>
+      ),
+      confirmText: "Delete Payment Request Form Submission",
+      confirmedAction: () => {
+        const prf = rebate.prf.formio;
+
+        if (!prf) {
+          displayErrorNotification({
+            id: Date.now(),
+            body: (
+              <>
+                <p
+                  className={clsx("tw-text-sm tw-font-medium tw-text-gray-900")}
+                >
+                  Error deleting Payment Request <em>{rebate.rebateId}</em>.
+                </p>
+                <p className={clsx("tw-mt-1 tw-text-sm tw-text-gray-500")}>
+                  Please notify the helpdesk that a problem exists preventing
+                  the deletion of Payment Request form submission{" "}
+                  <em>{rebate.rebateId}</em>.
+                </p>
+              </>
+            ),
+          });
+
+          // NOTE: logging rebate for helpdesk debugging purposes
+          console.log(rebate);
+          return;
+        }
+
+        displayInfoNotification({
+          id: Date.now(),
+          body: (
+            <p className={clsx("tw-text-sm tw-font-medium tw-text-gray-900")}>
+              Deleting Payment Request <em>{rebate.rebateId}</em>...
+            </p>
+          ),
+        });
+
+        const url = `${serverUrl}/api/formio/2024/delete-prf-submission`;
+
+        postData(url, {
+          mongoId: prf._id,
+          rebateId: prf.data._bap_rebate_id,
+          comboKey: prf.data._bap_entity_combo_key,
+        })
+          .then((_res) => {
+            window.location.reload();
+          })
+          .catch((_err) => {
+            displayErrorNotification({
+              id: Date.now(),
+              body: (
+                <>
+                  <p
+                    className={clsx(
+                      "tw-text-sm tw-font-medium tw-text-gray-900",
+                    )}
+                  >
+                    Error deleting Payment Request <em>{rebate.rebateId}</em>.
+                  </p>
+                  <p className={clsx("tw-mt-1 tw-text-sm tw-text-gray-500")}>
+                    Please reload the page to attempt the deletion again, or
+                    contact the helpdesk if the problem persists.
+                  </p>
+                </>
+              ),
+            });
+          });
+      },
+      dismissedAction: () => navigate(`/prf/2024/${rebate.rebateId}`),
+    });
+
+    return null;
+  }
+
+  const frfSubmissionPeriodOpen = configData.submissionPeriodOpen["2024"].frf;
 
   const formIsReadOnly =
-    frfNeedsEdits ||
-    ((submission.state === "submitted" || !prfSubmissionPeriodOpen) &&
-      !prfNeedsEdits);
+    (submission.state === "submitted" || !frfSubmissionPeriodOpen) &&
+    !frfNeedsEdits;
 
-  /** matched SAM.gov entity for the Payment Request submission */
+  /** matched SAM.gov entity for the Application submission */
   const entity = bapSamData.entities.find((entity) => {
     const { ENTITY_COMBO_KEY__c } = entity;
     return ENTITY_COMBO_KEY__c === submission.data._bap_entity_combo_key;
@@ -214,13 +327,6 @@ function PaymentRequestForm(props: { email: string }) {
     return <Message type="error" text={messages.bapSamEntityNotActive} />;
   }
 
-  const {
-    ELEC_BUS_POC_EMAIL__c,
-    ALT_ELEC_BUS_POC_EMAIL__c,
-    GOVT_BUS_POC_EMAIL__c,
-    ALT_GOVT_BUS_POC_EMAIL__c,
-  } = entity;
-
   const { title, name } = getUserInfo(email, entity);
 
   return (
@@ -230,16 +336,12 @@ function PaymentRequestForm(props: { email: string }) {
           className="margin-top-4"
           children={
             submission.state === "draft"
-              ? content.draftPRFIntro
+              ? content.draftFRFIntro
               : submission.state === "submitted"
-                ? content.submittedPRFIntro
+                ? content.submittedFRFIntro
                 : ""
           }
         />
-      )}
-
-      {frfNeedsEdits && (
-        <Message type="warning" text={messages.prfWillBeDeleted} />
       )}
 
       <ul className="usa-icon-list">
@@ -250,9 +352,22 @@ function PaymentRequestForm(props: { email: string }) {
             </svg>
           </div>
           <div className="usa-icon-list__content">
-            <strong>Rebate ID:</strong> {rebateId}
+            <strong>Application ID:</strong> {submission._id}
           </div>
         </li>
+
+        {rebate?.frf.bap?.rebateId && (
+          <li className="usa-icon-list__item">
+            <div className="usa-icon-list__icon text-primary">
+              <svg className="usa-icon" aria-hidden="true" role="img">
+                <use href={`${icons}#local_offer`} />
+              </svg>
+            </div>
+            <div className="usa-icon-list__content">
+              <strong>Rebate ID:</strong> {rebate.frf.bap.rebateId}
+            </div>
+          </li>
+        )}
       </ul>
 
       <Dialog as="div" open={dataIsPosting.current} onClose={(_value) => {}}>
@@ -285,10 +400,6 @@ function PaymentRequestForm(props: { email: string }) {
               _user_email: email,
               _user_title: title,
               _user_name: name,
-              _bap_elec_bus_poc_email: ELEC_BUS_POC_EMAIL__c,
-              _bap_alt_elec_bus_poc_email: ALT_ELEC_BUS_POC_EMAIL__c,
-              _bap_govt_bus_poc_email: GOVT_BUS_POC_EMAIL__c,
-              _bap_alt_govt_bus_poc_email: ALT_GOVT_BUS_POC_EMAIL__c,
               ...pendingSubmissionData.current,
             },
           }}
@@ -312,11 +423,8 @@ function PaymentRequestForm(props: { email: string }) {
             const data = { ...onSubmitSubmission.data };
 
             const updatedSubmission = {
-              mongoId: submission._id,
-              submission: {
-                ...onSubmitSubmission,
-                data,
-              },
+              ...onSubmitSubmission,
+              data,
             };
 
             dismissNotification({ id: 0 });
@@ -341,8 +449,7 @@ function PaymentRequestForm(props: { email: string }) {
                     >
                       {onSubmitSubmission.state === "submitted" ? (
                         <>
-                          Payment Request <em>{rebateId}</em> submitted
-                          successfully.
+                          Application <em>{mongoId}</em> submitted successfully.
                         </>
                       ) : (
                         <>Draft saved successfully.</>
@@ -373,7 +480,7 @@ function PaymentRequestForm(props: { email: string }) {
                       )}
                     >
                       {onSubmitSubmission.state === "submitted" ? (
-                        <>Error submitting Payment Request form.</>
+                        <>Error submitting Application form.</>
                       ) : (
                         <>Error saving draft.</>
                       )}
@@ -402,7 +509,6 @@ function PaymentRequestForm(props: { email: string }) {
             // to the form (ignoring current user fields)
             const currentData = { ...data };
             const submittedData = { ...lastSuccesfullySubmittedData.current };
-
             delete currentData._user_email;
             delete currentData._user_title;
             delete currentData._user_name;
@@ -412,12 +518,9 @@ function PaymentRequestForm(props: { email: string }) {
             if (isEqual(currentData, submittedData)) return;
 
             const updatedSubmission = {
-              mongoId: submission._id,
-              submission: {
-                ...onNextPageParam.submission,
-                data,
-                state: "draft" as const,
-              },
+              ...onNextPageParam.submission,
+              data,
+              state: "draft" as const,
             };
 
             dismissNotification({ id: 0 });
@@ -468,10 +571,6 @@ function PaymentRequestForm(props: { email: string }) {
           }}
         />
       </div>
-
-      {frfNeedsEdits && (
-        <Message type="warning" text={messages.prfWillBeDeleted} />
-      )}
     </div>
   );
 }

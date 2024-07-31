@@ -7,31 +7,41 @@ const log = require("../utilities/logger");
 const { submissionPeriodOpen } = require("../config/formio");
 
 /**
+ * @typedef {'2022' | '2023' | '2024'} RebateYear
+ */
+
+/**
+ * @typedef {'frf' | 'prf' | 'crf'} FormType
+ */
+
+/**
  * @typedef {Object} BapSamEntity
  * @property {string} Id
  * @property {string} ENTITY_COMBO_KEY__c
- * @property {string} ENTITY_STATUS__c
  * @property {string} UNIQUE_ENTITY_ID__c
  * @property {?string} ENTITY_EFT_INDICATOR__c
+ * @property {string} ENTITY_STATUS__c
+ * @property {?string} EXCLUSION_STATUS_FLAG__c
+ * @property {?string} DEBT_SUBJECT_TO_OFFSET_FLAG__c
  * @property {string} LEGAL_BUSINESS_NAME__c
- * @property {?string} GOVT_BUS_POC_NAME__c
- * @property {?string} GOVT_BUS_POC_EMAIL__c
- * @property {?string} GOVT_BUS_POC_TITLE__c
- * @property {?string} ALT_GOVT_BUS_POC_NAME__c
- * @property {?string} ALT_GOVT_BUS_POC_EMAIL__c
- * @property {?string} ALT_GOVT_BUS_POC_TITLE__c
- * @property {?string} ELEC_BUS_POC_NAME__c
- * @property {?string} ELEC_BUS_POC_EMAIL__c
- * @property {?string} ELEC_BUS_POC_TITLE__c
- * @property {?string} ALT_ELEC_BUS_POC_NAME__c
- * @property {?string} ALT_ELEC_BUS_POC_EMAIL__c
- * @property {?string} ALT_ELEC_BUS_POC_TITLE__c
  * @property {string} PHYSICAL_ADDRESS_LINE_1__c
  * @property {?string} PHYSICAL_ADDRESS_LINE_2__c
  * @property {string} PHYSICAL_ADDRESS_CITY__c
  * @property {string} PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c
  * @property {string} PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c
  * @property {string} PHYSICAL_ADDRESS_ZIP_CODE_4__c
+ * @property {?string} ELEC_BUS_POC_EMAIL__c
+ * @property {?string} ELEC_BUS_POC_NAME__c
+ * @property {?string} ELEC_BUS_POC_TITLE__c
+ * @property {?string} ALT_ELEC_BUS_POC_EMAIL__c
+ * @property {?string} ALT_ELEC_BUS_POC_NAME__c
+ * @property {?string} ALT_ELEC_BUS_POC_TITLE__c
+ * @property {?string} GOVT_BUS_POC_EMAIL__c
+ * @property {?string} GOVT_BUS_POC_NAME__c
+ * @property {?string} GOVT_BUS_POC_TITLE__c
+ * @property {?string} ALT_GOVT_BUS_POC_EMAIL__c
+ * @property {?string} ALT_GOVT_BUS_POC_NAME__c
+ * @property {?string} ALT_GOVT_BUS_POC_TITLE__c
  * @property {{
  *  type: string
  *  url: string
@@ -363,29 +373,30 @@ async function queryForSamEntities(req, email) {
   // `SELECT
   //   Id,
   //   ENTITY_COMBO_KEY__c,
-  //   ENTITY_STATUS__c,
   //   UNIQUE_ENTITY_ID__c,
   //   ENTITY_EFT_INDICATOR__c,
-  //   CAGE_CODE__c,
+  //   ENTITY_STATUS__c,
+  //   EXCLUSION_STATUS_FLAG__c,
+  //   DEBT_SUBJECT_TO_OFFSET_FLAG__c,
   //   LEGAL_BUSINESS_NAME__c,
-  //   GOVT_BUS_POC_NAME__c,
-  //   GOVT_BUS_POC_EMAIL__c,
-  //   GOVT_BUS_POC_TITLE__c,
-  //   ALT_GOVT_BUS_POC_NAME__c,
-  //   ALT_GOVT_BUS_POC_EMAIL__c,
-  //   ALT_GOVT_BUS_POC_TITLE__c,
-  //   ELEC_BUS_POC_NAME__c,
-  //   ELEC_BUS_POC_EMAIL__c,
-  //   ELEC_BUS_POC_TITLE__c,
-  //   ALT_ELEC_BUS_POC_NAME__c,
-  //   ALT_ELEC_BUS_POC_EMAIL__c,
-  //   ALT_ELEC_BUS_POC_TITLE__c,
   //   PHYSICAL_ADDRESS_LINE_1__c,
   //   PHYSICAL_ADDRESS_LINE_2__c,
   //   PHYSICAL_ADDRESS_CITY__c,
   //   PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
   //   PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
-  //   PHYSICAL_ADDRESS_ZIP_CODE_4__c
+  //   PHYSICAL_ADDRESS_ZIP_CODE_4__c,
+  //   ELEC_BUS_POC_EMAIL__c,
+  //   ELEC_BUS_POC_NAME__c,
+  //   ELEC_BUS_POC_TITLE__c,
+  //   ALT_ELEC_BUS_POC_EMAIL__c,
+  //   ALT_ELEC_BUS_POC_NAME__c,
+  //   ALT_ELEC_BUS_POC_TITLE__c,
+  //   GOVT_BUS_POC_EMAIL__c,
+  //   GOVT_BUS_POC_NAME__c,
+  //   GOVT_BUS_POC_TITLE__c,
+  //   ALT_GOVT_BUS_POC_EMAIL__c,
+  //   ALT_GOVT_BUS_POC_NAME__c,
+  //   ALT_GOVT_BUS_POC_TITLE__c
   // FROM
   //   Data_Staging__c
   // WHERE
@@ -409,28 +420,30 @@ async function queryForSamEntities(req, email) {
         // "*": 1,
         Id: 1,
         ENTITY_COMBO_KEY__c: 1,
-        ENTITY_STATUS__c: 1,
         UNIQUE_ENTITY_ID__c: 1,
         ENTITY_EFT_INDICATOR__c: 1,
+        ENTITY_STATUS__c: 1,
+        EXCLUSION_STATUS_FLAG__c: 1,
+        DEBT_SUBJECT_TO_OFFSET_FLAG__c: 1,
         LEGAL_BUSINESS_NAME__c: 1,
-        GOVT_BUS_POC_NAME__c: 1,
-        GOVT_BUS_POC_EMAIL__c: 1,
-        GOVT_BUS_POC_TITLE__c: 1,
-        ALT_GOVT_BUS_POC_NAME__c: 1,
-        ALT_GOVT_BUS_POC_EMAIL__c: 1,
-        ALT_GOVT_BUS_POC_TITLE__c: 1,
-        ELEC_BUS_POC_NAME__c: 1,
-        ELEC_BUS_POC_EMAIL__c: 1,
-        ELEC_BUS_POC_TITLE__c: 1,
-        ALT_ELEC_BUS_POC_NAME__c: 1,
-        ALT_ELEC_BUS_POC_EMAIL__c: 1,
-        ALT_ELEC_BUS_POC_TITLE__c: 1,
         PHYSICAL_ADDRESS_LINE_1__c: 1,
         PHYSICAL_ADDRESS_LINE_2__c: 1,
         PHYSICAL_ADDRESS_CITY__c: 1,
         PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c: 1,
         PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c: 1,
         PHYSICAL_ADDRESS_ZIP_CODE_4__c: 1,
+        ELEC_BUS_POC_EMAIL__c: 1,
+        ELEC_BUS_POC_NAME__c: 1,
+        ELEC_BUS_POC_TITLE__c: 1,
+        ALT_ELEC_BUS_POC_EMAIL__c: 1,
+        ALT_ELEC_BUS_POC_NAME__c: 1,
+        ALT_ELEC_BUS_POC_TITLE__c: 1,
+        GOVT_BUS_POC_EMAIL__c: 1,
+        GOVT_BUS_POC_NAME__c: 1,
+        GOVT_BUS_POC_TITLE__c: 1,
+        ALT_GOVT_BUS_POC_EMAIL__c: 1,
+        ALT_GOVT_BUS_POC_NAME__c: 1,
+        ALT_GOVT_BUS_POC_TITLE__c: 1,
       },
     )
     .execute(async (err, records) => ((await err) ? err : records));
@@ -441,8 +454,8 @@ async function queryForSamEntities(req, email) {
  * statuses and related metadata.
  *
  * @param {express.Request} req
- * @param {'2022' | '2023'} rebateYear
- * @param {'frf' | 'prf' | 'crf'} formType
+ * @param {RebateYear} rebateYear
+ * @param {FormType} formType
  * @param {string | null} rebateId
  * @param {string | null} mongoId
  * @returns {Promise<BapFormSubmission | null>} fields associated a form submission
@@ -473,8 +486,13 @@ async function queryForBapFormSubmissionData(
     },
     2023: {
       frf: "CSB_Funding_Request_2023",
-      prf: null, // "CSB_Payment_Request_2023"
-      crf: null, // "CSB_Closeout_Request_2023"
+      prf: null, // TODO: "CSB_Payment_Request_2023"
+      crf: null, // TODO: "CSB_Closeout_Request_2023"
+    },
+    2024: {
+      frf: null, // TODO: "CSB_Funding_Request_2024"
+      prf: null, // TODO: "CSB_Payment_Request_2024"
+      crf: null, // TODO: "CSB_Closeout_Request_2024"
     },
   };
 
@@ -544,7 +562,7 @@ async function queryForBapFormSubmissionData(
         CSB_Review_Item_ID__c: 1, // CSB Rebate ID with form/version ID (9 digits)
         Parent_Rebate_ID__c: 1, // CSB Rebate ID (6 digits)
         Record_Type_Name__c: 1, // 'CSB Funding Request' | 'CSB Payment Request' | 'CSB Close Out Request' | 'CSB Funding Request 2023' | 'CSB Payment Request 2023' | 'CSB Close Out Request 2023'
-        Rebate_Program_Year__c: 1, // '2022' | '2023'
+        Rebate_Program_Year__c: 1, // '2022' | '2023' | '2024'
         "Parent_CSB_Rebate__r.CSB_Funding_Request_Status__c": 1,
         "Parent_CSB_Rebate__r.CSB_Payment_Request_Status__c": 1,
         "Parent_CSB_Rebate__r.CSB_Closeout_Request_Status__c": 1,
@@ -643,7 +661,7 @@ async function queryForBapFormSubmissionsStatuses(req) {
         CSB_Review_Item_ID__c: 1, // CSB Rebate ID with form/version ID (9 digits)
         Parent_Rebate_ID__c: 1, // CSB Rebate ID (6 digits)
         Record_Type_Name__c: 1, // 'CSB Funding Request' | 'CSB Payment Request' | 'CSB Close Out Request' | 'CSB Funding Request 2023' | 'CSB Payment Request 2023' | 'CSB Close Out Request 2023'
-        Rebate_Program_Year__c: 1, // '2022' | '2023'
+        Rebate_Program_Year__c: 1, // '2022' | '2023' | '2024'
         "Parent_CSB_Rebate__r.CSB_Funding_Request_Status__c": 1,
         "Parent_CSB_Rebate__r.CSB_Payment_Request_Status__c": 1,
         "Parent_CSB_Rebate__r.CSB_Closeout_Request_Status__c": 1,
@@ -1481,8 +1499,8 @@ function getBapComboKeys(req, email) {
  * Fetches data associated with a provided form submission.
  *
  * @param {Object} param
- * @param {'2022' | '2023'} param.rebateYear
- * @param {'frf' | 'prf' | 'crf'} param.formType
+ * @param {RebateYear} param.rebateYear
+ * @param {FormType} param.formType
  * @param {string | null} param.rebateId
  * @param {string | null} param.mongoId
  * @param {express.Request} param.req
@@ -1578,8 +1596,8 @@ function checkForBapDuplicates(req) {
  * returned from the BAP).
  *
  * @param {Object} param
- * @param {'2022' | '2023'} param.rebateYear
- * @param {'frf' | 'prf' | 'crf'} param.formType
+ * @param {RebateYear} param.rebateYear
+ * @param {FormType} param.formType
  * @param {string} param.mongoId
  * @param {string} param.comboKey
  * @param {express.Request} param.req

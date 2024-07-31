@@ -8,9 +8,12 @@ import clsx from "clsx";
 import { cloneDeep, isEqual } from "lodash";
 import icons from "uswds/img/sprite.svg";
 // ---
+import {
+  type FormioSchemaAndSubmission,
+  type FormioCRF2022Submission,
+} from "@/types";
 import { serverUrl, messages } from "@/config";
 import {
-  type FormioCRF2022Submission,
   getData,
   postData,
   useContentData,
@@ -25,21 +28,10 @@ import { Loading } from "@/components/loading";
 import { Message } from "@/components/message";
 import { MarkdownContent } from "@/components/markdownContent";
 import { useNotificationsActions } from "@/contexts/notifications";
-import { useRebateYearState } from "@/contexts/rebateYear";
 
-type ServerResponse =
-  | {
-      userAccess: false;
-      formSchema: null;
-      submission: null;
-    }
-  | {
-      userAccess: true;
-      formSchema: { url: string; json: object };
-      submission: FormioCRF2022Submission;
-    };
+type Response = FormioSchemaAndSubmission<FormioCRF2022Submission>;
 
-/** Custom hook to fetch Formio submission data */
+/** Custom hook to fetch and update Formio submission data */
 function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
   const queryClient = useQueryClient();
 
@@ -52,7 +44,7 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
   const query = useQuery({
     queryKey: ["formio/2022/crf-submission", { id: rebateId }],
     queryFn: () => {
-      return getData<ServerResponse>(url).then((res) => {
+      return getData<Response>(url).then((res) => {
         const mongoId = res.submission?._id;
         const comboKey = res.submission?.data.bap_hidden_entity_combo_key;
 
@@ -91,7 +83,7 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
       return postData<FormioCRF2022Submission>(url, updatedSubmission);
     },
     onSuccess: (res) => {
-      return queryClient.setQueryData<ServerResponse>(
+      return queryClient.setQueryData<Response>(
         ["formio/2022/crf-submission", { id: rebateId }],
         (prevData) => {
           return prevData?.submission
@@ -127,7 +119,6 @@ function CloseOutRequestForm(props: { email: string }) {
     displayErrorNotification,
     dismissNotification,
   } = useNotificationsActions();
-  const { rebateYear } = useRebateYearState();
 
   const submissionsQueries = useSubmissionsQueries("2022");
   const submissions = useSubmissions("2022");
@@ -195,8 +186,7 @@ function CloseOutRequestForm(props: { email: string }) {
         bap: rebate.crf.bap,
       });
 
-  const crfSubmissionPeriodOpen =
-    configData.submissionPeriodOpen[rebateYear].crf;
+  const crfSubmissionPeriodOpen = configData.submissionPeriodOpen["2022"].crf;
 
   const formIsReadOnly =
     (submission.state === "submitted" || !crfSubmissionPeriodOpen) &&
@@ -227,8 +217,8 @@ function CloseOutRequestForm(props: { email: string }) {
             submission.state === "draft"
               ? content.draftCRFIntro
               : submission.state === "submitted"
-              ? content.submittedCRFIntro
-              : ""
+                ? content.submittedCRFIntro
+                : ""
           }
         />
       )}
@@ -270,6 +260,7 @@ function CloseOutRequestForm(props: { email: string }) {
           form={formSchema.json}
           url={formSchema.url} // NOTE: used for file uploads
           submission={{
+            state: submission.state,
             data: {
               ...submission.data,
               last_updated_by: email,

@@ -5,11 +5,14 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl, messages } from "@/config";
 import {
+  type RebateYear,
   type BapSamEntity,
   type FormioFRF2022Submission,
   type FormioFRF2023Submission,
+} from "@/types";
+import { serverUrl, messages } from "@/config";
+import {
   postData,
   useContentData,
   useConfigData,
@@ -26,7 +29,7 @@ import { useRebateYearState } from "@/contexts/rebateYear";
  * Creates the initial FRF submission data for a given rebate year
  */
 function createInitialSubmissionData(options: {
-  rebateYear: "2022" | "2023";
+  rebateYear: RebateYear;
   email: string;
   entity: BapSamEntity;
 }) {
@@ -69,29 +72,29 @@ function createInitialSubmissionData(options: {
         sam_hidden_applicant_state: PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
         sam_hidden_applicant_zip_code: PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
       }
-    : rebateYear === "2023"
-    ? {
-        _user_email: email,
-        _user_title: title,
-        _user_name: name,
-        _bap_entity_combo_key: ENTITY_COMBO_KEY__c,
-        _bap_elec_bus_poc_email: ELEC_BUS_POC_EMAIL__c,
-        _bap_alt_elec_bus_poc_email: ALT_ELEC_BUS_POC_EMAIL__c,
-        _bap_govt_bus_poc_email: GOVT_BUS_POC_EMAIL__c,
-        _bap_alt_govt_bus_poc_email: ALT_GOVT_BUS_POC_EMAIL__c,
-        _bap_applicant_email: email,
-        _bap_applicant_title: title,
-        _bap_applicant_name: name,
-        _bap_applicant_efti: ENTITY_EFT_INDICATOR__c,
-        _bap_applicant_uei: UNIQUE_ENTITY_ID__c,
-        _bap_applicant_organization_name: LEGAL_BUSINESS_NAME__c,
-        _bap_applicant_street_address_1: PHYSICAL_ADDRESS_LINE_1__c,
-        _bap_applicant_street_address_2: PHYSICAL_ADDRESS_LINE_2__c,
-        _bap_applicant_city: PHYSICAL_ADDRESS_CITY__c,
-        _bap_applicant_state: PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
-        _bap_applicant_zip: PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
-      }
-    : null;
+    : rebateYear === "2023" || rebateYear === "2024"
+      ? {
+          _user_email: email,
+          _user_title: title,
+          _user_name: name,
+          _bap_entity_combo_key: ENTITY_COMBO_KEY__c,
+          _bap_elec_bus_poc_email: ELEC_BUS_POC_EMAIL__c,
+          _bap_alt_elec_bus_poc_email: ALT_ELEC_BUS_POC_EMAIL__c,
+          _bap_govt_bus_poc_email: GOVT_BUS_POC_EMAIL__c,
+          _bap_alt_govt_bus_poc_email: ALT_GOVT_BUS_POC_EMAIL__c,
+          _bap_applicant_email: email,
+          _bap_applicant_title: title,
+          _bap_applicant_name: name,
+          _bap_applicant_efti: ENTITY_EFT_INDICATOR__c,
+          _bap_applicant_uei: UNIQUE_ENTITY_ID__c,
+          _bap_applicant_organization_name: LEGAL_BUSINESS_NAME__c,
+          _bap_applicant_street_address_1: PHYSICAL_ADDRESS_LINE_1__c,
+          _bap_applicant_street_address_2: PHYSICAL_ADDRESS_LINE_2__c,
+          _bap_applicant_city: PHYSICAL_ADDRESS_CITY__c,
+          _bap_applicant_state: PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
+          _bap_applicant_zip: PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
+        }
+      : null;
 }
 
 export function FRFNew() {
@@ -125,9 +128,33 @@ export function FRFNew() {
   const frfSubmissionPeriodOpen =
     configData.submissionPeriodOpen[rebateYear].frf;
 
-  const activeSamEntities = bapSamData.entities.filter((entity) => {
-    return entity.ENTITY_STATUS__c === "Active";
-  });
+  const samEntities = bapSamData.entities.reduce(
+    (object, entity) => {
+      const {
+        ENTITY_STATUS__c,
+        EXCLUSION_STATUS_FLAG__c,
+        DEBT_SUBJECT_TO_OFFSET_FLAG__c,
+      } = entity;
+
+      const isActive = ENTITY_STATUS__c === "Active";
+      const hasExclusionStatus = EXCLUSION_STATUS_FLAG__c === "D";
+      const hasDebtSubjectToOffset = DEBT_SUBJECT_TO_OFFSET_FLAG__c === "Y";
+
+      const isEligible = !hasExclusionStatus && !hasDebtSubjectToOffset;
+
+      if (isActive && isEligible) object.eligible.push(entity);
+      if (isActive && !isEligible) object.ineligible.push(entity);
+
+      return object;
+    },
+    {
+      eligible: [] as BapSamEntity[],
+      ineligible: [] as BapSamEntity[],
+    },
+  );
+
+  const totalActiveSamEntities =
+    samEntities.eligible.length + samEntities.ineligible.length;
 
   return (
     <Transition.Root show={true} as={Fragment}>
@@ -211,7 +238,7 @@ export function FRFNew() {
                     <div className={clsx("-tw-mb-4")}>
                       <Message type="info" text={messages.frfClosed} />
                     </div>
-                  ) : activeSamEntities.length <= 0 ? (
+                  ) : totalActiveSamEntities === 0 ? (
                     <div className={clsx("-tw-mb-4")}>
                       <Message
                         type="info"
@@ -278,14 +305,16 @@ export function FRFNew() {
                             </tr>
                           </thead>
                           <tbody>
-                            {activeSamEntities.map((entity) => {
-                              const comboKey = entity.ENTITY_COMBO_KEY__c;
-                              const uei = entity.UNIQUE_ENTITY_ID__c;
-                              const efti = entity.ENTITY_EFT_INDICATOR__c;
-                              const orgName = entity.LEGAL_BUSINESS_NAME__c;
+                            {samEntities.eligible.map((entity) => {
+                              const {
+                                ENTITY_COMBO_KEY__c,
+                                UNIQUE_ENTITY_ID__c,
+                                ENTITY_EFT_INDICATOR__c,
+                                LEGAL_BUSINESS_NAME__c,
+                              } = entity;
 
                               return (
-                                <tr key={comboKey}>
+                                <tr key={ENTITY_COMBO_KEY__c}>
                                   <th
                                     scope="row"
                                     className="width-15 font-sans-2xs"
@@ -300,7 +329,7 @@ export function FRFNew() {
 
                                         // account for when data is posting to prevent double submits
                                         if (postingDataId !== "0") return;
-                                        setPostingDataId(comboKey);
+                                        setPostingDataId(ENTITY_COMBO_KEY__c);
 
                                         const data =
                                           createInitialSubmissionData({
@@ -332,8 +361,9 @@ export function FRFNew() {
                                       }}
                                     >
                                       <span className="usa-sr-only">
-                                        New Application with UEI: {uei} and
-                                        EFTI: {efti}
+                                        New Application with UEI:{" "}
+                                        {UNIQUE_ENTITY_ID__c} and EFTI:{" "}
+                                        {ENTITY_EFT_INDICATOR__c}
                                       </span>
                                       <span className="display-flex flex-align-center">
                                         <svg
@@ -349,20 +379,77 @@ export function FRFNew() {
                                         <span className="mobile-lg:display-none margin-left-1">
                                           New Application
                                         </span>
-                                        {postingDataId === comboKey && (
+                                        {postingDataId ===
+                                          ENTITY_COMBO_KEY__c && (
                                           <LoadingButtonIcon position="end" />
                                         )}
                                       </span>
                                     </button>
                                   </th>
-                                  <td className="font-sans-2xs">{uei}</td>
                                   <td className="font-sans-2xs">
-                                    {efti || "0000"}
+                                    {UNIQUE_ENTITY_ID__c}
                                   </td>
-                                  <td className="font-sans-2xs">{orgName}</td>
+                                  <td className="font-sans-2xs">
+                                    {ENTITY_EFT_INDICATOR__c || "0000"}
+                                  </td>
+                                  <td className="font-sans-2xs">
+                                    {LEGAL_BUSINESS_NAME__c}
+                                  </td>
                                 </tr>
                               );
                             })}
+
+                            {samEntities.ineligible.length > 0 && (
+                              <>
+                                <tr>
+                                  <td
+                                    colSpan={4}
+                                    className="font-sans-2xs !tw-whitespace-normal"
+                                  >
+                                    <strong>
+                                      Ineligible SAM.gov Entities:
+                                    </strong>
+                                    <br />
+                                    The following SAM.gov entities are
+                                    ineligible due to their exclusion status or
+                                    a debt subject to offset. Please visit
+                                    SAM.gov to resolve these issues.
+                                  </td>
+                                </tr>
+
+                                {samEntities.ineligible.map((entity) => {
+                                  const {
+                                    ENTITY_COMBO_KEY__c,
+                                    UNIQUE_ENTITY_ID__c,
+                                    ENTITY_EFT_INDICATOR__c,
+                                    LEGAL_BUSINESS_NAME__c,
+                                  } = entity;
+
+                                  return (
+                                    <tr key={ENTITY_COMBO_KEY__c}>
+                                      <th
+                                        scope="row"
+                                        className="width-15 font-sans-2xs"
+                                      >
+                                        <TextWithTooltip
+                                          text=" "
+                                          tooltip="Ineligible SAM.gov entity"
+                                        />
+                                      </th>
+                                      <td className="font-sans-2xs">
+                                        {UNIQUE_ENTITY_ID__c}
+                                      </td>
+                                      <td className="font-sans-2xs">
+                                        {ENTITY_EFT_INDICATOR__c || "0000"}
+                                      </td>
+                                      <td className="font-sans-2xs">
+                                        {LEGAL_BUSINESS_NAME__c}
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                              </>
+                            )}
                           </tbody>
                         </table>
                       </div>

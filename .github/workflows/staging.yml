@@ -47,6 +47,9 @@ jobs:
       CSB_2023_FRF_OPEN: true
       CSB_2023_PRF_OPEN: true
       CSB_2023_CRF_OPEN: true
+      CSB_2024_FRF_OPEN: true
+      CSB_2024_PRF_OPEN: true
+      CSB_2024_CRF_OPEN: true
       FORMIO_2022_FRF_PATH: ${{ secrets.FORMIO_2022_FRF_PATH }}
       FORMIO_2022_PRF_PATH: ${{ secrets.FORMIO_2022_PRF_PATH }}
       FORMIO_2022_CRF_PATH: ${{ secrets.FORMIO_2022_CRF_PATH }}
@@ -54,6 +57,10 @@ jobs:
       FORMIO_2023_PRF_PATH: ${{ secrets.FORMIO_2023_PRF_PATH }}
       FORMIO_2023_CRF_PATH: ${{ secrets.FORMIO_2023_CRF_PATH }}
       FORMIO_2023_CHANGE_PATH: ${{ secrets.FORMIO_2023_CHANGE_PATH }}
+      FORMIO_2024_FRF_PATH: ${{ secrets.FORMIO_2024_FRF_PATH }}
+      FORMIO_2024_PRF_PATH: ${{ secrets.FORMIO_2024_PRF_PATH }}
+      FORMIO_2024_CRF_PATH: ${{ secrets.FORMIO_2024_CRF_PATH }}
+      FORMIO_2024_CHANGE_PATH: ${{ secrets.FORMIO_2024_CHANGE_PATH }}
       FORMIO_BASE_URL: ${{ secrets.FORMIO_BASE_URL }}
       FORMIO_PROJECT_NAME: ${{ secrets.FORMIO_PROJECT_NAME }}
       FORMIO_API_KEY: ${{ secrets.FORMIO_API_KEY }}
@@ -133,6 +140,9 @@ jobs:
           cf set-env $APP_NAME "CSB_2023_FRF_OPEN" "$CSB_2023_FRF_OPEN" > /dev/null
           cf set-env $APP_NAME "CSB_2023_PRF_OPEN" "$CSB_2023_PRF_OPEN" > /dev/null
           cf set-env $APP_NAME "CSB_2023_CRF_OPEN" "$CSB_2023_CRF_OPEN" > /dev/null
+          cf set-env $APP_NAME "CSB_2024_FRF_OPEN" "$CSB_2024_FRF_OPEN" > /dev/null
+          cf set-env $APP_NAME "CSB_2024_PRF_OPEN" "$CSB_2024_PRF_OPEN" > /dev/null
+          cf set-env $APP_NAME "CSB_2024_CRF_OPEN" "$CSB_2024_CRF_OPEN" > /dev/null
           cf set-env $APP_NAME "FORMIO_2022_FRF_PATH" "$FORMIO_2022_FRF_PATH" > /dev/null
           cf set-env $APP_NAME "FORMIO_2022_PRF_PATH" "$FORMIO_2022_PRF_PATH" > /dev/null
           cf set-env $APP_NAME "FORMIO_2022_CRF_PATH" "$FORMIO_2022_CRF_PATH" > /dev/null
@@ -140,6 +150,10 @@ jobs:
           cf set-env $APP_NAME "FORMIO_2023_PRF_PATH" "$FORMIO_2023_PRF_PATH" > /dev/null
           cf set-env $APP_NAME "FORMIO_2023_CRF_PATH" "$FORMIO_2023_CRF_PATH" > /dev/null
           cf set-env $APP_NAME "FORMIO_2023_CHANGE_PATH" "$FORMIO_2023_CHANGE_PATH" > /dev/null
+          cf set-env $APP_NAME "FORMIO_2024_FRF_PATH" "$FORMIO_2024_FRF_PATH" > /dev/null
+          cf set-env $APP_NAME "FORMIO_2024_PRF_PATH" "$FORMIO_2024_PRF_PATH" > /dev/null
+          cf set-env $APP_NAME "FORMIO_2024_CRF_PATH" "$FORMIO_2024_CRF_PATH" > /dev/null
+          cf set-env $APP_NAME "FORMIO_2024_CHANGE_PATH" "$FORMIO_2024_CHANGE_PATH" > /dev/null
           cf set-env $APP_NAME "FORMIO_BASE_URL" "$FORMIO_BASE_URL" > /dev/null
           cf set-env $APP_NAME "FORMIO_PROJECT_NAME" "$FORMIO_PROJECT_NAME" > /dev/null
           cf set-env $APP_NAME "FORMIO_API_KEY" "$FORMIO_API_KEY" > /dev/null
