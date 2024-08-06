@@ -98,7 +98,8 @@ export const bapStatusMap = {
       .set("Accepted", "Funding Approved"),
     crf: new Map<string, string>()
       .set("Needs Clarification", "Needs Clarification")
-      .set("Branch Director Denied", "Close Out Not Approved")
+      .set("Withdrawn", "Withdrawn")
+      .set("Coordinator Denied", "Close Out Not Approved")
       .set("Accepted", "Close Out Approved"),
   },
   2023: {
