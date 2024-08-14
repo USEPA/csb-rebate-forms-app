@@ -22,6 +22,9 @@ import {
   useSubmissionsQueries,
   useSubmissions,
   submissionNeedsEdits,
+  entityIsActive,
+  entityHasExclusionStatus,
+  entityHasDebtSubjectToOffset,
   getUserInfo,
 } from "@/utilities";
 import { Loading } from "@/components/loading";
@@ -202,8 +205,12 @@ function CloseOutRequestForm(props: { email: string }) {
     return <Message type="error" text={messages.formSubmissionError} />;
   }
 
-  if (entity.ENTITY_STATUS__c !== "Active") {
-    return <Message type="error" text={messages.bapSamEntityNotActive} />;
+  const isActive = entityIsActive(entity);
+  const hasExclusionStatus = entityHasExclusionStatus(entity);
+  const hasDebtSubjectToOffset = entityHasDebtSubjectToOffset(entity);
+
+  if (!isActive || hasExclusionStatus || hasDebtSubjectToOffset) {
+    return <Message type="error" text={messages.bapSamIneligible} />;
   }
 
   const { title, name } = getUserInfo(email, entity);
