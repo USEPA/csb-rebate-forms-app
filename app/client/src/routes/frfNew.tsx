@@ -17,6 +17,9 @@ import {
   useContentData,
   useConfigData,
   useBapSamData,
+  entityIsActive,
+  entityHasExclusionStatus,
+  entityHasDebtSubjectToOffset,
   getUserInfo,
 } from "@/utilities";
 import { Loading, LoadingButtonIcon } from "@/components/loading";
@@ -130,15 +133,9 @@ export function FRFNew() {
 
   const samEntities = bapSamData.entities.reduce(
     (object, entity) => {
-      const {
-        ENTITY_STATUS__c,
-        EXCLUSION_STATUS_FLAG__c,
-        DEBT_SUBJECT_TO_OFFSET_FLAG__c,
-      } = entity;
-
-      const isActive = ENTITY_STATUS__c === "Active";
-      const hasExclusionStatus = EXCLUSION_STATUS_FLAG__c === "D";
-      const hasDebtSubjectToOffset = DEBT_SUBJECT_TO_OFFSET_FLAG__c === "Y";
+      const isActive = entityIsActive(entity);
+      const hasExclusionStatus = entityHasExclusionStatus(entity);
+      const hasDebtSubjectToOffset = entityHasDebtSubjectToOffset(entity);
 
       const isEligible = !hasExclusionStatus && !hasDebtSubjectToOffset;
 

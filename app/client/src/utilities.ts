@@ -730,6 +730,27 @@ export function submissionNeedsReimbursement(options: {
 }
 
 /**
+ * Determines whether a SAM.gov entity is active.
+ */
+export function entityIsActive(entity: BapSamEntity) {
+  return entity.ENTITY_STATUS__c === "Active";
+}
+
+/**
+ * Determines whether a SAM.gov entity has an exclusion status.
+ */
+export function entityHasExclusionStatus(entity: BapSamEntity) {
+  return entity.EXCLUSION_STATUS_FLAG__c === "D";
+}
+
+/**
+ * Determines whether a SAM.gov entity has a debt subject to offset.
+ */
+export function entityHasDebtSubjectToOffset(entity: BapSamEntity) {
+  return entity.DEBT_SUBJECT_TO_OFFSET_FLAG__c === "Y";
+}
+
+/**
  * Returns a user’s title and name when provided an email address and a SAM.gov
  * entity/record.
  */
