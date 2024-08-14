@@ -33,6 +33,7 @@ import {
   useSubmissions,
   submissionNeedsEdits,
   submissionNeedsReimbursement,
+  entityIsActive,
   getUserInfo,
 } from "@/utilities";
 import { Loading, LoadingButtonIcon } from "@/components/loading";
@@ -403,9 +404,8 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
 
   /** matched SAM.gov entity for the FRF submission */
   const entity = bapSamData.entities.find((entity) => {
-    const { ENTITY_STATUS__c, ENTITY_COMBO_KEY__c } = entity;
     const comboKey = frf.formio.data.bap_hidden_entity_combo_key;
-    return ENTITY_STATUS__c === "Active" && ENTITY_COMBO_KEY__c === comboKey;
+    return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === comboKey;
   });
 
   if (!entity) return null;
@@ -613,9 +613,8 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
 
   /** matched SAM.gov entity for the PRF submission */
   const entity = bapSamData.entities.find((entity) => {
-    const { ENTITY_STATUS__c, ENTITY_COMBO_KEY__c } = entity;
     const comboKey = prf.formio?.data.bap_hidden_entity_combo_key;
-    return ENTITY_STATUS__c === "Active" && ENTITY_COMBO_KEY__c === comboKey;
+    return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === comboKey;
   });
 
   if (!entity) return null;
@@ -1033,9 +1032,8 @@ function FRF2023Submission(props: { rebate: Rebate2023 }) {
 
   /** matched SAM.gov entity for the FRF submission */
   const entity = bapSamData.entities.find((entity) => {
-    const { ENTITY_STATUS__c, ENTITY_COMBO_KEY__c } = entity;
     const comboKey = frf.formio.data._bap_entity_combo_key;
-    return ENTITY_STATUS__c === "Active" && ENTITY_COMBO_KEY__c === comboKey;
+    return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === comboKey;
   });
 
   if (!entity) return null;
@@ -1259,9 +1257,8 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
 
   /** matched SAM.gov entity for the FRF submission */
   const entity = bapSamData.entities.find((entity) => {
-    const { ENTITY_STATUS__c, ENTITY_COMBO_KEY__c } = entity;
     const comboKey = frf.formio.data._bap_entity_combo_key;
-    return ENTITY_STATUS__c === "Active" && ENTITY_COMBO_KEY__c === comboKey;
+    return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === comboKey;
   });
 
   if (!entity) return null;
@@ -1702,9 +1699,8 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 
   /** matched SAM.gov entity for the FRF submission */
   const entity = bapSamData.entities.find((entity) => {
-    const { ENTITY_STATUS__c, ENTITY_COMBO_KEY__c } = entity;
     const comboKey = frf.formio.data._bap_entity_combo_key;
-    return ENTITY_STATUS__c === "Active" && ENTITY_COMBO_KEY__c === comboKey;
+    return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === comboKey;
   });
 
   if (!entity) return null;
@@ -1993,7 +1989,7 @@ export function Submissions() {
 
   return (
     <>
-      {bapSamData.entities.some((e) => e.ENTITY_STATUS__c !== "Active") && (
+      {bapSamData.entities.some((entity) => !entityIsActive(entity)) && (
         <Message
           type="warning"
           text={messages.bapSamAtLeastOneEntityNotActive}

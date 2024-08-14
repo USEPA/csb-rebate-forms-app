@@ -38,8 +38,8 @@ export const messages = {
   bapSamFetchError: "Error loading SAM.gov data. Please contact support.",
   bapNoSamResults:
     "No SAM.gov accounts match your email. Only Government and Electronic Business SAM.gov Points of Contacts (and alternates) may edit and submit Clean School Bus Rebate Forms.",
-  bapSamEntityNotActive:
-    "Your SAM.gov account is currently not active. Activate your SAM.gov account to access this submission.",
+  bapSamIneligible:
+    "Your SAM.gov account is either currently not active or ineligible due to an exclusion status or a debt subject to offset. Please visit SAM.gov to resolve any issues and regain access to this submission.",
   bapSamNoActiveEntities:
     "There are no active SAM.gov accounts associated with your email. Ensure you have at least one active SAM.gov account to create a new application.",
   bapSamAtLeastOneEntityNotActive:
