@@ -69,34 +69,48 @@ requiredEnvironmentVariables.forEach((variable) => {
  * Fetch NCES JSON data from S3 bucket or read from local file system.
  */
 function fetchNcesData() {
-  const localFilePath = resolve(__dirname, "./content", "nces.json");
-  const s3FileUrl = `${s3BucketUrl}/content/nces.json`;
+  /** NOTE: static content files found in `app/server/app/content/` directory. */
+  const filenames = ["nces-2023.json", "nces-2024.json"];
 
-  const logMessage =
-    NODE_ENV === "development"
-      ? "Reading NCES.json file from disk."
-      : `Fetching NCES.json from S3 bucket.`;
+  return Promise.all(
+    filenames.map((filename) => {
+      const localFilePath = resolve(__dirname, "./content", filename);
+      const s3FileUrl = `${s3BucketUrl}/content/${filename}`;
 
-  log({ level: "info", message: logMessage });
+      const logMessage =
+        NODE_ENV === "development"
+          ? `Reading ${filename} file from disk.`
+          : `Fetching ${filename} from S3 bucket.`;
 
-  return Promise.resolve(
-    /**
-     * local development: read file directly from disk
-     * Cloud.gov: fetch file from the public s3 bucket
-     */
-    NODE_ENV === "development"
-      ? readFile(localFilePath, "utf8").then((string) => JSON.parse(string))
-      : axios.get(s3FileUrl).then((res) => res.data),
-  ).catch((error) => {
-    const errorStatus = error.response?.status || 500;
-    const errorMethod = error.response?.config?.method?.toUpperCase();
-    const errorUrl = error.response?.config?.url;
+      log({ level: "info", message: logMessage });
 
-    const logMessage = `S3 Error: ${errorStatus} ${errorMethod} ${errorUrl}`;
-    log({ level: "error", message: logMessage });
+      /**
+       * local development: read files directly from disk
+       * Cloud.gov: fetch files from the public s3 bucket
+       */
+      return NODE_ENV === "development"
+        ? readFile(localFilePath, "utf8")
+        : axios.get(s3FileUrl).then((res) => res.data);
+    }),
+  )
+    .then((data) => {
+      return {
+        2023: data[0],
+        2024: data[1],
+      };
+    })
+    .catch((error) => {
+      console.log(error);
 
-    process.exitCode = 1;
-  });
+      const errorStatus = error.response?.status || 500;
+      const errorMethod = error.response?.config?.method?.toUpperCase();
+      const errorUrl = error.response?.config?.url;
+
+      const logMessage = `S3 Error: ${errorStatus} ${errorMethod} ${errorUrl}`;
+      log({ level: "error", message: logMessage });
+
+      process.exitCode = 1;
+    });
 }
 
 fetchNcesData().then((ncesData) => {
@@ -104,7 +118,7 @@ fetchNcesData().then((ncesData) => {
   const port = PORT || 3001;
 
   /** Store NCES JSON data in the Express app's locals object. */
-  app.locals.ncesData = ncesData;
+  app.locals.nces = ncesData;
 
   app.use(helmet({ contentSecurityPolicy: false }));
   app.use(helmet.hsts({ maxAge: 31536000 }));
