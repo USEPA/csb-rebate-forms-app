@@ -89,7 +89,7 @@ function fetchNcesData() {
        * Cloud.gov: fetch files from the public s3 bucket
        */
       return NODE_ENV === "development"
-        ? readFile(localFilePath, "utf8")
+        ? readFile(localFilePath, "utf8").then((string) => JSON.parse(string))
         : axios.get(s3FileUrl).then((res) => res.data);
     }),
   )
