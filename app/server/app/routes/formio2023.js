@@ -6,6 +6,8 @@ const {
   verifyMongoObjectId,
 } = require("../middleware");
 const {
+  searchNcesData,
+  //
   uploadS3FileMetadata,
   downloadS3FileMetadata,
   //
@@ -35,6 +37,11 @@ const rebateYear = "2023";
 const router = express.Router();
 
 router.use(ensureAuthenticated);
+
+// --- search 2023 NCES data with the provided NCES ID and return a match
+router.get("/nces/:searchText", (req, res) => {
+  searchNcesData({ rebateYear, req, res });
+});
 
 // --- download Formio S3 file metadata
 router.get(
