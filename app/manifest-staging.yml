@@ -16,3 +16,4 @@ applications:
       OPTIMIZE_MEMORY: true
     services:
       - s3-pub-csb-stage
+      - log-drain
