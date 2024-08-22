@@ -4,7 +4,7 @@ applications:
     routes:
       - route: app-stage.app.cloud.gov/csb
     instances: 2
-    memory: 128M
+    memory: 192M
     disk_quota: 512MB
     timeout: 180
     buildpacks:
