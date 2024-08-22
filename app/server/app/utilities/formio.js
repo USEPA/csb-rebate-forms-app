@@ -29,6 +29,41 @@ const { NODE_ENV } = process.env;
 /**
  * @param {Object} param
  * @param {RebateYear} param.rebateYear
+ * @param {express.Request} param.req
+ * @param {express.Response} param.res
+ */
+function searchNcesData({ rebateYear, req, res }) {
+  const { searchText } = req.params;
+
+  if (!searchText) {
+    const logMessage = `No NCES ID passed to NCES data lookup.`;
+    log({ level: "info", message: logMessage, req });
+
+    return res.json({});
+  }
+
+  if (searchText.length !== 7) {
+    const logMessage = `Invalid NCES ID '${searchText}' passed to NCES data lookup.`;
+    log({ level: "info", message: logMessage, req });
+
+    return res.json({});
+  }
+
+  const result = req.app.locals.nces[rebateYear].find((item) => {
+    return item["NCES ID"] === searchText;
+  });
+
+  const logMessage =
+    `${rebateYear} NCES data searched with NCES ID '${searchText}' resulting in ` +
+    `${result ? "a match" : "no matches"}.`;
+  log({ level: "info", message: logMessage, req });
+
+  return res.json({ ...result });
+}
+
+/**
+ * @param {Object} param
+ * @param {RebateYear} param.rebateYear
  */
 function getComboKeyFieldName({ rebateYear }) {
   return rebateYear === "2022"
@@ -1847,6 +1882,8 @@ function fetchChangeRequest({ rebateYear, req, res }) {
 }
 
 module.exports = {
+  searchNcesData,
+  //
   uploadS3FileMetadata,
   downloadS3FileMetadata,
   //

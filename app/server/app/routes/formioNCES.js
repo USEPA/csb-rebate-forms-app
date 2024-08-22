@@ -25,7 +25,7 @@ router.get("/:searchText?", (req, res) => {
     return res.json({});
   }
 
-  const result = req.app.locals.ncesData.find((item) => {
+  const result = req.app.locals.nces[2023].find((item) => {
     return item["NCES ID"] === searchText;
   });
 
