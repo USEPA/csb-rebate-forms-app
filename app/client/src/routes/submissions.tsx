@@ -1589,7 +1589,7 @@ function ChangeRequests2024() {
         tabIndex={0}
       >
         <table
-          aria-label="Your 2023 Change Requests"
+          aria-label="Your 2024 Change Requests"
           className="usa-table usa-table--stacked usa-table--borderless width-full"
         >
           <thead>
@@ -1657,7 +1657,7 @@ function ChangeRequests2024() {
                 <Fragment key={index}>
                   <tr>
                     <th scope="row">
-                      <Link to={`/change/2023/${_id}`}>
+                      <Link to={`/change/2024/${_id}`}>
                         {_bap_rebate_id || _mongo_id}
                       </Link>
                     </th>
