@@ -132,6 +132,13 @@ router.get("/formio/submission/:rebateYear/:formType/:id", (req, res) => {
       Parent_CSB_Rebate__r,
     } = bapSubmission ?? {};
 
+    const {
+      CSB_Funding_Request_Status__c,
+      CSB_Payment_Request_Status__c,
+      CSB_Closeout_Request_Status__c,
+      Reimbursement_Needed__c,
+    } = Parent_CSB_Rebate__r ?? {};
+
     /**
      * NOTE: For submissions not in the BAP, each property of the bap object
      * parameter will be null.
@@ -148,12 +155,13 @@ router.get("/formio/submission/:rebateYear/:formType/:id", (req, res) => {
         reviewItemId: CSB_Review_Item_ID__c || null, // CSB Rebate ID with form/version ID (9 digits)
         status:
           (Record_Type_Name__c?.startsWith("CSB Funding Request")
-            ? Parent_CSB_Rebate__r?.CSB_Funding_Request_Status__c
+            ? CSB_Funding_Request_Status__c
             : Record_Type_Name__c?.startsWith("CSB Payment Request")
-              ? Parent_CSB_Rebate__r?.CSB_Payment_Request_Status__c
+              ? CSB_Payment_Request_Status__c
               : Record_Type_Name__c?.startsWith("CSB Close Out Request")
-                ? Parent_CSB_Rebate__r?.CSB_Closeout_Request_Status__c
+                ? CSB_Closeout_Request_Status__c
                 : "") || null,
+        reimbursementNeeded: Reimbursement_Needed__c || null,
       },
       req,
       res,
