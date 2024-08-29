@@ -36,6 +36,7 @@ import {
   useContentData,
   useHelpdeskAccess,
   submissionNeedsEdits,
+  submissionNeedsReimbursement,
 } from "@/utilities";
 import { Loading, LoadingButtonIcon } from "@/components/loading";
 import { Message } from "@/components/message";
@@ -183,12 +184,24 @@ function ResultTableRow(props: {
 
   const bapInternalStatus = bap.status || "";
   const formioStatus = formioStatusMap.get(formio.state);
+  const bapReimbursementNeeded = bap.reimbursementNeeded || false;
 
-  const status = submissionNeedsEdits({ formio, bap })
+  const needsEdits = submissionNeedsEdits({ formio, bap });
+
+  const crfNeedsReimbursement =
+    formType === "crf" &&
+    submissionNeedsReimbursement({
+      status: bapInternalStatus,
+      reimbursementNeeded: bapReimbursementNeeded,
+    });
+
+  const status = needsEdits
     ? "Edits Requested"
-    : bapStatusMap[rebateYear][formType].get(bapInternalStatus) ||
-      formioStatus ||
-      "";
+    : crfNeedsReimbursement
+      ? "Reimbursement Needed"
+      : bapStatusMap[rebateYear][formType].get(bapInternalStatus) ||
+        formioStatus ||
+        "";
 
   const nameField = formioNameField[rebateYear][formType];
   const emailField = formioEmailField[rebateYear][formType];
