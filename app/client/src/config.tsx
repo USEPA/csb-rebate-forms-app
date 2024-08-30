@@ -158,7 +158,7 @@ export const formioNameField = {
     crf: "", // TODO
   },
   2024: {
-    frf: "", // TODO
+    frf: "_user_name",
     prf: "", // TODO
     crf: "", // TODO
   },
@@ -179,7 +179,7 @@ export const formioEmailField = {
     crf: "", // TODO
   },
   2024: {
-    frf: "", // TODO
+    frf: "_user_email",
     prf: "", // TODO
     crf: "", // TODO
   },
