@@ -25,6 +25,7 @@ export type UserData = {
 };
 
 export type ConfigData = {
+  rebateYear: RebateYear;
   submissionPeriodOpen: {
     2022: { frf: boolean; prf: boolean; crf: boolean };
     2023: { frf: boolean; prf: boolean; crf: boolean };

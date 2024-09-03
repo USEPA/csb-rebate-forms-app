@@ -45,8 +45,12 @@ function reducer(state: State, action: Action): State {
 }
 
 export function RebateYearProvider({ children }: Props) {
+  // NOTE: current year as initial value – will be re-defined from `/api/config`
+  const date = new Date();
+  const year = date.getFullYear().toString() as RebateYear;
+
   const initialState: State = {
-    rebateYear: "2023",
+    rebateYear: year,
   };
 
   const [state, dispatch] = useReducer(reducer, initialState);
