@@ -35,6 +35,7 @@ import {
   type Rebate2024,
 } from "@/types";
 import { serverUrl, formioBapRebateIdField } from "@/config";
+import { useRebateYearActions } from "@/contexts/rebateYear";
 
 /** Formio Change Request submissions by rebate year. */
 /* prettier-ignore */
@@ -145,9 +146,14 @@ export function useHelpdeskAccess() {
 
 /** Custom hook to fetch CSB config. */
 export function useConfigQuery() {
+  const { setRebateYear } = useRebateYearActions();
+
   return useQuery({
     queryKey: ["config"],
     queryFn: () => getData<ConfigData>(`${serverUrl}/api/config`),
+    onSuccess: (res) => {
+      setRebateYear(res.rebateYear as RebateYear);
+    },
     refetchOnWindowFocus: false,
   });
 }
