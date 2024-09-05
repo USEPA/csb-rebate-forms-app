@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "epa-csb-server",
-    "version": "5.0.1",
+    "version": "6.0.0",
     "license": {
       "name": "CC0-1.0"
     },
@@ -281,6 +281,7 @@
     },
     "/api/formio/nces/{searchText}": {
       "get": {
+        "deprecated": true,
         "summary": "Search the NCES data with the provided NCES ID and return a match.",
         "parameters": [
           {
@@ -602,6 +603,35 @@
         }
       }
     },
+    "/api/formio/2023/nces/{searchText}": {
+      "get": {
+        "summary": "search 2023 NCES data with the provided NCES ID and return a match.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "searchText",
+            "description": "The NCES ID to search for.",
+            "required": true,
+            "example": "A999999",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An object containing the matched NCES data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/formio/2023/s3/{formType}/{mongoId}/{comboKey}/storage/s3": {
       "get": {
         "summary": "Download Formio S3 file metadata for a 2023 submission.",
@@ -892,6 +922,233 @@
         }
       }
     },
+    "/api/formio/2024/nces/{searchText}": {
+      "get": {
+        "summary": "search 2024 NCES data with the provided NCES ID and return a match.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "searchText",
+            "description": "The NCES ID to search for.",
+            "required": true,
+            "example": "A999999",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An object containing the matched NCES data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/formio/2024/s3/{formType}/{mongoId}/{comboKey}/storage/s3": {
+      "get": {
+        "summary": "Download Formio S3 file metadata for a 2024 submission.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/formType"
+          },
+          {
+            "$ref": "#/components/parameters/mongoId"
+          },
+          {
+            "$ref": "#/components/parameters/comboKey"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "summary": "Upload Formio S3 file metadata for a 2024 submission.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/formType"
+          },
+          {
+            "$ref": "#/components/parameters/mongoId"
+          },
+          {
+            "$ref": "#/components/parameters/comboKey"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/formio/2024/frf-submissions": {
+      "get": {
+        "summary": "Get user's 2024 FRF submissions from Formio.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "An array of 2024 FRF submissions.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/formio/2024/frf-submission": {
+      "post": {
+        "summary": "Post a new 2024 FRF submission to Formio.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The newly created 2024 FRF submission.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/formio/2024/frf-submission/{mongoId}": {
+      "get": {
+        "summary": "Get an existing 2024 FRF's schema and submission data from Formio.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/mongoId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The 2024 FRF schema, form submission, and user access status.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FormioSchemaAndSubmission"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Post an update to an existing draft 2024 FRF submission to Formio.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/mongoId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The updated 2024 FRF submission.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/formio/2024/changes": {
+      "get": {
+        "summary": "Get user's 2024 Change Request form submissions from Formio.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "An array of 2024 Change Request form submissions.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/formio/2024/change": {
+      "get": {
+        "summary": "Get the 2024 Change Request form's schema from Formio.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The 2024 Change Request form's schema.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Post a new 2024 Change Request form submission to Formio.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The newly created 2024 Change Request form submission.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/formio/2024/change/{mongoId}": {
+      "get": {
+        "summary": "Get an existing 2024 Change Request form's schema and submission data from Formio.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/mongoId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The 2024 Change Request form's schema, form submission, and user access status.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FormioSchemaAndSubmission"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/help/formio/submission/{rebateYear}/{formType}/{id}": {
       "get": {
         "summary": "Get an existing form's submission data from Formio.",
@@ -1080,6 +1337,39 @@
     "/api/status/formio/2023/prf": {
       "get": {
         "summary": "CSB Formio 2023 PRF schema check.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/status/formio/2023/change": {
+      "get": {
+        "summary": "CSB Formio 2023 Change Request form schema check.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/status/formio/2024/frf": {
+      "get": {
+        "summary": "CSB Formio 2024 FRF schema check.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/status/formio/2024/change": {
+      "get": {
+        "summary": "CSB Formio 2024 Change Request form schema check.",
         "parameters": [],
         "responses": {
           "200": {
