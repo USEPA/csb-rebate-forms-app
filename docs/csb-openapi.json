@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "epa-csb-server",
-    "version": "5.0.1",
+    "version": "6.0.0",
     "license": {
       "name": "CC0-1.0"
     },
@@ -281,6 +281,7 @@
     },
     "/api/formio/nces/{searchText}": {
       "get": {
+        "deprecated": true,
         "summary": "Search the NCES data with the provided NCES ID and return a match.",
         "parameters": [
           {
@@ -602,6 +603,35 @@
         }
       }
     },
+    "/api/formio/2023/nces/{searchText}": {
+      "get": {
+        "summary": "search 2023 NCES data with the provided NCES ID and return a match.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "searchText",
+            "description": "The NCES ID to search for.",
+            "required": true,
+            "example": "A999999",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An object containing the matched NCES data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/formio/2023/s3/{formType}/{mongoId}/{comboKey}/storage/s3": {
       "get": {
         "summary": "Download Formio S3 file metadata for a 2023 submission.",
@@ -885,6 +915,35 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/FormioSchemaAndSubmission"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/formio/2024/nces/{searchText}": {
+      "get": {
+        "summary": "search 2024 NCES data with the provided NCES ID and return a match.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "searchText",
+            "description": "The NCES ID to search for.",
+            "required": true,
+            "example": "A999999",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An object containing the matched NCES data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
                 }
               }
             }
