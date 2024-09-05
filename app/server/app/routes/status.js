@@ -110,4 +110,17 @@ router.get("/formio/2023/prf", (req, res) => {
 //     });
 // });
 
+router.get("/formio/2024/frf", (req, res) => {
+  axiosFormio(req)
+    .get(formUrl["2024"].frf)
+    .then((axiosRes) => axiosRes.data)
+    .then((schema) => {
+      return res.json({ status: verifySchema(schema) });
+    })
+    .catch((_error) => {
+      // NOTE: error is logged in axiosFormio response interceptor
+      return res.json({ status: false });
+    });
+});
+
 module.exports = router;
