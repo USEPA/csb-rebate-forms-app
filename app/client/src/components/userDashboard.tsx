@@ -16,8 +16,8 @@ import { useDialogActions } from "@/contexts/dialog";
 
 Formio.setBaseUrl(formioBaseUrl);
 Formio.setProjectUrl(formioProjectUrl);
-Formio.use(premium);
-Formio.use(uswds);
+Formio.use(premium); /* eslint-disable-line react-hooks/rules-of-hooks */
+Formio.use(uswds); /* eslint-disable-line react-hooks/rules-of-hooks */
 
 function DashboardIconText() {
   return (
@@ -122,7 +122,7 @@ export function UserDashboard(props: { email: string }) {
         </li>
       </ul>
 
-      <div className="flex-justify border-bottom tablet:display-flex ">
+      <div className="flex-justify border-bottom tablet:display-flex">
         <nav className="flex-align-center mobile-lg:display-flex">
           <div className="margin-bottom-1 mobile-lg:margin-right-1">
             {onSubmissionsPage ? (
