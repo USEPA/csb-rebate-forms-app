@@ -28,8 +28,10 @@ export function ConfirmationDialog() {
         initialFocus={cancelRef}
         open={dialogShown}
         onClose={(_ev) => {
-          dismissable && dismissedAction && dismissedAction();
-          dismissable && resetDialog();
+          if (dismissable) {
+            dismissedAction?.();
+            resetDialog();
+          }
         }}
       >
         <Transition.Child
@@ -91,7 +93,7 @@ export function ConfirmationDialog() {
                           "focus:tw-text-gray-700",
                         )}
                         onClick={(_ev) => {
-                          dismissedAction && dismissedAction();
+                          dismissedAction?.();
                           resetDialog();
                         }}
                       >
@@ -129,7 +131,7 @@ export function ConfirmationDialog() {
                           <button
                             className="usa-button"
                             onClick={(_ev) => {
-                              dismissedAction && dismissedAction();
+                              dismissedAction?.();
                               resetDialog();
                             }}
                             ref={cancelRef}
