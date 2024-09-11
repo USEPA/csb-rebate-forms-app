@@ -10,7 +10,7 @@
     "Devin Galloway <devin.galloway@erg.com>"
   ],
   "devDependencies": {
-    "concurrently": "8.2.2",
+    "concurrently": "9.0.0",
     "husky": "9.1.5",
     "lint-staged": "15.2.10",
     "prettier": "3.3.3",
