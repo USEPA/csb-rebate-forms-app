@@ -230,8 +230,15 @@ router.get("/formio/actions/:formId/:mongoId", (req, res) => {
     return res.status(errorStatus).json({ message: errorMessage });
   }
 
+  const submissionActionsUrl =
+    `${formioProjectUrl}/action` +
+    `?form=${formId}` +
+    `&submission=${mongoId}` +
+    `&sort=-modified` +
+    `&limit=1000000`;
+
   axiosFormio(req)
-    .get(`${formioProjectUrl}/action?form=${formId}&submission=${mongoId}`)
+    .get(submissionActionsUrl)
     .then((axiosRes) => axiosRes.data)
     .then((actions) => res.json(actions))
     .catch((error) => {
