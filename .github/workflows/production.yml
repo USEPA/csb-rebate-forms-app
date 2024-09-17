@@ -79,6 +79,10 @@ jobs:
         run: rm -rf .env.example .eslintrc.js .prettierrc.json
         working-directory: app/server
 
+      - name: Remove NCES JSON files, as they're served from S3 in production
+        run: rm -rf nces-2023.json nces-2024.json
+        working-directory: app/server/app/content
+
       - name: Copy production manifest file to server app
         run: cp manifest-production.yml server/manifest-production.yml
         working-directory: app
