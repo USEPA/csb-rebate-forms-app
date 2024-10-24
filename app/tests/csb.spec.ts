@@ -21,4 +21,11 @@ test.describe("Dashboard", () => {
     const table = page.getByLabel("Your 2023 Rebate Forms");
     await expect(table).toBeVisible();
   });
+
+  test("View 2024 Rebate Form Submissions", async ({ page }) => {
+    await page.getByLabel("Rebate Year:").selectOption("2024");
+
+    const table = page.getByLabel("Your 2024 Rebate Forms");
+    await expect(table).toBeVisible();
+  });
 });
