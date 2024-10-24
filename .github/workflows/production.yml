@@ -60,7 +60,7 @@ jobs:
         working-directory: app/client
 
       - name: Install client app dependencies
-        run: npm install --production
+        run: npm install
         working-directory: app/client
 
       - name: Build client app
