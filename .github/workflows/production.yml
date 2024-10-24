@@ -45,7 +45,7 @@ jobs:
           restore-keys: v1-npm-server-deps-
 
       - name: Install server app dependencies
-        run: npm install
+        run: npm install --production
         working-directory: app/server
 
       - name: Cache client app node modules
@@ -60,7 +60,7 @@ jobs:
         working-directory: app/client
 
       - name: Install client app dependencies
-        run: npm install
+        run: npm install --production
         working-directory: app/client
 
       - name: Build client app
