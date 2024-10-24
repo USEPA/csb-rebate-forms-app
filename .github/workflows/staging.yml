@@ -41,7 +41,7 @@ jobs:
       SAML_PRIVATE_KEY: ${{ secrets.SAML_PRIVATE_KEY }}
       JWT_PUBLIC_KEY: ${{ secrets.JWT_PUBLIC_KEY }}
       JWT_PRIVATE_KEY: ${{ secrets.JWT_PRIVATE_KEY }}
-      CSB_REBATE_YEAR: 2023
+      CSB_REBATE_YEAR: 2024
       CSB_2022_FRF_OPEN: true
       CSB_2022_PRF_OPEN: true
       CSB_2022_CRF_OPEN: true
@@ -97,7 +97,7 @@ jobs:
         working-directory: app/client
 
       - name: Install front-end dependencies
-        run: npm install
+        run: npm install --production
         working-directory: app/client
 
       - name: Build front-end files and move to server
