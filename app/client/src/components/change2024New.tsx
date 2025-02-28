@@ -6,7 +6,7 @@ import { Form } from "@formio/react";
 import clsx from "clsx";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { type FormType, type FormioChange2024Submission } from "@/types";
+import { type CSBFormType, type FormioChange2024Submission } from "@/types";
 import { serverUrl, messages } from "@/config";
 import {
   getData,
@@ -20,7 +20,7 @@ import { MarkdownContent } from "@/components/markdownContent";
 import { useNotificationsActions } from "@/contexts/notifications";
 
 type ChangeRequestData = {
-  formType: FormType;
+  formType: CSBFormType;
   comboKey: string;
   rebateId: string | null;
   mongoId: string;

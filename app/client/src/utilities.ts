@@ -10,7 +10,7 @@ import { useSearchParams } from "react-router-dom";
 // ---
 import {
   type RebateYear,
-  type FormType,
+  type CSBFormType,
   type Content,
   type UserData,
   type ConfigData,
@@ -191,7 +191,7 @@ export function useBapSamData() {
 /** Custom hook to fetch a PDF of a form submission from Formio. */
 export function useSubmissionPDFQuery(options: {
   rebateYear: RebateYear;
-  formType: FormType;
+  formType: CSBFormType;
   mongoId: string | undefined;
 }) {
   const { rebateYear, formType, mongoId } = options;

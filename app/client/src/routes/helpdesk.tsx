@@ -15,7 +15,7 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import {
   type RebateYear,
-  type FormType,
+  type CSBFormType,
   type BapSubmissionData,
   type FormioFRF2022Submission,
   type FormioPRF2022Submission,
@@ -120,7 +120,7 @@ function ResultTableRow(props: {
     DraftSubmission,
     unknown
   >;
-  formType: FormType;
+  formType: CSBFormType;
   rebateId: string | null;
   formio:
     | FormioFRF2022Submission
@@ -383,7 +383,7 @@ export function Helpdesk() {
   const { rebateYear } = useRebateYearState();
   const { setRebateYear } = useRebateYearActions();
 
-  const [formType, setFormType] = useState<FormType>("frf");
+  const [formType, setFormType] = useState<CSBFormType>("frf");
   const [searchText, setSearchText] = useState("");
   const [resultDisplayed, setResultDisplayed] = useState(false);
   const [formDisplayed, setFormDisplayed] = useState(false);
@@ -517,7 +517,7 @@ export function Helpdesk() {
                   value="frf"
                   checked={formType === "frf"}
                   onChange={(ev) => {
-                    setFormType(ev.target.value as FormType);
+                    setFormType(ev.target.value as CSBFormType);
                     setResultDisplayed(false);
                     queryClient.resetQueries({
                       queryKey: ["helpdesk/submission"],
@@ -541,7 +541,7 @@ export function Helpdesk() {
                   value="prf"
                   checked={formType === "prf"}
                   onChange={(ev) => {
-                    setFormType(ev.target.value as FormType);
+                    setFormType(ev.target.value as CSBFormType);
                     setResultDisplayed(false);
                     queryClient.resetQueries({
                       queryKey: ["helpdesk/submission"],
@@ -565,7 +565,7 @@ export function Helpdesk() {
                   value="crf"
                   checked={formType === "crf"}
                   onChange={(ev) => {
-                    setFormType(ev.target.value as FormType);
+                    setFormType(ev.target.value as CSBFormType);
                     setResultDisplayed(false);
                     queryClient.resetQueries({
                       queryKey: ["helpdesk/submission"],

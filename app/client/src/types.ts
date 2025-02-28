@@ -1,6 +1,6 @@
 export type RebateYear = "2022" | "2023" | "2024";
 
-export type FormType = "frf" | "prf" | "crf";
+export type CSBFormType = "frf" | "prf" | "crf";
 
 export type Content = {
   siteAlert: string;
@@ -452,7 +452,7 @@ type FormioCRF2023Data = {
 type FormioChange2023Data = {
   [field: string]: unknown;
   // fields injected upon a new draft Change Request form submission creation:
-  _request_form: FormType;
+  _request_form: CSBFormType;
   _bap_entity_combo_key: string;
   _bap_rebate_id: string;
   _mongo_id: string;
@@ -621,7 +621,7 @@ type FormioCRF2024Data = {
 type FormioChange2024Data = {
   [field: string]: unknown;
   // fields injected upon a new draft Change Request form submission creation:
-  _request_form: FormType;
+  _request_form: CSBFormType;
   _bap_entity_combo_key: string;
   _bap_rebate_id: string;
   _mongo_id: string;
@@ -640,7 +640,7 @@ export type FormioSchemaAndSubmission<Submission> =
     }
   | {
       userAccess: true;
-      formSchema: { url: string; json: object };
+      formSchema: { url: string; json: object } /* HERE */;
       submission: Submission;
     };
 
