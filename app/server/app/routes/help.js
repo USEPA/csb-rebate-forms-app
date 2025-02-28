@@ -392,7 +392,7 @@ router.get("/formio/pdf/:formId/:mongoId", (req, res) => {
 
   // NOTE: included to support EPA API scan
   if (mongoId === formioExampleMongoId) {
-    return res.json({});
+    return res.json("");
   }
 
   /** NOTE: verifyMongoObjectId */
