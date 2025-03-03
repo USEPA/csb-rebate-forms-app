@@ -1,4 +1,4 @@
-import { type FormType, type JSON } from "@formio/react";
+import { type FormType, type Submission } from "@formio/react";
 
 export type RebateYear = "2022" | "2023" | "2024";
 
@@ -133,18 +133,10 @@ export type BapSubmissionData = {
   reimbursementNeeded: boolean;
 };
 
-export type FormioSubmission = {
-  [field: string]: unknown;
+export type FormioSubmission = Submission & {
   _id: string; // MongoDB ObjectId string – submission ID
   form: string; // MongoDB ObjectId string – form ID
-  state: "submitted" | "draft";
   modified: string; // ISO 8601 date time string
-  metadata: {
-    [field: string]: unknown;
-  };
-  data: {
-    [field: string]: JSON;
-  };
 };
 
 type FormioFRF2022Data = {
