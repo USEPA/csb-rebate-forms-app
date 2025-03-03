@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Formio } from "@formio/js";
 import bootstrap4 from "@formio/bootstrap/bootstrap4";
-import { Formio } from "@formio/react";
 import premium from "@formio/premium/lib/index.js";
 import uswds from "@formio/uswds";
 import icons from "uswds/img/sprite.svg";

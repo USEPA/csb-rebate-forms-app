@@ -1,3 +1,5 @@
+import { type FormType, type JSON } from "@formio/react";
+
 export type RebateYear = "2022" | "2023" | "2024";
 
 export type CSBFormType = "frf" | "prf" | "crf";
@@ -141,7 +143,7 @@ export type FormioSubmission = {
     [field: string]: unknown;
   };
   data: {
-    [field: string]: unknown;
+    [field: string]: JSON;
   };
 };
 
@@ -632,7 +634,7 @@ type FormioChange2024Data = {
   request_type: { label: string; value: string };
 };
 
-export type FormioSchemaAndSubmission<Submission> =
+export type FormioSchemaAndSubmission<FormioFormSubmission> =
   | {
       userAccess: false;
       formSchema: null;
@@ -640,8 +642,8 @@ export type FormioSchemaAndSubmission<Submission> =
     }
   | {
       userAccess: true;
-      formSchema: { url: string; json: object } /* HERE */;
-      submission: Submission;
+      formSchema: { url: string; json: FormType };
+      submission: FormioFormSubmission;
     };
 
 export type FormioFRF2022Submission = FormioSubmission & {
