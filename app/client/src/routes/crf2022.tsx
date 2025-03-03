@@ -2,8 +2,8 @@ import { useEffect, useMemo, useRef } from "react";
 import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import { Dialog } from "@headlessui/react";
-import { Providers } from "@formio/js";
-import { Formio, Form } from "@formio/react";
+import { Formio, Providers } from "@formio/js";
+import { type Submission, Form } from "@formio/react";
 import clsx from "clsx";
 import { cloneDeep, isEqual } from "lodash";
 import icons from "uswds/img/sprite.svg";
@@ -79,11 +79,7 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
   const mutation = useMutation({
     mutationFn: (updatedSubmission: {
       mongoId: string;
-      submission: {
-        data: { [field: string]: unknown };
-        metadata: { [field: string]: unknown };
-        state: "submitted" | "draft";
-      };
+      submission: Submission;
     }) => {
       return postData<FormioCRF2022Submission>(url, updatedSubmission);
     },
@@ -296,8 +292,8 @@ function CloseOutRequestForm(props: { email: string }) {
 
       <div className="csb-form">
         <Form
-          form={formSchema.json}
-          url={formSchema.url} // NOTE: used for file uploads
+          src={formSchema.json}
+          url={formSchema.url}
           submission={{
             state: submission.state,
             data: {
@@ -313,11 +309,7 @@ function CloseOutRequestForm(props: { email: string }) {
             readOnly: formIsReadOnly,
             noAlerts: true,
           }}
-          onSubmit={(onSubmitSubmission: {
-            data: { [field: string]: unknown };
-            metadata: { [field: string]: unknown };
-            state: "submitted" | "draft";
-          }) => {
+          onSubmit={(onSubmitSubmission: Submission) => {
             if (formIsReadOnly) return;
 
             // account for when form is being submitted to prevent double submits
@@ -356,11 +348,13 @@ function CloseOutRequestForm(props: { email: string }) {
                         "tw:text-sm tw:font-medium tw:text-gray-900",
                       )}
                     >
-                      {onSubmitSubmission.state === "submitted" ? (
+                      {onSubmitSubmission.state === "submitted" && (
                         <>
                           Close Out <em>{rebateId}</em> submitted successfully.
                         </>
-                      ) : (
+                      )}
+
+                      {onSubmitSubmission.state === "draft" && (
                         <>Draft saved successfully.</>
                       )}
                     </p>
@@ -388,9 +382,11 @@ function CloseOutRequestForm(props: { email: string }) {
                         "tw:text-sm tw:font-medium tw:text-gray-900",
                       )}
                     >
-                      {onSubmitSubmission.state === "submitted" ? (
+                      {onSubmitSubmission.state === "submitted" && (
                         <>Error submitting Close Out form.</>
-                      ) : (
+                      )}
+
+                      {onSubmitSubmission.state === "draft" && (
                         <>Error saving draft.</>
                       )}
                     </p>
@@ -403,16 +399,10 @@ function CloseOutRequestForm(props: { email: string }) {
               },
             });
           }}
-          onNextPage={(onNextPageParam: {
-            page: number;
-            submission: {
-              data: { [field: string]: unknown };
-              metadata: { [field: string]: unknown };
-            };
-          }) => {
+          onNextPage={(_page: number, onNextPageSubmission: Submission) => {
             if (formIsReadOnly) return;
 
-            const data = { ...onNextPageParam.submission.data };
+            const data = { ...onNextPageSubmission.data };
 
             // "dirty check" – don't post an update if no changes have been made
             // to the form (ignoring current user fields)
@@ -429,9 +419,9 @@ function CloseOutRequestForm(props: { email: string }) {
             const updatedSubmission = {
               mongoId: submission._id,
               submission: {
-                ...onNextPageParam.submission,
+                ...onNextPageSubmission,
                 data,
-                state: "draft" as const,
+                state: "draft",
               },
             };
 

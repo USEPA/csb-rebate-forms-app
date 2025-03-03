@@ -6,8 +6,8 @@ import {
   useQuery,
   useMutation,
 } from "@tanstack/react-query";
-import { Providers } from "@formio/js";
-import { Formio, Form } from "@formio/react";
+import { Formio, Providers } from "@formio/js";
+import { type FormType, Form } from "@formio/react";
 import clsx from "clsx";
 import { cloneDeep } from "lodash";
 import icon from "uswds/img/usa-icons-bg/search--white.svg";
@@ -52,7 +52,7 @@ import {
 
 type Response = {
   rebateId: string | null;
-  formSchema: { url: string; json: object } | null;
+  formSchema: { url: string; json: FormType } | null;
   formio:
     | (
         | FormioFRF2022Submission
@@ -783,8 +783,8 @@ export function Helpdesk() {
               </ul>
 
               <Form
-                form={formSchema.json}
-                url={formSchema.url} // NOTE: used for file uploads
+                src={formSchema.json}
+                url={formSchema.url}
                 submission={{
                   state: formio.state,
                   data: formio.data,
