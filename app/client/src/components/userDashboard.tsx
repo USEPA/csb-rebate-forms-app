@@ -2,11 +2,11 @@ import { useEffect } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Formio } from "@formio/js";
 import bootstrap4 from "@formio/bootstrap/bootstrap4";
-import premium from "@formio/premium/lib/index.js";
+import premium from "@formio/premium";
 import uswds from "@formio/uswds";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl } from "@/config";
+import { serverUrl, formioPremiumKey } from "@/config";
 import {
   useHelpdeskAccess,
   useConfigQuery,
@@ -17,6 +17,7 @@ import {
 import { Loading } from "@/components/loading";
 import { useDialogActions } from "@/contexts/dialog";
 
+Formio.license = formioPremiumKey;
 Formio.use(bootstrap4); /* eslint-disable-line react-hooks/rules-of-hooks */
 Formio.use(premium); /* eslint-disable-line react-hooks/rules-of-hooks */
 Formio.use(uswds); /* eslint-disable-line react-hooks/rules-of-hooks */
