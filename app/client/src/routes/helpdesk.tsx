@@ -184,7 +184,7 @@ function ResultTableRow(props: {
   const bapReimbursementNeeded = bap?.reimbursementNeeded || false;
 
   const bapStatus = bapStatusMap[rebateYear][formType].get(bapInternalStatus);
-  const formioStatus = formioStatusMap.get(formio.state);
+  const formioStatus = formioStatusMap.get(formio.state || "");
 
   const needsEdits = submissionNeedsEdits({ formio, bap });
 
@@ -786,7 +786,6 @@ export function Helpdesk() {
                 src={formSchema.json}
                 url={formSchema.url}
                 submission={{
-                  state: formio.state,
                   data: formio.data,
                 }}
                 options={{ readOnly: true }}
