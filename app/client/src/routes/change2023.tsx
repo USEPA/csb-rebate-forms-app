@@ -75,10 +75,9 @@ export function Change2023() {
 
       <div className="csb-form">
         <Form
-          form={formSchema.json}
-          url={formSchema.url} // NOTE: used for file uploads
+          src={formSchema.json}
+          url={formSchema.url}
           submission={{
-            state: submission.state,
             data: submission.data,
           }}
           options={{
