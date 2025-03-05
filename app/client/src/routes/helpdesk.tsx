@@ -6,7 +6,7 @@ import {
   useQuery,
   useMutation,
 } from "@tanstack/react-query";
-import { Formio, Providers } from "@formio/js";
+import { Formio } from "@formio/js";
 import { type FormType, Form } from "@formio/react";
 import clsx from "clsx";
 import { cloneDeep } from "lodash";
@@ -409,20 +409,20 @@ export function Helpdesk() {
     queryFn: () => {
       return getData<Response>(submissionUrl).then((res) => {
         /**
-         * Change the formUrl the File component's `uploadFile` uses, so the s3
-         * upload PUT request is routed through the server app.
+         * Change the formUrl the File component uses, so the s3 requests are
+         * routed through the CSB server app.
          *
-         * https://github.com/formio/formio.js/blob/master/src/components/file/File.js#L760
-         * https://github.com/formio/formio.js/blob/master/src/providers/storage/s3.js#L5
-         * https://github.com/formio/formio.js/blob/master/src/providers/storage/xhr.js#L90
+         * https://github.com/formio/formio.js/blob/master/src/providers/storage/s3.js
          */
-        Formio.Providers.providers.storage.s3 = function (formio: {
+        const s3 = Formio.Providers.providers.storage.s3;
+
+        Formio.Providers.providers.storage.s3 = function (param: {
           formUrl: string;
-          [field: string]: unknown;
+          [key: string]: unknown;
         }) {
-          const s3Formio = cloneDeep(formio);
-          s3Formio.formUrl = `${serverUrl}/api/help/formio/s3/${rebateYear}/${formType}`;
-          return Providers.providers.storage.s3(s3Formio);
+          const updatedParam = cloneDeep(param);
+          updatedParam.formUrl = `${serverUrl}/api/help/formio/s3/${rebateYear}/${formType}`;
+          return s3.call(this, updatedParam);
         };
 
         return Promise.resolve(res);

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import { Dialog } from "@headlessui/react";
-import { Formio, Providers } from "@formio/js";
+import { Formio } from "@formio/js";
 import { type FormProps, type Submission, Form } from "@formio/react";
 import clsx from "clsx";
 import { cloneDeep, isEqual } from "lodash";
@@ -55,20 +55,20 @@ function useFormioSubmissionQueryAndMutation(mongoId: string | undefined) {
         const comboKey = res.submission?.data.bap_hidden_entity_combo_key;
 
         /**
-         * Change the formUrl the File component's `uploadFile` uses, so the s3
-         * upload PUT request is routed through the server app.
+         * Change the formUrl the File component uses, so the s3 requests are
+         * routed through the CSB server app.
          *
-         * https://github.com/formio/formio.js/blob/master/src/components/file/File.js#L760
-         * https://github.com/formio/formio.js/blob/master/src/providers/storage/s3.js#L5
-         * https://github.com/formio/formio.js/blob/master/src/providers/storage/xhr.js#L90
+         * https://github.com/formio/formio.js/blob/master/src/providers/storage/s3.js
          */
-        Formio.Providers.providers.storage.s3 = function (formio: {
+        const s3 = Formio.Providers.providers.storage.s3;
+
+        Formio.Providers.providers.storage.s3 = function (param: {
           formUrl: string;
-          [field: string]: unknown;
+          [key: string]: unknown;
         }) {
-          const s3Formio = cloneDeep(formio);
-          s3Formio.formUrl = `${serverUrl}/api/formio/2022/s3/frf/${mongoId}/${comboKey}`;
-          return Providers.providers.storage.s3(s3Formio);
+          const updatedParam = cloneDeep(param);
+          updatedParam.formUrl = `${serverUrl}/api/formio/2022/s3/frf/${mongoId}/${comboKey}`;
+          return s3.call(this, updatedParam);
         };
 
         const data = { ...res.submission?.data };
