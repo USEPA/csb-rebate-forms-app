@@ -3,7 +3,7 @@ import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import { Dialog } from "@headlessui/react";
 import { Formio, Providers } from "@formio/js";
-import { type Submission, Form } from "@formio/react";
+import { type FormProps, type Submission, Form } from "@formio/react";
 import clsx from "clsx";
 import { cloneDeep, isEqual } from "lodash";
 import icons from "uswds/img/sprite.svg";
@@ -314,7 +314,6 @@ function PaymentRequestForm(props: { email: string }) {
           src={formSchema.json}
           url={formSchema.url}
           submission={{
-            state: submission.state,
             data: {
               ...submission.data,
               _user_email: email,
@@ -331,21 +330,21 @@ function PaymentRequestForm(props: { email: string }) {
             readOnly: formIsReadOnly,
             noAlerts: true,
           }}
-          onSubmit={(onSubmitSubmission: Submission) => {
+          onSubmit={(onSubmitParam: Submission) => {
             if (formIsReadOnly) return;
 
             // account for when form is being submitted to prevent double submits
             if (formIsBeingSubmitted.current) return;
-            if (onSubmitSubmission.state === "submitted") {
+            if (onSubmitParam.state === "submitted") {
               formIsBeingSubmitted.current = true;
             }
 
-            const data = { ...onSubmitSubmission.data };
+            const data = { ...onSubmitParam.data };
 
             const updatedSubmission = {
               mongoId: submission._id,
               submission: {
-                ...onSubmitSubmission,
+                ...onSubmitParam,
                 data,
               },
             };
@@ -370,21 +369,21 @@ function PaymentRequestForm(props: { email: string }) {
                         "tw:text-sm tw:font-medium tw:text-gray-900",
                       )}
                     >
-                      {onSubmitSubmission.state === "submitted" && (
+                      {onSubmitParam.state === "submitted" && (
                         <>
                           Payment Request <em>{rebateId}</em> submitted
                           successfully.
                         </>
                       )}
 
-                      {onSubmitSubmission.state === "draft" && (
+                      {onSubmitParam.state === "draft" && (
                         <>Draft saved successfully.</>
                       )}
                     </p>
                   ),
                 });
 
-                if (onSubmitSubmission.state === "submitted") {
+                if (onSubmitParam.state === "submitted") {
                   /**
                    * NOTE: we'll keep the success notification displayed and
                    * redirect the user to their dashboard
@@ -392,7 +391,7 @@ function PaymentRequestForm(props: { email: string }) {
                   navigate("/");
                 }
 
-                if (onSubmitSubmission.state === "draft") {
+                if (onSubmitParam.state === "draft") {
                   setTimeout(() => dismissNotification({ id }), 5000);
                 }
               },
@@ -405,11 +404,11 @@ function PaymentRequestForm(props: { email: string }) {
                         "tw:text-sm tw:font-medium tw:text-gray-900",
                       )}
                     >
-                      {onSubmitSubmission.state === "submitted" && (
+                      {onSubmitParam.state === "submitted" && (
                         <>Error submitting Payment Request form.</>
                       )}
 
-                      {onSubmitSubmission.state === "draft" && (
+                      {onSubmitParam.state === "draft" && (
                         <>Error saving draft.</>
                       )}
                     </p>
@@ -422,10 +421,18 @@ function PaymentRequestForm(props: { email: string }) {
               },
             });
           }}
-          onNextPage={(_page: number, onNextPageSubmission: Submission) => {
+          onNextPage={(param) => {
+            /** NOTE: The types for onNextPage params are incorrect */
+            type T = Parameters<Exclude<FormProps["onNextPage"], undefined>>;
+
+            const onNextPageParams = param as unknown as {
+              page: T[0];
+              submission: T[1];
+            };
+
             if (formIsReadOnly) return;
 
-            const data = { ...onNextPageSubmission.data };
+            const data = { ...onNextPageParams.submission.data };
 
             // "dirty check" – don't post an update if no changes have been made
             // to the form (ignoring current user fields)
@@ -443,7 +450,7 @@ function PaymentRequestForm(props: { email: string }) {
             const updatedSubmission = {
               mongoId: submission._id,
               submission: {
-                ...onNextPageSubmission,
+                ...onNextPageParams.submission,
                 data,
                 state: "draft",
               },
