@@ -197,7 +197,7 @@ function FRF2022Submission(props: { rebate: Rebate2022 }) {
 
   const frfBapInternalStatus = frf.bap?.status || "";
   const frfBapStatus = bapStatusMap["2022"].frf.get(frfBapInternalStatus);
-  const frfFormioStatus = formioStatusMap.get(frf.formio.state);
+  const frfFormioStatus = formioStatusMap.get(frf.formio.state || "");
 
   const frfStatus = frfNeedsEdits
     ? "Edits Requested"
@@ -512,7 +512,7 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
 
   const prfBapInternalStatus = prf.bap?.status || "";
   const prfBapStatus = bapStatusMap["2022"].prf.get(prfBapInternalStatus);
-  const prfFormioStatus = formioStatusMap.get(prf.formio.state);
+  const prfFormioStatus = formioStatusMap.get(prf.formio.state || "");
 
   const prfStatus = prfNeedsEdits
     ? "Edits Requested"
@@ -715,7 +715,7 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
 
   const crfBapInternalStatus = crf.bap?.status || "";
   const crfBapStatus = bapStatusMap["2022"].crf.get(crfBapInternalStatus);
-  const crfFormioStatus = formioStatusMap.get(crf.formio.state);
+  const crfFormioStatus = formioStatusMap.get(crf.formio.state || "");
   const crfBapReimbursementNeeded = crf.bap?.reimbursementNeeded || false;
 
   const crfNeedsReimbursement = submissionNeedsReimbursement({
@@ -1058,7 +1058,7 @@ function FRF2023Submission(props: { rebate: Rebate2023 }) {
 
   const frfBapInternalStatus = frf.bap?.status || "";
   const frfBapStatus = bapStatusMap["2023"].frf.get(frfBapInternalStatus);
-  const frfFormioStatus = formioStatusMap.get(frf.formio.state);
+  const frfFormioStatus = formioStatusMap.get(frf.formio.state || "");
 
   const frfStatus = frfNeedsEdits
     ? "Edits Requested"
@@ -1220,7 +1220,7 @@ handle when it's value is an empty string. */}
             comboKey: _bap_entity_combo_key,
             rebateId: frf.bap?.rebateId || null,
             mongoId: frf.formio._id,
-            state: frf.formio.state,
+            state: frf.formio.state || "",
             email,
             title,
             name,
@@ -1363,7 +1363,7 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
 
   const prfBapInternalStatus = prf.bap?.status || "";
   const prfBapStatus = bapStatusMap["2023"].prf.get(prfBapInternalStatus);
-  const prfFormioStatus = formioStatusMap.get(prf.formio.state);
+  const prfFormioStatus = formioStatusMap.get(prf.formio.state || "");
 
   const prfStatus = prfNeedsEdits
     ? "Edits Requested"
@@ -1444,7 +1444,7 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
             comboKey: _bap_entity_combo_key,
             rebateId: _bap_rebate_id,
             mongoId: prf.formio._id,
-            state: prf.formio.state,
+            state: prf.formio.state || "",
             email,
             title,
             name,
@@ -1726,7 +1726,7 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 
   const frfBapInternalStatus = frf.bap?.status || "";
   const frfBapStatus = bapStatusMap["2024"].frf.get(frfBapInternalStatus);
-  const frfFormioStatus = formioStatusMap.get(frf.formio.state);
+  const frfFormioStatus = formioStatusMap.get(frf.formio.state || "");
 
   const frfStatus = frfNeedsEdits
     ? "Edits Requested"
@@ -1873,7 +1873,7 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
             comboKey: _bap_entity_combo_key,
             rebateId: frf.bap?.rebateId || null,
             mongoId: frf.formio._id,
-            state: frf.formio.state,
+            state: frf.formio.state || "",
             email,
             title,
             name,
@@ -2025,7 +2025,7 @@ function PRF2024Submission(props: { rebate: Rebate2024 }) {
 
   const prfBapInternalStatus = prf.bap?.status || "";
   const prfBapStatus = bapStatusMap["2024"].prf.get(prfBapInternalStatus);
-  const prfFormioStatus = formioStatusMap.get(prf.formio.state);
+  const prfFormioStatus = formioStatusMap.get(prf.formio.state || "");
 
   const prfStatus = prfNeedsEdits
     ? "Edits Requested"
@@ -2106,7 +2106,7 @@ function PRF2024Submission(props: { rebate: Rebate2024 }) {
             comboKey: _bap_entity_combo_key,
             rebateId: _bap_rebate_id,
             mongoId: prf.formio._id,
-            state: prf.formio.state,
+            state: prf.formio.state || "",
             email,
             title,
             name,

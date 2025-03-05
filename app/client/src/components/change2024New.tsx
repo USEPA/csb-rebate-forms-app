@@ -2,7 +2,7 @@ import { Fragment, useRef, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Dialog, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import { Form } from "@formio/react";
+import { type FormType, type Submission, Form } from "@formio/react";
 import clsx from "clsx";
 import icons from "uswds/img/sprite.svg";
 // ---
@@ -24,7 +24,7 @@ type ChangeRequestData = {
   comboKey: string;
   rebateId: string | null;
   mongoId: string;
-  state: "draft" | "submitted";
+  state: string;
   email: string;
   title: string;
   name: string;
@@ -33,7 +33,7 @@ type ChangeRequestData = {
   districtState: string;
 };
 
-type Response = { url: string; json: object };
+type Response = { url: string; json: FormType };
 
 /** Custom hook to fetch Formio schema */
 function useFormioSchemaQuery() {
@@ -53,7 +53,7 @@ function useFormioSubmissionMutation() {
   const url = `${serverUrl}/api/formio/2024/change/`;
 
   const mutation = useMutation({
-    mutationFn: (submission: FormioChange2024Submission) => {
+    mutationFn: (submission: Submission) => {
       return postData<FormioChange2024Submission>(url, submission);
     },
   });
@@ -291,10 +291,9 @@ function ChangeRequest2024Form(props: {
 
       <div className="csb-form">
         <Form
-          form={formSchema.json}
-          url={formSchema.url} // NOTE: used for file uploads
+          src={formSchema.json}
+          url={formSchema.url}
           submission={{
-            state: "draft",
             data: {
               _request_form: formType,
               _bap_entity_combo_key: comboKey,
@@ -313,18 +312,18 @@ function ChangeRequest2024Form(props: {
           options={{
             noAlerts: true,
           }}
-          onSubmit={(onSubmitSubmission: FormioChange2024Submission) => {
+          onSubmit={(onSubmitParam) => {
             // account for when form is being submitted to prevent double submits
             if (formIsBeingSubmitted.current) return;
             formIsBeingSubmitted.current = true;
 
-            const data = { ...onSubmitSubmission.data };
+            const data = { ...onSubmitParam.data };
 
             dismissNotification({ id: 0 });
             dataIsPosting.current = true;
             pendingSubmissionData.current = data;
 
-            mutation.mutate(onSubmitSubmission, {
+            mutation.mutate(onSubmitParam, {
               onSuccess: (res, _payload, _context) => {
                 pendingSubmissionData.current = {};
 
