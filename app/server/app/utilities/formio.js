@@ -100,23 +100,20 @@ function getRebateIdFieldName({ rebateYear }) {
  *
  * @param {Object} param
  * @param {Object} param.schema
- * @param {express.Request} param.req
  */
-function modifyDatasourceComponentsUrl({ schema, req }) {
+function modifyDatasourceComponentsUrl({ schema }) {
   const result = { ...schema };
-  const referer = req.get("Referer"); // URL of the page making the request
-  const baseUrl = referer ? new URL(referer).origin : `http://localhost:3000`;
 
   ["components", "columns"].forEach((fieldName) => {
     if (result[fieldName]) {
       result[fieldName].forEach((component) => {
         if (component.type === "datasource") {
           const path = component.fetch.url.split("/api/")[1];
-          component.fetch.url = `${baseUrl}/api/${path}`;
+          component.fetch.url = `http://localhost:3000/api/${path}`;
         }
 
         if (component.components || component.columns) {
-          modifyDatasourceComponentsUrl({ schema: component, req });
+          modifyDatasourceComponentsUrl({ schema: component });
         }
       });
     }
@@ -1357,7 +1354,7 @@ function fetchFRFSubmission({ rebateYear, req, res }) {
       const formSchemaJson =
         NODE_ENV === "development" &&
         (rebateYear === "2023" || rebateYear === "2024")
-          ? modifyDatasourceComponentsUrl({ schema, req })
+          ? modifyDatasourceComponentsUrl({ schema })
           : schema;
 
       return res.json({
@@ -1627,7 +1624,7 @@ function fetchPRFSubmission({ rebateYear, req, res }) {
       /** Modify 2024 PRF's NCES API endpoint URL for local development */
       const formSchemaJson =
         NODE_ENV === "development" && rebateYear === "2024"
-          ? modifyDatasourceComponentsUrl({ schema, req })
+          ? modifyDatasourceComponentsUrl({ schema })
           : schema;
 
       /**
