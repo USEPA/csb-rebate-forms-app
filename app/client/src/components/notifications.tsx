@@ -1,4 +1,3 @@
-import { Fragment } from "react";
 import { Transition } from "@headlessui/react";
 import { InformationCircleIcon } from "@heroicons/react/24/outline";
 import { CheckCircleIcon } from "@heroicons/react/24/outline";
@@ -33,7 +32,6 @@ export function Notifications() {
         >
           <Transition
             show={displayed}
-            as={Fragment}
             enter={clsx(
               "tw:transform tw:transition tw:duration-300 tw:ease-out",
             )}

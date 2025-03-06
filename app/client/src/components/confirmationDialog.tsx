@@ -1,4 +1,4 @@
-import { Fragment, useRef } from "react";
+import { useRef } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
@@ -21,7 +21,7 @@ export function ConfirmationDialog() {
   const cancelRef = useRef<HTMLButtonElement>(null);
 
   return (
-    <Transition.Root show={dialogShown} as={Fragment}>
+    <Transition.Root show={dialogShown}>
       <Dialog
         as="div"
         className={clsx("tw:relative tw:z-10")}
@@ -35,7 +35,6 @@ export function ConfirmationDialog() {
         }}
       >
         <Transition.Child
-          as={Fragment}
           enter={clsx("tw:duration-300 tw:ease-out")}
           enterFrom={clsx("tw:opacity-0")}
           enterTo={clsx("tw:opacity-100")}
@@ -58,7 +57,6 @@ export function ConfirmationDialog() {
             )}
           >
             <Transition.Child
-              as={Fragment}
               enter={clsx("tw:duration-300 tw:ease-out")}
               enterFrom={clsx(
                 "tw:translate-y-4 tw:opacity-0",

@@ -1,4 +1,4 @@
-import { Fragment, useState } from "react";
+import { useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { Dialog, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
@@ -154,14 +154,13 @@ export function FRFNew() {
     samEntities.eligible.length + samEntities.ineligible.length;
 
   return (
-    <Transition.Root show={true} as={Fragment}>
+    <Transition.Root show={true}>
       <Dialog
         as="div"
         className={clsx("tw:relative tw:z-10")}
         onClose={(_value) => navigate("/")}
       >
         <Transition.Child
-          as={Fragment}
           enter={clsx("tw:duration-300 tw:ease-out")}
           enterFrom={clsx("tw:opacity-0")}
           enterTo={clsx("tw:opacity-100")}
@@ -184,7 +183,6 @@ export function FRFNew() {
             )}
           >
             <Transition.Child
-              as={Fragment}
               enter={clsx("tw:duration-300 tw:ease-out")}
               enterFrom={clsx(
                 "tw:translate-y-4 tw:opacity-0",

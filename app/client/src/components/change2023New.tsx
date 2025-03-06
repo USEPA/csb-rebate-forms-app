@@ -1,4 +1,4 @@
-import { Fragment, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Dialog, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
@@ -115,7 +115,7 @@ function ChangeRequest2023Dialog(props: {
    */
 
   return (
-    <Transition.Root show={dialogShown} as={Fragment}>
+    <Transition.Root show={dialogShown}>
       <Dialog
         as="div"
         className={clsx("tw:relative tw:z-10")}
@@ -123,7 +123,6 @@ function ChangeRequest2023Dialog(props: {
         onClose={(_value) => closeDialog()}
       >
         <Transition.Child
-          as={Fragment}
           enter={clsx("tw:duration-300 tw:ease-out")}
           enterFrom={clsx("tw:opacity-0")}
           enterTo={clsx("tw:opacity-100")}
@@ -145,7 +144,6 @@ function ChangeRequest2023Dialog(props: {
             )}
           >
             <Transition.Child
-              as={Fragment}
               enter={clsx("tw:duration-300 tw:ease-out")}
               enterFrom={clsx("tw:translate-y-0 tw:opacity-0")}
               enterTo={clsx("tw:translate-y-0 tw:opacity-100")}
