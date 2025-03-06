@@ -128,20 +128,17 @@ function ChangeRequest2024Dialog(props: {
     <Transition show={dialogShown}>
       <Dialog
         className={clsx("tw:relative tw:z-10")}
-        open={dialogShown}
         onClose={(_value) => closeDialog()}
       >
-        <TransitionChild
-          enter={clsx("tw:duration-300 tw:ease-out")}
-          enterFrom={clsx("tw:opacity-0")}
-          enterTo={clsx("tw:opacity-100")}
-          leave={clsx("tw:duration-200 tw:ease-in")}
-          leaveFrom={clsx("tw:opacity-100")}
-          leaveTo={clsx("tw:opacity-0")}
-        >
+        <TransitionChild>
           <DialogBackdrop
             className={clsx(
-              "tw:fixed tw:inset-0 tw:bg-black/70 tw:transition-colors",
+              "tw:fixed tw:inset-0 tw:bg-black/70",
+              // --- transitions ---
+              "tw:transition-colors tw:!duration-200",
+              "tw:data-closed:opacity-0",
+              "tw:data-enter:ease-out",
+              "tw:data-leave:ease-in",
             )}
           />
         </TransitionChild>
@@ -152,54 +149,48 @@ function ChangeRequest2024Dialog(props: {
               "tw:flex tw:min-h-full tw:items-center tw:justify-center tw:p-4",
             )}
           >
+            {/* <DialogPanel> */}
             <TransitionChild
-              enter={clsx("tw:duration-300 tw:ease-out")}
-              enterFrom={clsx("tw:translate-y-0 tw:opacity-0")}
-              enterTo={clsx("tw:translate-y-0 tw:opacity-100")}
-              leave={clsx("tw:duration-200 tw:ease-in")}
-              leaveFrom={clsx("tw:translate-y-0 tw:opacity-100")}
-              leaveTo={clsx("tw:translate-y-0 tw:opacity-0")}
+              as="div"
+              className={clsx(
+                "tw:relative tw:transform tw:overflow-hidden tw:rounded-lg tw:bg-white tw:p-4 tw:shadow-xl",
+                "tw:sm:w-full tw:sm:max-w-7xl tw:sm:p-6",
+                // --- transitions ---
+                "tw:!transition-all tw:!duration-200",
+                "tw:data-closed:scale-95 tw:data-closed:opacity-0",
+                "tw:data-enter:ease-out",
+                "tw:data-leave:ease-in",
+              )}
             >
-              {/* <DialogPanel> */}
-              <div
-                className={clsx(
-                  "tw:relative tw:transform tw:overflow-hidden tw:rounded-lg tw:bg-white tw:p-4 tw:shadow-xl tw:transition-all",
-                  "tw:sm:w-full tw:sm:max-w-7xl tw:sm:p-6",
-                )}
-              >
-                <div className="twpf">
-                  <div
+              <div className="twpf">
+                <div
+                  className={clsx(
+                    "tw:absolute tw:right-0 tw:top-0 tw:pr-4 tw:pt-4",
+                  )}
+                >
+                  <button
                     className={clsx(
-                      "tw:absolute tw:right-0 tw:top-0 tw:pr-4 tw:pt-4",
+                      "tw:rounded-md tw:bg-white tw:text-gray-400 tw:transition-none",
+                      "tw:hover:text-gray-700",
+                      "tw:focus:text-gray-700",
                     )}
+                    type="button"
+                    onClick={(_ev) => closeDialog()}
                   >
-                    <button
-                      className={clsx(
-                        "tw:rounded-md tw:bg-white tw:text-gray-400 tw:transition-none",
-                        "tw:hover:text-gray-700",
-                        "tw:focus:text-gray-700",
-                      )}
-                      type="button"
-                      onClick={(_ev) => closeDialog()}
-                    >
-                      <span className={clsx("tw:sr-only")}>Close</span>
-                      <XMarkIcon
-                        className={clsx("tw:size-6 tw:transition-none")}
-                        aria-hidden="true"
-                      />
-                    </button>
-                  </div>
-                </div>
-
-                <div className={clsx("tw:m-auto tw:max-w-6xl tw:p-4")}>
-                  <ChangeRequest2024Form
-                    data={data}
-                    closeDialog={closeDialog}
-                  />
+                    <span className={clsx("tw:sr-only")}>Close</span>
+                    <XMarkIcon
+                      className={clsx("tw:size-6 tw:transition-none")}
+                      aria-hidden="true"
+                    />
+                  </button>
                 </div>
               </div>
-              {/* </DialogPanel> */}
+
+              <div className={clsx("tw:m-auto tw:max-w-6xl tw:p-4")}>
+                <ChangeRequest2024Form data={data} closeDialog={closeDialog} />
+              </div>
             </TransitionChild>
+            {/* </DialogPanel> */}
           </div>
         </div>
       </Dialog>
