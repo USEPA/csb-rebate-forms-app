@@ -1,6 +1,13 @@
 import { useRef, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Dialog, Transition } from "@headlessui/react";
+import {
+  Dialog,
+  DialogBackdrop,
+  DialogPanel,
+  DialogTitle,
+  Transition,
+  TransitionChild,
+} from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { type FormType, type Submission, Form } from "@formio/react";
 import clsx from "clsx";
@@ -109,20 +116,19 @@ function ChangeRequest2023Dialog(props: {
 
   /*
    * NOTE: Formio form Combobox inputs won't receive click events if the
-   * Dialog.Panel component is used (they still receive keyboard events), so a
+   * DialogPanel component is used (they still receive keyboard events), so a
    * div is used instead. The downside is we lose the triggering of the Dialog
    * component's `onClose` event when a user clicks outside the panel.
    */
 
   return (
-    <Transition.Root show={dialogShown}>
+    <Transition show={dialogShown}>
       <Dialog
-        as="div"
         className={clsx("tw:relative tw:z-10")}
         open={dialogShown}
         onClose={(_value) => closeDialog()}
       >
-        <Transition.Child
+        <TransitionChild
           enter={clsx("tw:duration-300 tw:ease-out")}
           enterFrom={clsx("tw:opacity-0")}
           enterTo={clsx("tw:opacity-100")}
@@ -130,12 +136,12 @@ function ChangeRequest2023Dialog(props: {
           leaveFrom={clsx("tw:opacity-100")}
           leaveTo={clsx("tw:opacity-0")}
         >
-          <div
+          <DialogBackdrop
             className={clsx(
               "tw:fixed tw:inset-0 tw:bg-black/70 tw:transition-colors",
             )}
           />
-        </Transition.Child>
+        </TransitionChild>
 
         <div className={clsx("tw:fixed tw:inset-0 tw:z-10 tw:overflow-y-auto")}>
           <div
@@ -143,7 +149,7 @@ function ChangeRequest2023Dialog(props: {
               "tw:flex tw:min-h-full tw:items-center tw:justify-center tw:p-4",
             )}
           >
-            <Transition.Child
+            <TransitionChild
               enter={clsx("tw:duration-300 tw:ease-out")}
               enterFrom={clsx("tw:translate-y-0 tw:opacity-0")}
               enterTo={clsx("tw:translate-y-0 tw:opacity-100")}
@@ -151,7 +157,7 @@ function ChangeRequest2023Dialog(props: {
               leaveFrom={clsx("tw:translate-y-0 tw:opacity-100")}
               leaveTo={clsx("tw:translate-y-0 tw:opacity-0")}
             >
-              {/* <Dialog.Panel> */}
+              {/* <DialogPanel> */}
               <div
                 className={clsx(
                   "tw:relative tw:transform tw:overflow-hidden tw:rounded-lg tw:bg-white tw:p-4 tw:shadow-xl tw:transition-all",
@@ -189,12 +195,12 @@ function ChangeRequest2023Dialog(props: {
                   />
                 </div>
               </div>
-              {/* </Dialog.Panel> */}
-            </Transition.Child>
+              {/* </DialogPanel> */}
+            </TransitionChild>
           </div>
         </div>
       </Dialog>
-    </Transition.Root>
+    </Transition>
   );
 }
 
@@ -252,23 +258,33 @@ function ChangeRequest2023Form(props: {
 
   return (
     <>
-      {content && <MarkdownContent children={content.newChangeIntro} />}
+      {content && (
+        <MarkdownContent
+          children={content.newChangeIntro}
+          components={{
+            h2: (props) => <DialogTitle>{props.children}</DialogTitle>,
+          }}
+        />
+      )}
 
-      <Dialog as="div" open={dataIsPosting.current} onClose={(_value) => {}}>
-        <div className={clsx("tw:fixed tw:inset-0 tw:z-20 tw:bg-black/30")} />
+      <Dialog open={dataIsPosting.current} onClose={(_value) => {}}>
+        <DialogBackdrop
+          className={clsx("tw:fixed tw:inset-0 tw:z-20 tw:bg-black/30")}
+        />
+
         <div className={clsx("tw:fixed tw:inset-0 tw:z-20")}>
           <div
             className={clsx(
               "tw:flex tw:min-h-full tw:items-center tw:justify-center",
             )}
           >
-            <Dialog.Panel
+            <DialogPanel
               className={clsx(
                 "tw:rounded-lg tw:bg-white tw:px-4 tw:pb-4 tw:shadow-xl",
               )}
             >
               <Loading />
-            </Dialog.Panel>
+            </DialogPanel>
           </div>
         </div>
       </Dialog>

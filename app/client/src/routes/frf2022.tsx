@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
-import { Dialog } from "@headlessui/react";
+import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
 import { Formio } from "@formio/js";
 import { type FormProps, type Submission, Form } from "@formio/react";
 import clsx from "clsx";
@@ -418,21 +418,23 @@ function FundingRequestForm(props: { email: string }) {
         </button>
       </p>
 
-      <Dialog as="div" open={dataIsPosting.current} onClose={(_value) => {}}>
-        <div className={clsx("tw:fixed tw:inset-0 tw:bg-black/30")} />
+      <Dialog open={dataIsPosting.current} onClose={(_value) => {}}>
+        <DialogBackdrop
+          className={clsx("tw:fixed tw:inset-0 tw:bg-black/30")}
+        />
         <div className={clsx("tw:fixed tw:inset-0 tw:z-20")}>
           <div
             className={clsx(
               "tw:flex tw:min-h-full tw:items-center tw:justify-center",
             )}
           >
-            <Dialog.Panel
+            <DialogPanel
               className={clsx(
                 "tw:rounded-lg tw:bg-white tw:px-4 tw:pb-4 tw:shadow-xl",
               )}
             >
               <Loading />
-            </Dialog.Panel>
+            </DialogPanel>
           </div>
         </div>
       </Dialog>

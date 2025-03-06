@@ -1,5 +1,12 @@
 import { useRef } from "react";
-import { Dialog, Transition } from "@headlessui/react";
+import {
+  Dialog,
+  DialogBackdrop,
+  DialogPanel,
+  DialogTitle,
+  Transition,
+  TransitionChild,
+} from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 // ---
@@ -21,9 +28,8 @@ export function ConfirmationDialog() {
   const cancelRef = useRef<HTMLButtonElement>(null);
 
   return (
-    <Transition.Root show={dialogShown}>
+    <Transition show={dialogShown}>
       <Dialog
-        as="div"
         className={clsx("tw:relative tw:z-10")}
         initialFocus={cancelRef}
         open={dialogShown}
@@ -34,7 +40,7 @@ export function ConfirmationDialog() {
           }
         }}
       >
-        <Transition.Child
+        <TransitionChild
           enter={clsx("tw:duration-300 tw:ease-out")}
           enterFrom={clsx("tw:opacity-0")}
           enterTo={clsx("tw:opacity-100")}
@@ -42,12 +48,12 @@ export function ConfirmationDialog() {
           leaveFrom={clsx("tw:opacity-100")}
           leaveTo={clsx("tw:opacity-0")}
         >
-          <div
+          <DialogBackdrop
             className={clsx(
               "tw:fixed tw:inset-0 tw:bg-black/70 tw:transition-colors",
             )}
           />
-        </Transition.Child>
+        </TransitionChild>
 
         <div className={clsx("tw:fixed tw:inset-0 tw:z-10 tw:overflow-y-auto")}>
           <div
@@ -56,7 +62,7 @@ export function ConfirmationDialog() {
               "tw:sm:items-center",
             )}
           >
-            <Transition.Child
+            <TransitionChild
               enter={clsx("tw:duration-300 tw:ease-out")}
               enterFrom={clsx(
                 "tw:translate-y-4 tw:opacity-0",
@@ -70,7 +76,7 @@ export function ConfirmationDialog() {
                 "tw:sm:translate-y-0",
               )}
             >
-              <Dialog.Panel
+              <DialogPanel
                 className={clsx(
                   "tw:relative tw:transform tw:overflow-hidden tw:rounded-lg tw:bg-white tw:p-4 tw:shadow-xl tw:transition-all",
                   "tw:sm:w-full tw:sm:max-w-xl tw:sm:p-6",
@@ -106,7 +112,9 @@ export function ConfirmationDialog() {
                 )}
 
                 <div className={clsx("tw:m-4")}>
-                  <h2 className={clsx("tw:text-xl")}>{heading}</h2>
+                  <DialogTitle className={clsx("tw:text-xl")}>
+                    {heading}
+                  </DialogTitle>
 
                   <div className="usa-prose">{description}</div>
 
@@ -143,11 +151,11 @@ export function ConfirmationDialog() {
                     </ul>
                   </div>
                 </div>
-              </Dialog.Panel>
-            </Transition.Child>
+              </DialogPanel>
+            </TransitionChild>
           </div>
         </div>
       </Dialog>
-    </Transition.Root>
+    </Transition>
   );
 }
