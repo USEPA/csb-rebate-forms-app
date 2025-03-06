@@ -32,7 +32,6 @@ export function ConfirmationDialog() {
       <Dialog
         className={clsx("tw:relative tw:z-10")}
         initialFocus={cancelRef}
-        open={dialogShown}
         onClose={(_ev) => {
           if (dismissable) {
             dismissedAction?.();
@@ -40,17 +39,15 @@ export function ConfirmationDialog() {
           }
         }}
       >
-        <TransitionChild
-          enter={clsx("tw:duration-300 tw:ease-out")}
-          enterFrom={clsx("tw:opacity-0")}
-          enterTo={clsx("tw:opacity-100")}
-          leave={clsx("tw:duration-200 tw:ease-in")}
-          leaveFrom={clsx("tw:opacity-100")}
-          leaveTo={clsx("tw:opacity-0")}
-        >
+        <TransitionChild>
           <DialogBackdrop
             className={clsx(
               "tw:fixed tw:inset-0 tw:bg-black/70 tw:transition-colors",
+              // --- transitions ---
+              "tw:transition-colors tw:!duration-100",
+              "tw:data-closed:opacity-0",
+              "tw:data-enter:ease-out",
+              "tw:data-leave:ease-in",
             )}
           />
         </TransitionChild>
@@ -62,24 +59,17 @@ export function ConfirmationDialog() {
               "tw:sm:items-center",
             )}
           >
-            <TransitionChild
-              enter={clsx("tw:duration-300 tw:ease-out")}
-              enterFrom={clsx(
-                "tw:translate-y-4 tw:opacity-0",
-                "tw:sm:translate-y-0",
-              )}
-              enterTo={clsx("tw:translate-y-0 tw:opacity-100")}
-              leave={clsx("tw:duration-200 tw:ease-in")}
-              leaveFrom={clsx("tw:translate-y-0 tw:opacity-100")}
-              leaveTo={clsx(
-                "tw:translate-y-4 tw:opacity-0",
-                "tw:sm:translate-y-0",
-              )}
-            >
+            <TransitionChild>
               <DialogPanel
                 className={clsx(
-                  "tw:relative tw:transform tw:overflow-hidden tw:rounded-lg tw:bg-white tw:p-4 tw:shadow-xl tw:transition-all",
+                  "tw:relative tw:transform tw:overflow-hidden tw:rounded-lg tw:bg-white tw:p-4 tw:shadow-xl",
                   "tw:sm:w-full tw:sm:max-w-xl tw:sm:p-6",
+                  // --- transitions ---
+                  "tw:transition-all tw:!duration-0",
+                  "tw:data-closed:translate-y-4 tw:data-closed:opacity-0",
+                  "tw:sm:data-closed:translate-y-0",
+                  "tw:data-enter:ease-out",
+                  "tw:data-leave:ease-in",
                 )}
               >
                 {dismissable && (

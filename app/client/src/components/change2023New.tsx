@@ -132,7 +132,7 @@ function ChangeRequest2023Dialog(props: {
             className={clsx(
               "tw:fixed tw:inset-0 tw:bg-black/70",
               // --- transitions ---
-              "tw:transition-colors tw:!duration-200",
+              "tw:transition-colors tw:!duration-100",
               "tw:data-closed:opacity-0",
               "tw:data-enter:ease-out",
               "tw:data-leave:ease-in",
@@ -153,7 +153,7 @@ function ChangeRequest2023Dialog(props: {
                 "tw:relative tw:transform tw:overflow-hidden tw:rounded-lg tw:bg-white tw:p-4 tw:shadow-xl",
                 "tw:sm:w-full tw:sm:max-w-7xl tw:sm:p-6",
                 // --- transitions ---
-                "tw:!transition-all tw:!duration-200",
+                "tw:!transition-all tw:!duration-100",
                 "tw:data-closed:scale-95 tw:data-closed:opacity-0",
                 "tw:data-enter:ease-out",
                 "tw:data-leave:ease-in",
