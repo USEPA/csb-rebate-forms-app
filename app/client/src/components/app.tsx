@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { render } from "react-dom";
+import { createRoot } from "react-dom/client";
 import {
   createBrowserRouter,
   createRoutesFromElements,
@@ -59,7 +59,9 @@ function useSiteAlertBanner() {
     container.setAttribute("aria-label", "Site alert");
     container.classList.add("usa-site-alert--emergency");
 
-    render(
+    const root = createRoot(container);
+
+    root.render(
       <div className="usa-alert">
         <div className="usa-alert__body">
           <div className="usa-alert__content">
@@ -75,7 +77,6 @@ function useSiteAlertBanner() {
           </div>
         </div>
       </div>,
-      container,
     );
   }, [content]);
 }
