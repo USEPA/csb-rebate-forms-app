@@ -42,7 +42,7 @@ export function ConfirmationDialog() {
         <TransitionChild>
           <DialogBackdrop
             className={clsx(
-              "tw:fixed tw:inset-0 tw:bg-black/70 tw:transition-colors",
+              "tw:fixed tw:inset-0 tw:bg-black/70",
               // --- transitions ---
               "tw:transition-colors tw:!duration-100",
               "tw:data-closed:opacity-0",
