@@ -16,7 +16,6 @@ import {
 } from "@/utilities";
 import { Loading } from "@/components/loading";
 import { useDialogActions } from "@/contexts/dialog";
-import { useRebateYearActions } from "@/contexts/rebateYear";
 
 Formio.license = formioPremiumKey;
 Formio.use(bootstrap4); /* eslint-disable-line react-hooks/rules-of-hooks */
@@ -69,24 +68,7 @@ export function UserDashboard(props: { email: string }) {
   const bapSamData = useBapSamData();
 
   const { displayDialog } = useDialogActions();
-  const { setRebateYear } = useRebateYearActions();
   const helpdeskAccess = useHelpdeskAccess();
-
-  useEffect(() => {
-    const { formioBaseUrl, formioProjectName, rebateYear } = configData ?? {};
-
-    if (formioBaseUrl) {
-      Formio.setBaseUrl(formioBaseUrl);
-    }
-
-    if (formioBaseUrl && formioProjectName) {
-      Formio.setProjectUrl(`${formioBaseUrl}/${formioProjectName}`);
-    }
-
-    if (rebateYear) {
-      setRebateYear(rebateYear);
-    }
-  }, [configData, setRebateYear]);
 
   const onSubmissionsPage = pathname === "/";
   const onHelpdeskPage = pathname === "/helpdesk";

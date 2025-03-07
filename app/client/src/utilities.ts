@@ -7,6 +7,7 @@ import {
   useQueries,
 } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
+import { Formio } from "@formio/js";
 // ---
 import {
   type RebateYear,
@@ -36,6 +37,7 @@ import {
   type Rebate2024,
 } from "@/types";
 import { serverUrl, formioBapRebateIdField } from "@/config";
+import { useRebateYearActions } from "@/contexts/rebateYear";
 
 /** Formio Change Request submissions by rebate year. */
 /* prettier-ignore */
@@ -144,13 +146,33 @@ export function useHelpdeskAccess() {
       : "failure";
 }
 
-/** Custom hook to fetch CSB config. */
+/** Custom hook to fetch CSB config and set Formio URLs and rebate year. */
 export function useConfigQuery() {
-  return useQuery({
+  const { setRebateYear } = useRebateYearActions();
+
+  const query = useQuery({
     queryKey: ["config"],
     queryFn: () => getData<ConfigData>(`${serverUrl}/api/config`),
     refetchOnWindowFocus: false,
   });
+
+  useEffect(() => {
+    const { formioBaseUrl, formioProjectName, rebateYear } = query.data ?? {};
+
+    if (formioBaseUrl) {
+      Formio.setBaseUrl(formioBaseUrl);
+    }
+
+    if (formioBaseUrl && formioProjectName) {
+      Formio.setProjectUrl(`${formioBaseUrl}/${formioProjectName}`);
+    }
+
+    if (rebateYear) {
+      setRebateYear(rebateYear);
+    }
+  }, [query.data, setRebateYear]);
+
+  return query;
 }
 
 /** Custom hook that returns cached fetched CSB config. */
