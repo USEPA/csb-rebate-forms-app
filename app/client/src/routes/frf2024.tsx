@@ -80,7 +80,7 @@ function useFormioSubmissionQueryAndMutation(mongoId: string | undefined) {
     mutationFn: (updatedSubmission: Submission) => {
       return postData<FormioFRF2024Submission>(url, updatedSubmission);
     },
-    onSuccess: (res) => {
+    onSuccess: (res, _payload, _context) => {
       return queryClient.setQueryData<Response>(
         ["formio/2024/frf-submission", { id: mongoId }],
         (prevData) => {
