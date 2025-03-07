@@ -93,13 +93,15 @@ function getRebateIdFieldName({ rebateYear }) {
 }
 
 /**
- * Modifies Formio schema to use relative API endpoints for datasource
- * components (e.g., `/api/...` instead of `https://.../api/...`) which enables
- * the request to occur when developing locally.
+ * Modifies Formio schema to update API endpoints for datasource components to
+ * use local development server instead of deployed server so the request can
+ * occur when developing locally.
+ * (e.g., `http://localhost:3000/api/...` instead of `https://.../api/...`)
  *
- * @param {Object} schema
+ * @param {Object} param
+ * @param {Object} param.schema
  */
-function modifyDatasourceComponentsUrl(schema) {
+function modifyDatasourceComponentsUrl({ schema }) {
   const result = { ...schema };
 
   ["components", "columns"].forEach((fieldName) => {
@@ -107,11 +109,11 @@ function modifyDatasourceComponentsUrl(schema) {
       result[fieldName].forEach((component) => {
         if (component.type === "datasource") {
           const path = component.fetch.url.split("/api/")[1];
-          component.fetch.url = `/api/${path}`;
+          component.fetch.url = `http://localhost:3000/api/${path}`;
         }
 
         if (component.components || component.columns) {
-          modifyDatasourceComponentsUrl(component);
+          modifyDatasourceComponentsUrl({ schema: component });
         }
       });
     }
@@ -1352,7 +1354,7 @@ function fetchFRFSubmission({ rebateYear, req, res }) {
       const formSchemaJson =
         NODE_ENV === "development" &&
         (rebateYear === "2023" || rebateYear === "2024")
-          ? modifyDatasourceComponentsUrl(schema)
+          ? modifyDatasourceComponentsUrl({ schema })
           : schema;
 
       return res.json({
@@ -1622,7 +1624,7 @@ function fetchPRFSubmission({ rebateYear, req, res }) {
       /** Modify 2024 PRF's NCES API endpoint URL for local development */
       const formSchemaJson =
         NODE_ENV === "development" && rebateYear === "2024"
-          ? modifyDatasourceComponentsUrl(schema)
+          ? modifyDatasourceComponentsUrl({ schema })
           : schema;
 
       /**

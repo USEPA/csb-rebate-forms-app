@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef } from "react";
-import { useNavigate, useOutletContext, useParams } from "react-router-dom";
+import { useNavigate, useOutletContext, useParams } from "react-router";
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
-import { Dialog } from "@headlessui/react";
-import { Providers } from "@formio/js";
-import { Formio, Form } from "@formio/react";
+import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
+import { Formio } from "@formio/js";
+import { type FormProps, type Submission, Form } from "@formio/react";
 import clsx from "clsx";
 import { cloneDeep, isEqual } from "lodash";
 import icons from "uswds/img/sprite.svg";
+import "bootstrap/dist/css/bootstrap-grid.min.css";
 // ---
 import {
   type FormioSchemaAndSubmission,
@@ -54,20 +55,20 @@ function useFormioSubmissionQueryAndMutation(mongoId: string | undefined) {
         const comboKey = res.submission?.data.bap_hidden_entity_combo_key;
 
         /**
-         * Change the formUrl the File component's `uploadFile` uses, so the s3
-         * upload PUT request is routed through the server app.
+         * Change the formUrl the File component uses, so the s3 requests are
+         * routed through the CSB server app.
          *
-         * https://github.com/formio/formio.js/blob/master/src/components/file/File.js#L760
-         * https://github.com/formio/formio.js/blob/master/src/providers/storage/s3.js#L5
-         * https://github.com/formio/formio.js/blob/master/src/providers/storage/xhr.js#L90
+         * https://github.com/formio/formio.js/blob/master/src/providers/storage/s3.js
          */
-        Formio.Providers.providers.storage.s3 = function (formio: {
+        const s3 = Formio.Providers.providers.storage.s3;
+
+        Formio.Providers.providers.storage.s3 = function (param: {
           formUrl: string;
-          [field: string]: unknown;
+          [key: string]: unknown;
         }) {
-          const s3Formio = cloneDeep(formio);
-          s3Formio.formUrl = `${serverUrl}/api/formio/2022/s3/frf/${mongoId}/${comboKey}`;
-          return Providers.providers.storage.s3(s3Formio);
+          const updatedParam = cloneDeep(param);
+          updatedParam.formUrl = `${serverUrl}/api/formio/2022/s3/frf/${mongoId}/${comboKey}`;
+          return s3.call(this, updatedParam);
         };
 
         const data = { ...res.submission?.data };
@@ -91,14 +92,10 @@ function useFormioSubmissionQueryAndMutation(mongoId: string | undefined) {
   });
 
   const mutation = useMutation({
-    mutationFn: (updatedSubmission: {
-      data: { [field: string]: unknown };
-      metadata: { [field: string]: unknown };
-      state: "submitted" | "draft";
-    }) => {
+    mutationFn: (updatedSubmission: Submission) => {
       return postData<FormioFRF2022Submission>(url, updatedSubmission);
     },
-    onSuccess: (res) => {
+    onSuccess: (res, _payload, _context) => {
       return queryClient.setQueryData<Response>(
         ["formio/2022/frf-submission", { id: mongoId }],
         (prevData) => {
@@ -361,16 +358,17 @@ function FundingRequestForm(props: { email: string }) {
   return (
     <div className="margin-top-2">
       {content && (
-        <MarkdownContent
-          className="margin-top-4"
-          children={
-            submission.state === "draft"
-              ? content.draftFRFIntro
-              : submission.state === "submitted"
-                ? content.submittedFRFIntro
-                : ""
-          }
-        />
+        <div className="margin-top-4">
+          <MarkdownContent
+            children={
+              submission.state === "draft"
+                ? content.draftFRFIntro
+                : submission.state === "submitted"
+                  ? content.submittedFRFIntro
+                  : ""
+            }
+          />
+        </div>
       )}
 
       <ul className="usa-icon-list">
@@ -421,31 +419,32 @@ function FundingRequestForm(props: { email: string }) {
         </button>
       </p>
 
-      <Dialog as="div" open={dataIsPosting.current} onClose={(_value) => {}}>
-        <div className={clsx("tw:fixed tw:inset-0 tw:bg-black/30")} />
+      <Dialog open={dataIsPosting.current} onClose={(_value) => {}}>
+        <DialogBackdrop
+          className={clsx("tw:fixed tw:inset-0 tw:bg-black/30")}
+        />
         <div className={clsx("tw:fixed tw:inset-0 tw:z-20")}>
           <div
             className={clsx(
               "tw:flex tw:min-h-full tw:items-center tw:justify-center",
             )}
           >
-            <Dialog.Panel
+            <DialogPanel
               className={clsx(
                 "tw:rounded-lg tw:bg-white tw:px-4 tw:pb-4 tw:shadow-xl",
               )}
             >
               <Loading />
-            </Dialog.Panel>
+            </DialogPanel>
           </div>
         </div>
       </Dialog>
 
       <div className="csb-form">
         <Form
-          form={formSchema.json}
-          url={formSchema.url} // NOTE: used for file uploads
+          src={formSchema.json}
+          url={formSchema.url}
           submission={{
-            state: submission.state,
             data: {
               ...submission.data,
               last_updated_by: email,
@@ -459,20 +458,16 @@ function FundingRequestForm(props: { email: string }) {
             readOnly: formIsReadOnly,
             noAlerts: true,
           }}
-          onSubmit={(onSubmitSubmission: {
-            data: { [field: string]: unknown };
-            metadata: { [field: string]: unknown };
-            state: "submitted" | "draft";
-          }) => {
+          onSubmit={(onSubmitParam: Submission) => {
             if (formIsReadOnly) return;
 
             // account for when form is being submitted to prevent double submits
             if (formIsBeingSubmitted.current) return;
-            if (onSubmitSubmission.state === "submitted") {
+            if (onSubmitParam.state === "submitted") {
               formIsBeingSubmitted.current = true;
             }
 
-            const data = { ...onSubmitSubmission.data };
+            const data = { ...onSubmitParam.data };
 
             // remove `ncesDataSource` and `ncesDataLookup` fields
             // (https://eslint.org/docs/latest/rules/no-prototype-builtins)
@@ -484,7 +479,7 @@ function FundingRequestForm(props: { email: string }) {
             }
 
             const updatedSubmission = {
-              ...onSubmitSubmission,
+              ...onSubmitParam,
               data,
             };
 
@@ -508,18 +503,20 @@ function FundingRequestForm(props: { email: string }) {
                         "tw:text-sm tw:font-medium tw:text-gray-900",
                       )}
                     >
-                      {onSubmitSubmission.state === "submitted" ? (
+                      {onSubmitParam.state === "submitted" && (
                         <>
                           Application <em>{mongoId}</em> submitted successfully.
                         </>
-                      ) : (
+                      )}
+
+                      {onSubmitParam.state === "draft" && (
                         <>Draft saved successfully.</>
                       )}
                     </p>
                   ),
                 });
 
-                if (onSubmitSubmission.state === "submitted") {
+                if (onSubmitParam.state === "submitted") {
                   /**
                    * NOTE: we'll keep the success notification displayed and
                    * redirect the user to their dashboard
@@ -527,7 +524,7 @@ function FundingRequestForm(props: { email: string }) {
                   navigate("/");
                 }
 
-                if (onSubmitSubmission.state === "draft") {
+                if (onSubmitParam.state === "draft") {
                   setTimeout(() => dismissNotification({ id }), 5000);
                 }
               },
@@ -540,9 +537,11 @@ function FundingRequestForm(props: { email: string }) {
                         "tw:text-sm tw:font-medium tw:text-gray-900",
                       )}
                     >
-                      {onSubmitSubmission.state === "submitted" ? (
+                      {onSubmitParam.state === "submitted" && (
                         <>Error submitting Application form.</>
-                      ) : (
+                      )}
+
+                      {onSubmitParam.state === "draft" && (
                         <>Error saving draft.</>
                       )}
                     </p>
@@ -555,16 +554,18 @@ function FundingRequestForm(props: { email: string }) {
               },
             });
           }}
-          onNextPage={(onNextPageParam: {
-            page: number;
-            submission: {
-              data: { [field: string]: unknown };
-              metadata: { [field: string]: unknown };
+          onNextPage={(param) => {
+            /** NOTE: The types for onNextPage params are incorrect */
+            type T = Parameters<Exclude<FormProps["onNextPage"], undefined>>;
+
+            const onNextPageParams = param as unknown as {
+              page: T[0];
+              submission: T[1];
             };
-          }) => {
+
             if (formIsReadOnly) return;
 
-            const data = { ...onNextPageParam.submission.data };
+            const data = { ...onNextPageParams.submission.data };
 
             // remove `ncesDataSource` and `ncesDataLookup` fields
             // (https://eslint.org/docs/latest/rules/no-prototype-builtins)
@@ -588,9 +589,9 @@ function FundingRequestForm(props: { email: string }) {
             if (isEqual(currentData, submittedData)) return;
 
             const updatedSubmission = {
-              ...onNextPageParam.submission,
+              ...onNextPageParams.submission,
               data,
-              state: "draft" as const,
+              state: "draft",
             };
 
             dismissNotification({ id: 0 });

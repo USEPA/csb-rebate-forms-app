@@ -1,3 +1,3 @@
 /// <reference types="vite/client" />
 
-declare module "@formio/react";
+declare module "@formio/premium";

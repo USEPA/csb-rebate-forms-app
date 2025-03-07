@@ -1,20 +1,18 @@
 import { useState, useEffect } from "react";
-import { render } from "react-dom";
+import { createRoot } from "react-dom/client";
 import {
   createBrowserRouter,
   createRoutesFromElements,
   redirect,
   Navigate,
   Route,
-  RouterProvider,
   useLocation,
-} from "react-router-dom";
+} from "react-router";
+import { RouterProvider } from "react-router/dom";
 import { useIdleTimer } from "react-idle-timer";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import "bootstrap/dist/css/bootstrap-grid.min.css";
 import "@formio/uswds/dist/uswds.min.css";
-import "@formio/choices.js/public/assets/styles/choices.min.css";
-import "@formio/premium/dist/premium.css";
+import "@formio/premium/premium.css";
 import "@formio/js/dist/formio.full.min.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 // ---
@@ -61,23 +59,25 @@ function useSiteAlertBanner() {
     container.setAttribute("aria-label", "Site alert");
     container.classList.add("usa-site-alert--emergency");
 
-    render(
+    const root = createRoot(container);
+
+    root.render(
       <div className="usa-alert">
         <div className="usa-alert__body">
           <div className="usa-alert__content">
-            <MarkdownContent
-              className="usa-alert__text"
-              children={content.siteAlert}
-              components={{
-                h1: (props) => <h3 className="usa-alert__heading">{props.children}</h3>, // prettier-ignore
-                h2: (props) => <h3 className="usa-alert__heading">{props.children}</h3>, // prettier-ignore
-                h3: (props) => <h3 className="usa-alert__heading">{props.children}</h3>, // prettier-ignore
-              }}
-            />
+            <div className="usa-alert__text">
+              <MarkdownContent
+                children={content.siteAlert}
+                components={{
+                  h1: (props) => <h3 className="usa-alert__heading">{props.children}</h3>, // prettier-ignore
+                  h2: (props) => <h3 className="usa-alert__heading">{props.children}</h3>, // prettier-ignore
+                  h3: (props) => <h3 className="usa-alert__heading">{props.children}</h3>, // prettier-ignore
+                }}
+              />
+            </div>
           </div>
         </div>
       </div>,
-      container,
     );
   }, [content]);
 }
@@ -89,6 +89,13 @@ function useDisclaimerBanner() {
 
     const siteAlert = document.querySelector(".usa-site-alert");
     if (!siteAlert) return;
+
+    /**
+     * Ensure the disclaimer banner is only added once to the DOM (fixes double
+     * render issue in development since React StrictMode is enabled)
+     */
+    const existingBanner = document.querySelector("#csb-disclaimer-banner");
+    if (existingBanner) return;
 
     const banner = document.createElement("div");
     banner.setAttribute("id", "csb-disclaimer-banner");

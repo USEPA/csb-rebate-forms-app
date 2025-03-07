@@ -42,6 +42,7 @@ type Action =
         description: ReactNode;
       };
     }
+  | { type: "HIDE_DIALOG" }
   | { type: "RESET_DIALOG" };
 
 const StateContext = createContext<State | undefined>(undefined);
@@ -77,6 +78,13 @@ function reducer(state: State, action: Action): State {
       return {
         ...state,
         description,
+      };
+    }
+
+    case "HIDE_DIALOG": {
+      return {
+        ...state,
+        dialogShown: false,
       };
     }
 
@@ -185,7 +193,15 @@ export function useDialogActions() {
       });
     },
     resetDialog() {
-      dispatch({ type: "RESET_DIALOG" });
+      /**
+       * Initially hide the dialog, then reset the dialog state after a delay,
+       * so any animations can complete before the dialog state is cleared.
+       */
+      dispatch({ type: "HIDE_DIALOG" });
+
+      setTimeout(() => {
+        dispatch({ type: "RESET_DIALOG" });
+      }, 100);
     },
   };
 }

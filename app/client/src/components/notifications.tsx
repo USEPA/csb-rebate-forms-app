@@ -1,4 +1,3 @@
-import { Fragment } from "react";
 import { Transition } from "@headlessui/react";
 import { InformationCircleIcon } from "@heroicons/react/24/outline";
 import { CheckCircleIcon } from "@heroicons/react/24/outline";
@@ -31,27 +30,16 @@ export function Notifications() {
             "tw:sm:items-end",
           )}
         >
-          <Transition
-            show={displayed}
-            as={Fragment}
-            enter={clsx(
-              "tw:transform tw:transition tw:duration-300 tw:ease-out",
-            )}
-            enterFrom={clsx(
-              "tw:translate-y-2 tw:opacity-0",
-              "tw:sm:translate-y-0 tw:sm:translate-x-2",
-            )}
-            enterTo={clsx(
-              "tw:translate-y-0 tw:opacity-100",
-              "tw:sm:translate-x-0",
-            )}
-            leave={clsx("tw:transition tw:duration-100 tw:ease-in")}
-            leaveFrom={clsx("tw:opacity-100")}
-            leaveTo={clsx("tw:opacity-0")}
-          >
+          <Transition show={displayed}>
             <div
               className={clsx(
-                "tw:pointer-events-auto tw:w-full tw:max-w-sm tw:overflow-hidden tw:rounded-lg tw:bg-white tw:shadow-xl tw:ring-1 tw:ring-black/10",
+                "tw:transform tw:pointer-events-auto tw:w-full tw:max-w-sm tw:overflow-hidden tw:rounded-lg tw:bg-white tw:shadow-xl tw:ring-1 tw:ring-black/10",
+                // --- transitions ---
+                "tw:transition",
+                "tw:data-closed:translate-y-2 tw:data-closed:opacity-0",
+                "tw:sm:data-closed:translate-y-0 tw:sm:data-closed:translate-x-2",
+                "tw:data-enter:ease-out tw:data-enter:!duration-300",
+                "tw:data-leave:ease-in tw:data-leave:!duration-100",
               )}
             >
               <div className={clsx("tw:p-4")}>
