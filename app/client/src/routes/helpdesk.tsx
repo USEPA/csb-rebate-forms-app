@@ -159,23 +159,31 @@ function ResultTableRow(props: {
   const actionsQuery = useQuery({
     queryKey: ["helpdesk/actions"],
     queryFn: () => getData<SubmissionAction[]>(actionsUrl),
-    onSuccess: (res) => setActionsData({ fetched: true, results: res }),
     enabled: false,
   });
+
+  useEffect(() => {
+    if (actionsQuery.status === "success") {
+      setActionsData({ fetched: true, results: actionsQuery.data });
+    }
+  }, [actionsQuery.status, actionsQuery.data, setActionsData]);
 
   const pdfQuery = useQuery({
     queryKey: ["helpdesk/pdf"],
     queryFn: () => getData<string>(pdfUrl),
-    onSuccess: (res) => {
+    enabled: false,
+  });
+
+  useEffect(() => {
+    if (pdfQuery.status === "success" && pdfQuery.data) {
       const link = document.createElement("a");
-      link.setAttribute("href", `data:application/pdf;base64,${res}`);
+      link.setAttribute("href", `data:application/pdf;base64,${pdfQuery.data}`);
       link.setAttribute("download", `${formio._id}.pdf`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    },
-    enabled: false,
-  });
+    }
+  }, [pdfQuery.status, pdfQuery.data, formio._id]);
 
   const date = formatDate(formio.modified);
   const time = formatTime(formio.modified);
@@ -428,15 +436,20 @@ export function Helpdesk() {
         return Promise.resolve(res);
       });
     },
-    onSuccess: (_res) => setResultDisplayed(true),
     enabled: false,
   });
+
+  useEffect(() => {
+    if (submissionQuery.status === "success") {
+      setResultDisplayed(true);
+    }
+  }, [submissionQuery.status, setResultDisplayed]);
 
   const submissionMutation = useMutation({
     mutationFn: (submission: DraftSubmission) => {
       return postData<Response["formio"]>(submissionUrl, submission);
     },
-    onSuccess: (res) => {
+    onSuccess: (res, _payload, _context) => {
       queryClient.setQueryData<Response>(
         ["helpdesk/submission"],
         (prevData) => {

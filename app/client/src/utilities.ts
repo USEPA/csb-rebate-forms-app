@@ -105,11 +105,13 @@ export function postData<T = unknown>(url: string, data: object) {
 
 /** Custom hook to fetch content data. */
 export function useContentQuery() {
-  return useQuery({
+  const query = useQuery({
     queryKey: ["content"],
     queryFn: () => getData<Content>(`${serverUrl}/api/content`),
     refetchOnWindowFocus: false,
   });
+
+  return query;
 }
 
 /** Custom hook that returns cached fetched content data. */
@@ -120,12 +122,14 @@ export function useContentData() {
 
 /** Custom hook to fetch user data. */
 export function useUserQuery() {
-  return useQuery({
+  const query = useQuery({
     queryKey: ["user"],
     queryFn: () => getData<UserData>(`${serverUrl}/api/user`),
     enabled: false,
     retry: false,
   });
+
+  return query;
 }
 
 /** Custom hook that returns cached fetched user data. */
@@ -159,18 +163,18 @@ export function useConfigQuery() {
   useEffect(() => {
     const { formioBaseUrl, formioProjectName, rebateYear } = query.data ?? {};
 
-    if (formioBaseUrl) {
+    if (query.status === "success" && formioBaseUrl) {
       Formio.setBaseUrl(formioBaseUrl);
     }
 
-    if (formioBaseUrl && formioProjectName) {
+    if (query.status === "success" && formioBaseUrl && formioProjectName) {
       Formio.setProjectUrl(`${formioBaseUrl}/${formioProjectName}`);
     }
 
-    if (rebateYear) {
+    if (query.status === "success" && rebateYear) {
       setRebateYear(rebateYear);
     }
-  }, [query.data, setRebateYear]);
+  }, [query.status, query.data, setRebateYear]);
 
   return query;
 }
@@ -181,21 +185,30 @@ export function useConfigData() {
   return queryClient.getQueryData<ConfigData>(["config"]);
 }
 
-/** Custom hook to fetch BAP SAM.gov data. */
+/**
+ * Custom hook to fetch BAP SAM.gov data and handle logging user out if they
+ * have no SAM.gov results or if there was an error fetching the data.
+ */
 export function useBapSamQuery() {
-  return useQuery({
+  const query = useQuery({
     queryKey: ["bap/sam"],
     queryFn: () => getData<BapSamData>(`${serverUrl}/api/bap/sam`),
-    onSuccess: (res) => {
-      if (!res.results) {
-        window.location.href = `${serverUrl}/logout?RelayState=/welcome?info=bap-sam-results`;
-      }
-    },
-    onError: (_err) => {
-      window.location.href = `${serverUrl}/logout?RelayState=/welcome?error=bap-sam-fetch`;
-    },
     refetchOnWindowFocus: false,
   });
+
+  useEffect(() => {
+    const { results } = query.data ?? {};
+
+    if (query.status === "success" && !results) {
+      window.location.href = `${serverUrl}/logout?RelayState=/welcome?info=bap-sam-results`;
+    }
+
+    if (query.status === "error") {
+      window.location.href = `${serverUrl}/logout?RelayState=/welcome?error=bap-sam-fetch`;
+    }
+  }, [query.status, query.data]);
+
+  return query;
 }
 
 /** Custom hook that returns cached fetched BAP SAM.gov data. */
@@ -212,22 +225,27 @@ export function useSubmissionPDFQuery(options: {
 }) {
   const { rebateYear, formType, mongoId } = options;
 
-  return useQuery({
+  const query = useQuery({
     queryKey: [`formio/${rebateYear}/${formType}-pdf`, { id: mongoId }],
     queryFn: () => {
       const url = `${serverUrl}/api/formio/${rebateYear}/pdf/${formType}/${mongoId}`;
       return getData<string>(url);
     },
-    onSuccess: (res) => {
+    enabled: false,
+  });
+
+  useEffect(() => {
+    if (query.status === "success" && query.data) {
       const link = document.createElement("a");
-      link.setAttribute("href", `data:application/pdf;base64,${res}`);
+      link.setAttribute("href", `data:application/pdf;base64,${query.data}`);
       link.setAttribute("download", `${mongoId}.pdf`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    },
-    enabled: false,
-  });
+    }
+  }, [query.status, query.data, mongoId]);
+
+  return query;
 }
 
 /** Custom hook to fetch Change Request form submissions from Formio. */
