@@ -73,13 +73,10 @@ function useFormioSubmissionQueryAndMutation(mongoId: string | undefined) {
 
         const data = { ...res.submission?.data };
 
-        // remove `ncesDataSource` and `ncesDataLookup` fields
+        // remove `ncesDataSource` field
         // (https://eslint.org/docs/latest/rules/no-prototype-builtins)
         if (Object.prototype.hasOwnProperty.call(data, "ncesDataSource")) {
           delete data.ncesDataSource;
-        }
-        if (Object.prototype.hasOwnProperty.call(data, "ncesDataLookup")) {
-          delete data.ncesDataLookup;
         }
 
         return Promise.resolve({
@@ -469,13 +466,10 @@ function FundingRequestForm(props: { email: string }) {
 
             const data = { ...onSubmitParam.data };
 
-            // remove `ncesDataSource` and `ncesDataLookup` fields
+            // remove `ncesDataSource` field
             // (https://eslint.org/docs/latest/rules/no-prototype-builtins)
             if (Object.prototype.hasOwnProperty.call(data, "ncesDataSource")) {
               delete data.ncesDataSource;
-            }
-            if (Object.prototype.hasOwnProperty.call(data, "ncesDataLookup")) {
-              delete data.ncesDataLookup;
             }
 
             const updatedSubmission = {
@@ -567,13 +561,10 @@ function FundingRequestForm(props: { email: string }) {
 
             const data = { ...onNextPageParams.submission.data };
 
-            // remove `ncesDataSource` and `ncesDataLookup` fields
+            // remove `ncesDataSource` field
             // (https://eslint.org/docs/latest/rules/no-prototype-builtins)
             if (Object.prototype.hasOwnProperty.call(data, "ncesDataSource")) {
               delete data.ncesDataSource;
-            }
-            if (Object.prototype.hasOwnProperty.call(data, "ncesDataLookup")) {
-              delete data.ncesDataLookup;
             }
 
             // "dirty check" – don't post an update if no changes have been made
