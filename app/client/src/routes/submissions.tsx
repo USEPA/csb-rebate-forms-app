@@ -2207,7 +2207,7 @@ export function Submissions() {
   const { rebateYear } = useRebateYearState();
   const { setRebateYear } = useRebateYearActions();
 
-  const frfSubmissionPeriodOpen = configData
+  const frfSubmissionPeriodOpen = configData?.submissionPeriodOpen[rebateYear]
     ? configData.submissionPeriodOpen[rebateYear].frf
     : false;
 
