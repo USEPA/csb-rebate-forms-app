@@ -17,6 +17,7 @@ import {
   type BapSamEntity,
   type FormioFRF2022Submission,
   type FormioFRF2023Submission,
+  type FormioFRF2024Submission,
 } from "@/types";
 import { serverUrl, messages } from "@/config";
 import {
@@ -339,6 +340,7 @@ export function FRFNew() {
                                         postData<
                                           | FormioFRF2022Submission
                                           | FormioFRF2023Submission
+                                          | FormioFRF2024Submission
                                         >(
                                           `${serverUrl}/api/formio/${rebateYear}/frf-submission/`,
                                           { data, state: "draft" },
