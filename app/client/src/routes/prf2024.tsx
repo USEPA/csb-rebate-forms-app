@@ -237,16 +237,17 @@ function PaymentRequestForm(props: { email: string }) {
   return (
     <div className="margin-top-2">
       {content && (
-        <MarkdownContent
-          className="margin-top-4"
-          children={
-            submission.state === "draft"
-              ? content.draftPRFIntro
-              : submission.state === "submitted"
-                ? content.submittedPRFIntro
-                : ""
-          }
-        />
+        <div className="margin-top-4">
+          <MarkdownContent
+            children={
+              submission.state === "draft"
+                ? content.draftPRFIntro
+                : submission.state === "submitted"
+                  ? content.submittedPRFIntro
+                  : ""
+            }
+          />
+        </div>
       )}
 
       {frfNeedsEdits && (

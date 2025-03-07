@@ -54,10 +54,9 @@ export function Change2023() {
   return (
     <div className="margin-top-2">
       {content && (
-        <MarkdownContent
-          className="margin-top-4"
-          children={content.submittedChangeIntro}
-        />
+        <div className="margin-top-4">
+          <MarkdownContent children={content.submittedChangeIntro} />
+        </div>
       )}
 
       <ul className="usa-icon-list">

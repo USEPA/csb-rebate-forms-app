@@ -65,15 +65,16 @@ function useSiteAlertBanner() {
       <div className="usa-alert">
         <div className="usa-alert__body">
           <div className="usa-alert__content">
-            <MarkdownContent
-              className="usa-alert__text"
-              children={content.siteAlert}
-              components={{
-                h1: (props) => <h3 className="usa-alert__heading">{props.children}</h3>, // prettier-ignore
-                h2: (props) => <h3 className="usa-alert__heading">{props.children}</h3>, // prettier-ignore
-                h3: (props) => <h3 className="usa-alert__heading">{props.children}</h3>, // prettier-ignore
-              }}
-            />
+            <div className="usa-alert__text">
+              <MarkdownContent
+                children={content.siteAlert}
+                components={{
+                  h1: (props) => <h3 className="usa-alert__heading">{props.children}</h3>, // prettier-ignore
+                  h2: (props) => <h3 className="usa-alert__heading">{props.children}</h3>, // prettier-ignore
+                  h3: (props) => <h3 className="usa-alert__heading">{props.children}</h3>, // prettier-ignore
+                }}
+              />
+            </div>
           </div>
         </div>
       </div>,

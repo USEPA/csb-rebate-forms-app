@@ -827,10 +827,9 @@ function Submissions2022() {
   return (
     <>
       {content && (
-        <MarkdownContent
-          className="margin-top-4"
-          children={content.allRebatesIntro}
-        />
+        <div className="margin-top-4">
+          <MarkdownContent children={content.allRebatesIntro} />
+        </div>
       )}
 
       <div className="usa-table-container--scrollable" tabIndex={0}>
@@ -1492,10 +1491,9 @@ function Submissions2023() {
       <ChangeRequests2023 />
 
       {content && (
-        <MarkdownContent
-          className="margin-top-4"
-          children={content.allRebatesIntro}
-        />
+        <div className="margin-top-4">
+          <MarkdownContent children={content.allRebatesIntro} />
+        </div>
       )}
 
       <div className="usa-table-container--scrollable" tabIndex={0}>
@@ -2157,10 +2155,9 @@ function Submissions2024() {
       <ChangeRequests2024 />
 
       {content && (
-        <MarkdownContent
-          className="margin-top-4"
-          children={content.allRebatesIntro}
-        />
+        <div className="margin-top-4">
+          <MarkdownContent children={content.allRebatesIntro} />
+        </div>
       )}
 
       <div className="usa-table-container--scrollable" tabIndex={0}>
@@ -2268,10 +2265,9 @@ export function Submissions() {
       {rebateYear === "2024" && <Submissions2024 />}
 
       {content && (
-        <MarkdownContent
-          className="margin-top-4 padding-2 padding-bottom-0 border-1px border-base-lighter bg-base-lightest"
-          children={content.allRebatesOutro}
-        />
+        <div className="margin-top-4 padding-2 padding-bottom-0 border-1px border-base-lighter bg-base-lightest">
+          <MarkdownContent children={content.allRebatesOutro} />
+        </div>
       )}
     </>
   );

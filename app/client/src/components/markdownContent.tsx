@@ -9,15 +9,13 @@ import remarkGfm from "remark-gfm";
 // Any additional elements beyond anchor links can be passed when to explicitly
 // set how those components should be rendered.
 export function MarkdownContent(props: {
-  className?: string;
   children: string;
   components?: Components;
 }) {
-  const { className, children, components } = props;
+  const { children, components } = props;
 
   return (
     <ReactMarkdown
-      className={className || ""}
       children={children}
       remarkPlugins={[remarkGfm]}
       components={{

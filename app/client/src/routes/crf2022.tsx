@@ -222,16 +222,17 @@ function CloseOutRequestForm(props: { email: string }) {
   return (
     <div className="margin-top-2">
       {content && (
-        <MarkdownContent
-          className="margin-top-4"
-          children={
-            submission.state === "draft"
-              ? content.draftCRFIntro
-              : submission.state === "submitted"
-                ? content.submittedCRFIntro
-                : ""
-          }
-        />
+        <div className="margin-top-4">
+          <MarkdownContent
+            children={
+              submission.state === "draft"
+                ? content.draftCRFIntro
+                : submission.state === "submitted"
+                  ? content.submittedCRFIntro
+                  : ""
+            }
+          />
+        </div>
       )}
 
       <ul className="usa-icon-list">

@@ -343,16 +343,17 @@ function FundingRequestForm(props: { email: string }) {
   return (
     <div className="margin-top-2">
       {content && (
-        <MarkdownContent
-          className="margin-top-4"
-          children={
-            submission.state === "draft"
-              ? content.draftFRFIntro
-              : submission.state === "submitted"
-                ? content.submittedFRFIntro
-                : ""
-          }
-        />
+        <div className="margin-top-4">
+          <MarkdownContent
+            children={
+              submission.state === "draft"
+                ? content.draftFRFIntro
+                : submission.state === "submitted"
+                  ? content.submittedFRFIntro
+                  : ""
+            }
+          />
+        </div>
       )}
 
       <ul className="usa-icon-list">

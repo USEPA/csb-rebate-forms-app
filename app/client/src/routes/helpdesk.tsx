@@ -485,10 +485,9 @@ export function Helpdesk() {
   return (
     <>
       {content && (
-        <MarkdownContent
-          className="margin-top-4"
-          children={content.helpdeskIntro}
-        />
+        <div className="margin-top-4">
+          <MarkdownContent children={content.helpdeskIntro} />
+        </div>
       )}
 
       <div className="margin-top-1 padding-2 border-1px border-base-lighter bg-base-lightest">

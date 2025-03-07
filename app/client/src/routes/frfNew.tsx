@@ -247,23 +247,26 @@ export function FRFNew() {
                   ) : (
                     <>
                       {content && (
-                        <MarkdownContent
+                        <div
                           className={clsx("tw:mt-4", "tw:[&_h2]:text-center")}
-                          children={content.newFRFDialog}
-                          components={{
-                            h2: (props) => (
-                              <DialogTitle
-                                className={clsx(
-                                  "tw:text-xl",
-                                  "tw:sm:text-2xl",
-                                  "tw:md:text-3xl",
-                                )}
-                              >
-                                {props.children}
-                              </DialogTitle>
-                            ),
-                          }}
-                        />
+                        >
+                          <MarkdownContent
+                            children={content.newFRFDialog}
+                            components={{
+                              h2: (props) => (
+                                <DialogTitle
+                                  className={clsx(
+                                    "tw:text-xl",
+                                    "tw:sm:text-2xl",
+                                    "tw:md:text-3xl",
+                                  )}
+                                >
+                                  {props.children}
+                                </DialogTitle>
+                              ),
+                            }}
+                          />
+                        </div>
                       )}
 
                       {errorMessage.displayed && (
