@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 import icons from "uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages } from "@/config";
@@ -76,7 +76,7 @@ export function Welcome() {
 
       {message.displayed && <Message type={message.type} text={message.text} />}
 
-      <div className="padding-9 border-1px border-base-lighter text-center bg-base-lightest">
+      <div className="padding-9 border-1px border-base-lighter bg-base-lightest text-center">
         <p>
           Click the <strong>Sign in</strong> button below to login to the{" "}
           <em>Clean School Bus Rebate Dashboard</em> using Login.gov.

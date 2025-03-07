@@ -6,9 +6,9 @@ import {
   redirect,
   Navigate,
   Route,
-  RouterProvider,
   useLocation,
-} from "react-router-dom";
+} from "react-router";
+import { RouterProvider } from "react-router/dom";
 import { useIdleTimer } from "react-idle-timer";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import "@formio/uswds/dist/uswds.min.css";
