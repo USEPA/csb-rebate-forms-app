@@ -89,6 +89,13 @@ function useDisclaimerBanner() {
     const siteAlert = document.querySelector(".usa-site-alert");
     if (!siteAlert) return;
 
+    /**
+     * Ensure the disclaimer banner is only added once to the DOM (fixes double
+     * render issue in development since React StrictMode is enabled)
+     */
+    const existingBanner = document.querySelector("#csb-disclaimer-banner");
+    if (existingBanner) return;
+
     const banner = document.createElement("div");
     banner.setAttribute("id", "csb-disclaimer-banner");
     banner.setAttribute(
