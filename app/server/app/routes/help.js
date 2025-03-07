@@ -276,8 +276,8 @@ router.get("/formio/submission/:rebateYear/:formType/:id", async (req, res) => {
     result.formio = await fetchFormioSubmissionData({
       formioFormUrl,
       rebateIdFieldName,
-      rebateId,
-      mongoId,
+      rebateId: null,
+      mongoId: result.bap.mongoId,
       req,
     });
   }
