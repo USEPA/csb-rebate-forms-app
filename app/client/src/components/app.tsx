@@ -11,10 +11,6 @@ import {
 import { RouterProvider } from "react-router/dom";
 import { useIdleTimer } from "react-idle-timer";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import "@formio/uswds/dist/uswds.min.css";
-import "@formio/premium/premium.css";
-import "@formio/js/dist/formio.full.min.css";
-import "@fortawesome/fontawesome-free/css/all.min.css";
 // ---
 import { serverBasePath, serverUrl, cloudSpace, messages } from "@/config";
 import {

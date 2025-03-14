@@ -16,10 +16,21 @@ import {
 import { Loading } from "@/components/loading";
 import { useDialogActions } from "@/contexts/dialog";
 
+Formio.icons = "fontawesome";
 Formio.license = formioPremiumKey;
-Formio.use(bootstrap4); /* eslint-disable-line react-hooks/rules-of-hooks */
-Formio.use(premium); /* eslint-disable-line react-hooks/rules-of-hooks */
-Formio.use(uswds); /* eslint-disable-line react-hooks/rules-of-hooks */
+
+/* eslint-disable-next-line react-hooks/rules-of-hooks */
+Formio.use(premium);
+
+/* eslint-disable-next-line react-hooks/rules-of-hooks */
+Formio.use(uswds);
+
+/* eslint-disable-next-line react-hooks/rules-of-hooks */
+Formio.use({
+  templates: {
+    bootstrap: bootstrap4.templates.bootstrap4,
+  },
+});
 
 function DashboardIconText() {
   return (
