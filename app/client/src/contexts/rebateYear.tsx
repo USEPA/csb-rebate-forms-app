@@ -15,7 +15,7 @@ type Props = {
 };
 
 type State = {
-  rebateYear: RebateYear;
+  rebateYear: RebateYear | null;
 };
 
 type Action = {
@@ -45,12 +45,12 @@ function reducer(state: State, action: Action): State {
 }
 
 export function RebateYearProvider({ children }: Props) {
-  // NOTE: current year as initial value – will be re-defined from `/api/config`
-  const date = new Date();
-  const year = date.getFullYear().toString() as RebateYear;
-
+  /**
+   * NOTE: `rebateYear` initialized as null, but will be redefined after the
+   * initial config data fetch (see `useConfigQuery` in `utilities.ts`).
+   */
   const initialState: State = {
-    rebateYear: year,
+    rebateYear: null,
   };
 
   const [state, dispatch] = useReducer(reducer, initialState);
