@@ -1,3 +1,4 @@
+/* --- Tailwind CSS --- */
 @layer theme, base, components, utilities;
 
 @import "tailwindcss/theme.css" layer(theme) prefix(tw);
@@ -6,6 +7,12 @@
 @import "tailwindcss/utilities.css" layer(utilities) prefix(tw);
 
 @plugin "@tailwindcss/forms";
+
+/* --- Formio --- */
+@import "@formio/js/dist/formio.full.css";
+@import "@formio/premium/premium.css";
+@import "@formio/uswds/dist/uswds.css";
+@import "@fortawesome/fontawesome-free/css/all.css";
 
 /* --- EPA/USWDS --- */
 .usa-menu-btn.button--dark {
