@@ -192,7 +192,31 @@ function FundingRequestForm(props: { email: string }) {
         bap: rebate.frf.bap,
       });
 
-  const frfNeedsEditsAndPRFExists = frfNeedsEdits && !!rebate?.prf.formio;
+  const frfSubmissionPeriodOpen = configData.submissionPeriodOpen["2023"].frf;
+
+  const formIsReadOnly =
+    (submission.state === "submitted" || !frfSubmissionPeriodOpen) &&
+    !frfNeedsEdits;
+
+  /** matched SAM.gov entity for the Application submission */
+  const entity = bapSamData.entities.find((entity) => {
+    const { ENTITY_COMBO_KEY__c } = entity;
+    return ENTITY_COMBO_KEY__c === submission.data._bap_entity_combo_key;
+  });
+
+  if (!entity) {
+    return <Message type="error" text={messages.formSubmissionError} />;
+  }
+
+  const isActive = entityIsActive(entity);
+  const hasExclusionStatus = entityHasExclusionStatus(entity);
+  const hasDebtSubjectToOffset = entityHasDebtSubjectToOffset(entity);
+
+  if (!isActive || hasExclusionStatus || hasDebtSubjectToOffset) {
+    return <Message type="error" text={messages.bapSamIneligible} />;
+  }
+
+  const { title, name } = getUserInfo(email, entity);
 
   /**
    * NOTE: If the FRF submission needs edits and there's a corresponding PRF
@@ -200,6 +224,8 @@ function FundingRequestForm(props: { email: string }) {
    * PRF submission, as it's data will no longer valid when the FRF submission's
    * data is changed.
    */
+  const frfNeedsEditsAndPRFExists = frfNeedsEdits && !!rebate?.prf.formio;
+
   if (frfNeedsEditsAndPRFExists) {
     displayDialog({
       dismissable: true,
@@ -313,32 +339,6 @@ function FundingRequestForm(props: { email: string }) {
 
     return null;
   }
-
-  const frfSubmissionPeriodOpen = configData.submissionPeriodOpen["2023"].frf;
-
-  const formIsReadOnly =
-    (submission.state === "submitted" || !frfSubmissionPeriodOpen) &&
-    !frfNeedsEdits;
-
-  /** matched SAM.gov entity for the Application submission */
-  const entity = bapSamData.entities.find((entity) => {
-    const { ENTITY_COMBO_KEY__c } = entity;
-    return ENTITY_COMBO_KEY__c === submission.data._bap_entity_combo_key;
-  });
-
-  if (!entity) {
-    return <Message type="error" text={messages.formSubmissionError} />;
-  }
-
-  const isActive = entityIsActive(entity);
-  const hasExclusionStatus = entityHasExclusionStatus(entity);
-  const hasDebtSubjectToOffset = entityHasDebtSubjectToOffset(entity);
-
-  if (!isActive || hasExclusionStatus || hasDebtSubjectToOffset) {
-    return <Message type="error" text={messages.bapSamIneligible} />;
-  }
-
-  const { title, name } = getUserInfo(email, entity);
 
   return (
     <div className="margin-top-2">
