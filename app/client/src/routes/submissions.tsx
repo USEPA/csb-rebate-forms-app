@@ -2204,6 +2204,10 @@ export function Submissions() {
   const { rebateYear } = useRebateYearState();
   const { setRebateYear } = useRebateYearActions();
 
+  if (!rebateYear) {
+    return <Loading />;
+  }
+
   const frfSubmissionPeriodOpen = configData?.submissionPeriodOpen[rebateYear]
     ? configData.submissionPeriodOpen[rebateYear].frf
     : false;
