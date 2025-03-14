@@ -139,7 +139,7 @@ export function FRFNew() {
    */
   const [postingDataId, setPostingDataId] = useState("0");
 
-  if (!configData || !bapSamData) {
+  if (!configData || !bapSamData || !rebateYear) {
     return <Loading />;
   }
 

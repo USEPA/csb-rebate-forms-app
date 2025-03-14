@@ -185,6 +185,10 @@ function ResultTableRow(props: {
     }
   }, [pdfQuery.status, pdfQuery.data, formio._id]);
 
+  if (!rebateYear) {
+    return null;
+  }
+
   const date = formatDate(formio.modified);
   const time = formatTime(formio.modified);
 
@@ -470,7 +474,7 @@ export function Helpdesk() {
     bap: null,
   };
 
-  if (helpdeskAccess === "pending") {
+  if (helpdeskAccess === "pending" || !rebateYear) {
     return <Loading />;
   }
 

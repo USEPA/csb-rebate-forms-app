@@ -37,7 +37,10 @@ import {
   type Rebate2024,
 } from "@/types";
 import { serverUrl, formioBapRebateIdField } from "@/config";
-import { useRebateYearActions } from "@/contexts/rebateYear";
+import {
+  useRebateYearState,
+  useRebateYearActions,
+} from "@/contexts/rebateYear";
 
 /** Formio Change Request submissions by rebate year. */
 /* prettier-ignore */
@@ -152,6 +155,7 @@ export function useHelpdeskAccess() {
 
 /** Custom hook to fetch CSB config and set Formio URLs and rebate year. */
 export function useConfigQuery() {
+  const state = useRebateYearState();
   const { setRebateYear } = useRebateYearActions();
 
   const query = useQuery({
@@ -172,9 +176,15 @@ export function useConfigQuery() {
     }
 
     if (query.status === "success" && rebateYear) {
-      setRebateYear(rebateYear);
+      /**
+       * NOTE: `state.rebateYear` is initialized as null, so only redefine it on
+       * the initial config data fetch.
+       */
+      if (state.rebateYear === null) {
+        setRebateYear(rebateYear);
+      }
     }
-  }, [query.status, query.data, setRebateYear]);
+  }, [query.status, query.data, state.rebateYear, setRebateYear]);
 
   return query;
 }
