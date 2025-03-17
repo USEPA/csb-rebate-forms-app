@@ -6,8 +6,9 @@ const {
   verifyMongoObjectId,
 } = require("../middleware");
 const {
-  uploadS3FileMetadata,
-  downloadS3FileMetadata,
+  downloadFileFromS3,
+  uploadFileToS3,
+  deleteFileFromS3,
   //
   fetchSubmissionPDF,
   //
@@ -33,21 +34,30 @@ const router = express.Router();
 
 router.use(ensureAuthenticated);
 
-// --- download Formio S3 file metadata
+// --- download Formio file attachment from S3
 router.get(
   "/s3/:formType/:mongoId/:comboKey/storage/s3",
   fetchBapComboKeys,
   (req, res) => {
-    downloadS3FileMetadata({ rebateYear, req, res });
+    downloadFileFromS3({ rebateYear, req, res });
   },
 );
 
-// --- upload Formio S3 file metadata
+// --- upload Formio file attachment to S3
 router.post(
   "/s3/:formType/:mongoId/:comboKey/storage/s3",
   fetchBapComboKeys,
   (req, res) => {
-    uploadS3FileMetadata({ rebateYear, req, res });
+    uploadFileToS3({ rebateYear, req, res });
+  },
+);
+
+// --- delete Formio file attachment from S3
+router.delete(
+  "/s3/:formType/:mongoId/:comboKey/storage/s3",
+  fetchBapComboKeys,
+  (req, res) => {
+    deleteFileFromS3({ rebateYear, req, res });
   },
 );
 

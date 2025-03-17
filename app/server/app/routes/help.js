@@ -175,7 +175,7 @@ function fetchBapSubmissionData({
   });
 }
 
-// --- download Formio S3 file metadata
+// --- download Formio file attachment from S3
 router.get("/formio/s3/:rebateYear/:formType/storage/s3", (req, res) => {
   const { query } = req;
   const { rebateYear, formType } = req.params;
