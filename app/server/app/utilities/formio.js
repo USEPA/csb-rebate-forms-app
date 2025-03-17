@@ -971,7 +971,7 @@ function fetchDataForCRFSubmission({ rebateYear, req, res }) {
  * @param {express.Request} param.req
  * @param {express.Response} param.res
  */
-function downloadS3FileMetadata({ rebateYear, req, res }) {
+function downloadFileFromS3({ rebateYear, req, res }) {
   const { bapComboKeys, query } = req;
   const { mail } = req.user;
   const { formType, comboKey } = req.params;
@@ -1018,7 +1018,7 @@ function downloadS3FileMetadata({ rebateYear, req, res }) {
  * @param {express.Request} param.req
  * @param {express.Response} param.res
  */
-function uploadS3FileMetadata({ rebateYear, req, res }) {
+function uploadFileToS3({ rebateYear, req, res }) {
   const { bapComboKeys, body } = req;
   const { mail } = req.user;
   const { formType, mongoId, comboKey } = req.params;
@@ -1099,7 +1099,7 @@ function uploadS3FileMetadata({ rebateYear, req, res }) {
  * @param {express.Request} param.req
  * @param {express.Response} param.res
  */
-function deleteS3FileMetadata({ rebateYear, req, res }) {
+function deleteFileFromS3({ rebateYear, req, res }) {
   const { bapComboKeys, query } = req;
   const { mail } = req.user;
   const { formType, mongoId, comboKey } = req.params;
@@ -2392,9 +2392,9 @@ module.exports = {
   searchNcesData,
   getRebateIdFieldName,
   //
-  downloadS3FileMetadata,
-  uploadS3FileMetadata,
-  deleteS3FileMetadata,
+  downloadFileFromS3,
+  uploadFileToS3,
+  deleteFileFromS3,
   //
   fetchSubmissionPDF,
   //
