@@ -314,6 +314,8 @@ type FormioFRF2023Data = {
   appInfo_efti: string;
   appInfo_orgName: string;
   _formio_schoolDistrictName: string;
+  org_district_orgName: string;
+  org_district_state: string;
 };
 
 type FormioPRF2023Data = {
