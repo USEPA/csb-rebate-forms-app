@@ -6,8 +6,9 @@ const {
   verifyMongoObjectId,
 } = require("../middleware");
 const {
-  uploadS3FileMetadata,
   downloadS3FileMetadata,
+  uploadS3FileMetadata,
+  deleteS3FileMetadata,
   //
   fetchSubmissionPDF,
   //
@@ -48,6 +49,15 @@ router.post(
   fetchBapComboKeys,
   (req, res) => {
     uploadS3FileMetadata({ rebateYear, req, res });
+  },
+);
+
+// --- delete Formio S3 file metadata
+router.delete(
+  "/s3/:formType/:mongoId/:comboKey/storage/s3",
+  fetchBapComboKeys,
+  (req, res) => {
+    deleteS3FileMetadata({ rebateYear, req, res });
   },
 );
 
