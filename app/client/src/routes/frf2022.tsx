@@ -441,16 +441,20 @@ function FundingRequestForm(props: { email: string }) {
         <Form
           src={formSchema.json}
           url={formSchema.url}
-          submission={{
-            data: {
-              ...submission.data,
-              last_updated_by: email,
-              hidden_current_user_email: email,
-              hidden_current_user_title: title,
-              hidden_current_user_name: name,
-              ...pendingSubmissionData.current,
-            },
-          }}
+          submission={
+            submission.state === "submitted"
+              ? submission
+              : {
+                  data: {
+                    ...submission.data,
+                    last_updated_by: email,
+                    hidden_current_user_email: email,
+                    hidden_current_user_title: title,
+                    hidden_current_user_name: name,
+                    ...pendingSubmissionData.current,
+                  },
+                }
+          }
           options={{
             readOnly: formIsReadOnly,
             noAlerts: true,
