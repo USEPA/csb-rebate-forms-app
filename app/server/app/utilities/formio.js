@@ -971,6 +971,53 @@ function fetchDataForCRFSubmission({ rebateYear, req, res }) {
  * @param {express.Request} param.req
  * @param {express.Response} param.res
  */
+function downloadS3FileMetadata({ rebateYear, req, res }) {
+  const { bapComboKeys, query } = req;
+  const { mail } = req.user;
+  const { formType, comboKey } = req.params;
+
+  // NOTE: included to support EPA API scan
+  if (comboKey === formioExampleComboKey) {
+    return res.json({});
+  }
+
+  const formioFormUrl = formUrl[rebateYear][formType];
+
+  if (!formioFormUrl) {
+    const errorStatus = 400;
+    const errorMessage = `Formio form URL does not exist for ${rebateYear} ${formType.toUpperCase()}.`;
+    return res.status(errorStatus).json({ message: errorMessage });
+  }
+
+  if (!bapComboKeys.includes(comboKey)) {
+    const logMessage =
+      `User with email '${mail}' attempted to download a file ` +
+      `without a matching BAP combo key.`;
+    log({ level: "error", message: logMessage, req });
+
+    const errorStatus = 401;
+    const errorMessage = `Unauthorized.`;
+    return res.status(errorStatus).json({ message: errorMessage });
+  }
+
+  axiosFormio(req)
+    .get(`${formioFormUrl}/storage/s3`, { params: query })
+    .then((axiosRes) => axiosRes.data)
+    .then((fileMetadata) => res.json(fileMetadata))
+    .catch((error) => {
+      // NOTE: logged in axiosFormio response interceptor
+      const errorStatus = error.response?.status || 500;
+      const errorMessage = `Error downloading file from S3.`;
+      return res.status(errorStatus).json({ message: errorMessage });
+    });
+}
+
+/**
+ * @param {Object} param
+ * @param {RebateYear} param.rebateYear
+ * @param {express.Request} param.req
+ * @param {express.Response} param.res
+ */
 function uploadS3FileMetadata({ rebateYear, req, res }) {
   const { bapComboKeys, body } = req;
   const { mail } = req.user;
@@ -1042,53 +1089,6 @@ function uploadS3FileMetadata({ rebateYear, req, res }) {
 
       const errorStatus = 400;
       const errorMessage = `${rebateYear} ${formName} form enrollment period is closed.`;
-      return res.status(errorStatus).json({ message: errorMessage });
-    });
-}
-
-/**
- * @param {Object} param
- * @param {RebateYear} param.rebateYear
- * @param {express.Request} param.req
- * @param {express.Response} param.res
- */
-function downloadS3FileMetadata({ rebateYear, req, res }) {
-  const { bapComboKeys, query } = req;
-  const { mail } = req.user;
-  const { formType, comboKey } = req.params;
-
-  // NOTE: included to support EPA API scan
-  if (comboKey === formioExampleComboKey) {
-    return res.json({});
-  }
-
-  const formioFormUrl = formUrl[rebateYear][formType];
-
-  if (!formioFormUrl) {
-    const errorStatus = 400;
-    const errorMessage = `Formio form URL does not exist for ${rebateYear} ${formType.toUpperCase()}.`;
-    return res.status(errorStatus).json({ message: errorMessage });
-  }
-
-  if (!bapComboKeys.includes(comboKey)) {
-    const logMessage =
-      `User with email '${mail}' attempted to download a file ` +
-      `without a matching BAP combo key.`;
-    log({ level: "error", message: logMessage, req });
-
-    const errorStatus = 401;
-    const errorMessage = `Unauthorized.`;
-    return res.status(errorStatus).json({ message: errorMessage });
-  }
-
-  axiosFormio(req)
-    .get(`${formioFormUrl}/storage/s3`, { params: query })
-    .then((axiosRes) => axiosRes.data)
-    .then((fileMetadata) => res.json(fileMetadata))
-    .catch((error) => {
-      // NOTE: logged in axiosFormio response interceptor
-      const errorStatus = error.response?.status || 500;
-      const errorMessage = `Error downloading file from S3.`;
       return res.status(errorStatus).json({ message: errorMessage });
     });
 }
