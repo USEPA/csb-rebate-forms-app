@@ -76,9 +76,7 @@ export function Change2023() {
         <Form
           src={formSchema.json}
           url={formSchema.url}
-          submission={{
-            data: submission.data,
-          }}
+          submission={submission}
           options={{
             readOnly: true,
             noAlerts: true,

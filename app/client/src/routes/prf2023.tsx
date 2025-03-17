@@ -316,19 +316,23 @@ function PaymentRequestForm(props: { email: string }) {
         <Form
           src={formSchema.json}
           url={formSchema.url}
-          submission={{
-            data: {
-              ...submission.data,
-              _user_email: email,
-              _user_title: title,
-              _user_name: name,
-              _bap_elec_bus_poc_email: ELEC_BUS_POC_EMAIL__c,
-              _bap_alt_elec_bus_poc_email: ALT_ELEC_BUS_POC_EMAIL__c,
-              _bap_govt_bus_poc_email: GOVT_BUS_POC_EMAIL__c,
-              _bap_alt_govt_bus_poc_email: ALT_GOVT_BUS_POC_EMAIL__c,
-              ...pendingSubmissionData.current,
-            },
-          }}
+          submission={
+            submission.state === "submitted"
+              ? submission
+              : {
+                  data: {
+                    ...submission.data,
+                    _user_email: email,
+                    _user_title: title,
+                    _user_name: name,
+                    _bap_elec_bus_poc_email: ELEC_BUS_POC_EMAIL__c,
+                    _bap_alt_elec_bus_poc_email: ALT_ELEC_BUS_POC_EMAIL__c,
+                    _bap_govt_bus_poc_email: GOVT_BUS_POC_EMAIL__c,
+                    _bap_alt_govt_bus_poc_email: ALT_GOVT_BUS_POC_EMAIL__c,
+                    ...pendingSubmissionData.current,
+                  },
+                }
+          }
           options={{
             readOnly: formIsReadOnly,
             noAlerts: true,
