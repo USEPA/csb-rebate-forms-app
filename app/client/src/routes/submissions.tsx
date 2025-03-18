@@ -1231,7 +1231,7 @@ handle when it's value is an empty string. */}
         <span title={`${date} ${time}`}>{date}</span>
       </td>
 
-      <td className={clsx("tw:text-right")}>
+      <td className={clsx("tw:min-[30rem]:text-right")}>
         <ChangeRequest2023Button
           data={{
             formType: "frf",
@@ -1466,7 +1466,7 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
         <span title={`${date} ${time}`}>{date}</span>
       </td>
 
-      <td className={clsx("tw:text-right")}>
+      <td className={clsx("tw:min-[30rem]:text-right")}>
         <ChangeRequest2023Button
           data={{
             formType: "prf",
@@ -1903,7 +1903,7 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
         <span title={`${date} ${time}`}>{date}</span>
       </td>
 
-      <td className={clsx("tw:text-right")}>
+      <td className={clsx("tw:min-[30rem]:text-right")}>
         <ChangeRequest2024Button
           data={{
             formType: "frf",
@@ -2138,7 +2138,7 @@ function PRF2024Submission(props: { rebate: Rebate2024 }) {
         <span title={`${date} ${time}`}>{date}</span>
       </td>
 
-      <td className={clsx("tw:text-right")}>
+      <td className={clsx("tw:min-[30rem]:text-right")}>
         <ChangeRequest2024Button
           data={{
             formType: "prf",
