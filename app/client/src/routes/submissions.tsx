@@ -532,6 +532,8 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
       ? "text-italic"
       : "";
 
+  const hiddenTableCellClassNames = "tw:!hidden tw:min-[30rem]:!table-cell";
+
   const prfUrl = `/prf/2022/${hidden_bap_rebate_id}`;
 
   return (
@@ -554,7 +556,7 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
         ) : null}
       </th>
 
-      <td className={statusTableCellClassNames}>&nbsp;</td>
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
 
       <td className={statusTableCellClassNames}>
         <span>Payment Request</span>
@@ -582,9 +584,9 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
         </span>
       </td>
 
-      <td className={statusTableCellClassNames}>&nbsp;</td>
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
 
-      <td className={statusTableCellClassNames}>&nbsp;</td>
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
 
       <td className={statusTableCellClassNames}>
         {hidden_current_user_email}
@@ -742,6 +744,8 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
       ? "text-italic"
       : "";
 
+  const hiddenTableCellClassNames = "tw:!hidden tw:min-[30rem]:!table-cell";
+
   const crfUrl = `/crf/2022/${hidden_bap_rebate_id}`;
 
   return (
@@ -762,7 +766,7 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
         ) : null}
       </th>
 
-      <td className={statusTableCellClassNames}>&nbsp;</td>
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
 
       <td className={statusTableCellClassNames}>
         <span>Close Out</span>
@@ -796,9 +800,9 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
         </span>
       </td>
 
-      <td className={statusTableCellClassNames}>&nbsp;</td>
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
 
-      <td className={statusTableCellClassNames}>&nbsp;</td>
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
 
       <td className={statusTableCellClassNames}>
         {hidden_current_user_email}
@@ -1400,6 +1404,8 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
       ? "text-italic"
       : "";
 
+  const hiddenTableCellClassNames = "tw:!hidden tw:min-[30rem]:!table-cell";
+
   const prfUrl = `/prf/2023/${_bap_rebate_id}`;
 
   return (
@@ -1422,7 +1428,7 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
         ) : null}
       </th>
 
-      <td className={statusTableCellClassNames}>&nbsp;</td>
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
 
       <td className={statusTableCellClassNames}>
         <span>Payment Request</span>
@@ -1450,9 +1456,9 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
         </span>
       </td>
 
-      <td className={statusTableCellClassNames}>&nbsp;</td>
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
 
-      <td className={statusTableCellClassNames}>&nbsp;</td>
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
 
       <td className={statusTableCellClassNames}>
         {_user_email}
@@ -2070,6 +2076,8 @@ function PRF2024Submission(props: { rebate: Rebate2024 }) {
       ? "text-italic"
       : "";
 
+  const hiddenTableCellClassNames = "tw:!hidden tw:min-[30rem]:!table-cell";
+
   const prfUrl = `/prf/2024/${_bap_rebate_id}`;
 
   return (
@@ -2092,7 +2100,7 @@ function PRF2024Submission(props: { rebate: Rebate2024 }) {
         ) : null}
       </th>
 
-      <td className={statusTableCellClassNames}>&nbsp;</td>
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
 
       <td className={statusTableCellClassNames}>
         <span>Payment Request</span>
@@ -2120,9 +2128,9 @@ function PRF2024Submission(props: { rebate: Rebate2024 }) {
         </span>
       </td>
 
-      <td className={statusTableCellClassNames}>&nbsp;</td>
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
 
-      <td className={statusTableCellClassNames}>&nbsp;</td>
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
 
       <td className={statusTableCellClassNames}>
         {_user_email}
