@@ -350,7 +350,13 @@ save the form for the EFT indicator to be displayed. */
         </>
       </td>
 
-      <td className={clsx(statusTableCellClassNames, "tw:sm:max-w-80")}>
+      <td
+        className={clsx(
+          statusTableCellClassNames,
+          "tw:!whitespace-normal",
+          "tw:sm:max-w-80",
+        )}
+      >
         <>
           {Boolean(applicantOrganizationName) ? (
             applicantOrganizationName
@@ -838,12 +844,7 @@ function Submissions2022() {
           className="usa-table usa-table--stacked usa-table--borderless width-full"
         >
           <SubmissionsTableHeader rebateYear="2022" />
-          <tbody
-            className={clsx(
-              "tw:[&_:is(th,td)]:text-[15px]",
-              "tw:[&_:is(th,td)]:!whitespace-normal",
-            )}
-          >
+          <tbody className={clsx("tw:[&_:is(th,td)]:text-[15px]")}>
             {submissions.map((rebate, index) => {
               return rebate.rebateYear === "2022" ? (
                 <Fragment key={rebate.rebateId}>
@@ -1192,7 +1193,13 @@ handle when it's value is an empty string. */}
         </>
       </td>
 
-      <td className={clsx(statusTableCellClassNames, "tw:sm:max-w-80")}>
+      <td
+        className={clsx(
+          statusTableCellClassNames,
+          "tw:!whitespace-normal",
+          "tw:sm:max-w-80",
+        )}
+      >
         <>
           {Boolean(appInfo_orgName) ? (
             appInfo_orgName
@@ -1522,12 +1529,7 @@ function Submissions2023() {
           className="usa-table usa-table--stacked usa-table--borderless width-full"
         >
           <SubmissionsTableHeader rebateYear="2023" />
-          <tbody
-            className={clsx(
-              "tw:[&_:is(th,td)]:text-[15px]",
-              "tw:[&_:is(th,td)]:!whitespace-normal",
-            )}
-          >
+          <tbody className={clsx("tw:[&_:is(th,td)]:text-[15px]")}>
             {submissions.map((rebate, index) => {
               return rebate.rebateYear === "2023" ? (
                 <Fragment key={rebate.rebateId}>
@@ -1861,7 +1863,13 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
         </>
       </td>
 
-      <td className={clsx(statusTableCellClassNames, "tw:sm:max-w-80")}>
+      <td
+        className={clsx(
+          statusTableCellClassNames,
+          "tw:!whitespace-normal",
+          "tw:sm:max-w-80",
+        )}
+      >
         <>
           {Boolean(appInfo_organization_name) ? (
             appInfo_organization_name
@@ -2191,12 +2199,7 @@ function Submissions2024() {
           className="usa-table usa-table--stacked usa-table--borderless width-full"
         >
           <SubmissionsTableHeader rebateYear="2024" />
-          <tbody
-            className={clsx(
-              "tw:[&_:is(th,td)]:text-[15px]",
-              "tw:[&_:is(th,td)]:!whitespace-normal",
-            )}
-          >
+          <tbody className={clsx("tw:[&_:is(th,td)]:text-[15px]")}>
             {submissions.map((rebate, index) => {
               return rebate.rebateYear === "2024" ? (
                 <Fragment key={rebate.rebateId}>
