@@ -163,6 +163,10 @@ function ResultTableRow(props: {
   });
 
   useEffect(() => {
+    if (actionsQuery.status === "pending") {
+      setActionsData({ fetched: false, results: [] });
+    }
+
     if (actionsQuery.status === "success") {
       setActionsData({ fetched: true, results: actionsQuery.data });
     }
@@ -182,8 +186,11 @@ function ResultTableRow(props: {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+
+      // clear the pdf query cache after the download succeeds
+      queryClient.resetQueries({ queryKey: ["helpdesk/pdf"] });
     }
-  }, [pdfQuery.status, pdfQuery.data, formio._id]);
+  }, [pdfQuery.status, pdfQuery.data, formio._id, queryClient]);
 
   if (!rebateYear) {
     return null;
@@ -444,6 +451,10 @@ export function Helpdesk() {
   });
 
   useEffect(() => {
+    if (submissionQuery.status === "pending") {
+      setResultDisplayed(false);
+    }
+
     if (submissionQuery.status === "success") {
       setResultDisplayed(true);
     }
