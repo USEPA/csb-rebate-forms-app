@@ -350,7 +350,13 @@ save the form for the EFT indicator to be displayed. */
         </>
       </td>
 
-      <td className={statusTableCellClassNames}>
+      <td
+        className={clsx(
+          statusTableCellClassNames,
+          "tw:!whitespace-normal",
+          "tw:sm:max-w-80",
+        )}
+      >
         <>
           {Boolean(applicantOrganizationName) ? (
             applicantOrganizationName
@@ -526,6 +532,8 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
       ? "text-italic"
       : "";
 
+  const hiddenTableCellClassNames = "tw:!hidden tw:min-[30rem]:!table-cell";
+
   const prfUrl = `/prf/2022/${hidden_bap_rebate_id}`;
 
   return (
@@ -548,7 +556,7 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
         ) : null}
       </th>
 
-      <td className={statusTableCellClassNames}>&nbsp;</td>
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
 
       <td className={statusTableCellClassNames}>
         <span>Payment Request</span>
@@ -576,9 +584,9 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
         </span>
       </td>
 
-      <td className={statusTableCellClassNames}>&nbsp;</td>
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
 
-      <td className={statusTableCellClassNames}>&nbsp;</td>
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
 
       <td className={statusTableCellClassNames}>
         {hidden_current_user_email}
@@ -736,6 +744,8 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
       ? "text-italic"
       : "";
 
+  const hiddenTableCellClassNames = "tw:!hidden tw:min-[30rem]:!table-cell";
+
   const crfUrl = `/crf/2022/${hidden_bap_rebate_id}`;
 
   return (
@@ -756,7 +766,7 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
         ) : null}
       </th>
 
-      <td className={statusTableCellClassNames}>&nbsp;</td>
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
 
       <td className={statusTableCellClassNames}>
         <span>Close Out</span>
@@ -790,9 +800,9 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
         </span>
       </td>
 
-      <td className={statusTableCellClassNames}>&nbsp;</td>
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
 
-      <td className={statusTableCellClassNames}>&nbsp;</td>
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
 
       <td className={statusTableCellClassNames}>
         {hidden_current_user_email}
@@ -1187,7 +1197,13 @@ handle when it's value is an empty string. */}
         </>
       </td>
 
-      <td className={statusTableCellClassNames}>
+      <td
+        className={clsx(
+          statusTableCellClassNames,
+          "tw:!whitespace-normal",
+          "tw:sm:max-w-80",
+        )}
+      >
         <>
           {Boolean(appInfo_orgName) ? (
             appInfo_orgName
@@ -1215,7 +1231,7 @@ handle when it's value is an empty string. */}
         <span title={`${date} ${time}`}>{date}</span>
       </td>
 
-      <td className={clsx("tw:text-right")}>
+      <td className={clsx("tw:min-[30rem]:text-right")}>
         <ChangeRequest2023Button
           data={{
             formType: "frf",
@@ -1388,6 +1404,8 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
       ? "text-italic"
       : "";
 
+  const hiddenTableCellClassNames = "tw:!hidden tw:min-[30rem]:!table-cell";
+
   const prfUrl = `/prf/2023/${_bap_rebate_id}`;
 
   return (
@@ -1410,7 +1428,7 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
         ) : null}
       </th>
 
-      <td className={statusTableCellClassNames}>&nbsp;</td>
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
 
       <td className={statusTableCellClassNames}>
         <span>Payment Request</span>
@@ -1438,9 +1456,9 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
         </span>
       </td>
 
-      <td className={statusTableCellClassNames}>&nbsp;</td>
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
 
-      <td className={statusTableCellClassNames}>&nbsp;</td>
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
 
       <td className={statusTableCellClassNames}>
         {_user_email}
@@ -1448,7 +1466,7 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
         <span title={`${date} ${time}`}>{date}</span>
       </td>
 
-      <td className={clsx("tw:text-right")}>
+      <td className={clsx("tw:min-[30rem]:text-right")}>
         <ChangeRequest2023Button
           data={{
             formType: "prf",
@@ -1851,7 +1869,13 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
         </>
       </td>
 
-      <td className={statusTableCellClassNames}>
+      <td
+        className={clsx(
+          statusTableCellClassNames,
+          "tw:!whitespace-normal",
+          "tw:sm:max-w-80",
+        )}
+      >
         <>
           {Boolean(appInfo_organization_name) ? (
             appInfo_organization_name
@@ -1879,7 +1903,7 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
         <span title={`${date} ${time}`}>{date}</span>
       </td>
 
-      <td className={clsx("tw:text-right")}>
+      <td className={clsx("tw:min-[30rem]:text-right")}>
         <ChangeRequest2024Button
           data={{
             formType: "frf",
@@ -2052,6 +2076,8 @@ function PRF2024Submission(props: { rebate: Rebate2024 }) {
       ? "text-italic"
       : "";
 
+  const hiddenTableCellClassNames = "tw:!hidden tw:min-[30rem]:!table-cell";
+
   const prfUrl = `/prf/2024/${_bap_rebate_id}`;
 
   return (
@@ -2074,7 +2100,7 @@ function PRF2024Submission(props: { rebate: Rebate2024 }) {
         ) : null}
       </th>
 
-      <td className={statusTableCellClassNames}>&nbsp;</td>
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
 
       <td className={statusTableCellClassNames}>
         <span>Payment Request</span>
@@ -2102,9 +2128,9 @@ function PRF2024Submission(props: { rebate: Rebate2024 }) {
         </span>
       </td>
 
-      <td className={statusTableCellClassNames}>&nbsp;</td>
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
 
-      <td className={statusTableCellClassNames}>&nbsp;</td>
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
 
       <td className={statusTableCellClassNames}>
         {_user_email}
@@ -2112,7 +2138,7 @@ function PRF2024Submission(props: { rebate: Rebate2024 }) {
         <span title={`${date} ${time}`}>{date}</span>
       </td>
 
-      <td className={clsx("tw:text-right")}>
+      <td className={clsx("tw:min-[30rem]:text-right")}>
         <ChangeRequest2024Button
           data={{
             formType: "prf",
