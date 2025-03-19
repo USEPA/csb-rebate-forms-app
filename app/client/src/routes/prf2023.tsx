@@ -316,23 +316,31 @@ function PaymentRequestForm(props: { email: string }) {
         <Form
           src={formSchema.json}
           url={formSchema.url}
-          submission={
-            submission.state === "submitted"
-              ? submission
-              : {
-                  data: {
-                    ...submission.data,
-                    _user_email: email,
-                    _user_title: title,
-                    _user_name: name,
-                    _bap_elec_bus_poc_email: ELEC_BUS_POC_EMAIL__c,
-                    _bap_alt_elec_bus_poc_email: ALT_ELEC_BUS_POC_EMAIL__c,
-                    _bap_govt_bus_poc_email: GOVT_BUS_POC_EMAIL__c,
-                    _bap_alt_govt_bus_poc_email: ALT_GOVT_BUS_POC_EMAIL__c,
-                    ...pendingSubmissionData.current,
-                  },
-                }
-          }
+          submission={{
+            /**
+             * NOTE: The `csb-form-submission-state` metadata field's value is
+             * used in the Formio signature component's calculateValue config:
+             * on "Next" and "Previous" page events, if the form's current
+             * submission state is "draft", the signature component's value will
+             * be cleared, ensuring the user always signs their submission each
+             * time before submitting.
+             */
+            metadata: {
+              ...submission.metadata,
+              "csb-form-submission-state": submission.state,
+            },
+            data: {
+              ...submission.data,
+              _user_email: email,
+              _user_title: title,
+              _user_name: name,
+              _bap_elec_bus_poc_email: ELEC_BUS_POC_EMAIL__c,
+              _bap_alt_elec_bus_poc_email: ALT_ELEC_BUS_POC_EMAIL__c,
+              _bap_govt_bus_poc_email: GOVT_BUS_POC_EMAIL__c,
+              _bap_alt_govt_bus_poc_email: ALT_GOVT_BUS_POC_EMAIL__c,
+              ...pendingSubmissionData.current,
+            },
+          }}
           options={{
             readOnly: formIsReadOnly,
             noAlerts: true,
@@ -352,6 +360,10 @@ function PaymentRequestForm(props: { email: string }) {
               mongoId: submission._id,
               submission: {
                 ...onSubmitParam,
+                metadata: {
+                  ...onSubmitParam.metadata,
+                  "csb-form-submission-state": onSubmitParam.state,
+                },
                 data,
               },
             };

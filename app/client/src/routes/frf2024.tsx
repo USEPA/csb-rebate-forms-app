@@ -429,19 +429,27 @@ function FundingRequestForm(props: { email: string }) {
         <Form
           src={formSchema.json}
           url={formSchema.url}
-          submission={
-            submission.state === "submitted"
-              ? submission
-              : {
-                  data: {
-                    ...submission.data,
-                    _user_email: email,
-                    _user_title: title,
-                    _user_name: name,
-                    ...pendingSubmissionData.current,
-                  },
-                }
-          }
+          submission={{
+            /**
+             * NOTE: The `csb-form-submission-state` metadata field's value is
+             * used in the Formio signature component's calculateValue config:
+             * on "Next" and "Previous" page events, if the form's current
+             * submission state is "draft", the signature component's value will
+             * be cleared, ensuring the user always signs their submission each
+             * time before submitting.
+             */
+            metadata: {
+              ...submission.metadata,
+              "csb-form-submission-state": submission.state,
+            },
+            data: {
+              ...submission.data,
+              _user_email: email,
+              _user_title: title,
+              _user_name: name,
+              ...pendingSubmissionData.current,
+            },
+          }}
           options={{
             readOnly: formIsReadOnly,
             noAlerts: true,
@@ -459,6 +467,10 @@ function FundingRequestForm(props: { email: string }) {
 
             const updatedSubmission = {
               ...onSubmitParam,
+              metadata: {
+                ...onSubmitParam.metadata,
+                "csb-form-submission-state": onSubmitParam.state,
+              },
               data,
             };
 
