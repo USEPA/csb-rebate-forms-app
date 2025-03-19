@@ -297,20 +297,28 @@ function CloseOutRequestForm(props: { email: string }) {
         <Form
           src={formSchema.json}
           url={formSchema.url}
-          submission={
-            submission.state === "submitted"
-              ? submission
-              : {
-                  data: {
-                    ...submission.data,
-                    last_updated_by: email,
-                    hidden_current_user_email: email,
-                    hidden_current_user_title: title,
-                    hidden_current_user_name: name,
-                    ...pendingSubmissionData.current,
-                  },
-                }
-          }
+          submission={{
+            /**
+             * NOTE: The `csb-form-submission-state` metadata field's value is
+             * used in the Formio signature component's calculateValue config:
+             * on "Next" and "Previous" page events, if the form's current
+             * submission state is "draft", the signature component's value will
+             * be cleared, ensuring the user always signs their submission each
+             * time before submitting.
+             */
+            metadata: {
+              ...submission.metadata,
+              "csb-form-submission-state": submission.state,
+            },
+            data: {
+              ...submission.data,
+              last_updated_by: email,
+              hidden_current_user_email: email,
+              hidden_current_user_title: title,
+              hidden_current_user_name: name,
+              ...pendingSubmissionData.current,
+            },
+          }}
           options={{
             readOnly: formIsReadOnly,
             noAlerts: true,
@@ -330,6 +338,10 @@ function CloseOutRequestForm(props: { email: string }) {
               mongoId: submission._id,
               submission: {
                 ...onSubmitParam,
+                metadata: {
+                  ...onSubmitParam.metadata,
+                  "csb-form-submission-state": onSubmitParam.state,
+                },
                 data,
               },
             };
