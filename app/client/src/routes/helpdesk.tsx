@@ -110,6 +110,7 @@ function formatTime(dateTimeString: string | null) {
 }
 
 function ResultTableRow(props: {
+  formDisplayed: boolean;
   setFormDisplayed: Dispatch<SetStateAction<boolean>>;
   setActionsData: Dispatch<
     SetStateAction<{ fetched: boolean; results: SubmissionAction[] }>
@@ -131,6 +132,7 @@ function ResultTableRow(props: {
   bap: BapSubmissionData | null;
 }) {
   const {
+    formDisplayed,
     setFormDisplayed,
     setActionsData,
     submissionMutation,
@@ -232,6 +234,7 @@ function ResultTableRow(props: {
         <button
           className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
           onClick={(_ev) => setFormDisplayed(true)}
+          disabled={formDisplayed}
         >
           <span className="display-flex flex-align-center">
             <svg
@@ -724,6 +727,7 @@ export function Helpdesk() {
 
               <tbody>
                 <ResultTableRow
+                  formDisplayed={formDisplayed}
                   setFormDisplayed={setFormDisplayed}
                   setActionsData={setActionsData}
                   submissionMutation={submissionMutation}
