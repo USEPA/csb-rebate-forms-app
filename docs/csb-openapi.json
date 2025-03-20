@@ -337,7 +337,7 @@
     },
     "/api/formio/2022/s3/{formType}/{mongoId}/{comboKey}/storage/s3": {
       "get": {
-        "summary": "Download Formio S3 file metadata for a 2022 submission.",
+        "summary": "Download Formio file attachment from S3 for a 2022 submission.",
         "parameters": [
           {
             "$ref": "#/components/parameters/formType"
@@ -359,7 +359,29 @@
         }
       },
       "post": {
-        "summary": "Upload Formio S3 file metadata for a 2022 submission.",
+        "summary": "Upload Formio file attachment to S3 for a 2022 submission.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/formType"
+          },
+          {
+            "$ref": "#/components/parameters/mongoId"
+          },
+          {
+            "$ref": "#/components/parameters/comboKey"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Formio file attachment from S3 for a 2022 submission.",
         "parameters": [
           {
             "$ref": "#/components/parameters/formType"
@@ -729,7 +751,7 @@
     },
     "/api/formio/2023/s3/{formType}/{mongoId}/{comboKey}/storage/s3": {
       "get": {
-        "summary": "Download Formio S3 file metadata for a 2023 submission.",
+        "summary": "Download Formio file attachment from S3 for a 2023 submission.",
         "parameters": [
           {
             "$ref": "#/components/parameters/formType"
@@ -751,7 +773,29 @@
         }
       },
       "post": {
-        "summary": "Upload Formio S3 file metadata for a 2023 submission.",
+        "summary": "Upload Formio file attachment to S3 for a 2023 submission.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/formType"
+          },
+          {
+            "$ref": "#/components/parameters/mongoId"
+          },
+          {
+            "$ref": "#/components/parameters/comboKey"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Formio file attachment from S3 for a 2023 submission.",
         "parameters": [
           {
             "$ref": "#/components/parameters/formType"
@@ -1117,7 +1161,7 @@
     },
     "/api/formio/2024/s3/{formType}/{mongoId}/{comboKey}/storage/s3": {
       "get": {
-        "summary": "Download Formio S3 file metadata for a 2024 submission.",
+        "summary": "Download Formio file attachment from S3 for a 2024 submission.",
         "parameters": [
           {
             "$ref": "#/components/parameters/formType"
@@ -1139,7 +1183,7 @@
         }
       },
       "post": {
-        "summary": "Upload Formio S3 file metadata for a 2024 submission.",
+        "summary": "Upload Formio file attachment to S3 for a 2024 submission.",
         "parameters": [
           {
             "$ref": "#/components/parameters/formType"
@@ -1154,6 +1198,28 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Formio file attachment from S3 for a 2024 submission.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/formType"
+          },
+          {
+            "$ref": "#/components/parameters/mongoId"
+          },
+          {
+            "$ref": "#/components/parameters/comboKey"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
           }
         }
       }
@@ -1470,7 +1536,7 @@
     },
     "/api/help/formio/s3/{rebateYear}/{formType}/storage/s3": {
       "get": {
-        "summary": "Download Formio S3 file metadata for a submission.",
+        "summary": "Download Formio file attachment from S3 for a submission.",
         "parameters": [
           {
             "$ref": "#/components/parameters/rebateYear"

@@ -56,31 +56,56 @@ function fetchFormioFormSchema({ formioFormUrl, req }) {
  * Fetches Formio form submission data when provided a Formio submission url.
  *
  * @param {{
- *  formioSubmissionUrl: string
- *  id: 'rebateId' | 'mongoId'
+ *  formioFormUrl: string
+ *  rebateIdFieldName: string
+ *  rebateId: string | null
+ *  mongoId: string | null
  *  req: express.Request
  * }} param
  */
-function fetchFormioSubmissionData({ formioSubmissionUrl, id, req }) {
-  /**
-   * NOTE:
-   * If the provided id is 'rebateId', the provided formSubmissionUrl includes
-   * the rebateId within it and we'll query Formio for all submissions that
-   * include the rebateId field and its value (which should only be one
-   * submission). In that case, the Formio query's response will be an array of
-   * submission objects, so we'll return the first one.
-   *
-   * Else, if the provided id is 'mongoId', the provided formSubmissionUrl
-   * includes the mongoId within it and we'll query Formio for the single
-   * submission. In that case, the Formio query's response will be a single
-   * submission object, so we'll return it.
-   */
+function fetchFormioSubmissionData({
+  formioFormUrl,
+  rebateIdFieldName,
+  rebateId,
+  mongoId,
+  req,
+}) {
+  const url = mongoId
+    ? `${formioFormUrl}/submission/${mongoId}`
+    : `${formioFormUrl}/submission?data.${rebateIdFieldName}=${rebateId}&select=_id`;
+
   return axiosFormio(req)
-    .get(formioSubmissionUrl)
+    .get(url)
     .then((axiosRes) => axiosRes.data)
     .then((json) => {
-      const result = id === "rebateId" ? json[0] : json;
-      return result || null;
+      /**
+       * If `mongoId` is not null, the result of the submission query is the
+       * full sumission object (including the base64 encoded signature in the
+       * signature field), so a single query is sufficient for the data.
+       */
+      if (mongoId) return json;
+
+      /**
+       * Otherwise, `mongoId` is null and `rebateId` is not null, so the result
+       * of the submission query is an array of objects (in practice only one),
+       * so we'll take the _id value from the first object, and use it to query
+       * for the full form submission data. We need to do this extra query
+       * because when we fetch submission data via a field name match, the
+       * response doesn't include the base64 encoded signature in the signature
+       * field, but a value of 'YES'. Since we want the signature data, we need
+       * to make the additional fetch.
+       */
+
+      const resultMongoId = json[0]?._id;
+      if (!resultMongoId) return null;
+
+      return axiosFormio(req)
+        .get(`${formioFormUrl}/submission/${resultMongoId}`)
+        .then((axiosRes) => axiosRes.data)
+        .catch((_error) => {
+          // NOTE: error is logged in axiosFormio response interceptor
+          return null;
+        });
     })
     .catch((_error) => {
       // NOTE: error is logged in axiosFormio response interceptor
@@ -150,7 +175,7 @@ function fetchBapSubmissionData({
   });
 }
 
-// --- download Formio S3 file metadata
+// --- download Formio file attachment from S3
 router.get("/formio/s3/:rebateYear/:formType/storage/s3", (req, res) => {
   const { query } = req;
   const { rebateYear, formType } = req.params;
@@ -219,9 +244,6 @@ router.get("/formio/submission/:rebateYear/:formType/:id", async (req, res) => {
   }
 
   const rebateIdFieldName = getRebateIdFieldName({ rebateYear });
-  const formioSubmissionUrl = rebateId
-    ? `${formioFormUrl}/submission?data.${rebateIdFieldName}=${rebateId}`
-    : `${formioFormUrl}/submission/${mongoId}`;
 
   /**
    * NOTE: FRF submissions don't include a CSB Rebate Id field, as it's created
@@ -234,8 +256,10 @@ router.get("/formio/submission/:rebateYear/:formType/:id", async (req, res) => {
     rebateId && formType === "frf"
       ? null
       : await fetchFormioSubmissionData({
-          formioSubmissionUrl,
-          id: rebateId ? "rebateId" : "mongoId",
+          formioFormUrl,
+          rebateIdFieldName,
+          rebateId,
+          mongoId,
           req,
         });
 
@@ -250,8 +274,10 @@ router.get("/formio/submission/:rebateYear/:formType/:id", async (req, res) => {
   /** NOTE: See previous note above setting of `result.formio` value */
   if (!result.formio && result.bap) {
     result.formio = await fetchFormioSubmissionData({
-      formioSubmissionUrl: `${formioFormUrl}/submission/${result.bap.mongoId}`,
-      id: "mongoId",
+      formioFormUrl,
+      rebateIdFieldName,
+      rebateId: null,
+      mongoId: result.bap.mongoId,
       req,
     });
   }
@@ -366,7 +392,7 @@ router.get("/formio/pdf/:formId/:mongoId", (req, res) => {
 
   // NOTE: included to support EPA API scan
   if (mongoId === formioExampleMongoId) {
-    return res.json({});
+    return res.json("");
   }
 
   /** NOTE: verifyMongoObjectId */

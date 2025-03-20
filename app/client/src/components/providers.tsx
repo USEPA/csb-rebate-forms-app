@@ -12,7 +12,7 @@ declare global {
 }
 
 const ReactQueryDevtoolsProduction = lazy(() =>
-  import("@tanstack/react-query-devtools/build/lib/index.prod.js").then(
+  import("@tanstack/react-query-devtools/build/modern/production.js").then(
     (module) => ({ default: module.ReactQueryDevtools }),
   ),
 );

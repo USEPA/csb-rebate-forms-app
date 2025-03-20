@@ -4,7 +4,7 @@ import {
   Link,
   useNavigate,
   useOutletContext,
-} from "react-router-dom";
+} from "react-router";
 import { ChevronUpIcon } from "@heroicons/react/20/solid";
 import clsx from "clsx";
 import icons from "uswds/img/sprite.svg";
@@ -197,7 +197,7 @@ function FRF2022Submission(props: { rebate: Rebate2022 }) {
 
   const frfBapInternalStatus = frf.bap?.status || "";
   const frfBapStatus = bapStatusMap["2022"].frf.get(frfBapInternalStatus);
-  const frfFormioStatus = formioStatusMap.get(frf.formio.state);
+  const frfFormioStatus = formioStatusMap.get(frf.formio.state || "");
 
   const frfStatus = frfNeedsEdits
     ? "Edits Requested"
@@ -350,7 +350,13 @@ save the form for the EFT indicator to be displayed. */
         </>
       </td>
 
-      <td className={statusTableCellClassNames}>
+      <td
+        className={clsx(
+          statusTableCellClassNames,
+          "tw:!whitespace-normal",
+          "tw:sm:max-w-80",
+        )}
+      >
         <>
           {Boolean(applicantOrganizationName) ? (
             applicantOrganizationName
@@ -512,7 +518,7 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
 
   const prfBapInternalStatus = prf.bap?.status || "";
   const prfBapStatus = bapStatusMap["2022"].prf.get(prfBapInternalStatus);
-  const prfFormioStatus = formioStatusMap.get(prf.formio.state);
+  const prfFormioStatus = formioStatusMap.get(prf.formio.state || "");
 
   const prfStatus = prfNeedsEdits
     ? "Edits Requested"
@@ -525,6 +531,8 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
     prfFormioStatus === "Submitted" || !prfSubmissionPeriodOpen
       ? "text-italic"
       : "";
+
+  const hiddenTableCellClassNames = "tw:!hidden tw:min-[30rem]:!table-cell";
 
   const prfUrl = `/prf/2022/${hidden_bap_rebate_id}`;
 
@@ -548,7 +556,7 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
         ) : null}
       </th>
 
-      <td className={statusTableCellClassNames}>&nbsp;</td>
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
 
       <td className={statusTableCellClassNames}>
         <span>Payment Request</span>
@@ -576,9 +584,9 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
         </span>
       </td>
 
-      <td className={statusTableCellClassNames}>&nbsp;</td>
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
 
-      <td className={statusTableCellClassNames}>&nbsp;</td>
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
 
       <td className={statusTableCellClassNames}>
         {hidden_current_user_email}
@@ -715,7 +723,7 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
 
   const crfBapInternalStatus = crf.bap?.status || "";
   const crfBapStatus = bapStatusMap["2022"].crf.get(crfBapInternalStatus);
-  const crfFormioStatus = formioStatusMap.get(crf.formio.state);
+  const crfFormioStatus = formioStatusMap.get(crf.formio.state || "");
   const crfBapReimbursementNeeded = crf.bap?.reimbursementNeeded || false;
 
   const crfNeedsReimbursement = submissionNeedsReimbursement({
@@ -735,6 +743,8 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
     crfFormioStatus === "Submitted" || !crfSubmissionPeriodOpen
       ? "text-italic"
       : "";
+
+  const hiddenTableCellClassNames = "tw:!hidden tw:min-[30rem]:!table-cell";
 
   const crfUrl = `/crf/2022/${hidden_bap_rebate_id}`;
 
@@ -756,7 +766,7 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
         ) : null}
       </th>
 
-      <td className={statusTableCellClassNames}>&nbsp;</td>
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
 
       <td className={statusTableCellClassNames}>
         <span>Close Out</span>
@@ -790,9 +800,9 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
         </span>
       </td>
 
-      <td className={statusTableCellClassNames}>&nbsp;</td>
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
 
-      <td className={statusTableCellClassNames}>&nbsp;</td>
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
 
       <td className={statusTableCellClassNames}>
         {hidden_current_user_email}
@@ -827,10 +837,9 @@ function Submissions2022() {
   return (
     <>
       {content && (
-        <MarkdownContent
-          className="margin-top-4"
-          children={content.allRebatesIntro}
-        />
+        <div className="margin-top-4">
+          <MarkdownContent children={content.allRebatesIntro} />
+        </div>
       )}
 
       <div className="usa-table-container--scrollable" tabIndex={0}>
@@ -1042,10 +1051,13 @@ function FRF2023Submission(props: { rebate: Rebate2023 }) {
   const {
     _user_email,
     _bap_entity_combo_key,
+    _bap_applicant_name,
     appInfo_uei,
     appInfo_efti,
     appInfo_orgName,
     _formio_schoolDistrictName,
+    org_district_orgName,
+    org_district_state,
   } = frf.formio.data;
 
   const date = new Date(frf.formio.modified).toLocaleDateString();
@@ -1058,7 +1070,7 @@ function FRF2023Submission(props: { rebate: Rebate2023 }) {
 
   const frfBapInternalStatus = frf.bap?.status || "";
   const frfBapStatus = bapStatusMap["2023"].frf.get(frfBapInternalStatus);
-  const frfFormioStatus = formioStatusMap.get(frf.formio.state);
+  const frfFormioStatus = formioStatusMap.get(frf.formio.state || "");
 
   const frfStatus = frfNeedsEdits
     ? "Edits Requested"
@@ -1185,7 +1197,13 @@ handle when it's value is an empty string. */}
         </>
       </td>
 
-      <td className={statusTableCellClassNames}>
+      <td
+        className={clsx(
+          statusTableCellClassNames,
+          "tw:!whitespace-normal",
+          "tw:sm:max-w-80",
+        )}
+      >
         <>
           {Boolean(appInfo_orgName) ? (
             appInfo_orgName
@@ -1213,17 +1231,20 @@ handle when it's value is an empty string. */}
         <span title={`${date} ${time}`}>{date}</span>
       </td>
 
-      <td className={clsx("tw:text-right")}>
+      <td className={clsx("tw:min-[30rem]:text-right")}>
         <ChangeRequest2023Button
           data={{
             formType: "frf",
             comboKey: _bap_entity_combo_key,
             rebateId: frf.bap?.rebateId || null,
             mongoId: frf.formio._id,
-            state: frf.formio.state,
+            state: frf.formio.state || "",
             email,
             title,
             name,
+            applicantName: _bap_applicant_name,
+            districtName: org_district_orgName,
+            districtState: org_district_state,
           }}
         />
       </td>
@@ -1345,8 +1366,14 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
   // return if a Payment Request submission has not been created for this rebate
   if (!prf.formio) return null;
 
-  const { _user_email, _bap_entity_combo_key, _bap_rebate_id } =
-    prf.formio.data;
+  const {
+    _user_email,
+    _bap_entity_combo_key,
+    _bap_rebate_id,
+    _bap_applicant_name,
+    _bap_district_name,
+    _bap_district_state,
+  } = prf.formio.data;
 
   const date = new Date(prf.formio.modified).toLocaleDateString();
   const time = new Date(prf.formio.modified).toLocaleTimeString();
@@ -1363,7 +1390,7 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
 
   const prfBapInternalStatus = prf.bap?.status || "";
   const prfBapStatus = bapStatusMap["2023"].prf.get(prfBapInternalStatus);
-  const prfFormioStatus = formioStatusMap.get(prf.formio.state);
+  const prfFormioStatus = formioStatusMap.get(prf.formio.state || "");
 
   const prfStatus = prfNeedsEdits
     ? "Edits Requested"
@@ -1376,6 +1403,8 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
     prf.formio.state === "submitted" || !prfSubmissionPeriodOpen
       ? "text-italic"
       : "";
+
+  const hiddenTableCellClassNames = "tw:!hidden tw:min-[30rem]:!table-cell";
 
   const prfUrl = `/prf/2023/${_bap_rebate_id}`;
 
@@ -1399,7 +1428,7 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
         ) : null}
       </th>
 
-      <td className={statusTableCellClassNames}>&nbsp;</td>
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
 
       <td className={statusTableCellClassNames}>
         <span>Payment Request</span>
@@ -1427,9 +1456,9 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
         </span>
       </td>
 
-      <td className={statusTableCellClassNames}>&nbsp;</td>
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
 
-      <td className={statusTableCellClassNames}>&nbsp;</td>
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
 
       <td className={statusTableCellClassNames}>
         {_user_email}
@@ -1437,17 +1466,20 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
         <span title={`${date} ${time}`}>{date}</span>
       </td>
 
-      <td className={clsx("tw:text-right")}>
+      <td className={clsx("tw:min-[30rem]:text-right")}>
         <ChangeRequest2023Button
           data={{
             formType: "prf",
             comboKey: _bap_entity_combo_key,
             rebateId: _bap_rebate_id,
             mongoId: prf.formio._id,
-            state: prf.formio.state,
+            state: prf.formio.state || "",
             email,
             title,
             name,
+            applicantName: _bap_applicant_name,
+            districtName: _bap_district_name,
+            districtState: _bap_district_state,
           }}
         />
       </td>
@@ -1492,10 +1524,9 @@ function Submissions2023() {
       <ChangeRequests2023 />
 
       {content && (
-        <MarkdownContent
-          className="margin-top-4"
-          children={content.allRebatesIntro}
-        />
+        <div className="margin-top-4">
+          <MarkdownContent children={content.allRebatesIntro} />
+        </div>
       )}
 
       <div className="usa-table-container--scrollable" tabIndex={0}>
@@ -1726,7 +1757,7 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 
   const frfBapInternalStatus = frf.bap?.status || "";
   const frfBapStatus = bapStatusMap["2024"].frf.get(frfBapInternalStatus);
-  const frfFormioStatus = formioStatusMap.get(frf.formio.state);
+  const frfFormioStatus = formioStatusMap.get(frf.formio.state || "");
 
   const frfStatus = frfNeedsEdits
     ? "Edits Requested"
@@ -1838,7 +1869,13 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
         </>
       </td>
 
-      <td className={statusTableCellClassNames}>
+      <td
+        className={clsx(
+          statusTableCellClassNames,
+          "tw:!whitespace-normal",
+          "tw:sm:max-w-80",
+        )}
+      >
         <>
           {Boolean(appInfo_organization_name) ? (
             appInfo_organization_name
@@ -1866,14 +1903,14 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
         <span title={`${date} ${time}`}>{date}</span>
       </td>
 
-      <td className={clsx("tw:text-right")}>
+      <td className={clsx("tw:min-[30rem]:text-right")}>
         <ChangeRequest2024Button
           data={{
             formType: "frf",
             comboKey: _bap_entity_combo_key,
             rebateId: frf.bap?.rebateId || null,
             mongoId: frf.formio._id,
-            state: frf.formio.state,
+            state: frf.formio.state || "",
             email,
             title,
             name,
@@ -2025,7 +2062,7 @@ function PRF2024Submission(props: { rebate: Rebate2024 }) {
 
   const prfBapInternalStatus = prf.bap?.status || "";
   const prfBapStatus = bapStatusMap["2024"].prf.get(prfBapInternalStatus);
-  const prfFormioStatus = formioStatusMap.get(prf.formio.state);
+  const prfFormioStatus = formioStatusMap.get(prf.formio.state || "");
 
   const prfStatus = prfNeedsEdits
     ? "Edits Requested"
@@ -2038,6 +2075,8 @@ function PRF2024Submission(props: { rebate: Rebate2024 }) {
     prf.formio.state === "submitted" || !prfSubmissionPeriodOpen
       ? "text-italic"
       : "";
+
+  const hiddenTableCellClassNames = "tw:!hidden tw:min-[30rem]:!table-cell";
 
   const prfUrl = `/prf/2024/${_bap_rebate_id}`;
 
@@ -2061,7 +2100,7 @@ function PRF2024Submission(props: { rebate: Rebate2024 }) {
         ) : null}
       </th>
 
-      <td className={statusTableCellClassNames}>&nbsp;</td>
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
 
       <td className={statusTableCellClassNames}>
         <span>Payment Request</span>
@@ -2089,9 +2128,9 @@ function PRF2024Submission(props: { rebate: Rebate2024 }) {
         </span>
       </td>
 
-      <td className={statusTableCellClassNames}>&nbsp;</td>
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
 
-      <td className={statusTableCellClassNames}>&nbsp;</td>
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
 
       <td className={statusTableCellClassNames}>
         {_user_email}
@@ -2099,14 +2138,14 @@ function PRF2024Submission(props: { rebate: Rebate2024 }) {
         <span title={`${date} ${time}`}>{date}</span>
       </td>
 
-      <td className={clsx("tw:text-right")}>
+      <td className={clsx("tw:min-[30rem]:text-right")}>
         <ChangeRequest2024Button
           data={{
             formType: "prf",
             comboKey: _bap_entity_combo_key,
             rebateId: _bap_rebate_id,
             mongoId: prf.formio._id,
-            state: prf.formio.state,
+            state: prf.formio.state || "",
             email,
             title,
             name,
@@ -2157,10 +2196,9 @@ function Submissions2024() {
       <ChangeRequests2024 />
 
       {content && (
-        <MarkdownContent
-          className="margin-top-4"
-          children={content.allRebatesIntro}
-        />
+        <div className="margin-top-4">
+          <MarkdownContent children={content.allRebatesIntro} />
+        </div>
       )}
 
       <div className="usa-table-container--scrollable" tabIndex={0}>
@@ -2207,7 +2245,11 @@ export function Submissions() {
   const { rebateYear } = useRebateYearState();
   const { setRebateYear } = useRebateYearActions();
 
-  const frfSubmissionPeriodOpen = configData
+  if (!rebateYear) {
+    return <Loading />;
+  }
+
+  const frfSubmissionPeriodOpen = configData?.submissionPeriodOpen[rebateYear]
     ? configData.submissionPeriodOpen[rebateYear].frf
     : false;
 
@@ -2268,10 +2310,9 @@ export function Submissions() {
       {rebateYear === "2024" && <Submissions2024 />}
 
       {content && (
-        <MarkdownContent
-          className="margin-top-4 padding-2 padding-bottom-0 border-1px border-base-lighter bg-base-lightest"
-          children={content.allRebatesOutro}
-        />
+        <div className="margin-top-4 padding-2 padding-bottom-0 border-1px border-base-lighter bg-base-lightest">
+          <MarkdownContent children={content.allRebatesOutro} />
+        </div>
       )}
     </>
   );

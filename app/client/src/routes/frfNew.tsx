@@ -1,6 +1,13 @@
-import { Fragment, useState } from "react";
-import { useNavigate, useOutletContext } from "react-router-dom";
-import { Dialog, Transition } from "@headlessui/react";
+import { useEffect, useState } from "react";
+import { useNavigate, useOutletContext } from "react-router";
+import {
+  Dialog,
+  DialogBackdrop,
+  DialogPanel,
+  DialogTitle,
+  Transition,
+  TransitionChild,
+} from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import icons from "uswds/img/sprite.svg";
@@ -10,6 +17,7 @@ import {
   type BapSamEntity,
   type FormioFRF2022Submission,
   type FormioFRF2023Submission,
+  type FormioFRF2024Submission,
 } from "@/types";
 import { serverUrl, messages } from "@/config";
 import {
@@ -117,6 +125,13 @@ export function FRFNew() {
     text: "",
   });
 
+  /** NOTE: Delayed displaying of dialog to allow the transition to occur */
+  const [dialogShown, setDialogShown] = useState(false);
+
+  useEffect(() => {
+    if (!dialogShown) setTimeout(() => setDialogShown(true), 0);
+  }, [dialogShown]);
+
   /**
    * Stores when data is being posted to the server, so a loading indicator can
    * be rendered inside the new application button, and we can prevent double
@@ -124,7 +139,7 @@ export function FRFNew() {
    */
   const [postingDataId, setPostingDataId] = useState("0");
 
-  if (!configData || !bapSamData) {
+  if (!configData || !bapSamData || !rebateYear) {
     return <Loading />;
   }
 
@@ -154,27 +169,23 @@ export function FRFNew() {
     samEntities.eligible.length + samEntities.ineligible.length;
 
   return (
-    <Transition.Root show={true} as={Fragment}>
+    <Transition show={dialogShown}>
       <Dialog
-        as="div"
         className={clsx("tw:relative tw:z-10")}
         onClose={(_value) => navigate("/")}
       >
-        <Transition.Child
-          as={Fragment}
-          enter={clsx("tw:duration-300 tw:ease-out")}
-          enterFrom={clsx("tw:opacity-0")}
-          enterTo={clsx("tw:opacity-100")}
-          leave={clsx("tw:duration-200 tw:ease-in")}
-          leaveFrom={clsx("tw:opacity-100")}
-          leaveTo={clsx("tw:opacity-0")}
-        >
-          <div
+        <TransitionChild>
+          <DialogBackdrop
             className={clsx(
-              "tw:fixed tw:inset-0 tw:bg-black/70 tw:transition-colors",
+              "tw:fixed tw:inset-0 tw:bg-black/70",
+              // --- transitions ---
+              "tw:transition-colors tw:!duration-100",
+              "tw:data-closed:opacity-0",
+              "tw:data-enter:ease-out",
+              "tw:data-leave:ease-in",
             )}
           />
-        </Transition.Child>
+        </TransitionChild>
 
         <div className={clsx("tw:fixed tw:inset-0 tw:z-10 tw:overflow-y-auto")}>
           <div
@@ -183,25 +194,16 @@ export function FRFNew() {
               "tw:sm:items-center",
             )}
           >
-            <Transition.Child
-              as={Fragment}
-              enter={clsx("tw:duration-300 tw:ease-out")}
-              enterFrom={clsx(
-                "tw:translate-y-4 tw:opacity-0",
-                "tw:sm:translate-y-0",
-              )}
-              enterTo={clsx("tw:translate-y-0 tw:opacity-100")}
-              leave={clsx("tw:duration-200 tw:ease-in")}
-              leaveFrom={clsx("tw:translate-y-0 tw:opacity-100")}
-              leaveTo={clsx(
-                "tw:translate-y-4 tw:opacity-0",
-                "tw:sm:translate-y-0",
-              )}
-            >
-              <Dialog.Panel
+            <TransitionChild>
+              <DialogPanel
                 className={clsx(
-                  "tw:relative tw:transform tw:overflow-hidden tw:rounded-lg tw:bg-white tw:p-4 tw:shadow-xl tw:transition-all",
+                  "tw:relative tw:transform tw:overflow-hidden tw:rounded-lg tw:bg-white tw:p-4 tw:shadow-xl",
                   "tw:sm:w-full tw:sm:max-w-4xl tw:sm:p-6",
+                  // --- transitions ---
+                  "tw:!transition-all tw:!duration-100",
+                  "tw:data-closed:scale-95 tw:data-closed:opacity-0",
+                  "tw:data-enter:ease-out",
+                  "tw:data-leave:ease-in",
                 )}
               >
                 <div className="twpf">
@@ -245,23 +247,26 @@ export function FRFNew() {
                   ) : (
                     <>
                       {content && (
-                        <MarkdownContent
+                        <div
                           className={clsx("tw:mt-4", "tw:[&_h2]:text-center")}
-                          children={content.newFRFDialog}
-                          components={{
-                            h2: (props) => (
-                              <h2
-                                className={clsx(
-                                  "tw:text-xl",
-                                  "tw:sm:text-2xl",
-                                  "tw:md:text-3xl",
-                                )}
-                              >
-                                {props.children}
-                              </h2>
-                            ),
-                          }}
-                        />
+                        >
+                          <MarkdownContent
+                            children={content.newFRFDialog}
+                            components={{
+                              h2: (props) => (
+                                <DialogTitle
+                                  className={clsx(
+                                    "tw:text-xl",
+                                    "tw:sm:text-2xl",
+                                    "tw:md:text-3xl",
+                                  )}
+                                >
+                                  {props.children}
+                                </DialogTitle>
+                              ),
+                            }}
+                          />
+                        </div>
                       )}
 
                       {errorMessage.displayed && (
@@ -338,6 +343,7 @@ export function FRFNew() {
                                         postData<
                                           | FormioFRF2022Submission
                                           | FormioFRF2023Submission
+                                          | FormioFRF2024Submission
                                         >(
                                           `${serverUrl}/api/formio/${rebateYear}/frf-submission/`,
                                           { data, state: "draft" },
@@ -453,11 +459,11 @@ export function FRFNew() {
                     </>
                   )}
                 </div>
-              </Dialog.Panel>
-            </Transition.Child>
+              </DialogPanel>
+            </TransitionChild>
           </div>
         </div>
       </Dialog>
-    </Transition.Root>
+    </Transition>
   );
 }

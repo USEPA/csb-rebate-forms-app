@@ -1,5 +1,5 @@
 import { StrictMode } from "react";
-import { render } from "react-dom";
+import { createRoot } from "react-dom/client";
 /*
   NOTE: regenerator-runtime is imported to avoid a bug with a GitHub Action
   workflow including regenerator-runtime in the build as an external dependency.
@@ -16,6 +16,7 @@ import { App } from "@/components/app";
 import "@/styles.css";
 
 const container = document.getElementById("root") as HTMLElement;
+const root = createRoot(container);
 
 export default function Index() {
   return (
@@ -29,4 +30,4 @@ export default function Index() {
   );
 }
 
-render(<Index />, container);
+root.render(<Index />);

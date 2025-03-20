@@ -1,12 +1,19 @@
-import { Fragment, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Dialog, Transition } from "@headlessui/react";
+import {
+  Dialog,
+  DialogBackdrop,
+  DialogPanel,
+  DialogTitle,
+  Transition,
+  TransitionChild,
+} from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import { Form } from "@formio/react";
+import { type FormType, type Submission, Form } from "@formio/react";
 import clsx from "clsx";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { type FormType, type FormioChange2023Submission } from "@/types";
+import { type CSBFormType, type FormioChange2023Submission } from "@/types";
 import { serverUrl, messages } from "@/config";
 import {
   getData,
@@ -20,17 +27,20 @@ import { MarkdownContent } from "@/components/markdownContent";
 import { useNotificationsActions } from "@/contexts/notifications";
 
 type ChangeRequestData = {
-  formType: FormType;
+  formType: CSBFormType;
   comboKey: string;
   rebateId: string | null;
   mongoId: string;
-  state: "draft" | "submitted";
+  state: string;
   email: string;
   title: string;
   name: string;
+  applicantName: string;
+  districtName: string;
+  districtState: string;
 };
 
-type Response = { url: string; json: object };
+type Response = { url: string; json: FormType };
 
 /** Custom hook to fetch Formio schema */
 function useFormioSchemaQuery() {
@@ -50,7 +60,7 @@ function useFormioSubmissionMutation() {
   const url = `${serverUrl}/api/formio/2023/change/`;
 
   const mutation = useMutation({
-    mutationFn: (submission: FormioChange2023Submission) => {
+    mutationFn: (submission: Submission) => {
       return postData<FormioChange2023Submission>(url, submission);
     },
   });
@@ -109,34 +119,29 @@ function ChangeRequest2023Dialog(props: {
 
   /*
    * NOTE: Formio form Combobox inputs won't receive click events if the
-   * Dialog.Panel component is used (they still receive keyboard events), so a
+   * DialogPanel component is used (they still receive keyboard events), so a
    * div is used instead. The downside is we lose the triggering of the Dialog
    * component's `onClose` event when a user clicks outside the panel.
    */
 
   return (
-    <Transition.Root show={dialogShown} as={Fragment}>
+    <Transition show={dialogShown}>
       <Dialog
-        as="div"
         className={clsx("tw:relative tw:z-10")}
-        open={dialogShown}
         onClose={(_value) => closeDialog()}
       >
-        <Transition.Child
-          as={Fragment}
-          enter={clsx("tw:duration-300 tw:ease-out")}
-          enterFrom={clsx("tw:opacity-0")}
-          enterTo={clsx("tw:opacity-100")}
-          leave={clsx("tw:duration-200 tw:ease-in")}
-          leaveFrom={clsx("tw:opacity-100")}
-          leaveTo={clsx("tw:opacity-0")}
-        >
-          <div
+        <TransitionChild>
+          <DialogBackdrop
             className={clsx(
-              "tw:fixed tw:inset-0 tw:bg-black/70 tw:transition-colors",
+              "tw:fixed tw:inset-0 tw:bg-black/70",
+              // --- transitions ---
+              "tw:transition-colors tw:!duration-100",
+              "tw:data-closed:opacity-0",
+              "tw:data-enter:ease-out",
+              "tw:data-leave:ease-in",
             )}
           />
-        </Transition.Child>
+        </TransitionChild>
 
         <div className={clsx("tw:fixed tw:inset-0 tw:z-10 tw:overflow-y-auto")}>
           <div
@@ -144,59 +149,52 @@ function ChangeRequest2023Dialog(props: {
               "tw:flex tw:min-h-full tw:items-center tw:justify-center tw:p-4",
             )}
           >
-            <Transition.Child
-              as={Fragment}
-              enter={clsx("tw:duration-300 tw:ease-out")}
-              enterFrom={clsx("tw:translate-y-0 tw:opacity-0")}
-              enterTo={clsx("tw:translate-y-0 tw:opacity-100")}
-              leave={clsx("tw:duration-200 tw:ease-in")}
-              leaveFrom={clsx("tw:translate-y-0 tw:opacity-100")}
-              leaveTo={clsx("tw:translate-y-0 tw:opacity-0")}
+            {/* <DialogPanel> */}
+            <TransitionChild
+              as="div"
+              className={clsx(
+                "tw:relative tw:transform tw:overflow-hidden tw:rounded-lg tw:bg-white tw:p-4 tw:shadow-xl",
+                "tw:sm:w-full tw:sm:max-w-7xl tw:sm:p-6",
+                // --- transitions ---
+                "tw:!transition-all tw:!duration-100",
+                "tw:data-closed:scale-95 tw:data-closed:opacity-0",
+                "tw:data-enter:ease-out",
+                "tw:data-leave:ease-in",
+              )}
             >
-              {/* <Dialog.Panel> */}
-              <div
-                className={clsx(
-                  "tw:relative tw:transform tw:overflow-hidden tw:rounded-lg tw:bg-white tw:p-4 tw:shadow-xl tw:transition-all",
-                  "tw:sm:w-full tw:sm:max-w-7xl tw:sm:p-6",
-                )}
-              >
-                <div className="twpf">
-                  <div
+              <div className="twpf">
+                <div
+                  className={clsx(
+                    "tw:absolute tw:right-0 tw:top-0 tw:pr-4 tw:pt-4",
+                  )}
+                >
+                  <button
                     className={clsx(
-                      "tw:absolute tw:right-0 tw:top-0 tw:pr-4 tw:pt-4",
+                      "tw:rounded-md tw:bg-white tw:text-gray-400 tw:transition-none",
+                      "tw:hover:text-gray-700",
+                      "tw:focus:text-gray-700",
                     )}
+                    type="button"
+                    onClick={(_ev) => closeDialog()}
                   >
-                    <button
-                      className={clsx(
-                        "tw:rounded-md tw:bg-white tw:text-gray-400 tw:transition-none",
-                        "tw:hover:text-gray-700",
-                        "tw:focus:text-gray-700",
-                      )}
-                      type="button"
-                      onClick={(_ev) => closeDialog()}
-                    >
-                      <span className={clsx("tw:sr-only")}>Close</span>
-                      <XMarkIcon
-                        className={clsx("tw:size-6 tw:transition-none")}
-                        aria-hidden="true"
-                      />
-                    </button>
-                  </div>
-                </div>
-
-                <div className={clsx("tw:m-auto tw:max-w-6xl tw:p-4")}>
-                  <ChangeRequest2023Form
-                    data={data}
-                    closeDialog={closeDialog}
-                  />
+                    <span className={clsx("tw:sr-only")}>Close</span>
+                    <XMarkIcon
+                      className={clsx("tw:size-6 tw:transition-none")}
+                      aria-hidden="true"
+                    />
+                  </button>
                 </div>
               </div>
-              {/* </Dialog.Panel> */}
-            </Transition.Child>
+
+              <div className={clsx("tw:m-auto tw:max-w-6xl tw:p-4")}>
+                <ChangeRequest2023Form data={data} closeDialog={closeDialog} />
+              </div>
+            </TransitionChild>
+            {/* </DialogPanel> */}
           </div>
         </div>
       </Dialog>
-    </Transition.Root>
+    </Transition>
   );
 }
 
@@ -205,8 +203,19 @@ function ChangeRequest2023Form(props: {
   closeDialog: () => void;
 }) {
   const { data, closeDialog } = props;
-  const { formType, comboKey, rebateId, mongoId, state, email, title, name } =
-    data;
+  const {
+    formType,
+    comboKey,
+    rebateId,
+    mongoId,
+    state,
+    email,
+    title,
+    name,
+    applicantName,
+    districtName,
+    districtState,
+  } = data;
 
   const content = useContentData();
   const {
@@ -254,33 +263,41 @@ function ChangeRequest2023Form(props: {
 
   return (
     <>
-      {content && <MarkdownContent children={content.newChangeIntro} />}
+      {content && (
+        <MarkdownContent
+          children={content.newChangeIntro}
+          components={{
+            h2: (props) => <DialogTitle>{props.children}</DialogTitle>,
+          }}
+        />
+      )}
 
-      <Dialog as="div" open={dataIsPosting.current} onClose={(_value) => {}}>
-        <div className={clsx("tw:fixed tw:inset-0 tw:z-20 tw:bg-black/30")} />
+      <Dialog open={dataIsPosting.current} onClose={(_value) => {}}>
+        <DialogBackdrop
+          className={clsx("tw:fixed tw:inset-0 tw:z-20 tw:bg-black/30")}
+        />
         <div className={clsx("tw:fixed tw:inset-0 tw:z-20")}>
           <div
             className={clsx(
               "tw:flex tw:min-h-full tw:items-center tw:justify-center",
             )}
           >
-            <Dialog.Panel
+            <DialogPanel
               className={clsx(
                 "tw:rounded-lg tw:bg-white tw:px-4 tw:pb-4 tw:shadow-xl",
               )}
             >
               <Loading />
-            </Dialog.Panel>
+            </DialogPanel>
           </div>
         </div>
       </Dialog>
 
       <div className="csb-form">
         <Form
-          form={formSchema.json}
-          url={formSchema.url} // NOTE: used for file uploads
+          src={formSchema.json}
+          url={formSchema.url}
           submission={{
-            state: "draft",
             data: {
               _request_form: formType,
               _bap_entity_combo_key: comboKey,
@@ -290,24 +307,27 @@ function ChangeRequest2023Form(props: {
               _user_email: email,
               _user_title: title,
               _user_name: name,
+              _bap_applicant_name: applicantName,
+              _bap_district_name: districtName,
+              _bap_district_state: districtState,
               ...pendingSubmissionData.current,
             },
           }}
           options={{
             noAlerts: true,
           }}
-          onSubmit={(onSubmitSubmission: FormioChange2023Submission) => {
+          onSubmit={(onSubmitParam) => {
             // account for when form is being submitted to prevent double submits
             if (formIsBeingSubmitted.current) return;
             formIsBeingSubmitted.current = true;
 
-            const data = { ...onSubmitSubmission.data };
+            const data = { ...onSubmitParam.data };
 
             dismissNotification({ id: 0 });
             dataIsPosting.current = true;
             pendingSubmissionData.current = data;
 
-            mutation.mutate(onSubmitSubmission, {
+            mutation.mutate(onSubmitParam, {
               onSuccess: (res, _payload, _context) => {
                 pendingSubmissionData.current = {};
 

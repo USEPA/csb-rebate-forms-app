@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams } from "react-router";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { Form } from "@formio/react";
 import icons from "uswds/img/sprite.svg";
@@ -54,10 +54,9 @@ export function Change2024() {
   return (
     <div className="margin-top-2">
       {content && (
-        <MarkdownContent
-          className="margin-top-4"
-          children={content.submittedChangeIntro}
-        />
+        <div className="margin-top-4">
+          <MarkdownContent children={content.submittedChangeIntro} />
+        </div>
       )}
 
       <ul className="usa-icon-list">
@@ -75,12 +74,9 @@ export function Change2024() {
 
       <div className="csb-form">
         <Form
-          form={formSchema.json}
-          url={formSchema.url} // NOTE: used for file uploads
-          submission={{
-            state: submission.state,
-            data: submission.data,
-          }}
+          src={formSchema.json}
+          url={formSchema.url}
+          submission={submission}
           options={{
             readOnly: true,
             noAlerts: true,

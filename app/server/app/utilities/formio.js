@@ -93,13 +93,15 @@ function getRebateIdFieldName({ rebateYear }) {
 }
 
 /**
- * Modifies Formio schema to use relative API endpoints for datasource
- * components (e.g., `/api/...` instead of `https://.../api/...`) which enables
- * the request to occur when developing locally.
+ * Modifies Formio schema to update API endpoints for datasource components to
+ * use local development server instead of deployed server so the request can
+ * occur when developing locally.
+ * (e.g., `http://localhost:3000/api/...` instead of `https://.../api/...`)
  *
- * @param {Object} schema
+ * @param {Object} param
+ * @param {Object} param.schema
  */
-function modifyDatasourceComponentsUrl(schema) {
+function modifyDatasourceComponentsUrl({ schema }) {
   const result = { ...schema };
 
   ["components", "columns"].forEach((fieldName) => {
@@ -107,11 +109,11 @@ function modifyDatasourceComponentsUrl(schema) {
       result[fieldName].forEach((component) => {
         if (component.type === "datasource") {
           const path = component.fetch.url.split("/api/")[1];
-          component.fetch.url = `/api/${path}`;
+          component.fetch.url = `http://localhost:3000/api/${path}`;
         }
 
         if (component.components || component.columns) {
-          modifyDatasourceComponentsUrl(component);
+          modifyDatasourceComponentsUrl({ schema: component });
         }
       });
     }
@@ -969,7 +971,54 @@ function fetchDataForCRFSubmission({ rebateYear, req, res }) {
  * @param {express.Request} param.req
  * @param {express.Response} param.res
  */
-function uploadS3FileMetadata({ rebateYear, req, res }) {
+function downloadFileFromS3({ rebateYear, req, res }) {
+  const { bapComboKeys, query } = req;
+  const { mail } = req.user;
+  const { formType, comboKey } = req.params;
+
+  // NOTE: included to support EPA API scan
+  if (comboKey === formioExampleComboKey) {
+    return res.json({});
+  }
+
+  const formioFormUrl = formUrl[rebateYear][formType];
+
+  if (!formioFormUrl) {
+    const errorStatus = 400;
+    const errorMessage = `Formio form URL does not exist for ${rebateYear} ${formType.toUpperCase()}.`;
+    return res.status(errorStatus).json({ message: errorMessage });
+  }
+
+  if (!bapComboKeys.includes(comboKey)) {
+    const logMessage =
+      `User with email '${mail}' attempted to download a file ` +
+      `without a matching BAP combo key.`;
+    log({ level: "error", message: logMessage, req });
+
+    const errorStatus = 401;
+    const errorMessage = `Unauthorized.`;
+    return res.status(errorStatus).json({ message: errorMessage });
+  }
+
+  axiosFormio(req)
+    .get(`${formioFormUrl}/storage/s3`, { params: query })
+    .then((axiosRes) => axiosRes.data)
+    .then((fileMetadata) => res.json(fileMetadata))
+    .catch((error) => {
+      // NOTE: logged in axiosFormio response interceptor
+      const errorStatus = error.response?.status || 500;
+      const errorMessage = `Error downloading file from S3.`;
+      return res.status(errorStatus).json({ message: errorMessage });
+    });
+}
+
+/**
+ * @param {Object} param
+ * @param {RebateYear} param.rebateYear
+ * @param {express.Request} param.req
+ * @param {express.Response} param.res
+ */
+function uploadFileToS3({ rebateYear, req, res }) {
   const { bapComboKeys, body } = req;
   const { mail } = req.user;
   const { formType, mongoId, comboKey } = req.params;
@@ -1050,10 +1099,10 @@ function uploadS3FileMetadata({ rebateYear, req, res }) {
  * @param {express.Request} param.req
  * @param {express.Response} param.res
  */
-function downloadS3FileMetadata({ rebateYear, req, res }) {
+function deleteFileFromS3({ rebateYear, req, res }) {
   const { bapComboKeys, query } = req;
   const { mail } = req.user;
-  const { formType, comboKey } = req.params;
+  const { formType, mongoId, comboKey } = req.params;
 
   // NOTE: included to support EPA API scan
   if (comboKey === formioExampleComboKey) {
@@ -1068,25 +1117,53 @@ function downloadS3FileMetadata({ rebateYear, req, res }) {
     return res.status(errorStatus).json({ message: errorMessage });
   }
 
-  if (!bapComboKeys.includes(comboKey)) {
-    const logMessage =
-      `User with email '${mail}' attempted to download a file ` +
-      `without a matching BAP combo key.`;
-    log({ level: "error", message: logMessage, req });
+  checkFormSubmissionPeriodAndBapStatus({
+    rebateYear,
+    formType,
+    mongoId,
+    comboKey,
+    req,
+  })
+    .then(() => {
+      if (!bapComboKeys.includes(comboKey)) {
+        const logMessage =
+          `User with email '${mail}' attempted to delete a file ` +
+          `without a matching BAP combo key.`;
+        log({ level: "error", message: logMessage, req });
 
-    const errorStatus = 401;
-    const errorMessage = `Unauthorized.`;
-    return res.status(errorStatus).json({ message: errorMessage });
-  }
+        const errorStatus = 401;
+        const errorMessage = `Unauthorized.`;
+        return res.status(errorStatus).json({ message: errorMessage });
+      }
 
-  axiosFormio(req)
-    .get(`${formioFormUrl}/storage/s3`, { params: query })
-    .then((axiosRes) => axiosRes.data)
-    .then((fileMetadata) => res.json(fileMetadata))
-    .catch((error) => {
-      // NOTE: logged in axiosFormio response interceptor
-      const errorStatus = error.response?.status || 500;
-      const errorMessage = `Error downloading file from S3.`;
+      axiosFormio(req)
+        .delete(`${formioFormUrl}/storage/s3`, { params: query })
+        .then((axiosRes) => axiosRes.data)
+        .then((fileMetadata) => res.json(fileMetadata))
+        .catch((error) => {
+          // NOTE: logged in axiosFormio response interceptor
+          const errorStatus = error.response?.status || 500;
+          const errorMessage = `Error deleting file from S3.`;
+          return res.status(errorStatus).json({ message: errorMessage });
+        });
+    })
+    .catch((_error) => {
+      const formName =
+        formType === "frf"
+          ? "CSB Application"
+          : formType === "prf"
+            ? "CSB Payment Request"
+            : formType === "crf"
+              ? "CSB Close Out"
+              : "CSB";
+
+      const logMessage =
+        `User with email '${mail}' attempted to delete a file when the ` +
+        `${rebateYear} ${formName} form enrollment period was closed.`;
+      log({ level: "error", message: logMessage, req });
+
+      const errorStatus = 400;
+      const errorMessage = `${rebateYear} ${formName} form enrollment period is closed.`;
       return res.status(errorStatus).json({ message: errorMessage });
     });
 }
@@ -1352,7 +1429,7 @@ function fetchFRFSubmission({ rebateYear, req, res }) {
       const formSchemaJson =
         NODE_ENV === "development" &&
         (rebateYear === "2023" || rebateYear === "2024")
-          ? modifyDatasourceComponentsUrl(schema)
+          ? modifyDatasourceComponentsUrl({ schema })
           : schema;
 
       return res.json({
@@ -1622,7 +1699,7 @@ function fetchPRFSubmission({ rebateYear, req, res }) {
       /** Modify 2024 PRF's NCES API endpoint URL for local development */
       const formSchemaJson =
         NODE_ENV === "development" && rebateYear === "2024"
-          ? modifyDatasourceComponentsUrl(schema)
+          ? modifyDatasourceComponentsUrl({ schema })
           : schema;
 
       /**
@@ -2315,8 +2392,9 @@ module.exports = {
   searchNcesData,
   getRebateIdFieldName,
   //
-  uploadS3FileMetadata,
-  downloadS3FileMetadata,
+  downloadFileFromS3,
+  uploadFileToS3,
+  deleteFileFromS3,
   //
   fetchSubmissionPDF,
   //

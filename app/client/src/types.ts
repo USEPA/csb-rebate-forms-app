@@ -1,6 +1,8 @@
+import { type FormType, type Submission } from "@formio/react";
+
 export type RebateYear = "2022" | "2023" | "2024";
 
-export type FormType = "frf" | "prf" | "crf";
+export type CSBFormType = "frf" | "prf" | "crf";
 
 export type Content = {
   siteAlert: string;
@@ -131,18 +133,10 @@ export type BapSubmissionData = {
   reimbursementNeeded: boolean;
 };
 
-export type FormioSubmission = {
-  [field: string]: unknown;
+export type FormioSubmission = Submission & {
   _id: string; // MongoDB ObjectId string – submission ID
   form: string; // MongoDB ObjectId string – form ID
-  state: "submitted" | "draft";
   modified: string; // ISO 8601 date time string
-  metadata: {
-    [field: string]: unknown;
-  };
-  data: {
-    [field: string]: unknown;
-  };
 };
 
 type FormioFRF2022Data = {
@@ -320,6 +314,8 @@ type FormioFRF2023Data = {
   appInfo_efti: string;
   appInfo_orgName: string;
   _formio_schoolDistrictName: string;
+  org_district_orgName: string;
+  org_district_state: string;
 };
 
 type FormioPRF2023Data = {
@@ -452,7 +448,7 @@ type FormioCRF2023Data = {
 type FormioChange2023Data = {
   [field: string]: unknown;
   // fields injected upon a new draft Change Request form submission creation:
-  _request_form: FormType;
+  _request_form: CSBFormType;
   _bap_entity_combo_key: string;
   _bap_rebate_id: string;
   _mongo_id: string;
@@ -621,7 +617,7 @@ type FormioCRF2024Data = {
 type FormioChange2024Data = {
   [field: string]: unknown;
   // fields injected upon a new draft Change Request form submission creation:
-  _request_form: FormType;
+  _request_form: CSBFormType;
   _bap_entity_combo_key: string;
   _bap_rebate_id: string;
   _mongo_id: string;
@@ -632,7 +628,7 @@ type FormioChange2024Data = {
   request_type: { label: string; value: string };
 };
 
-export type FormioSchemaAndSubmission<Submission> =
+export type FormioSchemaAndSubmission<FormioFormSubmission> =
   | {
       userAccess: false;
       formSchema: null;
@@ -640,8 +636,8 @@ export type FormioSchemaAndSubmission<Submission> =
     }
   | {
       userAccess: true;
-      formSchema: { url: string; json: object };
-      submission: Submission;
+      formSchema: { url: string; json: FormType };
+      submission: FormioFormSubmission;
     };
 
 export type FormioFRF2022Submission = FormioSubmission & {

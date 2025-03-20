@@ -1,13 +1,13 @@
 import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import {
   type UseMutationResult,
   useQueryClient,
   useQuery,
   useMutation,
 } from "@tanstack/react-query";
-import { Formio, Form } from "@formio/react";
-import s3 from "formiojs/providers/storage/s3";
+import { Formio } from "@formio/js";
+import { type FormType, Form } from "@formio/react";
 import clsx from "clsx";
 import { cloneDeep } from "lodash";
 import icon from "uswds/img/usa-icons-bg/search--white.svg";
@@ -15,7 +15,7 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import {
   type RebateYear,
-  type FormType,
+  type CSBFormType,
   type BapSubmissionData,
   type FormioFRF2022Submission,
   type FormioPRF2022Submission,
@@ -52,7 +52,7 @@ import {
 
 type Response = {
   rebateId: string | null;
-  formSchema: { url: string; json: object } | null;
+  formSchema: { url: string; json: FormType } | null;
   formio:
     | (
         | FormioFRF2022Submission
@@ -120,7 +120,7 @@ function ResultTableRow(props: {
     DraftSubmission,
     unknown
   >;
-  formType: FormType;
+  formType: CSBFormType;
   rebateId: string | null;
   formio:
     | FormioFRF2022Submission
@@ -159,23 +159,42 @@ function ResultTableRow(props: {
   const actionsQuery = useQuery({
     queryKey: ["helpdesk/actions"],
     queryFn: () => getData<SubmissionAction[]>(actionsUrl),
-    onSuccess: (res) => setActionsData({ fetched: true, results: res }),
     enabled: false,
   });
+
+  useEffect(() => {
+    if (actionsQuery.status === "pending") {
+      setActionsData({ fetched: false, results: [] });
+    }
+
+    if (actionsQuery.status === "success") {
+      setActionsData({ fetched: true, results: actionsQuery.data });
+    }
+  }, [actionsQuery.status, actionsQuery.data, setActionsData]);
 
   const pdfQuery = useQuery({
     queryKey: ["helpdesk/pdf"],
     queryFn: () => getData<string>(pdfUrl),
-    onSuccess: (res) => {
+    enabled: false,
+  });
+
+  useEffect(() => {
+    if (pdfQuery.status === "success" && pdfQuery.data) {
       const link = document.createElement("a");
-      link.setAttribute("href", `data:application/pdf;base64,${res}`);
+      link.setAttribute("href", `data:application/pdf;base64,${pdfQuery.data}`);
       link.setAttribute("download", `${formio._id}.pdf`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    },
-    enabled: false,
-  });
+
+      // clear the pdf query cache after the download succeeds
+      queryClient.resetQueries({ queryKey: ["helpdesk/pdf"] });
+    }
+  }, [pdfQuery.status, pdfQuery.data, formio._id, queryClient]);
+
+  if (!rebateYear) {
+    return null;
+  }
 
   const date = formatDate(formio.modified);
   const time = formatTime(formio.modified);
@@ -184,7 +203,7 @@ function ResultTableRow(props: {
   const bapReimbursementNeeded = bap?.reimbursementNeeded || false;
 
   const bapStatus = bapStatusMap[rebateYear][formType].get(bapInternalStatus);
-  const formioStatus = formioStatusMap.get(formio.state);
+  const formioStatus = formioStatusMap.get(formio.state || "");
 
   const needsEdits = submissionNeedsEdits({ formio, bap });
 
@@ -383,7 +402,7 @@ export function Helpdesk() {
   const { rebateYear } = useRebateYearState();
   const { setRebateYear } = useRebateYearActions();
 
-  const [formType, setFormType] = useState<FormType>("frf");
+  const [formType, setFormType] = useState<CSBFormType>("frf");
   const [searchText, setSearchText] = useState("");
   const [resultDisplayed, setResultDisplayed] = useState(false);
   const [formDisplayed, setFormDisplayed] = useState(false);
@@ -409,34 +428,43 @@ export function Helpdesk() {
     queryFn: () => {
       return getData<Response>(submissionUrl).then((res) => {
         /**
-         * Change the formUrl the File component's `uploadFile` uses, so the s3
-         * upload PUT request is routed through the server app.
+         * Change the formUrl the File component uses, so the s3 requests are
+         * routed through the CSB server app.
          *
-         * https://github.com/formio/formio.js/blob/master/src/components/file/File.js#L760
-         * https://github.com/formio/formio.js/blob/master/src/providers/storage/s3.js#L5
-         * https://github.com/formio/formio.js/blob/master/src/providers/storage/xhr.js#L90
+         * https://github.com/formio/formio.js/blob/master/src/providers/storage/s3.js
          */
-        Formio.Providers.providers.storage.s3 = function (formio: {
+        const s3 = Formio.Providers.providers.storage.s3;
+
+        Formio.Providers.providers.storage.s3 = function (param: {
           formUrl: string;
-          [field: string]: unknown;
+          [key: string]: unknown;
         }) {
-          const s3Formio = cloneDeep(formio);
-          s3Formio.formUrl = `${serverUrl}/api/help/formio/s3/${rebateYear}/${formType}`;
-          return s3(s3Formio);
+          const updatedParam = cloneDeep(param);
+          updatedParam.formUrl = `${serverUrl}/api/help/formio/s3/${rebateYear}/${formType}`;
+          return s3.call(this, updatedParam);
         };
 
         return Promise.resolve(res);
       });
     },
-    onSuccess: (_res) => setResultDisplayed(true),
     enabled: false,
   });
+
+  useEffect(() => {
+    if (submissionQuery.status === "pending") {
+      setResultDisplayed(false);
+    }
+
+    if (submissionQuery.status === "success") {
+      setResultDisplayed(true);
+    }
+  }, [submissionQuery.status, setResultDisplayed]);
 
   const submissionMutation = useMutation({
     mutationFn: (submission: DraftSubmission) => {
       return postData<Response["formio"]>(submissionUrl, submission);
     },
-    onSuccess: (res) => {
+    onSuccess: (res, _payload, _context) => {
       queryClient.setQueryData<Response>(
         ["helpdesk/submission"],
         (prevData) => {
@@ -457,7 +485,7 @@ export function Helpdesk() {
     bap: null,
   };
 
-  if (helpdeskAccess === "pending") {
+  if (helpdeskAccess === "pending" || !rebateYear) {
     return <Loading />;
   }
 
@@ -472,10 +500,9 @@ export function Helpdesk() {
   return (
     <>
       {content && (
-        <MarkdownContent
-          className="margin-top-4"
-          children={content.helpdeskIntro}
-        />
+        <div className="margin-top-4">
+          <MarkdownContent children={content.helpdeskIntro} />
+        </div>
       )}
 
       <div className="margin-top-1 padding-2 border-1px border-base-lighter bg-base-lightest">
@@ -517,7 +544,7 @@ export function Helpdesk() {
                   value="frf"
                   checked={formType === "frf"}
                   onChange={(ev) => {
-                    setFormType(ev.target.value as FormType);
+                    setFormType(ev.target.value as CSBFormType);
                     setResultDisplayed(false);
                     queryClient.resetQueries({
                       queryKey: ["helpdesk/submission"],
@@ -541,7 +568,7 @@ export function Helpdesk() {
                   value="prf"
                   checked={formType === "prf"}
                   onChange={(ev) => {
-                    setFormType(ev.target.value as FormType);
+                    setFormType(ev.target.value as CSBFormType);
                     setResultDisplayed(false);
                     queryClient.resetQueries({
                       queryKey: ["helpdesk/submission"],
@@ -565,7 +592,7 @@ export function Helpdesk() {
                   value="crf"
                   checked={formType === "crf"}
                   onChange={(ev) => {
-                    setFormType(ev.target.value as FormType);
+                    setFormType(ev.target.value as CSBFormType);
                     setResultDisplayed(false);
                     queryClient.resetQueries({
                       queryKey: ["helpdesk/submission"],
@@ -783,12 +810,9 @@ export function Helpdesk() {
               </ul>
 
               <Form
-                form={formSchema.json}
-                url={formSchema.url} // NOTE: used for file uploads
-                submission={{
-                  state: formio.state,
-                  data: formio.data,
-                }}
+                src={formSchema.json}
+                url={formSchema.url}
+                submission={formio}
                 options={{ readOnly: true }}
               />
             </>

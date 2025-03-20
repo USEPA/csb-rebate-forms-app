@@ -1,11 +1,11 @@
-import { useEffect } from "react";
-import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Formio } from "@formio/react";
-import premium from "@formio/premium/lib/index.js";
+import { Link, Outlet, useLocation, useNavigate } from "react-router";
+import { Formio } from "@formio/js";
+import bootstrap4 from "@formio/bootstrap/bootstrap4";
+import premium from "@formio/premium";
 import uswds from "@formio/uswds";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { serverUrl } from "@/config";
+import { serverUrl, formioPremiumKey } from "@/config";
 import {
   useHelpdeskAccess,
   useConfigQuery,
@@ -16,8 +16,21 @@ import {
 import { Loading } from "@/components/loading";
 import { useDialogActions } from "@/contexts/dialog";
 
-Formio.use(premium); /* eslint-disable-line react-hooks/rules-of-hooks */
-Formio.use(uswds); /* eslint-disable-line react-hooks/rules-of-hooks */
+Formio.icons = "fontawesome";
+Formio.license = formioPremiumKey;
+
+/* eslint-disable-next-line react-hooks/rules-of-hooks */
+Formio.use(premium);
+
+/* eslint-disable-next-line react-hooks/rules-of-hooks */
+Formio.use(uswds);
+
+/* eslint-disable-next-line react-hooks/rules-of-hooks */
+Formio.use({
+  templates: {
+    bootstrap: bootstrap4.templates.bootstrap4,
+  },
+});
 
 function DashboardIconText() {
   return (
@@ -66,18 +79,6 @@ export function UserDashboard(props: { email: string }) {
 
   const { displayDialog } = useDialogActions();
   const helpdeskAccess = useHelpdeskAccess();
-
-  useEffect(() => {
-    const { formioBaseUrl, formioProjectName } = configData ?? {};
-
-    if (formioBaseUrl) {
-      Formio.setBaseUrl(formioBaseUrl);
-    }
-
-    if (formioBaseUrl && formioProjectName) {
-      Formio.setProjectUrl(`${formioBaseUrl}/${formioProjectName}`);
-    }
-  }, [configData]);
 
   const onSubmissionsPage = pathname === "/";
   const onHelpdeskPage = pathname === "/helpdesk";
