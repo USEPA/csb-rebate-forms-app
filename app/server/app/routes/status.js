@@ -181,20 +181,20 @@ router.get("/formio/2024/frf", (req, res) => {
     });
 });
 
-router.get("/formio/2024/prf", (req, res) => {
-  const substring = formIntroSubstring["2024"].prf;
+// router.get("/formio/2024/prf", (req, res) => {
+//   const substring = formIntroSubstring["2024"].prf;
 
-  axiosFormio(req)
-    .get(formUrl["2024"].prf)
-    .then((axiosRes) => axiosRes.data)
-    .then((schema) => {
-      return res.json({ status: verifySchema({ schema, substring }) });
-    })
-    .catch((_error) => {
-      // NOTE: error is logged in axiosFormio response interceptor
-      return res.json({ status: false });
-    });
-});
+//   axiosFormio(req)
+//     .get(formUrl["2024"].prf)
+//     .then((axiosRes) => axiosRes.data)
+//     .then((schema) => {
+//       return res.json({ status: verifySchema({ schema, substring }) });
+//     })
+//     .catch((_error) => {
+//       // NOTE: error is logged in axiosFormio response interceptor
+//       return res.json({ status: false });
+//     });
+// });
 
 // router.get("/formio/2024/crf", (req, res) => {
 //   const substring = formIntroSubstring["2024"].crf;
