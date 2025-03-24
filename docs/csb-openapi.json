@@ -1338,113 +1338,6 @@
         }
       }
     },
-    "/api/formio/2024/prf-submissions": {
-      "get": {
-        "summary": "Get user's 2024 PRF submissions from Formio.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "An array of 2024 PRF submissions.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object"
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          }
-        }
-      }
-    },
-    "/api/formio/2024/prf-submission": {
-      "post": {
-        "summary": "Post a new 2024 PRF submission to Formio.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "The newly created 2024 PRF submission.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object"
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          }
-        }
-      }
-    },
-    "/api/formio/2024/prf-submission/{rebateId}": {
-      "get": {
-        "summary": "Get an existing 2024 PRF's schema and submission data from Formio.",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/rebateId"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "The 2024 PRF schema, form submission, and user access status.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FormioSchemaAndSubmission"
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          }
-        }
-      },
-      "post": {
-        "summary": "Post an update to an existing draft 2024 PRF submission to Formio.",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/rebateId"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "The updated 2024 PRF submission.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object"
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          }
-        }
-      }
-    },
-    "/api/formio/2024/delete-prf-submission": {
-      "post": {
-        "summary": "Delete an existing 2024 PRF submission from Formio.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          }
-        }
-      }
-    },
     "/api/formio/2024/changes": {
       "get": {
         "summary": "Get user's 2024 Change Request form submissions from Formio.",
@@ -1838,17 +1731,6 @@
     "/api/status/formio/2024/frf": {
       "get": {
         "summary": "CSB Formio 2024 FRF schema check.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/api/status/formio/2024/prf": {
-      "get": {
-        "summary": "CSB Formio 2024 PRF schema check.",
         "parameters": [],
         "responses": {
           "200": {
