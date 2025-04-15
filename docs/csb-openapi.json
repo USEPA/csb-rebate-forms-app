@@ -347,6 +347,12 @@
           },
           {
             "$ref": "#/components/parameters/comboKey"
+          },
+          {
+            "$ref": "#/components/parameters/bucket"
+          },
+          {
+            "$ref": "#/components/parameters/key"
           }
         ],
         "responses": {
@@ -371,6 +377,17 @@
             "$ref": "#/components/parameters/comboKey"
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {}
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "OK"
@@ -452,6 +469,17 @@
       "post": {
         "summary": "Post a new 2022 FRF submission to Formio.",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {}
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "The newly created 2022 FRF submission.",
@@ -500,6 +528,17 @@
             "$ref": "#/components/parameters/mongoId"
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {}
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "The updated 2022 FRF submission.",
@@ -545,6 +584,17 @@
       "post": {
         "summary": "Post a new 2022 PRF submission to Formio.",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {}
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "The newly created 2022 PRF submission.",
@@ -593,6 +643,17 @@
             "$ref": "#/components/parameters/rebateId"
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {}
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "The updated 2022 PRF submission.",
@@ -614,6 +675,17 @@
       "post": {
         "summary": "Delete an existing 2022 PRF submission from Formio.",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {}
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "OK"
@@ -652,6 +724,17 @@
       "post": {
         "summary": "Post a new 2022 CRF submission to Formio.",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {}
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "The newly created 2022 CRF submission.",
@@ -700,6 +783,17 @@
             "$ref": "#/components/parameters/rebateId"
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {}
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "The updated 2022 CRF submission.",
@@ -761,6 +855,12 @@
           },
           {
             "$ref": "#/components/parameters/comboKey"
+          },
+          {
+            "$ref": "#/components/parameters/bucket"
+          },
+          {
+            "$ref": "#/components/parameters/key"
           }
         ],
         "responses": {
@@ -785,6 +885,17 @@
             "$ref": "#/components/parameters/comboKey"
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {}
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "OK"
@@ -866,6 +977,17 @@
       "post": {
         "summary": "Post a new 2023 FRF submission to Formio.",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {}
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "The newly created 2023 FRF submission.",
@@ -914,6 +1036,17 @@
             "$ref": "#/components/parameters/mongoId"
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {}
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "The updated 2023 FRF submission.",
@@ -959,6 +1092,17 @@
       "post": {
         "summary": "Post a new 2023 PRF submission to Formio.",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {}
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "The newly created 2023 PRF submission.",
@@ -1007,6 +1151,17 @@
             "$ref": "#/components/parameters/rebateId"
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {}
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "The updated 2023 PRF submission.",
@@ -1028,6 +1183,17 @@
       "post": {
         "summary": "Delete an existing 2023 PRF submission from Formio.",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {}
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "OK"
@@ -1085,6 +1251,17 @@
       "post": {
         "summary": "Post a new 2023 Change Request form submission to Formio.",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {}
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "The newly created 2023 Change Request form submission.",
@@ -1171,6 +1348,12 @@
           },
           {
             "$ref": "#/components/parameters/comboKey"
+          },
+          {
+            "$ref": "#/components/parameters/bucket"
+          },
+          {
+            "$ref": "#/components/parameters/key"
           }
         ],
         "responses": {
@@ -1195,6 +1378,17 @@
             "$ref": "#/components/parameters/comboKey"
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {}
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "OK"
@@ -1273,6 +1467,17 @@
       "post": {
         "summary": "Post a new 2024 FRF submission to Formio.",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {}
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "The newly created 2024 FRF submission.",
@@ -1321,6 +1526,17 @@
             "$ref": "#/components/parameters/mongoId"
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {}
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "The updated 2024 FRF submission.",
@@ -1385,6 +1601,17 @@
       "post": {
         "summary": "Post a new 2024 Change Request form submission to Formio.",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {}
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "The newly created 2024 Change Request form submission.",
@@ -1436,6 +1663,12 @@
           },
           {
             "$ref": "#/components/parameters/formType"
+          },
+          {
+            "$ref": "#/components/parameters/bucket"
+          },
+          {
+            "$ref": "#/components/parameters/key"
           }
         ],
         "responses": {
@@ -1557,12 +1790,23 @@
             "name": "id",
             "description": "The BAP CSB Rebate Id or Formio MongoDB ObjectId.",
             "required": true,
-            "example": "000000",
+            "example": "000000000000000000000000",
             "schema": {
               "type": "string"
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {}
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "The updated form submission.",
@@ -1809,6 +2053,26 @@
         "description": "The SAM.gov entity's UEI/EFTI combo key.",
         "required": true,
         "example": "0000000000000000",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "bucket": {
+        "in": "query",
+        "name": "bucket",
+        "description": "The S3 bucket name where the file is stored.",
+        "required": true,
+        "example": "cleanschoolbus",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "key": {
+        "in": "query",
+        "name": "key",
+        "description": "The S3 object key for the file.",
+        "required": true,
+        "example": "placeholder-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.png",
         "schema": {
           "type": "string"
         }
