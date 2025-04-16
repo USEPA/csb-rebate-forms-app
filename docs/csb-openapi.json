@@ -173,10 +173,8 @@
                       "example": "forms"
                     },
                     "rebateYear": {
-                      "schema": {
-                        "type": "string",
-                        "example": "2024"
-                      }
+                      "type": "string",
+                      "example": "2024"
                     },
                     "submissionPeriodOpen": {
                       "type": "object",
@@ -237,10 +235,10 @@
                   }
                 }
               }
+            },
+            "401": {
+              "$ref": "#/components/responses/Unauthorized"
             }
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
           }
         }
       }
