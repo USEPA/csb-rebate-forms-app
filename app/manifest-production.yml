@@ -5,8 +5,8 @@ applications:
       - route: app-prod.app.cloud.gov/csb
       - route: app.epa.gov/csb
     instances: 8
-    memory: 192M
-    disk_quota: 512MB
+    memory: 256M
+    disk_quota: 512M
     timeout: 180
     buildpacks:
       - nodejs_buildpack
