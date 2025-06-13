@@ -296,7 +296,6 @@ function ChangeRequest2024Form(props: {
       <div className="csb-form">
         <Form
           src={formSchema.json}
-          url={formSchema.url}
           submission={{
             data: {
               _request_form: formType,

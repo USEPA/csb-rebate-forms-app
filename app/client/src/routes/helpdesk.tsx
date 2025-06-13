@@ -815,7 +815,6 @@ export function Helpdesk() {
 
               <Form
                 src={formSchema.json}
-                url={formSchema.url}
                 submission={formio}
                 options={{ readOnly: true }}
               />
