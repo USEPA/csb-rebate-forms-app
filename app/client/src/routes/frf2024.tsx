@@ -405,7 +405,7 @@ function FundingRequestForm(props: { email: string }) {
 
       <div className="csb-form">
         <Form
-          src={formSchema.json}
+          src={formSchema}
           url={`${serverUrl}/api/formio/2024/s3/frf/${mongoId}/${comboKey}`}
           submission={{
             /**

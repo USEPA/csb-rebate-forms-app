@@ -52,7 +52,7 @@ import {
 
 type Response = {
   rebateId: string | null;
-  formSchema: { url: string; json: FormType } | null;
+  formSchema: FormType | null;
   formio:
     | (
         | FormioFRF2022Submission
@@ -814,7 +814,7 @@ export function Helpdesk() {
               </ul>
 
               <Form
-                src={formSchema.json}
+                src={formSchema}
                 submission={formio}
                 options={{ readOnly: true }}
               />

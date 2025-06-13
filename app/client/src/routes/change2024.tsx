@@ -74,7 +74,7 @@ export function Change2024() {
 
       <div className="csb-form">
         <Form
-          src={formSchema.json}
+          src={formSchema}
           submission={submission}
           options={{
             readOnly: true,

@@ -1426,7 +1426,7 @@ function fetchFRFSubmission({ rebateYear, req, res }) {
       }
 
       /** Modify 2023 and 2024 FRF's NCES API endpoint URL for local development */
-      const formSchemaJson =
+      const formSchema =
         NODE_ENV === "development" &&
         (rebateYear === "2023" || rebateYear === "2024")
           ? modifyDatasourceComponentsUrl({ schema })
@@ -1434,7 +1434,7 @@ function fetchFRFSubmission({ rebateYear, req, res }) {
 
       return res.json({
         userAccess: true,
-        formSchema: { url: formioFormUrl, json: formSchemaJson },
+        formSchema,
         submission,
       });
     })
@@ -1697,7 +1697,7 @@ function fetchPRFSubmission({ rebateYear, req, res }) {
       }
 
       /** Modify 2024 PRF's NCES API endpoint URL for local development */
-      const formSchemaJson =
+      const formSchema =
         NODE_ENV === "development" && rebateYear === "2024"
           ? modifyDatasourceComponentsUrl({ schema })
           : schema;
@@ -1716,7 +1716,7 @@ function fetchPRFSubmission({ rebateYear, req, res }) {
         .then((submission) => {
           return res.json({
             userAccess: true,
-            formSchema: { url: formioFormUrl, json: formSchemaJson },
+            formSchema,
             submission,
           });
         });
@@ -2089,7 +2089,7 @@ function fetchCRFSubmission({ rebateYear, req, res }) {
         .then((submission) => {
           return res.json({
             userAccess: true,
-            formSchema: { url: formioFormUrl, json: schema },
+            formSchema: schema,
             submission,
           });
         });
@@ -2376,7 +2376,7 @@ function fetchChangeRequest({ rebateYear, req, res }) {
 
       return res.json({
         userAccess: true,
-        formSchema: { url: formioFormUrl, json: schema },
+        formSchema: schema,
         submission,
       });
     })

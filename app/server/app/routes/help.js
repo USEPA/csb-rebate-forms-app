@@ -45,7 +45,6 @@ function fetchFormioFormSchema({ formioFormUrl, req }) {
   return axiosFormio(req)
     .get(formioFormUrl)
     .then((axiosRes) => axiosRes.data)
-    .then((schema) => ({ url: formioFormUrl, json: schema }))
     .catch((_error) => {
       // NOTE: error is logged in axiosFormio response interceptor
       return null;

@@ -292,7 +292,7 @@ function PaymentRequestForm(props: { email: string }) {
 
       <div className="csb-form">
         <Form
-          src={formSchema.json}
+          src={formSchema}
           url={`${serverUrl}/api/formio/2023/s3/prf/${mongoId}/${comboKey}`}
           submission={{
             /**

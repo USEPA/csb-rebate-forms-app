@@ -636,7 +636,7 @@ export type FormioSchemaAndSubmission<FormioFormSubmission> =
     }
   | {
       userAccess: true;
-      formSchema: { url: string; json: FormType };
+      formSchema: FormType;
       submission: FormioFormSubmission;
     };
 
