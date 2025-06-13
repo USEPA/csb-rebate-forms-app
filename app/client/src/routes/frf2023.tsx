@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef } from "react";
 import { useNavigate, useOutletContext, useParams } from "react-router";
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
-import { Formio } from "@formio/js";
 import { type FormProps, type Submission, Form } from "@formio/react";
 import clsx from "clsx";
 import { cloneDeep, isEqual } from "lodash";
@@ -49,30 +48,7 @@ function useFormioSubmissionQueryAndMutation(mongoId: string | undefined) {
 
   const query = useQuery({
     queryKey: ["formio/2023/frf-submission", { id: mongoId }],
-    queryFn: () => {
-      return getData<Response>(url).then((res) => {
-        const comboKey = res.submission?.data._bap_entity_combo_key;
-
-        /**
-         * Change the formUrl the File component uses, so the s3 requests are
-         * routed through the CSB server app.
-         *
-         * https://github.com/formio/formio.js/blob/master/src/providers/storage/s3.js
-         */
-        const s3 = Formio.Providers.providers.storage.s3;
-
-        Formio.Providers.providers.storage.s3 = function (param: {
-          formUrl: string;
-          [key: string]: unknown;
-        }) {
-          const updatedParam = cloneDeep(param);
-          updatedParam.formUrl = `${serverUrl}/api/formio/2023/s3/frf/${mongoId}/${comboKey}`;
-          return s3.call(this, updatedParam);
-        };
-
-        return Promise.resolve(res);
-      });
-    },
+    queryFn: () => getData<Response>(url),
     refetchOnWindowFocus: false,
   });
 
@@ -125,6 +101,8 @@ function FundingRequestForm(props: { email: string }) {
 
   const { query, mutation } = useFormioSubmissionQueryAndMutation(mongoId);
   const { userAccess, formSchema, submission } = query.data ?? {};
+
+  const comboKey = submission?.data._bap_entity_combo_key || "";
 
   const pdfQuery = useSubmissionPDFQuery({
     rebateYear: "2023",
@@ -428,7 +406,7 @@ function FundingRequestForm(props: { email: string }) {
       <div className="csb-form">
         <Form
           src={formSchema.json}
-          url={formSchema.url}
+          url={`${serverUrl}/api/formio/2023/s3/frf/${mongoId}/${comboKey}`}
           submission={{
             /**
              * NOTE: The `csb-form-submission-state` metadata field's value is
