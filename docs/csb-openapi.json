@@ -1715,16 +1715,7 @@
                     },
                     "formSchema": {
                       "type": "object",
-                      "nullable": true,
-                      "properties": {
-                        "url": {
-                          "type": "string",
-                          "example": "https://base-path/project-name/form-path"
-                        },
-                        "json": {
-                          "type": "object"
-                        }
-                      }
+                      "nullable": true
                     },
                     "formio": {
                       "type": "object",
@@ -2104,15 +2095,7 @@
           },
           "formSchema": {
             "type": "object",
-            "properties": {
-              "url": {
-                "type": "string",
-                "example": "https://base-path/project-name/form-path"
-              },
-              "json": {
-                "type": "object"
-              }
-            }
+            "nullable": true
           },
           "submission": {
             "type": "object"

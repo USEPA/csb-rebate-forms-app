@@ -40,7 +40,7 @@ type ChangeRequestData = {
   districtState: string;
 };
 
-type Response = { url: string; json: FormType };
+type Response = FormType;
 
 /** Custom hook to fetch Formio schema */
 function useFormioSchemaQuery() {
@@ -295,8 +295,7 @@ function ChangeRequest2024Form(props: {
 
       <div className="csb-form">
         <Form
-          src={formSchema.json}
-          url={formSchema.url}
+          src={formSchema}
           submission={{
             data: {
               _request_form: formType,
