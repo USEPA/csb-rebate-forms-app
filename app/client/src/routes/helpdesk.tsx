@@ -652,172 +652,201 @@ export function Helpdesk() {
         <Loading />
       ) : submissionQuery.isError ? (
         <Message type="error" text={messages.helpdeskSubmissionSearchError} />
-      ) : submissionQuery.isSuccess && !!formio && resultDisplayed ? (
+      ) : submissionQuery.isSuccess && resultDisplayed ? (
         <>
-          <div className="usa-table-container--scrollable" tabIndex={0}>
-            <table
-              aria-label="Submission Search Results"
-              className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full"
-            >
-              <thead>
-                <tr className="font-sans-2xs text-no-wrap">
-                  <th scope="col">
-                    <span className="usa-sr-only">Open</span>
-                  </th>
-
-                  {rebateId ? (
-                    <th scope="col">
-                      <TextWithTooltip
-                        text="Rebate ID"
-                        tooltip="Unique Clean School Bus Rebate ID"
-                      />
-                    </th>
-                  ) : (
-                    <th scope="col">
-                      <TextWithTooltip
-                        text="MongoDB Object ID"
-                        tooltip="Formio submission's MongoDB Object ID"
-                      />
-                    </th>
-                  )}
-
-                  <th scope="col">
-                    <TextWithTooltip
-                      text="Form Status"
-                      tooltip="Draft, Edits Requested, Submitted, Withdrawn, Selected, or Not Selected" // TODO: update to reflect other statuses
-                    />
-                  </th>
-
-                  <th scope="col">
-                    <TextWithTooltip
-                      text="Applicant Name"
-                      tooltip="Name of Applicant"
-                    />
-                  </th>
-
-                  <th scope="col">
-                    <TextWithTooltip
-                      text="Updated By"
-                      tooltip="Last person that updated this form"
-                    />
-                  </th>
-
-                  <th scope="col">
-                    <TextWithTooltip
-                      text="Date Updated"
-                      tooltip="Last date this form was updated"
-                    />
-                  </th>
-
-                  <th scope="col">
-                    <TextWithTooltip
-                      text="Actions"
-                      tooltip="View all actions from the last 30 days associated with this submission"
-                    />
-                  </th>
-
-                  <th scope="col" className={clsx("tw:text-right")}>
-                    <TextWithTooltip
-                      text="Download PDF"
-                      tooltip="Download a PDF of this submission"
-                    />
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody>
-                <ResultTableRow
-                  formDisplayed={formDisplayed}
-                  setFormDisplayed={setFormDisplayed}
-                  setActionsData={setActionsData}
-                  submissionMutation={submissionMutation}
-                  formType={formType}
-                  rebateId={rebateId}
-                  formio={formio}
-                  bap={bap}
-                />
-              </tbody>
-            </table>
-          </div>
-
-          {actionsData.fetched && (
+          {!formio && (
             <>
-              {actionsData.results.length === 0 ? (
+              {!bap && (
+                <Message
+                  type="error"
+                  text={messages.helpdeskSubmissionSearchError}
+                />
+              )}
+
+              {bap && (
                 <Message
                   type="info"
-                  text={messages.helpdeskSubmissionNoActions}
+                  text={messages.helpdeskSubmissionInBapButNotFormio}
                 />
-              ) : (
-                <div className="usa-table-container--scrollable" tabIndex={0}>
-                  <table
-                    aria-label="Submission Actions"
-                    className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full"
-                  >
-                    <thead>
-                      <tr className="font-sans-2xs text-no-wrap">
-                        <th scope="col">Date</th>
-                        <th scope="col">Time</th>
-                        <th scope="col">Action</th>
-                        <th scope="col">Status</th>
-                      </tr>
-                    </thead>
-
-                    <tbody>
-                      {actionsData.results.map((data) => {
-                        const { _id, action, messages } = data;
-                        const event = messages[messages.length - 1];
-                        const { datetime, info } = event;
-                        const date = new Date(datetime).toLocaleDateString();
-                        const time = new Date(datetime).toLocaleTimeString();
-                        return (
-                          <tr key={_id}>
-                            <th scope="row">{date}</th>
-                            <td>{time}</td>
-                            <td>{formioActionMap.get(action) || action}</td>
-                            <td>{info}</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
               )}
             </>
           )}
 
-          {formDisplayed && !!formSchema && (
+          {formio && (
             <>
-              <ul className="usa-icon-list">
-                <li className="usa-icon-list__item">
-                  <div className="usa-icon-list__icon text-primary">
-                    <svg className="usa-icon" aria-hidden="true" role="img">
-                      <use href={`${icons}#local_offer`} />
-                    </svg>
-                  </div>
-                  <div className="usa-icon-list__content">
-                    <strong>MongoDB Object ID:</strong> {formio._id}
-                  </div>
-                </li>
+              <div className="usa-table-container--scrollable" tabIndex={0}>
+                <table
+                  aria-label="Submission Search Results"
+                  className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full"
+                >
+                  <thead>
+                    <tr className="font-sans-2xs text-no-wrap">
+                      <th scope="col">
+                        <span className="usa-sr-only">Open</span>
+                      </th>
 
-                {rebateId && (
-                  <li className="usa-icon-list__item">
-                    <div className="usa-icon-list__icon text-primary">
-                      <svg className="usa-icon" aria-hidden="true" role="img">
-                        <use href={`${icons}#local_offer`} />
-                      </svg>
-                    </div>
-                    <div className="usa-icon-list__content">
-                      <strong>Rebate ID:</strong> {rebateId}
-                    </div>
-                  </li>
-                )}
-              </ul>
+                      {rebateId ? (
+                        <th scope="col">
+                          <TextWithTooltip
+                            text="Rebate ID"
+                            tooltip="Unique Clean School Bus Rebate ID"
+                          />
+                        </th>
+                      ) : (
+                        <th scope="col">
+                          <TextWithTooltip
+                            text="MongoDB Object ID"
+                            tooltip="Formio submission's MongoDB Object ID"
+                          />
+                        </th>
+                      )}
 
-              <Form
-                src={formSchema}
-                submission={formio}
-                options={{ readOnly: true }}
-              />
+                      <th scope="col">
+                        <TextWithTooltip
+                          text="Form Status"
+                          tooltip="Draft, Edits Requested, Submitted, Withdrawn, Selected, or Not Selected" // TODO: update to reflect other statuses
+                        />
+                      </th>
+
+                      <th scope="col">
+                        <TextWithTooltip
+                          text="Applicant Name"
+                          tooltip="Name of Applicant"
+                        />
+                      </th>
+
+                      <th scope="col">
+                        <TextWithTooltip
+                          text="Updated By"
+                          tooltip="Last person that updated this form"
+                        />
+                      </th>
+
+                      <th scope="col">
+                        <TextWithTooltip
+                          text="Date Updated"
+                          tooltip="Last date this form was updated"
+                        />
+                      </th>
+
+                      <th scope="col">
+                        <TextWithTooltip
+                          text="Actions"
+                          tooltip="View all actions from the last 30 days associated with this submission"
+                        />
+                      </th>
+
+                      <th scope="col" className={clsx("tw:text-right")}>
+                        <TextWithTooltip
+                          text="Download PDF"
+                          tooltip="Download a PDF of this submission"
+                        />
+                      </th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    <ResultTableRow
+                      formDisplayed={formDisplayed}
+                      setFormDisplayed={setFormDisplayed}
+                      setActionsData={setActionsData}
+                      submissionMutation={submissionMutation}
+                      formType={formType}
+                      rebateId={rebateId}
+                      formio={formio}
+                      bap={bap}
+                    />
+                  </tbody>
+                </table>
+              </div>
+
+              {actionsData.fetched && (
+                <>
+                  {actionsData.results.length === 0 ? (
+                    <Message
+                      type="info"
+                      text={messages.helpdeskSubmissionNoActions}
+                    />
+                  ) : (
+                    <div
+                      className="usa-table-container--scrollable"
+                      tabIndex={0}
+                    >
+                      <table
+                        aria-label="Submission Actions"
+                        className="usa-table usa-table--stacked usa-table--borderless usa-table--striped width-full"
+                      >
+                        <thead>
+                          <tr className="font-sans-2xs text-no-wrap">
+                            <th scope="col">Date</th>
+                            <th scope="col">Time</th>
+                            <th scope="col">Action</th>
+                            <th scope="col">Status</th>
+                          </tr>
+                        </thead>
+
+                        <tbody>
+                          {actionsData.results.map((data) => {
+                            const { _id, action, messages } = data;
+                            const event = messages[messages.length - 1];
+                            const { datetime, info } = event;
+                            const date = new Date(datetime).toLocaleDateString(); // prettier-ignore
+                            const time = new Date(datetime).toLocaleTimeString(); // prettier-ignore
+                            return (
+                              <tr key={_id}>
+                                <th scope="row">{date}</th>
+                                <td>{time}</td>
+                                <td>{formioActionMap.get(action) || action}</td>
+                                <td>{info}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {formDisplayed && formSchema && (
+                <>
+                  <ul className="usa-icon-list">
+                    <li className="usa-icon-list__item">
+                      <div className="usa-icon-list__icon text-primary">
+                        <svg className="usa-icon" aria-hidden="true" role="img">
+                          <use href={`${icons}#local_offer`} />
+                        </svg>
+                      </div>
+                      <div className="usa-icon-list__content">
+                        <strong>MongoDB Object ID:</strong> {formio._id}
+                      </div>
+                    </li>
+
+                    {rebateId && (
+                      <li className="usa-icon-list__item">
+                        <div className="usa-icon-list__icon text-primary">
+                          <svg
+                            className="usa-icon"
+                            aria-hidden="true"
+                            role="img"
+                          >
+                            <use href={`${icons}#local_offer`} />
+                          </svg>
+                        </div>
+                        <div className="usa-icon-list__content">
+                          <strong>Rebate ID:</strong> {rebateId}
+                        </div>
+                      </li>
+                    )}
+                  </ul>
+
+                  <Form
+                    src={formSchema}
+                    submission={formio}
+                    options={{ readOnly: true }}
+                  />
+                </>
+              )}
             </>
           )}
         </>
