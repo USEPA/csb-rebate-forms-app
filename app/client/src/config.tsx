@@ -37,6 +37,8 @@ export const messages = {
     "Please select the “New Application” button above to create your first rebate application.",
   helpdeskSubmissionSearchError:
     "Error loading form submission. Please confirm the form type and ID is correct and search again.",
+  helpdeskSubmissionInBapButNotFormio:
+    "The form submission was found in the BAP but not in Formio. The submission was likely deleted from Formio, but remains in the BAP.",
   helpdeskSubmissionNoActions:
     "No actions from the last 30 days associated with this submission.",
   timeout:
