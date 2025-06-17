@@ -100,7 +100,7 @@ function PaymentRequestForm(props: { email: string }) {
   const submissions = useSubmissions("2024");
 
   const { query, mutation } = useFormioSubmissionQueryAndMutation(rebateId);
-  const { userAccess, formSchema, submission } = query.data ?? {};
+  const { access, schema, submission } = query.data ?? {};
 
   const mongoId = submission?._id || "";
   const comboKey = submission?.data._bap_entity_combo_key || "";
@@ -158,7 +158,7 @@ function PaymentRequestForm(props: { email: string }) {
     return <Loading />;
   }
 
-  if (query.isError || !userAccess || !formSchema || !submission) {
+  if (query.isError || !access || !schema || !submission) {
     return <Message type="error" text={messages.formSubmissionError} />;
   }
 
@@ -292,7 +292,7 @@ function PaymentRequestForm(props: { email: string }) {
 
       <div className="csb-form">
         <Form
-          src={formSchema}
+          src={schema}
           url={`${serverUrl}/api/formio/2024/s3/prf/${mongoId}/${comboKey}`}
           submission={{
             /**

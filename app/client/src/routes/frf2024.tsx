@@ -100,7 +100,7 @@ function FundingRequestForm(props: { email: string }) {
   const submissions = useSubmissions("2024");
 
   const { query, mutation } = useFormioSubmissionQueryAndMutation(mongoId);
-  const { userAccess, formSchema, submission } = query.data ?? {};
+  const { access, schema, submission } = query.data ?? {};
 
   const comboKey = submission?.data._bap_entity_combo_key || "";
 
@@ -157,7 +157,7 @@ function FundingRequestForm(props: { email: string }) {
     return <Loading />;
   }
 
-  if (query.isError || !userAccess || !formSchema || !submission) {
+  if (query.isError || !access || !schema || !submission) {
     return <Message type="error" text={messages.formSubmissionError} />;
   }
 
@@ -405,7 +405,7 @@ function FundingRequestForm(props: { email: string }) {
 
       <div className="csb-form">
         <Form
-          src={formSchema}
+          src={schema}
           url={`${serverUrl}/api/formio/2024/s3/frf/${mongoId}/${comboKey}`}
           submission={{
             /**

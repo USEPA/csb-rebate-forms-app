@@ -229,7 +229,7 @@ function ChangeRequest2024Form(props: {
   const { query } = useFormioSchemaQuery();
   const { mutation } = useFormioSubmissionMutation();
 
-  const formSchema = query.data;
+  const schema = query.data;
 
   /**
    * Stores when data is being posted to the server, so a loading overlay can
@@ -257,7 +257,7 @@ function ChangeRequest2024Form(props: {
     return <Loading />;
   }
 
-  if (query.isError || !formSchema) {
+  if (query.isError || !schema) {
     return <Message type="error" text={messages.formSchemaError} />;
   }
 
@@ -295,7 +295,7 @@ function ChangeRequest2024Form(props: {
 
       <div className="csb-form">
         <Form
-          src={formSchema}
+          src={schema}
           submission={{
             data: {
               _request_form: formType,

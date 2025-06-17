@@ -205,7 +205,7 @@ router.get("/formio/submission/:rebateYear/:formType/:id", async (req, res) => {
 
   const result = {
     rebateId: null,
-    formSchema: null,
+    schema: null,
     formio: null,
     bap: null,
   };
@@ -234,9 +234,9 @@ router.get("/formio/submission/:rebateYear/:formType/:id", async (req, res) => {
     return res.status(errorStatus).json({ message: errorMessage });
   }
 
-  result.formSchema = await fetchFormioFormSchema({ formioFormUrl, req });
+  result.schema = await fetchFormioFormSchema({ formioFormUrl, req });
 
-  if (!result.formSchema) {
+  if (!result.schema) {
     const errorStatus = 400;
     const errorMessage = `Error getting Formio ${rebateYear} ${formName} form schema.`;
     return res.status(errorStatus).json({ message: errorMessage });
