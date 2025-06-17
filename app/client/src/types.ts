@@ -630,13 +630,13 @@ type FormioChange2024Data = {
 
 export type FormioSchemaAndSubmission<FormioFormSubmission> =
   | {
-      userAccess: false;
-      formSchema: null;
+      access: false;
+      schema: null;
       submission: null;
     }
   | {
-      userAccess: true;
-      formSchema: FormType;
+      access: true;
+      schema: FormType;
       submission: FormioFormSubmission;
     };
 

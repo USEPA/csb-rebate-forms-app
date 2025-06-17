@@ -52,7 +52,7 @@ import {
 
 type Response = {
   rebateId: string | null;
-  formSchema: FormType | null;
+  schema: FormType | null;
   formio:
     | (
         | FormioFRF2022Submission
@@ -481,9 +481,9 @@ export function Helpdesk() {
     },
   });
 
-  const { rebateId, formSchema, formio, bap } = submissionQuery.data ?? {
+  const { rebateId, schema, formio, bap } = submissionQuery.data ?? {
     rebateId: null,
-    formSchema: null,
+    schema: null,
     formio: null,
     bap: null,
   };
@@ -808,7 +808,7 @@ export function Helpdesk() {
                 </>
               )}
 
-              {formDisplayed && formSchema && (
+              {formDisplayed && schema && (
                 <>
                   <ul className="usa-icon-list">
                     <li className="usa-icon-list__item">
@@ -841,7 +841,7 @@ export function Helpdesk() {
                   </ul>
 
                   <Form
-                    src={formSchema}
+                    src={schema}
                     submission={formio}
                     options={{ readOnly: true }}
                   />

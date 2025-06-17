@@ -1433,8 +1433,8 @@ function fetchFRFSubmission({ rebateYear, req, res }) {
           : schema;
 
       return res.json({
-        userAccess: true,
-        formSchema,
+        access: true,
+        schema: formSchema,
         submission,
       });
     })
@@ -1715,8 +1715,8 @@ function fetchPRFSubmission({ rebateYear, req, res }) {
         .then((axiosRes) => axiosRes.data)
         .then((submission) => {
           return res.json({
-            userAccess: true,
-            formSchema,
+            access: true,
+            schema: formSchema,
             submission,
           });
         });
@@ -2088,8 +2088,8 @@ function fetchCRFSubmission({ rebateYear, req, res }) {
         .then((axiosRes) => axiosRes.data)
         .then((submission) => {
           return res.json({
-            userAccess: true,
-            formSchema: schema,
+            access: true,
+            schema,
             submission,
           });
         });
@@ -2375,8 +2375,8 @@ function fetchChangeRequest({ rebateYear, req, res }) {
       }
 
       return res.json({
-        userAccess: true,
-        formSchema: schema,
+        access: true,
+        schema,
         submission,
       });
     })
