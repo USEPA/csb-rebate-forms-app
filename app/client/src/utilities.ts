@@ -21,17 +21,17 @@ import {
   type BapFormSubmissions,
   type BapSubmissionData,
   type FormioSubmission,
-  type FormioFRF2022Submission,
-  type FormioPRF2022Submission,
-  type FormioCRF2022Submission,
-  type FormioFRF2023Submission,
-  type FormioPRF2023Submission,
-  type FormioCRF2023Submission,
-  type FormioChange2023Submission,
-  type FormioFRF2024Submission,
-  type FormioPRF2024Submission,
-  type FormioCRF2024Submission,
-  type FormioChange2024Submission,
+  type FormioFRF2022DashboardSubmission,
+  type FormioPRF2022DashboardSubmission,
+  type FormioCRF2022DashboardSubmission,
+  type FormioFRF2023DashboardSubmission,
+  type FormioPRF2023DashboardSubmission,
+  type FormioCRF2023DashboardSubmission,
+  type FormioChange2023FormSubmission,
+  type FormioFRF2024DashboardSubmission,
+  type FormioPRF2024DashboardSubmission,
+  type FormioCRF2024DashboardSubmission,
+  type FormioChange2024FormSubmission,
   type Rebate2022,
   type Rebate2023,
   type Rebate2024,
@@ -44,18 +44,18 @@ import {
 
 /** Formio Change Request submissions by rebate year. */
 /* prettier-ignore */
-type FormioChangeRequests<Year> =
+type FormioChangeRequestsByYear<Year> =
   Year extends "2022" ? never[] | undefined :
-  Year extends "2023" ? FormioChange2023Submission[] | undefined :
-  Year extends "2024" ? FormioChange2024Submission[] | undefined :
+  Year extends "2023" ? FormioChange2023FormSubmission[] | undefined :
+  Year extends "2024" ? FormioChange2024FormSubmission[] | undefined :
   never;
 
 /** BAP and Formio submissions by rebate year. */
 /* prettier-ignore */
-type BapAndFormioSubmissions<Year> =
-  Year extends "2022" ? BapFormSubmissions | FormioFRF2022Submission[] | FormioPRF2022Submission[] | FormioCRF2022Submission[] :
-  Year extends "2023" ? BapFormSubmissions | FormioFRF2023Submission[] | FormioPRF2023Submission[] | FormioCRF2023Submission[] :
-  Year extends "2024" ? BapFormSubmissions | FormioFRF2024Submission[] | FormioPRF2024Submission[] | FormioCRF2024Submission[] :
+type BapAndFormioSubmissionsByYear<Year> =
+  Year extends "2022" ? BapFormSubmissions | FormioFRF2022DashboardSubmission[] | FormioPRF2022DashboardSubmission[] | FormioCRF2022DashboardSubmission[] :
+  Year extends "2023" ? BapFormSubmissions | FormioFRF2023DashboardSubmission[] | FormioPRF2023DashboardSubmission[] | FormioCRF2023DashboardSubmission[] :
+  Year extends "2024" ? BapFormSubmissions | FormioFRF2024DashboardSubmission[] | FormioPRF2024DashboardSubmission[] | FormioCRF2024DashboardSubmission[] :
   never;
 
 /**
@@ -63,7 +63,7 @@ type BapAndFormioSubmissions<Year> =
  * (FRF, PRF, CRF) for a given rebate year.
  */
 /* prettier-ignore */
-type Rebate<Year> =
+type RebateByYear<Year> =
   Year extends "2022" ? Rebate2022 :
   Year extends "2023" ? Rebate2023 :
   Year extends "2024" ? Rebate2024 :
@@ -261,7 +261,7 @@ export function useSubmissionPDFQuery(options: {
 /** Custom hook to fetch Change Request form submissions from Formio. */
 export function useChangeRequestsQuery<Year extends RebateYear>(
   rebateYear: Year,
-): UseQueryResult<FormioChangeRequests<Year>> {
+): UseQueryResult<FormioChangeRequestsByYear<Year>> {
   /*
    * NOTE: Change Request form was added in the 2023 rebate year, so there's no
    * change request data to fetch for 2022.
@@ -276,7 +276,7 @@ export function useChangeRequestsQuery<Year extends RebateYear>(
     queryKey: ["formio/2023/changes"],
     queryFn: () => {
       const url = `${serverUrl}/api/formio/2023/changes`;
-      return getData<FormioChange2023Submission[]>(url);
+      return getData<FormioChange2023FormSubmission[]>(url);
     },
     refetchOnWindowFocus: false,
   };
@@ -285,7 +285,7 @@ export function useChangeRequestsQuery<Year extends RebateYear>(
     queryKey: ["formio/2024/changes"],
     queryFn: () => {
       const url = `${serverUrl}/api/formio/2024/changes`;
-      return getData<FormioChange2024Submission[]>(url);
+      return getData<FormioChange2024FormSubmission[]>(url);
     },
     refetchOnWindowFocus: false,
   };
@@ -297,7 +297,7 @@ export function useChangeRequestsQuery<Year extends RebateYear>(
     refetchOnWindowFocus: false,
   };
 
-  const query: UseQueryOptions<BapAndFormioSubmissions<RebateYear>> =
+  const query: UseQueryOptions<BapAndFormioSubmissionsByYear<RebateYear>> =
     rebateYear === "2022"
       ? changeRequest2022Query
       : rebateYear === "2023"
@@ -306,7 +306,7 @@ export function useChangeRequestsQuery<Year extends RebateYear>(
           ? changeRequest2024Query
           : changeRequestFallbackQuery;
 
-  return useQuery(query) as UseQueryResult<FormioChangeRequests<Year>>;
+  return useQuery(query) as UseQueryResult<FormioChangeRequestsByYear<Year>>;
 }
 
 /**
@@ -315,14 +315,14 @@ export function useChangeRequestsQuery<Year extends RebateYear>(
  */
 export function useChangeRequests<Year extends RebateYear>(
   rebateYear: Year,
-): FormioChangeRequests<Year> {
+): FormioChangeRequestsByYear<Year> {
   const queryClient = useQueryClient();
 
   const changeRequest2022Data = queryClient.getQueryData<[]>(["formio/2022/changes"]); // prettier-ignore
-  const changeRequest2023Data = queryClient.getQueryData<FormioChange2023Submission[]>(["formio/2023/changes"]); // prettier-ignore
-  const changeRequest2024Data = queryClient.getQueryData<FormioChange2024Submission[]>(["formio/2024/changes"]); // prettier-ignore
+  const changeRequest2023Data = queryClient.getQueryData<FormioChange2023FormSubmission[]>(["formio/2023/changes"]); // prettier-ignore
+  const changeRequest2024Data = queryClient.getQueryData<FormioChange2024FormSubmission[]>(["formio/2024/changes"]); // prettier-ignore
 
-  const result: FormioChangeRequests<RebateYear> =
+  const result: FormioChangeRequestsByYear<RebateYear> =
     rebateYear === "2022"
       ? changeRequest2022Data
       : rebateYear === "2023"
@@ -331,13 +331,13 @@ export function useChangeRequests<Year extends RebateYear>(
           ? changeRequest2024Data
           : undefined;
 
-  return result as FormioChangeRequests<Year>;
+  return result as FormioChangeRequestsByYear<Year>;
 }
 
 /** Custom hook to fetch submissions from the BAP and Formio. */
 export function useSubmissionsQueries<Year extends RebateYear>(
   rebateYear: Year,
-): UseQueryResult<BapAndFormioSubmissions<Year>>[] {
+): UseQueryResult<BapAndFormioSubmissionsByYear<Year>>[] {
   const bapQuery = {
     queryKey: ["bap/submissions"],
     queryFn: () => {
@@ -398,7 +398,7 @@ export function useSubmissionsQueries<Year extends RebateYear>(
     queryKey: ["formio/2022/frf-submissions"],
     queryFn: () => {
       const url = `${serverUrl}/api/formio/2022/frf-submissions`;
-      return getData<FormioFRF2022Submission[]>(url);
+      return getData<FormioFRF2022DashboardSubmission[]>(url);
     },
     refetchOnWindowFocus: false,
   };
@@ -407,7 +407,7 @@ export function useSubmissionsQueries<Year extends RebateYear>(
     queryKey: ["formio/2022/prf-submissions"],
     queryFn: () => {
       const url = `${serverUrl}/api/formio/2022/prf-submissions`;
-      return getData<FormioPRF2022Submission[]>(url);
+      return getData<FormioPRF2022DashboardSubmission[]>(url);
     },
     refetchOnWindowFocus: false,
   };
@@ -416,7 +416,7 @@ export function useSubmissionsQueries<Year extends RebateYear>(
     queryKey: ["formio/2022/crf-submissions"],
     queryFn: () => {
       const url = `${serverUrl}/api/formio/2022/crf-submissions`;
-      return getData<FormioCRF2022Submission[]>(url);
+      return getData<FormioCRF2022DashboardSubmission[]>(url);
     },
     refetchOnWindowFocus: false,
   };
@@ -425,7 +425,7 @@ export function useSubmissionsQueries<Year extends RebateYear>(
     queryKey: ["formio/2023/frf-submissions"],
     queryFn: () => {
       const url = `${serverUrl}/api/formio/2023/frf-submissions`;
-      return getData<FormioFRF2023Submission[]>(url);
+      return getData<FormioFRF2023DashboardSubmission[]>(url);
     },
     refetchOnWindowFocus: false,
   };
@@ -434,7 +434,7 @@ export function useSubmissionsQueries<Year extends RebateYear>(
     queryKey: ["formio/2023/prf-submissions"],
     queryFn: () => {
       const url = `${serverUrl}/api/formio/2023/prf-submissions`;
-      return getData<FormioPRF2023Submission[]>(url);
+      return getData<FormioPRF2023DashboardSubmission[]>(url);
     },
     refetchOnWindowFocus: false,
   };
@@ -443,7 +443,7 @@ export function useSubmissionsQueries<Year extends RebateYear>(
     queryKey: ["formio/2023/crf-submissions"],
     queryFn: () => {
       const url = `${serverUrl}/api/formio/2023/crf-submissions`;
-      return getData<FormioCRF2023Submission[]>(url);
+      return getData<FormioCRF2023DashboardSubmission[]>(url);
     },
     refetchOnWindowFocus: false,
   };
@@ -452,7 +452,7 @@ export function useSubmissionsQueries<Year extends RebateYear>(
     queryKey: ["formio/2024/frf-submissions"],
     queryFn: () => {
       const url = `${serverUrl}/api/formio/2024/frf-submissions`;
-      return getData<FormioFRF2024Submission[]>(url);
+      return getData<FormioFRF2024DashboardSubmission[]>(url);
     },
     refetchOnWindowFocus: false,
   };
@@ -461,7 +461,7 @@ export function useSubmissionsQueries<Year extends RebateYear>(
     queryKey: ["formio/2024/prf-submissions"],
     queryFn: () => {
       const url = `${serverUrl}/api/formio/2024/prf-submissions`;
-      return getData<FormioPRF2024Submission[]>(url);
+      return getData<FormioPRF2024DashboardSubmission[]>(url);
     },
     refetchOnWindowFocus: false,
   };
@@ -470,12 +470,12 @@ export function useSubmissionsQueries<Year extends RebateYear>(
     queryKey: ["formio/2024/crf-submissions"],
     queryFn: () => {
       const url = `${serverUrl}/api/formio/2024/crf-submissions`;
-      return getData<FormioCRF2024Submission[]>(url);
+      return getData<FormioCRF2024DashboardSubmission[]>(url);
     },
     refetchOnWindowFocus: false,
   };
 
-  const queries: UseQueryOptions<BapAndFormioSubmissions<RebateYear>>[] =
+  const queries: UseQueryOptions<BapAndFormioSubmissionsByYear<RebateYear>>[] =
     rebateYear === "2022"
       ? [bapQuery, formioFRF2022Query, formioPRF2022Query, formioCRF2022Query]
       : rebateYear === "2023"
@@ -485,7 +485,7 @@ export function useSubmissionsQueries<Year extends RebateYear>(
           : [];
 
   return useQueries({ queries }) as UseQueryResult<
-    BapAndFormioSubmissions<Year>
+    BapAndFormioSubmissionsByYear<Year>
   >[];
 }
 
@@ -496,22 +496,22 @@ export function useSubmissionsQueries<Year extends RebateYear>(
  **/
 function useCombinedSubmissions<Year extends RebateYear>(
   rebateYear: Year,
-): { [rebateId: string]: Rebate<Year> } {
+): { [rebateId: string]: RebateByYear<Year> } {
   const queryClient = useQueryClient();
 
   const bapFormSubmissions = queryClient.getQueryData<BapFormSubmissions>(["bap/submissions"]); // prettier-ignore
 
-  const formioFRF2022Data = queryClient.getQueryData<FormioFRF2022Submission[]>(["formio/2022/frf-submissions"]); // prettier-ignore
-  const formioFRF2023Data = queryClient.getQueryData<FormioFRF2023Submission[]>(["formio/2023/frf-submissions"]); // prettier-ignore
-  const formioFRF2024Data = queryClient.getQueryData<FormioFRF2024Submission[]>(["formio/2024/frf-submissions"]); // prettier-ignore
+  const formioFRF2022Data = queryClient.getQueryData<FormioFRF2022DashboardSubmission[]>(["formio/2022/frf-submissions"]); // prettier-ignore
+  const formioFRF2023Data = queryClient.getQueryData<FormioFRF2023DashboardSubmission[]>(["formio/2023/frf-submissions"]); // prettier-ignore
+  const formioFRF2024Data = queryClient.getQueryData<FormioFRF2024DashboardSubmission[]>(["formio/2024/frf-submissions"]); // prettier-ignore
 
-  const formioPRF2022Data = queryClient.getQueryData<FormioPRF2022Submission[]>(["formio/2022/prf-submissions"]); // prettier-ignore
-  const formioPRF2023Data = queryClient.getQueryData<FormioPRF2023Submission[]>(["formio/2023/prf-submissions"]); // prettier-ignore
-  const formioPRF2024Data = queryClient.getQueryData<FormioPRF2024Submission[]>(["formio/2024/prf-submissions"]); // prettier-ignore
+  const formioPRF2022Data = queryClient.getQueryData<FormioPRF2022DashboardSubmission[]>(["formio/2022/prf-submissions"]); // prettier-ignore
+  const formioPRF2023Data = queryClient.getQueryData<FormioPRF2023DashboardSubmission[]>(["formio/2023/prf-submissions"]); // prettier-ignore
+  const formioPRF2024Data = queryClient.getQueryData<FormioPRF2024DashboardSubmission[]>(["formio/2024/prf-submissions"]); // prettier-ignore
 
-  const formioCRF2022Data = queryClient.getQueryData<FormioCRF2022Submission[]>(["formio/2022/crf-submissions"]); // prettier-ignore
-  const formioCRF2023Data = queryClient.getQueryData<FormioCRF2023Submission[]>(["formio/2023/crf-submissions"]); // prettier-ignore
-  const formioCRF2024Data = queryClient.getQueryData<FormioCRF2024Submission[]>(["formio/2024/crf-submissions"]); // prettier-ignore
+  const formioCRF2022Data = queryClient.getQueryData<FormioCRF2022DashboardSubmission[]>(["formio/2022/crf-submissions"]); // prettier-ignore
+  const formioCRF2023Data = queryClient.getQueryData<FormioCRF2023DashboardSubmission[]>(["formio/2023/crf-submissions"]); // prettier-ignore
+  const formioCRF2024Data = queryClient.getQueryData<FormioCRF2024DashboardSubmission[]>(["formio/2024/crf-submissions"]); // prettier-ignore
 
   const formioFRFSubmissions =
     rebateYear === "2022"
@@ -541,7 +541,7 @@ function useCombinedSubmissions<Year extends RebateYear>(
           : undefined;
 
   const submissions: {
-    [rebateId: string]: Rebate<Year>;
+    [rebateId: string]: RebateByYear<Year>;
   } = {};
 
   /* ensure form submissions data has been fetched from both the BAP and Formio */
@@ -597,7 +597,7 @@ function useCombinedSubmissions<Year extends RebateYear>(
       },
       prf: { formio: null, bap: null },
       crf: { formio: null, bap: null },
-    } as Rebate<Year>;
+    } as RebateByYear<Year>;
   }
 
   /**
@@ -633,7 +633,7 @@ function useCombinedSubmissions<Year extends RebateYear>(
           status,
           reimbursementNeeded,
         },
-      } as Rebate<Year>["prf"];
+      } as RebateByYear<Year>["prf"];
     }
   }
 
@@ -670,7 +670,7 @@ function useCombinedSubmissions<Year extends RebateYear>(
           status,
           reimbursementNeeded,
         },
-      } as Rebate<Year>["crf"];
+      } as RebateByYear<Year>["crf"];
     }
   }
 
@@ -685,8 +685,8 @@ function useCombinedSubmissions<Year extends RebateYear>(
  * - Funding Approved PRF submissions without a corresponding CRF submission
  **/
 function useSortedSubmissions<Year extends RebateYear>(rebates: {
-  [rebateId: string]: Rebate<Year>;
-}): (Rebate<Year> & { rebateId: string })[] {
+  [rebateId: string]: RebateByYear<Year>;
+}): (RebateByYear<Year> & { rebateId: string })[] {
   return Object.entries(rebates)
     .map(([rebateId, rebate]) => ({ rebateId, ...rebate }))
     .sort((r1, r2) => {

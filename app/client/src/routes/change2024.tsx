@@ -6,7 +6,7 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import {
   type FormioSchemaAndSubmission,
-  type FormioChange2024Submission,
+  type FormioChange2024FormSubmission,
 } from "@/types";
 import { serverUrl, messages } from "@/config";
 import { getData, useContentData } from "@/utilities";
@@ -14,7 +14,7 @@ import { Loading } from "@/components/loading";
 import { Message } from "@/components/message";
 import { MarkdownContent } from "@/components/markdownContent";
 
-type Response = FormioSchemaAndSubmission<FormioChange2024Submission>;
+type Response = FormioSchemaAndSubmission<FormioChange2024FormSubmission>;
 
 /** Custom hook to fetch Formio submission data */
 function useFormioSubmissionQuery(mongoId: string | undefined) {
