@@ -453,19 +453,22 @@ type FormioCRF2023FormDataFields = FormioCRF2023DashboardDataFields & {
   _bap_rebate_id: string;
 };
 
-type FormioChange2023FormDataFields = {
-  [field: string]: unknown;
+type FormioChange2023DashboardDataFields = {
   _request_form: CSBFormType;
-  _bap_entity_combo_key: string;
   _bap_rebate_id: string;
   _mongo_id: string;
   _user_email: string;
-  _user_title: string;
-  _user_name: string;
   request_type: {
     label: string;
     value: string;
   };
+};
+
+type FormioChange2023FormDataFields = FormioChange2023DashboardDataFields & {
+  [field: string]: unknown;
+  _bap_entity_combo_key: string;
+  _user_title: string;
+  _user_name: string;
 };
 
 type FormioFRF2024DashboardDataFields = {
@@ -628,19 +631,22 @@ type FormioCRF2024FormDataFields = FormioCRF2024DashboardDataFields & {
   _bap_rebate_id: string;
 };
 
-type FormioChange2024FormDataFields = {
-  [field: string]: unknown;
+type FormioChange2024DashboardDataFields = {
   _request_form: CSBFormType;
-  _bap_entity_combo_key: string;
   _bap_rebate_id: string;
   _mongo_id: string;
   _user_email: string;
-  _user_title: string;
-  _user_name: string;
   request_type: {
     label: string;
     value: string;
   };
+};
+
+type FormioChange2024FormDataFields = FormioChange2024DashboardDataFields & {
+  [field: string]: unknown;
+  _bap_entity_combo_key: string;
+  _user_title: string;
+  _user_name: string;
 };
 
 export type FormioSchemaAndSubmission<FormioFormSubmission> =
@@ -703,6 +709,10 @@ export type FormioCRF2023FormSubmission = FormioSubmission & {
   data: FormioCRF2023FormDataFields;
 };
 
+export type FormioChange2023DashboardSubmission = FormioSubmission & {
+  data: FormioChange2023DashboardDataFields;
+};
+
 export type FormioChange2023FormSubmission = FormioSubmission & {
   data: FormioChange2023FormDataFields;
 };
@@ -729,6 +739,10 @@ export type FormioCRF2024DashboardSubmission = FormioSubmission & {
 
 export type FormioCRF2024FormSubmission = FormioSubmission & {
   data: FormioCRF2024FormDataFields;
+};
+
+export type FormioChange2024DashboardSubmission = FormioSubmission & {
+  data: FormioChange2024DashboardDataFields;
 };
 
 export type FormioChange2024FormSubmission = FormioSubmission & {

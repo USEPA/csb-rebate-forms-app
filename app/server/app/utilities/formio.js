@@ -44,6 +44,7 @@ const formDataFieldNames = {
     ],
     prf: ["hidden_current_user_email", "hidden_bap_rebate_id"],
     crf: ["hidden_current_user_email", "hidden_bap_rebate_id"],
+    change: [],
   },
   2023: {
     frf: [
@@ -66,6 +67,13 @@ const formDataFieldNames = {
       "_bap_district_state",
     ],
     crf: [],
+    change: [
+      "_request_form",
+      "_bap_rebate_id",
+      "_mongo_id",
+      "_user_email",
+      "request_type",
+    ],
   },
   2024: {
     frf: [
@@ -81,6 +89,13 @@ const formDataFieldNames = {
     ],
     prf: [],
     crf: [],
+    change: [
+      "_request_form",
+      "_bap_rebate_id",
+      "_mongo_id",
+      "_user_email",
+      "request_type",
+    ],
   },
 };
 
@@ -2276,6 +2291,7 @@ function fetchChangeRequests({ rebateYear, req, res }) {
     return res.status(errorStatus).json({ message: errorMessage });
   }
 
+  const dataFieldNames = formDataFieldNames[rebateYear]?.["change"] || [];
   const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
   const comboKeySearchParam = `&data.${comboKeyFieldName}=`;
 
@@ -2291,8 +2307,8 @@ function fetchChangeRequests({ rebateYear, req, res }) {
     `${formioFormUrl}/submission` +
     `?sort=-modified` +
     `&limit=1000000` +
-    comboKeySearchParam +
-    `${bapComboKeys.join(comboKeySearchParam)}`;
+    `${comboKeySearchParam}${bapComboKeys.join(comboKeySearchParam)}` +
+    `&select=_id,modified,state,data.${dataFieldNames.join(",data.")}`;
 
   axiosFormio(req)
     .get(submissionsUrl)

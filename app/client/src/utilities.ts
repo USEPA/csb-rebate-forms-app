@@ -27,11 +27,11 @@ import {
   type FormioFRF2023DashboardSubmission,
   type FormioPRF2023DashboardSubmission,
   type FormioCRF2023DashboardSubmission,
-  type FormioChange2023FormSubmission,
+  type FormioChange2023DashboardSubmission,
   type FormioFRF2024DashboardSubmission,
   type FormioPRF2024DashboardSubmission,
   type FormioCRF2024DashboardSubmission,
-  type FormioChange2024FormSubmission,
+  type FormioChange2024DashboardSubmission,
   type Rebate2022,
   type Rebate2023,
   type Rebate2024,
@@ -46,8 +46,8 @@ import {
 /* prettier-ignore */
 type FormioChangeRequestsByYear<Year> =
   Year extends "2022" ? never[] | undefined :
-  Year extends "2023" ? FormioChange2023FormSubmission[] | undefined :
-  Year extends "2024" ? FormioChange2024FormSubmission[] | undefined :
+  Year extends "2023" ? FormioChange2023DashboardSubmission[] | undefined :
+  Year extends "2024" ? FormioChange2024DashboardSubmission[] | undefined :
   never;
 
 /** BAP and Formio submissions by rebate year. */
@@ -276,7 +276,7 @@ export function useChangeRequestsQuery<Year extends RebateYear>(
     queryKey: ["formio/2023/changes"],
     queryFn: () => {
       const url = `${serverUrl}/api/formio/2023/changes`;
-      return getData<FormioChange2023FormSubmission[]>(url);
+      return getData<FormioChange2023DashboardSubmission[]>(url);
     },
     refetchOnWindowFocus: false,
   };
@@ -285,7 +285,7 @@ export function useChangeRequestsQuery<Year extends RebateYear>(
     queryKey: ["formio/2024/changes"],
     queryFn: () => {
       const url = `${serverUrl}/api/formio/2024/changes`;
-      return getData<FormioChange2024FormSubmission[]>(url);
+      return getData<FormioChange2024DashboardSubmission[]>(url);
     },
     refetchOnWindowFocus: false,
   };
@@ -297,7 +297,7 @@ export function useChangeRequestsQuery<Year extends RebateYear>(
     refetchOnWindowFocus: false,
   };
 
-  const query: UseQueryOptions<BapAndFormioSubmissionsByYear<RebateYear>> =
+  const query: UseQueryOptions<FormioChangeRequestsByYear<RebateYear>> =
     rebateYear === "2022"
       ? changeRequest2022Query
       : rebateYear === "2023"
@@ -319,8 +319,8 @@ export function useChangeRequests<Year extends RebateYear>(
   const queryClient = useQueryClient();
 
   const changeRequest2022Data = queryClient.getQueryData<[]>(["formio/2022/changes"]); // prettier-ignore
-  const changeRequest2023Data = queryClient.getQueryData<FormioChange2023FormSubmission[]>(["formio/2023/changes"]); // prettier-ignore
-  const changeRequest2024Data = queryClient.getQueryData<FormioChange2024FormSubmission[]>(["formio/2024/changes"]); // prettier-ignore
+  const changeRequest2023Data = queryClient.getQueryData<FormioChange2023DashboardSubmission[]>(["formio/2023/changes"]); // prettier-ignore
+  const changeRequest2024Data = queryClient.getQueryData<FormioChange2024DashboardSubmission[]>(["formio/2024/changes"]); // prettier-ignore
 
   const result: FormioChangeRequestsByYear<RebateYear> =
     rebateYear === "2022"
