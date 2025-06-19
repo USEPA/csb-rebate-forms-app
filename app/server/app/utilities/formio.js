@@ -30,6 +30,61 @@ const { NODE_ENV } = process.env;
  */
 
 /**
+ * Stores data fields used in the dashboard table for each form by rebate year.
+ */
+const formDataFieldNames = {
+  2022: {
+    frf: [
+      "applicantUEI",
+      "applicantEfti",
+      "applicantEfti_display",
+      "applicantOrganizationName",
+      "schoolDistrictName",
+      "last_updated_by",
+    ],
+    prf: ["hidden_current_user_email", "hidden_bap_rebate_id"],
+    crf: ["hidden_current_user_email", "hidden_bap_rebate_id"],
+  },
+  2023: {
+    frf: [
+      "_user_email",
+      "_bap_entity_combo_key",
+      "_bap_applicant_name",
+      "appInfo_uei",
+      "appInfo_efti",
+      "appInfo_orgName",
+      "_formio_schoolDistrictName",
+      "org_district_orgName",
+      "org_district_state",
+    ],
+    prf: [
+      "_user_email",
+      "_bap_entity_combo_key",
+      "_bap_rebate_id",
+      "_bap_applicant_name",
+      "_bap_district_name",
+      "_bap_district_state",
+    ],
+    crf: [],
+  },
+  2024: {
+    frf: [
+      "_user_email",
+      "_bap_entity_combo_key",
+      "_bap_applicant_name",
+      "_formio_schoolDistrictName",
+      "appInfo_uei",
+      "appInfo_efti",
+      "appInfo_organization_name",
+      "org_district_name",
+      "org_district_state",
+    ],
+    prf: [],
+    crf: [],
+  },
+};
+
+/**
  * @param {Object} param
  * @param {RebateYear} param.rebateYear
  * @param {express.Request} param.req
@@ -1290,6 +1345,7 @@ function fetchFRFSubmissions({ rebateYear, req, res }) {
     return res.status(errorStatus).json({ message: errorMessage });
   }
 
+  const dataFieldNames = formDataFieldNames[rebateYear]?.["frf"] || [];
   const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
   const comboKeySearchParam = `&data.${comboKeyFieldName}=`;
 
@@ -1305,8 +1361,8 @@ function fetchFRFSubmissions({ rebateYear, req, res }) {
     `${formioFormUrl}/submission` +
     `?sort=-modified` +
     `&limit=1000000` +
-    comboKeySearchParam +
-    `${bapComboKeys.join(comboKeySearchParam)}`;
+    `${comboKeySearchParam}${bapComboKeys.join(comboKeySearchParam)}` +
+    `&select=_id,modified,state,data.${dataFieldNames.join(",data.")}`;
 
   axiosFormio(req)
     .get(submissionsUrl)
@@ -1549,6 +1605,7 @@ function fetchPRFSubmissions({ rebateYear, req, res }) {
     return res.status(errorStatus).json({ message: errorMessage });
   }
 
+  const dataFieldNames = formDataFieldNames[rebateYear]?.["prf"] || [];
   const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
   const comboKeySearchParam = `&data.${comboKeyFieldName}=`;
 
@@ -1564,8 +1621,8 @@ function fetchPRFSubmissions({ rebateYear, req, res }) {
     `${formioFormUrl}/submission` +
     `?sort=-modified` +
     `&limit=1000000` +
-    comboKeySearchParam +
-    `${bapComboKeys.join(comboKeySearchParam)}`;
+    `${comboKeySearchParam}${bapComboKeys.join(comboKeySearchParam)}` +
+    `&select=_id,modified,state,data.${dataFieldNames.join(",data.")}`;
 
   axiosFormio(req)
     .get(submissionsUrl)
@@ -1928,6 +1985,7 @@ function fetchCRFSubmissions({ rebateYear, req, res }) {
     return res.status(errorStatus).json({ message: errorMessage });
   }
 
+  const dataFieldNames = formDataFieldNames[rebateYear]?.["crf"] || [];
   const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
   const comboKeySearchParam = `&data.${comboKeyFieldName}=`;
 
@@ -1943,8 +2001,8 @@ function fetchCRFSubmissions({ rebateYear, req, res }) {
     `${formioFormUrl}/submission` +
     `?sort=-modified` +
     `&limit=1000000` +
-    comboKeySearchParam +
-    `${bapComboKeys.join(comboKeySearchParam)}`;
+    `${comboKeySearchParam}${bapComboKeys.join(comboKeySearchParam)}` +
+    `&select=_id,modified,state,data.${dataFieldNames.join(",data.")}`;
 
   axiosFormio(req)
     .get(submissionsUrl)
