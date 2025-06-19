@@ -300,39 +300,6 @@
         }
       }
     },
-    "/api/formio/nces/{searchText}": {
-      "get": {
-        "deprecated": true,
-        "summary": "Search the 2022 NCES data with the provided NCES ID and return a match.",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "searchText",
-            "description": "The NCES ID to search for.",
-            "required": true,
-            "example": "A999999",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "An object containing the matched NCES data.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object"
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          }
-        }
-      }
-    },
     "/api/formio/2022/s3/{formType}/{mongoId}/{comboKey}/storage/s3": {
       "get": {
         "summary": "Download Formio file attachment from S3 for a 2022 submission.",
