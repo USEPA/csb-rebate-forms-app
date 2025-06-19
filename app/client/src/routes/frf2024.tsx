@@ -9,7 +9,7 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import {
   type FormioSchemaAndSubmission,
-  type FormioFRF2024Submission,
+  type FormioFRF2024FormSubmission,
 } from "@/types";
 import { serverUrl, messages } from "@/config";
 import {
@@ -33,7 +33,7 @@ import { MarkdownContent } from "@/components/markdownContent";
 import { useDialogActions } from "@/contexts/dialog";
 import { useNotificationsActions } from "@/contexts/notifications";
 
-type Response = FormioSchemaAndSubmission<FormioFRF2024Submission>;
+type Response = FormioSchemaAndSubmission<FormioFRF2024FormSubmission>;
 
 /** Custom hook to fetch and update Formio submission data */
 function useFormioSubmissionQueryAndMutation(mongoId: string | undefined) {
@@ -54,7 +54,7 @@ function useFormioSubmissionQueryAndMutation(mongoId: string | undefined) {
 
   const mutation = useMutation({
     mutationFn: (updatedSubmission: Submission) => {
-      return postData<FormioFRF2024Submission>(url, updatedSubmission);
+      return postData<FormioFRF2024FormSubmission>(url, updatedSubmission);
     },
     onSuccess: (res, _payload, _context) => {
       return queryClient.setQueryData<Response>(

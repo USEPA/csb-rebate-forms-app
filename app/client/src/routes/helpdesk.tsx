@@ -17,12 +17,15 @@ import {
   type RebateYear,
   type CSBFormType,
   type BapSubmissionData,
-  type FormioFRF2022Submission,
-  type FormioPRF2022Submission,
-  type FormioCRF2022Submission,
-  type FormioFRF2023Submission,
-  type FormioPRF2023Submission,
-  // type FormioCRF2023Submission
+  type FormioFRF2022FormSubmission,
+  type FormioPRF2022FormSubmission,
+  type FormioCRF2022FormSubmission,
+  type FormioFRF2023FormSubmission,
+  type FormioPRF2023FormSubmission,
+  // type FormioCRF2023FormSubmission
+  type FormioFRF2024FormSubmission,
+  // type FormioPRF2025FormSubmission,
+  // type FormioCRF2023FormSubmission
 } from "@/types";
 import {
   serverUrl,
@@ -55,11 +58,12 @@ type Response = {
   schema: FormType | null;
   formio:
     | (
-        | FormioFRF2022Submission
-        | FormioPRF2022Submission
-        | FormioCRF2022Submission
-        | FormioFRF2023Submission
-        | FormioPRF2023Submission
+        | FormioFRF2022FormSubmission
+        | FormioPRF2022FormSubmission
+        | FormioCRF2022FormSubmission
+        | FormioFRF2023FormSubmission
+        | FormioPRF2023FormSubmission
+        | FormioFRF2024FormSubmission
       )
     | null;
   bap: BapSubmissionData | null;
@@ -124,11 +128,12 @@ function ResultTableRow(props: {
   formType: CSBFormType;
   rebateId: string | null;
   formio:
-    | FormioFRF2022Submission
-    | FormioPRF2022Submission
-    | FormioCRF2022Submission
-    | FormioFRF2023Submission
-    | FormioPRF2023Submission;
+    | FormioFRF2022FormSubmission
+    | FormioPRF2022FormSubmission
+    | FormioCRF2022FormSubmission
+    | FormioFRF2023FormSubmission
+    | FormioPRF2023FormSubmission
+    | FormioFRF2024FormSubmission;
   bap: BapSubmissionData | null;
 }) {
   const {

@@ -10,7 +10,7 @@ import "bootstrap/dist/css/bootstrap-grid.min.css";
 // ---
 import {
   type FormioSchemaAndSubmission,
-  type FormioFRF2022Submission,
+  type FormioFRF2022FormSubmission,
 } from "@/types";
 import { serverUrl, messages } from "@/config";
 import {
@@ -34,7 +34,7 @@ import { MarkdownContent } from "@/components/markdownContent";
 import { useDialogActions } from "@/contexts/dialog";
 import { useNotificationsActions } from "@/contexts/notifications";
 
-type Response = FormioSchemaAndSubmission<FormioFRF2022Submission>;
+type Response = FormioSchemaAndSubmission<FormioFRF2022FormSubmission>;
 
 /** Custom hook to fetch and update Formio submission data */
 function useFormioSubmissionQueryAndMutation(mongoId: string | undefined) {
@@ -70,7 +70,7 @@ function useFormioSubmissionQueryAndMutation(mongoId: string | undefined) {
 
   const mutation = useMutation({
     mutationFn: (updatedSubmission: Submission) => {
-      return postData<FormioFRF2022Submission>(url, updatedSubmission);
+      return postData<FormioFRF2022FormSubmission>(url, updatedSubmission);
     },
     onSuccess: (res, _payload, _context) => {
       return queryClient.setQueryData<Response>(

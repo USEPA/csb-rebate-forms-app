@@ -15,9 +15,9 @@ import icons from "uswds/img/sprite.svg";
 import {
   type RebateYear,
   type BapSamEntity,
-  type FormioFRF2022Submission,
-  type FormioFRF2023Submission,
-  type FormioFRF2024Submission,
+  type FormioFRF2022FormSubmission,
+  type FormioFRF2023FormSubmission,
+  type FormioFRF2024FormSubmission,
 } from "@/types";
 import { serverUrl, messages } from "@/config";
 import {
@@ -341,9 +341,9 @@ export function FRFNew() {
                                           });
 
                                         postData<
-                                          | FormioFRF2022Submission
-                                          | FormioFRF2023Submission
-                                          | FormioFRF2024Submission
+                                          | FormioFRF2022FormSubmission
+                                          | FormioFRF2023FormSubmission
+                                          | FormioFRF2024FormSubmission
                                         >(
                                           `${serverUrl}/api/formio/${rebateYear}/frf-submission/`,
                                           { data, state: "draft" },

@@ -13,7 +13,7 @@ import { type FormType, type Submission, Form } from "@formio/react";
 import clsx from "clsx";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { type CSBFormType, type FormioChange2024Submission } from "@/types";
+import { type CSBFormType, type FormioChange2024FormSubmission } from "@/types";
 import { serverUrl, messages } from "@/config";
 import {
   getData,
@@ -61,7 +61,7 @@ function useFormioSubmissionMutation() {
 
   const mutation = useMutation({
     mutationFn: (submission: Submission) => {
-      return postData<FormioChange2024Submission>(url, submission);
+      return postData<FormioChange2024FormSubmission>(url, submission);
     },
   });
 

@@ -139,10 +139,17 @@ export type FormioSubmission = Submission & {
   modified: string; // ISO 8601 date time string
 };
 
-type FormioFRF2022Data = {
-  [field: string]: unknown;
-  // fields injected upon a new draft FRF submission creation:
+type FormioFRF2022DashboardDataFields = {
+  applicantUEI: string;
+  applicantEfti: string;
+  applicantEfti_display: string;
+  applicantOrganizationName: string;
+  schoolDistrictName: string;
   last_updated_by: string;
+};
+
+type FormioFRF2022FormDataFields = FormioFRF2022DashboardDataFields & {
+  [field: string]: unknown;
   hidden_current_user_email: string;
   hidden_current_user_title: string;
   hidden_current_user_name: string;
@@ -158,20 +165,17 @@ type FormioFRF2022Data = {
   sam_hidden_applicant_city: string;
   sam_hidden_applicant_state: string;
   sam_hidden_applicant_zip_code: string;
-  // fields set by form definition (among others):
-  applicantUEI: string;
-  applicantEfti: string;
-  applicantEfti_display: string;
-  applicantOrganizationName: string;
-  schoolDistrictName: string;
 };
 
-type FormioPRF2022Data = {
+type FormioPRF2022DashboardDataFields = {
+  hidden_current_user_email: string;
+  hidden_bap_rebate_id: string;
+};
+
+type FormioPRF2022FormDataFields = FormioPRF2022DashboardDataFields & {
   [field: string]: unknown;
-  // fields injected upon a new draft PRF submission creation:
   bap_hidden_entity_combo_key: string;
   hidden_application_form_modified: string; // ISO 8601 date time string,
-  hidden_current_user_email: string;
   hidden_current_user_title: string;
   hidden_current_user_name: string;
   hidden_sam_uei: string;
@@ -180,7 +184,6 @@ type FormioPRF2022Data = {
   hidden_sam_alt_elec_bus_poc_email: string | null;
   hidden_sam_govt_bus_poc_email: string | null;
   hidden_sam_alt_govt_bus_poc_email: string | null;
-  hidden_bap_rebate_id: string;
   hidden_bap_district_id: string;
   hidden_bap_primary_name: string;
   hidden_bap_primary_title: string;
@@ -206,19 +209,20 @@ type FormioPRF2022Data = {
     hidden_bap_max_rebate: number;
   }[];
   purchaseOrders: [];
-  // fields set by form definition (among others):
   applicantName: string;
 };
 
-type FormioCRF2022Data = {
+type FormioCRF2022DashboardDataFields = {
+  hidden_current_user_email: string;
+  hidden_bap_rebate_id: string;
+};
+
+type FormioCRF2022FormDataFields = FormioCRF2022DashboardDataFields & {
   [field: string]: unknown;
-  // fields injected upon a new draft CRF submission creation:
   bap_hidden_entity_combo_key: string;
   hidden_prf_modified: string; // ISO 8601 date time string
-  hidden_current_user_email: string;
   hidden_current_user_title: string;
   hidden_current_user_name: string;
-  hidden_bap_rebate_id: string;
   hidden_sam_uei: string;
   hidden_sam_efti: string;
   hidden_sam_elec_bus_poc_email: string | null;
@@ -287,29 +291,13 @@ type FormioCRF2022Data = {
     hidden_prf_newBusPurchasePrice: number;
     hidden_prf_rebate: number;
   }[];
-  // fields set by form definition (among others):
   signatureName: string;
 };
 
-type FormioFRF2023Data = {
-  [field: string]: unknown;
-  // fields injected upon a new draft FRF submission creation:
+type FormioFRF2023DashboardDataFields = {
   _user_email: string;
-  _user_title: string;
-  _user_name: string;
   _bap_entity_combo_key: string;
-  _bap_applicant_email: string;
-  _bap_applicant_title: string;
   _bap_applicant_name: string;
-  _bap_applicant_efti: string;
-  _bap_applicant_uei: string;
-  _bap_applicant_organization_name: string;
-  _bap_applicant_street_address_1: string;
-  _bap_applicant_street_address_2: string;
-  _bap_applicant_city: string;
-  _bap_applicant_state: string;
-  _bap_applicant_zip: string;
-  // fields set by form definition (among others):
   appInfo_uei: string;
   appInfo_efti: string;
   appInfo_orgName: string;
@@ -318,18 +306,38 @@ type FormioFRF2023Data = {
   org_district_state: string;
 };
 
-type FormioPRF2023Data = {
+type FormioFRF2023FormDataFields = FormioFRF2023DashboardDataFields & {
   [field: string]: unknown;
-  // fields injected upon a new draft PRF submission creation:
-  _application_form_modified: string;
-  _bap_entity_combo_key: string;
-  _bap_rebate_id: string;
-  _user_email: string;
   _user_title: string;
   _user_name: string;
   _bap_applicant_email: string;
   _bap_applicant_title: string;
+  _bap_applicant_efti: string;
+  _bap_applicant_uei: string;
+  _bap_applicant_organization_name: string;
+  _bap_applicant_street_address_1: string;
+  _bap_applicant_street_address_2: string;
+  _bap_applicant_city: string;
+  _bap_applicant_state: string;
+  _bap_applicant_zip: string;
+};
+
+type FormioPRF2023DashboardDataFields = {
+  _user_email: string;
+  _bap_entity_combo_key: string;
+  _bap_rebate_id: string;
   _bap_applicant_name: string;
+  _bap_district_name: string;
+  _bap_district_state: string;
+};
+
+type FormioPRF2023FormDataFields = FormioPRF2023DashboardDataFields & {
+  [field: string]: unknown;
+  _application_form_modified: string;
+  _user_title: string;
+  _user_name: string;
+  _bap_applicant_email: string;
+  _bap_applicant_title: string;
   _bap_applicant_efti: string;
   _bap_applicant_uei: string;
   _bap_applicant_organization_id: string;
@@ -358,11 +366,9 @@ type FormioPRF2023Data = {
   _bap_alternate_phone: string | null;
   _bap_district_id: string;
   _bap_district_nces_id: string;
-  _bap_district_name: string;
   _bap_district_address_1: string;
   _bap_district_address_2: string;
   _bap_district_city: string;
-  _bap_district_state: string;
   _bap_district_zip: string;
   _bap_district_priority: string;
   _bap_district_priority_reason: {
@@ -435,19 +441,20 @@ type FormioPRF2023Data = {
   }[];
 };
 
-type FormioCRF2023Data = {
-  [field: string]: unknown;
-  // fields injected upon a new draft CRF submission creation:
+type FormioCRF2023DashboardDataFields = {
   _user_email: string;
+  _bap_entity_combo_key: string;
+};
+
+type FormioCRF2023FormDataFields = FormioCRF2023DashboardDataFields & {
+  [field: string]: unknown;
   _user_title: string;
   _user_name: string;
-  _bap_entity_combo_key: string;
   _bap_rebate_id: string;
 };
 
-type FormioChange2023Data = {
+type FormioChange2023FormDataFields = {
   [field: string]: unknown;
-  // fields injected upon a new draft Change Request form submission creation:
   _request_form: CSBFormType;
   _bap_entity_combo_key: string;
   _bap_rebate_id: string;
@@ -455,20 +462,30 @@ type FormioChange2023Data = {
   _user_email: string;
   _user_title: string;
   _user_name: string;
-  // fields set by the form definition (among others):
-  request_type: { label: string; value: string };
+  request_type: {
+    label: string;
+    value: string;
+  };
 };
 
-type FormioFRF2024Data = {
-  [field: string]: unknown;
-  // fields injected upon a new draft FRF submission creation:
+type FormioFRF2024DashboardDataFields = {
   _user_email: string;
+  _bap_entity_combo_key: string;
+  _bap_applicant_name: string;
+  _formio_schoolDistrictName: string;
+  appInfo_uei: string;
+  appInfo_efti: string;
+  appInfo_organization_name: string;
+  org_district_name: string;
+  org_district_state: string;
+};
+
+type FormioFRF2024FormDataFields = FormioFRF2024DashboardDataFields & {
+  [field: string]: unknown;
   _user_title: string;
   _user_name: string;
-  _bap_entity_combo_key: string;
   _bap_applicant_email: string;
   _bap_applicant_title: string;
-  _bap_applicant_name: string;
   _bap_applicant_efti: string;
   _bap_applicant_uei: string;
   _bap_applicant_organization_name: string;
@@ -477,27 +494,24 @@ type FormioFRF2024Data = {
   _bap_applicant_city: string;
   _bap_applicant_state: string;
   _bap_applicant_zip: string;
-  // fields set by form definition (among others):
-  appInfo_uei: string;
-  appInfo_efti: string;
-  appInfo_organization_name: string;
-  _formio_schoolDistrictName: string;
-  org_district_name: string;
-  org_district_state: string;
 };
 
-type FormioPRF2024Data = {
-  [field: string]: unknown;
-  // fields injected upon a new draft PRF submission creation:
-  _frf_modified: string;
+type FormioPRF2024DashboardDataFields = {
+  _user_email: string;
   _bap_entity_combo_key: string;
   _bap_rebate_id: string;
-  _user_email: string;
+  _bap_applicant_name: string;
+  _bap_district_name: string;
+  _bap_district_state: string;
+};
+
+type FormioPRF2024FormDataFields = FormioPRF2024DashboardDataFields & {
+  [field: string]: unknown;
+  _frf_modified: string;
   _user_title: string;
   _user_name: string;
   _bap_applicant_email: string;
   _bap_applicant_title: string;
-  _bap_applicant_name: string;
   _bap_applicant_efti: string;
   _bap_applicant_uei: string;
   _bap_applicant_organization_id: string;
@@ -526,11 +540,9 @@ type FormioPRF2024Data = {
   _bap_alternate_phone: string | null;
   _bap_district_id: string;
   _bap_district_nces_id: string;
-  _bap_district_name: string;
   _bap_district_address_1: string;
   _bap_district_address_2: string;
   _bap_district_city: string;
-  _bap_district_state: string;
   _bap_district_zip: string;
   _bap_district_priority: string;
   _bap_district_priority_reason: {
@@ -604,19 +616,20 @@ type FormioPRF2024Data = {
   }[];
 };
 
-type FormioCRF2024Data = {
-  [field: string]: unknown;
-  // fields injected upon a new draft CRF submission creation:
+type FormioCRF2024DashboardDataFields = {
   _user_email: string;
+  _bap_entity_combo_key: string;
+};
+
+type FormioCRF2024FormDataFields = FormioCRF2024DashboardDataFields & {
+  [field: string]: unknown;
   _user_title: string;
   _user_name: string;
-  _bap_entity_combo_key: string;
   _bap_rebate_id: string;
 };
 
-type FormioChange2024Data = {
+type FormioChange2024FormDataFields = {
   [field: string]: unknown;
-  // fields injected upon a new draft Change Request form submission creation:
   _request_form: CSBFormType;
   _bap_entity_combo_key: string;
   _bap_rebate_id: string;
@@ -624,8 +637,10 @@ type FormioChange2024Data = {
   _user_email: string;
   _user_title: string;
   _user_name: string;
-  // fields set by the form definition (among others):
-  request_type: { label: string; value: string };
+  request_type: {
+    label: string;
+    value: string;
+  };
 };
 
 export type FormioSchemaAndSubmission<FormioFormSubmission> =
@@ -640,62 +655,98 @@ export type FormioSchemaAndSubmission<FormioFormSubmission> =
       submission: FormioFormSubmission;
     };
 
-export type FormioFRF2022Submission = FormioSubmission & {
-  data: FormioFRF2022Data;
+export type FormioFRF2022DashboardSubmission = FormioSubmission & {
+  data: FormioFRF2022DashboardDataFields;
 };
 
-export type FormioPRF2022Submission = FormioSubmission & {
-  data: FormioPRF2022Data;
+export type FormioFRF2022FormSubmission = FormioSubmission & {
+  data: FormioFRF2022FormDataFields;
 };
 
-export type FormioCRF2022Submission = FormioSubmission & {
-  data: FormioCRF2022Data;
+export type FormioPRF2022DashboardSubmission = FormioSubmission & {
+  data: FormioPRF2022DashboardDataFields;
 };
 
-export type FormioFRF2023Submission = FormioSubmission & {
-  data: FormioFRF2023Data;
+export type FormioPRF2022FormSubmission = FormioSubmission & {
+  data: FormioPRF2022FormDataFields;
 };
 
-export type FormioPRF2023Submission = FormioSubmission & {
-  data: FormioPRF2023Data;
+export type FormioCRF2022DashboardSubmission = FormioSubmission & {
+  data: FormioCRF2022DashboardDataFields;
 };
 
-export type FormioCRF2023Submission = FormioSubmission & {
-  data: FormioCRF2023Data;
+export type FormioCRF2022FormSubmission = FormioSubmission & {
+  data: FormioCRF2022FormDataFields;
 };
 
-export type FormioChange2023Submission = FormioSubmission & {
-  data: FormioChange2023Data;
+export type FormioFRF2023DashboardSubmission = FormioSubmission & {
+  data: FormioFRF2023DashboardDataFields;
 };
 
-export type FormioFRF2024Submission = FormioSubmission & {
-  data: FormioFRF2024Data;
+export type FormioFRF2023FormSubmission = FormioSubmission & {
+  data: FormioFRF2023FormDataFields;
 };
 
-export type FormioPRF2024Submission = FormioSubmission & {
-  data: FormioPRF2024Data;
+export type FormioPRF2023DashboardSubmission = FormioSubmission & {
+  data: FormioPRF2023DashboardDataFields;
 };
 
-export type FormioCRF2024Submission = FormioSubmission & {
-  data: FormioCRF2024Data;
+export type FormioPRF2023FormSubmission = FormioSubmission & {
+  data: FormioPRF2023FormDataFields;
 };
 
-export type FormioChange2024Submission = FormioSubmission & {
-  data: FormioChange2024Data;
+export type FormioCRF2023DashboardSubmission = FormioSubmission & {
+  data: FormioCRF2023DashboardDataFields;
+};
+
+export type FormioCRF2023FormSubmission = FormioSubmission & {
+  data: FormioCRF2023FormDataFields;
+};
+
+export type FormioChange2023FormSubmission = FormioSubmission & {
+  data: FormioChange2023FormDataFields;
+};
+
+export type FormioFRF2024DashboardSubmission = FormioSubmission & {
+  data: FormioFRF2024DashboardDataFields;
+};
+
+export type FormioFRF2024FormSubmission = FormioSubmission & {
+  data: FormioFRF2024FormDataFields;
+};
+
+export type FormioPRF2024DashboardSubmission = FormioSubmission & {
+  data: FormioPRF2024DashboardDataFields;
+};
+
+export type FormioPRF2024FormSubmission = FormioSubmission & {
+  data: FormioPRF2024FormDataFields;
+};
+
+export type FormioCRF2024DashboardSubmission = FormioSubmission & {
+  data: FormioCRF2024DashboardDataFields;
+};
+
+export type FormioCRF2024FormSubmission = FormioSubmission & {
+  data: FormioCRF2024FormDataFields;
+};
+
+export type FormioChange2024FormSubmission = FormioSubmission & {
+  data: FormioChange2024FormDataFields;
 };
 
 export type Rebate2022 = {
   rebateYear: "2022";
   frf: {
-    formio: FormioFRF2022Submission;
+    formio: FormioFRF2022DashboardSubmission;
     bap: BapSubmissionData | null;
   };
   prf: {
-    formio: FormioPRF2022Submission | null;
+    formio: FormioPRF2022DashboardSubmission | null;
     bap: BapSubmissionData | null;
   };
   crf: {
-    formio: FormioCRF2022Submission | null;
+    formio: FormioCRF2022DashboardSubmission | null;
     bap: BapSubmissionData | null;
   };
 };
@@ -703,15 +754,15 @@ export type Rebate2022 = {
 export type Rebate2023 = {
   rebateYear: "2023";
   frf: {
-    formio: FormioFRF2023Submission;
+    formio: FormioFRF2023DashboardSubmission;
     bap: BapSubmissionData | null;
   };
   prf: {
-    formio: FormioPRF2023Submission | null;
+    formio: FormioPRF2023DashboardSubmission | null;
     bap: BapSubmissionData | null;
   };
   crf: {
-    formio: FormioCRF2023Submission | null;
+    formio: FormioCRF2023DashboardSubmission | null;
     bap: BapSubmissionData | null;
   };
 };
@@ -719,15 +770,15 @@ export type Rebate2023 = {
 export type Rebate2024 = {
   rebateYear: "2024";
   frf: {
-    formio: FormioFRF2024Submission;
+    formio: FormioFRF2024DashboardSubmission;
     bap: BapSubmissionData | null;
   };
   prf: {
-    formio: FormioPRF2024Submission | null;
+    formio: FormioPRF2024DashboardSubmission | null;
     bap: BapSubmissionData | null;
   };
   crf: {
-    formio: FormioCRF2024Submission | null;
+    formio: FormioCRF2024DashboardSubmission | null;
     bap: BapSubmissionData | null;
   };
 };

@@ -9,7 +9,7 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import {
   type FormioSchemaAndSubmission,
-  type FormioPRF2023Submission,
+  type FormioPRF2023FormSubmission,
 } from "@/types";
 import { serverUrl, messages } from "@/config";
 import {
@@ -32,7 +32,7 @@ import { Message } from "@/components/message";
 import { MarkdownContent } from "@/components/markdownContent";
 import { useNotificationsActions } from "@/contexts/notifications";
 
-type Response = FormioSchemaAndSubmission<FormioPRF2023Submission>;
+type Response = FormioSchemaAndSubmission<FormioPRF2023FormSubmission>;
 
 /** Custom hook to fetch and update Formio submission data */
 function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
@@ -56,7 +56,7 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
       mongoId: string;
       submission: Submission;
     }) => {
-      return postData<FormioPRF2023Submission>(url, updatedSubmission);
+      return postData<FormioPRF2023FormSubmission>(url, updatedSubmission);
     },
     onSuccess: (res, _payload, _context) => {
       return queryClient.setQueryData<Response>(
