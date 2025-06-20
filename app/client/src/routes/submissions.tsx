@@ -64,6 +64,7 @@ function FormLink(props: { type: "edit" | "view"; to: LinkProps["to"] }) {
         type === "view" && "usa-button--base",
         "font-sans-2xs margin-right-0 padding-x-105 padding-y-1",
       )}
+      viewTransition
     >
       <span className="display-flex flex-align-center">
         <svg
@@ -449,7 +450,9 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
                 frfModified: frf.bap.modified,
               })
                 .then((_res) => {
-                  navigate(`/prf/2022/${frf.bap?.rebateId}`);
+                  navigate(`/prf/2022/${frf.bap?.rebateId}`, {
+                    viewTransition: true,
+                  });
                 })
                 .catch((_err) => {
                   displayErrorNotification({
@@ -660,7 +663,9 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
                 prfModified: prf.bap.modified,
               })
                 .then((_res) => {
-                  navigate(`/crf/2022/${prf.bap?.rebateId}`);
+                  navigate(`/crf/2022/${prf.bap?.rebateId}`, {
+                    viewTransition: true,
+                  });
                 })
                 .catch((_err) => {
                   displayErrorNotification({
@@ -996,7 +1001,7 @@ function ChangeRequests2023() {
                 <Fragment key={index}>
                   <tr>
                     <th scope="row">
-                      <Link to={`/change/2023/${_id}`}>
+                      <Link to={`/change/2023/${_id}`} viewTransition>
                         {_bap_rebate_id || _mongo_id}
                       </Link>
                     </th>
@@ -1314,7 +1319,9 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
                 frfModified: frf.bap.modified,
               })
                 .then((_res) => {
-                  navigate(`/prf/2023/${frf.bap?.rebateId}`);
+                  navigate(`/prf/2023/${frf.bap?.rebateId}`, {
+                    viewTransition: true,
+                  });
                 })
                 .catch((_err) => {
                   displayErrorNotification({
@@ -1683,7 +1690,7 @@ function ChangeRequests2024() {
                 <Fragment key={index}>
                   <tr>
                     <th scope="row">
-                      <Link to={`/change/2024/${_id}`}>
+                      <Link to={`/change/2024/${_id}`} viewTransition>
                         {_bap_rebate_id || _mongo_id}
                       </Link>
                     </th>
@@ -1986,7 +1993,7 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 //                 frfModified: frf.bap.modified,
 //               })
 //                 .then((_res) => {
-//                   navigate(`/prf/2024/${frf.bap?.rebateId}`);
+//                   navigate(`/prf/2024/${frf.bap?.rebateId}`, { viewTransition: true });
 //                 })
 //                 .catch((_err) => {
 //                   displayErrorNotification({
@@ -2297,7 +2304,7 @@ export function Submissions() {
                 <NewApplicationIconText />
               </button>
             ) : (
-              <Link to="/frf/new" className={btnClassNames}>
+              <Link to="/frf/new" className={btnClassNames} viewTransition>
                 <NewApplicationIconText />
               </Link>
             )}

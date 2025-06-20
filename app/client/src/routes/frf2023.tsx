@@ -312,7 +312,11 @@ function FundingRequestForm(props: { email: string }) {
             });
           });
       },
-      dismissedAction: () => navigate(`/prf/2023/${rebate.rebateId}`),
+      dismissedAction: () => {
+        return navigate(`/prf/2023/${rebate.rebateId}`, {
+          viewTransition: true,
+        });
+      },
     });
 
     return null;
@@ -490,7 +494,7 @@ function FundingRequestForm(props: { email: string }) {
                    * NOTE: we'll keep the success notification displayed and
                    * redirect the user to their dashboard
                    */
-                  navigate("/");
+                  navigate("/", { viewTransition: true });
                 }
 
                 if (onSubmitParam.state === "draft") {

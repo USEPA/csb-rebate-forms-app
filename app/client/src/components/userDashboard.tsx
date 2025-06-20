@@ -103,7 +103,7 @@ export function UserDashboard(props: { email: string }) {
       ),
       confirmText: "Yes",
       dismissText: "Cancel",
-      confirmedAction: () => navigate(url),
+      confirmedAction: () => navigate(url, { viewTransition: true }),
     });
   }
 
@@ -153,6 +153,7 @@ export function UserDashboard(props: { email: string }) {
                     confirmationNavigation("/");
                   }
                 }}
+                viewTransition
               >
                 <DashboardIconText />
               </Link>
@@ -175,6 +176,7 @@ export function UserDashboard(props: { email: string }) {
                       confirmationNavigation("/helpdesk");
                     }
                   }}
+                  viewTransition
                 >
                   <HelpdeskIconText />
                 </Link>

@@ -362,7 +362,7 @@ function CloseOutRequestForm(props: { email: string }) {
                    * NOTE: we'll keep the success notification displayed and
                    * redirect the user to their dashboard
                    */
-                  navigate("/");
+                  navigate("/", { viewTransition: true });
                 }
 
                 if (onSubmitParam.state === "draft") {
