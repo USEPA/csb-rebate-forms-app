@@ -35,6 +35,7 @@ const { NODE_ENV } = process.env;
 const formDataFieldNames = {
   2022: {
     frf: [
+      "bap_hidden_entity_combo_key",
       "applicantUEI",
       "applicantEfti",
       "applicantEfti_display",
@@ -42,8 +43,16 @@ const formDataFieldNames = {
       "schoolDistrictName",
       "last_updated_by",
     ],
-    prf: ["hidden_current_user_email", "hidden_bap_rebate_id"],
-    crf: ["hidden_current_user_email", "hidden_bap_rebate_id"],
+    prf: [
+      "bap_hidden_entity_combo_key",
+      "hidden_current_user_email",
+      "hidden_bap_rebate_id",
+    ],
+    crf: [
+      "bap_hidden_entity_combo_key",
+      "hidden_current_user_email",
+      "hidden_bap_rebate_id",
+    ],
     change: [],
   },
   2023: {

@@ -140,6 +140,7 @@ export type FormioSubmission = Submission & {
 };
 
 type FormioFRF2022DashboardDataFields = {
+  bap_hidden_entity_combo_key: string;
   applicantUEI: string;
   applicantEfti: string;
   applicantEfti_display: string;
@@ -153,7 +154,6 @@ type FormioFRF2022FormDataFields = FormioFRF2022DashboardDataFields & {
   hidden_current_user_email: string;
   hidden_current_user_title: string;
   hidden_current_user_name: string;
-  bap_hidden_entity_combo_key: string;
   sam_hidden_applicant_email: string;
   sam_hidden_applicant_title: string;
   sam_hidden_applicant_name: string;
@@ -168,13 +168,13 @@ type FormioFRF2022FormDataFields = FormioFRF2022DashboardDataFields & {
 };
 
 type FormioPRF2022DashboardDataFields = {
+  bap_hidden_entity_combo_key: string;
   hidden_current_user_email: string;
   hidden_bap_rebate_id: string;
 };
 
 type FormioPRF2022FormDataFields = FormioPRF2022DashboardDataFields & {
   [field: string]: unknown;
-  bap_hidden_entity_combo_key: string;
   hidden_application_form_modified: string; // ISO 8601 date time string,
   hidden_current_user_title: string;
   hidden_current_user_name: string;
@@ -213,13 +213,13 @@ type FormioPRF2022FormDataFields = FormioPRF2022DashboardDataFields & {
 };
 
 type FormioCRF2022DashboardDataFields = {
+  bap_hidden_entity_combo_key: string;
   hidden_current_user_email: string;
   hidden_bap_rebate_id: string;
 };
 
 type FormioCRF2022FormDataFields = FormioCRF2022DashboardDataFields & {
   [field: string]: unknown;
-  bap_hidden_entity_combo_key: string;
   hidden_prf_modified: string; // ISO 8601 date time string
   hidden_current_user_title: string;
   hidden_current_user_name: string;
