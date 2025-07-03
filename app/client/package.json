@@ -33,7 +33,7 @@
     "tailwindcss": "4.1.11",
     "typescript": "5.8.3",
     "typescript-eslint": "8.35.1",
-    "vite": "6.2.2"
+    "vite": "7.0.1"
   },
   "dependencies": {
     "@formio/bootstrap": "3.1.1",
