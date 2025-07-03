@@ -37,7 +37,7 @@
   },
   "dependencies": {
     "@formio/bootstrap": "3.1.1",
-    "@formio/js": "5.1.1",
+    "@formio/js": "5.0.1",
     "@formio/premium": "3.0.5",
     "@formio/react": "6.0.1",
     "@formio/uswds": "2.6.0",
