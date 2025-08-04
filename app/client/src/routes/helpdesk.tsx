@@ -113,6 +113,52 @@ function formatTime(dateTimeString: string | null) {
   return dateTimeString ? new Date(dateTimeString).toLocaleTimeString() : "";
 }
 
+/** Custom hook to fetch a PDF of a form submission from Formio. */
+function useSubmissionPDFQuery(options: {
+  formio:
+    | FormioFRF2022FormSubmission
+    | FormioPRF2022FormSubmission
+    | FormioCRF2022FormSubmission
+    | FormioFRF2023FormSubmission
+    | FormioPRF2023FormSubmission
+    | FormioFRF2024FormSubmission;
+}) {
+  const { formio } = options;
+
+  const formId = formio.form;
+  const mongoId = formio._id;
+
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    queryClient.resetQueries({ queryKey: ["helpdesk/pdf"] });
+  }, [queryClient]);
+
+  const query = useQuery({
+    queryKey: ["helpdesk/pdf"],
+    queryFn: () => {
+      const url = `${serverUrl}/api/help/formio/pdf/${formId}/${mongoId}`;
+      return getData<string>(url);
+    },
+    enabled: false,
+  });
+
+  async function downloadPDF() {
+    const result = await query.refetch();
+
+    if (result.data) {
+      const link = document.createElement("a");
+      link.setAttribute("href", `data:application/pdf;base64,${result.data}`);
+      link.setAttribute("download", `${mongoId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  }
+
+  return { ...query, downloadPDF };
+}
+
 function ResultTableRow(props: {
   formDisplayed: boolean;
   setFormDisplayed: Dispatch<SetStateAction<boolean>>;
@@ -157,11 +203,9 @@ function ResultTableRow(props: {
 
   useEffect(() => {
     queryClient.resetQueries({ queryKey: ["helpdesk/actions"] });
-    queryClient.resetQueries({ queryKey: ["helpdesk/pdf"] });
   }, [queryClient]);
 
   const actionsUrl = `${serverUrl}/api/help/formio/actions/${formId}/${mongoId}`;
-  const pdfUrl = `${serverUrl}/api/help/formio/pdf/${formId}/${mongoId}`;
 
   const actionsQuery = useQuery({
     queryKey: ["helpdesk/actions"],
@@ -179,25 +223,7 @@ function ResultTableRow(props: {
     }
   }, [actionsQuery.status, actionsQuery.data, setActionsData]);
 
-  const pdfQuery = useQuery({
-    queryKey: ["helpdesk/pdf"],
-    queryFn: () => getData<string>(pdfUrl),
-    enabled: false,
-  });
-
-  useEffect(() => {
-    if (pdfQuery.status === "success" && pdfQuery.data) {
-      const link = document.createElement("a");
-      link.setAttribute("href", `data:application/pdf;base64,${pdfQuery.data}`);
-      link.setAttribute("download", `${formio._id}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      // clear the pdf query cache after the download succeeds
-      queryClient.resetQueries({ queryKey: ["helpdesk/pdf"] });
-    }
-  }, [pdfQuery.status, pdfQuery.data, formio._id, queryClient]);
+  const pdfQuery = useSubmissionPDFQuery({ formio });
 
   if (!rebateYear) {
     return null;
@@ -381,7 +407,7 @@ function ResultTableRow(props: {
           className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
           type="button"
           disabled={pdfQuery.isFetching}
-          onClick={(_ev) => pdfQuery.refetch()}
+          onClick={(_ev) => pdfQuery.downloadPDF()}
         >
           <span className="display-flex flex-align-center">
             <svg
