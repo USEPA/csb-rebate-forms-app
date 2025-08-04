@@ -40,7 +40,6 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
 
   useEffect(() => {
     queryClient.resetQueries({ queryKey: ["formio/2023/prf-submission"] });
-    queryClient.resetQueries({ queryKey: ["formio/2023/prf-pdf"] });
   }, [queryClient]);
 
   const url = `${serverUrl}/api/formio/2023/prf-submission/${rebateId}`;
@@ -251,7 +250,7 @@ function PaymentRequestForm(props: { email: string }) {
             className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
             type="button"
             disabled={pdfQuery.isFetching}
-            onClick={(_ev) => pdfQuery.refetch()}
+            onClick={(_ev) => pdfQuery.downloadPDF()}
           >
             <span className="display-flex flex-align-center">
               <svg

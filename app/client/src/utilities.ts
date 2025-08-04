@@ -235,6 +235,14 @@ export function useSubmissionPDFQuery(options: {
 }) {
   const { rebateYear, formType, mongoId } = options;
 
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    queryClient.resetQueries({
+      queryKey: [`formio/${rebateYear}/${formType}-pdf`],
+    });
+  }, [queryClient, formType, rebateYear]);
+
   const query = useQuery({
     queryKey: [`formio/${rebateYear}/${formType}-pdf`, { id: mongoId }],
     queryFn: () => {
@@ -244,18 +252,22 @@ export function useSubmissionPDFQuery(options: {
     enabled: false,
   });
 
-  useEffect(() => {
-    if (query.status === "success" && query.data) {
+  async function downloadPDF() {
+    if (!mongoId) return;
+
+    const result = await query.refetch();
+
+    if (result.data) {
       const link = document.createElement("a");
-      link.setAttribute("href", `data:application/pdf;base64,${query.data}`);
+      link.setAttribute("href", `data:application/pdf;base64,${result.data}`);
       link.setAttribute("download", `${mongoId}.pdf`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     }
-  }, [query.status, query.data, mongoId]);
+  }
 
-  return query;
+  return { ...query, downloadPDF };
 }
 
 /** Custom hook to fetch Change Request form submissions from Formio. */
