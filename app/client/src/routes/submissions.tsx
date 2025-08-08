@@ -174,8 +174,17 @@ function FRF2022Submission(props: { rebate: Rebate2022 }) {
   const { frf, prf, crf } = rebate;
 
   const configData = useConfigData();
+  const bapSamData = useBapSamData();
 
-  if (!configData) return null;
+  if (!configData || !bapSamData) return null;
+
+  /** matched SAM.gov entity for the FRF submission */
+  const entity = bapSamData.entities.find((entity) => {
+    const comboKey = frf.formio.data.bap_hidden_entity_combo_key;
+    return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === comboKey;
+  });
+
+  if (!entity) return null;
 
   const frfSubmissionPeriodOpen = configData.submissionPeriodOpen["2022"].frf;
 
