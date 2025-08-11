@@ -15,9 +15,9 @@ import icons from "uswds/img/sprite.svg";
 import {
   type RebateYear,
   type BapSamEntity,
-  type FormioFRF2022Submission,
-  type FormioFRF2023Submission,
-  type FormioFRF2024Submission,
+  type FormioFRF2022FormSubmission,
+  type FormioFRF2023FormSubmission,
+  type FormioFRF2024FormSubmission,
 } from "@/types";
 import { serverUrl, messages } from "@/config";
 import {
@@ -172,7 +172,7 @@ export function FRFNew() {
     <Transition show={dialogShown}>
       <Dialog
         className={clsx("tw:relative tw:z-10")}
-        onClose={(_value) => navigate("/")}
+        onClose={(_value) => navigate("/", { viewTransition: true })}
       >
         <TransitionChild>
           <DialogBackdrop
@@ -219,7 +219,7 @@ export function FRFNew() {
                         "tw:focus:text-gray-700",
                       )}
                       type="button"
-                      onClick={(_ev) => navigate("/")}
+                      onClick={(_ev) => navigate("/", { viewTransition: true })}
                     >
                       <span className={clsx("tw:sr-only")}>Close</span>
                       <XMarkIcon
@@ -341,16 +341,16 @@ export function FRFNew() {
                                           });
 
                                         postData<
-                                          | FormioFRF2022Submission
-                                          | FormioFRF2023Submission
-                                          | FormioFRF2024Submission
+                                          | FormioFRF2022FormSubmission
+                                          | FormioFRF2023FormSubmission
+                                          | FormioFRF2024FormSubmission
                                         >(
                                           `${serverUrl}/api/formio/${rebateYear}/frf-submission/`,
                                           { data, state: "draft" },
                                         )
                                           .then((res) => {
                                             const url = `/frf/${rebateYear}/${res._id}`;
-                                            navigate(url);
+                                            navigate(url, { viewTransition: true }); // prettier-ignore
                                           })
                                           .catch((_err) => {
                                             setErrorMessage({

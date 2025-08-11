@@ -6,7 +6,7 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import {
   type FormioSchemaAndSubmission,
-  type FormioChange2024Submission,
+  type FormioChange2024FormSubmission,
 } from "@/types";
 import { serverUrl, messages } from "@/config";
 import { getData, useContentData } from "@/utilities";
@@ -14,7 +14,7 @@ import { Loading } from "@/components/loading";
 import { Message } from "@/components/message";
 import { MarkdownContent } from "@/components/markdownContent";
 
-type Response = FormioSchemaAndSubmission<FormioChange2024Submission>;
+type Response = FormioSchemaAndSubmission<FormioChange2024FormSubmission>;
 
 /** Custom hook to fetch Formio submission data */
 function useFormioSubmissionQuery(mongoId: string | undefined) {
@@ -41,13 +41,13 @@ export function Change2024() {
   const content = useContentData();
 
   const { query } = useFormioSubmissionQuery(mongoId);
-  const { userAccess, formSchema, submission } = query.data ?? {};
+  const { access, schema, submission } = query.data ?? {};
 
   if (query.isInitialLoading) {
     return <Loading />;
   }
 
-  if (query.isError || !userAccess || !formSchema || !submission) {
+  if (query.isError || !access || !schema || !submission) {
     return <Message type="error" text={messages.formSubmissionError} />;
   }
 
@@ -74,8 +74,7 @@ export function Change2024() {
 
       <div className="csb-form">
         <Form
-          src={formSchema.json}
-          url={formSchema.url}
+          src={schema}
           submission={submission}
           options={{
             readOnly: true,

@@ -13,7 +13,7 @@ import { type FormType, type Submission, Form } from "@formio/react";
 import clsx from "clsx";
 import icons from "uswds/img/sprite.svg";
 // ---
-import { type CSBFormType, type FormioChange2023Submission } from "@/types";
+import { type CSBFormType, type FormioChange2023FormSubmission } from "@/types";
 import { serverUrl, messages } from "@/config";
 import {
   getData,
@@ -40,7 +40,7 @@ type ChangeRequestData = {
   districtState: string;
 };
 
-type Response = { url: string; json: FormType };
+type Response = FormType;
 
 /** Custom hook to fetch Formio schema */
 function useFormioSchemaQuery() {
@@ -61,7 +61,7 @@ function useFormioSubmissionMutation() {
 
   const mutation = useMutation({
     mutationFn: (submission: Submission) => {
-      return postData<FormioChange2023Submission>(url, submission);
+      return postData<FormioChange2023FormSubmission>(url, submission);
     },
   });
 
@@ -229,7 +229,7 @@ function ChangeRequest2023Form(props: {
   const { query } = useFormioSchemaQuery();
   const { mutation } = useFormioSubmissionMutation();
 
-  const formSchema = query.data;
+  const schema = query.data;
 
   /**
    * Stores when data is being posted to the server, so a loading overlay can
@@ -257,7 +257,7 @@ function ChangeRequest2023Form(props: {
     return <Loading />;
   }
 
-  if (query.isError || !formSchema) {
+  if (query.isError || !schema) {
     return <Message type="error" text={messages.formSchemaError} />;
   }
 
@@ -295,8 +295,7 @@ function ChangeRequest2023Form(props: {
 
       <div className="csb-form">
         <Form
-          src={formSchema.json}
-          url={formSchema.url}
+          src={schema}
           submission={{
             data: {
               _request_form: formType,

@@ -687,7 +687,7 @@ async function queryForBapFormSubmissionData(
   //   Order_Request__c
   // WHERE
   //   RecordTypeId = '${formRecordTypeId}' AND
-  //   CSB_Form_ID__c = '${mongoId}'
+  //   CSB_Form_ID__c = '${mongoId}' AND
   //   Latest_Version__c = TRUE`
 
   const formRecordQuery = await bapConnection

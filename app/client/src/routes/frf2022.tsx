@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef } from "react";
 import { useNavigate, useOutletContext, useParams } from "react-router";
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
-import { Formio } from "@formio/js";
 import { type FormProps, type Submission, Form } from "@formio/react";
 import clsx from "clsx";
 import { cloneDeep, isEqual } from "lodash";
@@ -11,7 +10,7 @@ import "bootstrap/dist/css/bootstrap-grid.min.css";
 // ---
 import {
   type FormioSchemaAndSubmission,
-  type FormioFRF2022Submission,
+  type FormioFRF2022FormSubmission,
 } from "@/types";
 import { serverUrl, messages } from "@/config";
 import {
@@ -35,7 +34,7 @@ import { MarkdownContent } from "@/components/markdownContent";
 import { useDialogActions } from "@/contexts/dialog";
 import { useNotificationsActions } from "@/contexts/notifications";
 
-type Response = FormioSchemaAndSubmission<FormioFRF2022Submission>;
+type Response = FormioSchemaAndSubmission<FormioFRF2022FormSubmission>;
 
 /** Custom hook to fetch and update Formio submission data */
 function useFormioSubmissionQueryAndMutation(mongoId: string | undefined) {
@@ -43,7 +42,6 @@ function useFormioSubmissionQueryAndMutation(mongoId: string | undefined) {
 
   useEffect(() => {
     queryClient.resetQueries({ queryKey: ["formio/2022/frf-submission"] });
-    queryClient.resetQueries({ queryKey: ["formio/2022/frf-pdf"] });
   }, [queryClient]);
 
   const url = `${serverUrl}/api/formio/2022/frf-submission/${mongoId}`;
@@ -52,25 +50,6 @@ function useFormioSubmissionQueryAndMutation(mongoId: string | undefined) {
     queryKey: ["formio/2022/frf-submission", { id: mongoId }],
     queryFn: () => {
       return getData<Response>(url).then((res) => {
-        const comboKey = res.submission?.data.bap_hidden_entity_combo_key;
-
-        /**
-         * Change the formUrl the File component uses, so the s3 requests are
-         * routed through the CSB server app.
-         *
-         * https://github.com/formio/formio.js/blob/master/src/providers/storage/s3.js
-         */
-        const s3 = Formio.Providers.providers.storage.s3;
-
-        Formio.Providers.providers.storage.s3 = function (param: {
-          formUrl: string;
-          [key: string]: unknown;
-        }) {
-          const updatedParam = cloneDeep(param);
-          updatedParam.formUrl = `${serverUrl}/api/formio/2022/s3/frf/${mongoId}/${comboKey}`;
-          return s3.call(this, updatedParam);
-        };
-
         const data = { ...res.submission?.data };
 
         // remove `ncesDataSource` field
@@ -90,7 +69,7 @@ function useFormioSubmissionQueryAndMutation(mongoId: string | undefined) {
 
   const mutation = useMutation({
     mutationFn: (updatedSubmission: Submission) => {
-      return postData<FormioFRF2022Submission>(url, updatedSubmission);
+      return postData<FormioFRF2022FormSubmission>(url, updatedSubmission);
     },
     onSuccess: (res, _payload, _context) => {
       return queryClient.setQueryData<Response>(
@@ -136,7 +115,9 @@ function FundingRequestForm(props: { email: string }) {
   const submissions = useSubmissions("2022");
 
   const { query, mutation } = useFormioSubmissionQueryAndMutation(mongoId);
-  const { userAccess, formSchema, submission } = query.data ?? {};
+  const { access, schema, submission } = query.data ?? {};
+
+  const comboKey = submission?.data.bap_hidden_entity_combo_key || "";
 
   const pdfQuery = useSubmissionPDFQuery({
     rebateYear: "2022",
@@ -191,7 +172,7 @@ function FundingRequestForm(props: { email: string }) {
     return <Loading />;
   }
 
-  if (query.isError || !userAccess || !formSchema || !submission) {
+  if (query.isError || !access || !schema || !submission) {
     return <Message type="error" text={messages.formSubmissionError} />;
   }
 
@@ -346,7 +327,11 @@ function FundingRequestForm(props: { email: string }) {
             });
           });
       },
-      dismissedAction: () => navigate(`/prf/2022/${rebate.rebateId}`),
+      dismissedAction: () => {
+        return navigate(`/prf/2022/${rebate.rebateId}`, {
+          viewTransition: true,
+        });
+      },
     });
 
     return null;
@@ -399,7 +384,7 @@ function FundingRequestForm(props: { email: string }) {
           className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
           type="button"
           disabled={pdfQuery.isFetching}
-          onClick={(_ev) => pdfQuery.refetch()}
+          onClick={(_ev) => pdfQuery.downloadPDF()}
         >
           <span className="display-flex flex-align-center">
             <svg
@@ -439,8 +424,8 @@ function FundingRequestForm(props: { email: string }) {
 
       <div className="csb-form">
         <Form
-          src={formSchema.json}
-          url={formSchema.url}
+          src={schema}
+          url={`${serverUrl}/api/formio/2022/s3/frf/${mongoId}/${comboKey}`}
           submission={{
             /**
              * NOTE: The `csb-form-submission-state` metadata field's value is
@@ -531,7 +516,7 @@ function FundingRequestForm(props: { email: string }) {
                    * NOTE: we'll keep the success notification displayed and
                    * redirect the user to their dashboard
                    */
-                  navigate("/");
+                  navigate("/", { viewTransition: true });
                 }
 
                 if (onSubmitParam.state === "draft") {

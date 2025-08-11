@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef } from "react";
 import { useNavigate, useOutletContext, useParams } from "react-router";
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
-import { Formio } from "@formio/js";
 import { type FormProps, type Submission, Form } from "@formio/react";
 import clsx from "clsx";
 import { cloneDeep, isEqual } from "lodash";
@@ -10,7 +9,7 @@ import icons from "uswds/img/sprite.svg";
 // ---
 import {
   type FormioSchemaAndSubmission,
-  type FormioPRF2023Submission,
+  type FormioPRF2023FormSubmission,
 } from "@/types";
 import { serverUrl, messages } from "@/config";
 import {
@@ -33,7 +32,7 @@ import { Message } from "@/components/message";
 import { MarkdownContent } from "@/components/markdownContent";
 import { useNotificationsActions } from "@/contexts/notifications";
 
-type Response = FormioSchemaAndSubmission<FormioPRF2023Submission>;
+type Response = FormioSchemaAndSubmission<FormioPRF2023FormSubmission>;
 
 /** Custom hook to fetch and update Formio submission data */
 function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
@@ -41,38 +40,13 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
 
   useEffect(() => {
     queryClient.resetQueries({ queryKey: ["formio/2023/prf-submission"] });
-    queryClient.resetQueries({ queryKey: ["formio/2023/prf-pdf"] });
   }, [queryClient]);
 
   const url = `${serverUrl}/api/formio/2023/prf-submission/${rebateId}`;
 
   const query = useQuery({
     queryKey: ["formio/2023/prf-submission", { id: rebateId }],
-    queryFn: () => {
-      return getData<Response>(url).then((res) => {
-        const mongoId = res.submission?._id;
-        const comboKey = res.submission?.data._bap_entity_combo_key;
-
-        /**
-         * Change the formUrl the File component uses, so the s3 requests are
-         * routed through the CSB server app.
-         *
-         * https://github.com/formio/formio.js/blob/master/src/providers/storage/s3.js
-         */
-        const s3 = Formio.Providers.providers.storage.s3;
-
-        Formio.Providers.providers.storage.s3 = function (param: {
-          formUrl: string;
-          [key: string]: unknown;
-        }) {
-          const updatedParam = cloneDeep(param);
-          updatedParam.formUrl = `${serverUrl}/api/formio/2023/s3/prf/${mongoId}/${comboKey}`;
-          return s3.call(this, updatedParam);
-        };
-
-        return Promise.resolve(res);
-      });
-    },
+    queryFn: () => getData<Response>(url),
     refetchOnWindowFocus: false,
   });
 
@@ -81,7 +55,7 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
       mongoId: string;
       submission: Submission;
     }) => {
-      return postData<FormioPRF2023Submission>(url, updatedSubmission);
+      return postData<FormioPRF2023FormSubmission>(url, updatedSubmission);
     },
     onSuccess: (res, _payload, _context) => {
       return queryClient.setQueryData<Response>(
@@ -125,7 +99,10 @@ function PaymentRequestForm(props: { email: string }) {
   const submissions = useSubmissions("2023");
 
   const { query, mutation } = useFormioSubmissionQueryAndMutation(rebateId);
-  const { userAccess, formSchema, submission } = query.data ?? {};
+  const { access, schema, submission } = query.data ?? {};
+
+  const mongoId = submission?._id || "";
+  const comboKey = submission?.data._bap_entity_combo_key || "";
 
   const pdfQuery = useSubmissionPDFQuery({
     rebateYear: "2023",
@@ -180,7 +157,7 @@ function PaymentRequestForm(props: { email: string }) {
     return <Loading />;
   }
 
-  if (query.isError || !userAccess || !formSchema || !submission) {
+  if (query.isError || !access || !schema || !submission) {
     return <Message type="error" text={messages.formSubmissionError} />;
   }
 
@@ -273,7 +250,7 @@ function PaymentRequestForm(props: { email: string }) {
             className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
             type="button"
             disabled={pdfQuery.isFetching}
-            onClick={(_ev) => pdfQuery.refetch()}
+            onClick={(_ev) => pdfQuery.downloadPDF()}
           >
             <span className="display-flex flex-align-center">
               <svg
@@ -314,8 +291,8 @@ function PaymentRequestForm(props: { email: string }) {
 
       <div className="csb-form">
         <Form
-          src={formSchema.json}
-          url={formSchema.url}
+          src={schema}
+          url={`${serverUrl}/api/formio/2023/s3/prf/${mongoId}/${comboKey}`}
           submission={{
             /**
              * NOTE: The `csb-form-submission-state` metadata field's value is
@@ -407,7 +384,7 @@ function PaymentRequestForm(props: { email: string }) {
                    * NOTE: we'll keep the success notification displayed and
                    * redirect the user to their dashboard
                    */
-                  navigate("/");
+                  navigate("/", { viewTransition: true });
                 }
 
                 if (onSubmitParam.state === "draft") {

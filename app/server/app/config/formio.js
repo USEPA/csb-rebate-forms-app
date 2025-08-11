@@ -161,8 +161,8 @@ const formioExampleComboKey = "0000000000000000";
 
 /** JSON response for forms user doesn't have access to */
 const formioNoUserAccess = {
-  userAccess: false,
-  formSchema: null,
+  access: false,
+  schema: null,
   submission: null,
 };
 
