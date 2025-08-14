@@ -1036,7 +1036,14 @@ function fetchDataForCRFSubmission({ rebateYear, req, res }) {
   }
 
   if (rebateYear === "2023") {
-    // TODO
+    return {
+      data: {
+        /* TODO */
+      },
+      /** Add custom metadata to track formio submissions from wrapper. */
+      metadata: { ...formioCSBMetadata },
+      state: "draft",
+    };
   }
 
   if (rebateYear === "2024") {
