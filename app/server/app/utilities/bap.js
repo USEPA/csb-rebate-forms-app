@@ -437,6 +437,22 @@ const { submissionPeriodOpen } = require("../config/formio");
  */
 
 /**
+ * @typedef {Object} BapDataFor2023CRF
+ * @property {{
+ *  attributes: { type: "Order_Request__c", url: string }
+ *  Id: string
+ * }[]} frf2023RecordQuery
+ * @property {{
+ *  attributes: { type: "Order_Request__c", url: string }
+ *  Id: string
+ * }[]} prf2023RecordQuery
+ * @property {{
+ *  attributes: { type: "Line_Item__c", url: string }
+ *  Id: string
+ * }[]} prf2023busRecordsQuery
+ */
+
+/**
  * @typedef {Object.<string, {
  *  dupeList: {
  *    Id: string
@@ -1889,6 +1905,33 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
 }
 
 /**
+ * Uses cached JSforce connection to query the BAP for 2023 FRF submission data
+ * and 2023 PRF submission data, for use in a brand new 2023 CRF submission.
+ *
+ * @param {express.Request} req
+ * @param {string} frfReviewItemId CSB Rebate ID with the form/version ID (9 digits)
+ * @param {string} prfReviewItemId CSB Rebate ID with the form/version ID (9 digits)
+ * @returns {Promise<BapDataFor2023CRF>} 2022 FRF and 2022 PRF submission fields
+ */
+async function queryBapFor2023CRFData(req, frfReviewItemId, prfReviewItemId) {
+  const logMessage =
+    `Querying the BAP for 2023 FRF submission associated with ` +
+    `FRF Review Item ID: '${frfReviewItemId}' ` +
+    `and 2023 PRF submission associated with ` +
+    `PRF Review Item ID: '${prfReviewItemId}'.`;
+  log({ level: "info", message: logMessage, req });
+
+  /** @type {{ bapConnection: jsforce.Connection }} */
+  const { bapConnection } = req.app.locals;
+
+  const frf2023RecordQuery = {};
+  const prf2023RecordQuery = {};
+  const prf2023busRecordsQuery = {};
+
+  return { frf2023RecordQuery, prf2023RecordQuery, prf2023busRecordsQuery };
+}
+
+/**
  * Uses cached JSforce connection to query the BAP for duplicate contacts or
  * organizations.
  *
@@ -2073,6 +2116,22 @@ function getBapDataFor2022CRF(req, frfReviewItemId, prfReviewItemId) {
 }
 
 /**
+ * Fetches 2023 FRF submission data and 2023 PRF submission data associated with
+ * a FRF Review Item ID and a PRF Review Item ID.
+ *
+ * @param {express.Request} req
+ * @param {string} frfReviewItemId
+ * @param {string} prfReviewItemId
+ * @returns {ReturnType<queryBapFor2023CRFData>}
+ */
+function getBapDataFor2023CRF(req, frfReviewItemId, prfReviewItemId) {
+  return verifyBapConnection(req, {
+    name: queryBapFor2023CRFData,
+    args: [req, frfReviewItemId, prfReviewItemId],
+  });
+}
+
+/**
  * Checks for duplicate contacts or organizations in the BAP.
  *
  * @param {express.Request} req
@@ -2138,6 +2197,7 @@ module.exports = {
   getBapDataFor2023PRF,
   getBapDataFor2024PRF,
   getBapDataFor2022CRF,
+  getBapDataFor2023CRF,
   checkForBapDuplicates,
   checkFormSubmissionPeriodAndBapStatus,
 };

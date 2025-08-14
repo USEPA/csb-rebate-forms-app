@@ -18,6 +18,7 @@ const {
   getBapDataFor2023PRF,
   getBapDataFor2024PRF,
   getBapDataFor2022CRF,
+  getBapDataFor2023CRF,
   checkFormSubmissionPeriodAndBapStatus,
 } = require("../utilities/bap");
 const { checkUserData } = require("../utilities/user");
@@ -1036,14 +1037,29 @@ function fetchDataForCRFSubmission({ rebateYear, req, res }) {
   }
 
   if (rebateYear === "2023") {
-    return {
-      data: {
-        /* TODO */
-      },
-      /** Add custom metadata to track formio submissions from wrapper. */
-      metadata: { ...formioCSBMetadata },
-      state: "draft",
-    };
+    return getBapDataFor2023CRF(req, frfReviewItemId, prfReviewItemId)
+      .then((results) => {
+        const {
+          frf2023RecordQuery,
+          prf2023RecordQuery,
+          prf2023busRecordsQuery,
+        } = results;
+
+        return {
+          data: {
+            /* TODO */
+          },
+          /** Add custom metadata to track formio submissions from wrapper. */
+          metadata: { ...formioCSBMetadata },
+          state: "draft",
+        };
+      })
+      .catch((error) => {
+        // NOTE: logged in bap verifyBapConnection
+        const errorStatus = 500;
+        const errorMessage = `Error getting data for a new 2023 Close Out form submission from the BAP.`;
+        return res.status(errorStatus).json({ message: errorMessage });
+      });
   }
 
   if (rebateYear === "2024") {
