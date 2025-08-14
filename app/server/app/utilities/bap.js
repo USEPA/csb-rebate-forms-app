@@ -1924,9 +1924,157 @@ async function queryBapFor2023CRFData(req, frfReviewItemId, prfReviewItemId) {
   /** @type {{ bapConnection: jsforce.Connection }} */
   const { bapConnection } = req.app.locals;
 
-  const frf2023RecordQuery = {};
-  const prf2023RecordQuery = {};
-  const prf2023busRecordsQuery = {};
+  // `SELECT
+  //   Id
+  // FROM
+  //   RecordType
+  // WHERE
+  //   DeveloperName = 'CSB_Funding_Request_2023' AND
+  //   SObjectType = 'Order_Request__c'
+  // LIMIT 1`
+
+  const frf2023RecordTypeIdQuery = await bapConnection
+    .sobject("RecordType")
+    .find(
+      {
+        DeveloperName: "CSB_Funding_Request_2023",
+        SObjectType: "Order_Request__c",
+      },
+      {
+        // "*": 1,
+        Id: 1, // Salesforce record ID
+      },
+    )
+    .limit(1)
+    .execute(async (err, records) => ((await err) ? err : records));
+
+  const frf2023RecordTypeId = frf2023RecordTypeIdQuery["0"].Id;
+
+  // `SELECT
+  //   Id
+  // FROM
+  //   Order_Request__c
+  // WHERE
+  //   RecordTypeId = '${frf2023RecordTypeId}' AND
+  //   CSB_Review_Item_ID__c = '${frfReviewItemId}' AND
+  //   Latest_Version__c = TRUE`
+
+  const frf2023RecordQuery = await bapConnection
+    .sobject("Order_Request__c")
+    .find(
+      {
+        RecordTypeId: frf2023RecordTypeId,
+        CSB_Review_Item_ID__c: frfReviewItemId,
+        Latest_Version__c: true,
+      },
+      {
+        // "*": 1,
+        Id: 1, // Salesforce record ID
+      },
+    )
+    .execute(async (err, records) => ((await err) ? err : records));
+
+  // `SELECT
+  //   Id
+  // FROM
+  //   RecordType
+  // WHERE
+  //   DeveloperName = 'CSB_Payment_Request_2023' AND
+  //   SObjectType = 'Order_Request__c'
+  // LIMIT 1`
+
+  const prf2023RecordTypeIdQuery = await bapConnection
+    .sobject("RecordType")
+    .find(
+      {
+        DeveloperName: "CSB_Payment_Request_2023",
+        SObjectType: "Order_Request__c",
+      },
+      {
+        // "*": 1,
+        Id: 1, // Salesforce record ID
+      },
+    )
+    .limit(1)
+    .execute(async (err, records) => ((await err) ? err : records));
+
+  const prf2023RecordTypeId = prf2023RecordTypeIdQuery["0"].Id;
+
+  // `SELECT
+  //   Id
+  // FROM
+  //   Order_Request__c
+  // WHERE
+  //   RecordTypeId = '${prf2023RecordTypeId}' AND
+  //   CSB_Review_Item_ID__c = '${prfReviewItemId}' AND
+  //   Latest_Version__c = TRUE`
+
+  const prf2023RecordQuery = await bapConnection
+    .sobject("Order_Request__c")
+    .find(
+      {
+        RecordTypeId: prf2023RecordTypeId,
+        CSB_Review_Item_ID__c: prfReviewItemId,
+        Latest_Version__c: true,
+      },
+      {
+        // "*": 1,
+        Id: 1, // Salesforce record ID
+      },
+    )
+    .execute(async (err, records) => ((await err) ? err : records));
+
+  const prf2023RecordId = prf2023RecordQuery["0"].Id;
+
+  // `SELECT
+  //   Id
+  // FROM
+  //   RecordType
+  // WHERE
+  //   DeveloperName = 'CSB_Rebate_Item' AND
+  //   SObjectType = 'Line_Item__c'
+  // LIMIT 1`
+
+  const rebateItemRecordTypeIdQuery = await bapConnection
+    .sobject("RecordType")
+    .find(
+      {
+        DeveloperName: "CSB_Rebate_Item",
+        SObjectType: "Line_Item__c",
+      },
+      {
+        // "*": 1,
+        Id: 1, // Salesforce record ID
+      },
+    )
+    .limit(1)
+    .execute(async (err, records) => ((await err) ? err : records));
+
+  const rebateItemRecordTypeId = rebateItemRecordTypeIdQuery["0"].Id;
+
+  // `SELECT
+  //   Id
+  // FROM
+  //   Line_Item__c
+  // WHERE
+  //   RecordTypeId = '${rebateItemRecordTypeId}' AND
+  //   Related_Order_Request__c = '${prf2023RecordId}' AND
+  //   CSB_Rebate_Item_Type__c = 'New Bus'`
+
+  const prf2023busRecordsQuery = await bapConnection
+    .sobject("Line_Item__c")
+    .find(
+      {
+        RecordTypeId: rebateItemRecordTypeId,
+        Related_Order_Request__c: prf2023RecordId,
+        CSB_Rebate_Item_Type__c: "New Bus",
+      },
+      {
+        // "*": 1,
+        Id: 1, // Salesforce record ID
+      },
+    )
+    .execute(async (err, records) => ((await err) ? err : records));
 
   return { frf2023RecordQuery, prf2023RecordQuery, prf2023busRecordsQuery };
 }
