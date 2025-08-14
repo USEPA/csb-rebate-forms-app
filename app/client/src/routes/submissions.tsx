@@ -1503,9 +1503,223 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
   );
 }
 
-// function CRF2023Submission(props: { rebate: Rebate2023 }) {
-//   //
-// }
+function CRF2023Submission(props: { rebate: Rebate2023 }) {
+  const { rebate } = props;
+  const { frf, prf, crf } = rebate;
+
+  const navigate = useNavigate();
+  const { email } = useOutletContext<{ email: string }>();
+
+  const configData = useConfigData();
+  const bapSamData = useBapSamData();
+  const { displayErrorNotification } = useNotificationsActions();
+
+  /**
+   * Stores when data is being posted to the server, so a loading indicator can
+   * be rendered inside the "New Close Out" button, and we can prevent double
+   * submits/creations of new Close Out form submissions.
+   */
+  const [dataIsPosting, setDataIsPosting] = useState(false);
+
+  if (!configData || !bapSamData) return null;
+
+  /** matched SAM.gov entity for the PRF submission */
+  const entity = bapSamData.entities.find((entity) => {
+    const comboKey = prf.formio?.data._bap_entity_combo_key;
+    return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === comboKey;
+  });
+
+  if (!entity) return null;
+
+  const { title, name } = getUserInfo(email, entity);
+
+  const crfSubmissionPeriodOpen = configData.submissionPeriodOpen["2023"].crf;
+
+  const prfApproved = prf.bap?.status === "Accepted";
+  const prfApprovedButNoCRF = prfApproved && !Boolean(crf.formio);
+
+  if (prfApprovedButNoCRF) {
+    return (
+      <tr className={highlightedTableRowClassNames}>
+        <th scope="row" colSpan={6}>
+          <button
+            className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
+            disabled={!crfSubmissionPeriodOpen}
+            onClick={(_ev) => {
+              if (!crfSubmissionPeriodOpen) return;
+              if (!frf.bap || !prf.bap) return;
+
+              // account for when data is posting to prevent double submits
+              if (dataIsPosting) return;
+              setDataIsPosting(true);
+
+              // create a new draft CRF submission
+              postData(`${serverUrl}/api/formio/2023/crf-submission/`, {
+                email,
+                title,
+                name,
+                entity,
+                comboKey: prf.bap.comboKey,
+                rebateId: prf.bap.rebateId, // CSB Rebate ID (6 digits)
+                frfReviewItemId: frf.bap.reviewItemId, // CSB Rebate ID with form/version ID (9 digits)
+                prfReviewItemId: prf.bap.reviewItemId, // CSB Rebate ID with form/version ID (9 digits)
+                prfModified: prf.bap.modified,
+              })
+                .then((_res) => {
+                  navigate(`/crf/2023/${prf.bap?.rebateId}`, {
+                    viewTransition: true,
+                  });
+                })
+                .catch((_err) => {
+                  displayErrorNotification({
+                    id: Date.now(),
+                    body: (
+                      <>
+                        <p
+                          className={clsx(
+                            "tw:text-sm tw:font-medium tw:text-gray-900",
+                          )}
+                        >
+                          Error creating Close Out <em>{prf.bap?.rebateId}</em>.
+                        </p>
+                        <p
+                          className={clsx(
+                            "tw:mt-1 tw:text-sm tw:text-gray-500",
+                          )}
+                        >
+                          Please try again.
+                        </p>
+                      </>
+                    ),
+                  });
+                })
+                .finally(() => {
+                  setDataIsPosting(false);
+                });
+            }}
+          >
+            <span className="display-flex flex-align-center">
+              <svg
+                className="usa-icon"
+                aria-hidden="true"
+                focusable="false"
+                role="img"
+              >
+                <use href={`${icons}#add_circle`} />
+              </svg>
+              <span className="margin-left-1">New Close Out</span>
+              {dataIsPosting && <LoadingButtonIcon position="end" />}
+            </span>
+          </button>
+        </th>
+      </tr>
+    );
+  }
+
+  // return if a Close Out submission has not been created for this rebate
+  if (!crf.formio) return null;
+
+  const { _user_email, _bap_rebate_id } = crf.formio.data;
+
+  const date = new Date(crf.formio.modified).toLocaleDateString();
+  const time = new Date(crf.formio.modified).toLocaleTimeString();
+
+  const crfNeedsEdits = submissionNeedsEdits({
+    formio: crf.formio,
+    bap: crf.bap,
+  });
+
+  const crfBapInternalStatus = crf.bap?.status || "";
+  const crfBapStatus = bapStatusMap["2023"].crf.get(crfBapInternalStatus);
+  const crfFormioStatus = formioStatusMap.get(crf.formio.state || "");
+  const crfBapReimbursementNeeded = crf.bap?.reimbursementNeeded || false;
+
+  const crfNeedsReimbursement = submissionNeedsReimbursement({
+    status: crfBapInternalStatus,
+    reimbursementNeeded: crfBapReimbursementNeeded,
+  });
+
+  const crfStatus = crfNeedsEdits
+    ? "Edits Requested"
+    : crfNeedsReimbursement
+      ? "Reimbursement Needed"
+      : crfBapStatus || crfFormioStatus || "";
+
+  const crfApproved = crfStatus === "Close Out Approved";
+
+  const statusTableCellClassNames =
+    crfFormioStatus === "Submitted" || !crfSubmissionPeriodOpen
+      ? "text-italic"
+      : "";
+
+  const hiddenTableCellClassNames = "tw:!hidden tw:min-[30rem]:!table-cell";
+
+  const crfUrl = `/crf/2023/${_bap_rebate_id}`;
+
+  return (
+    <tr
+      className={
+        crfNeedsEdits || prfApprovedButNoCRF
+          ? highlightedTableRowClassNames
+          : defaultTableRowClassNames
+      }
+    >
+      <th scope="row" className={statusTableCellClassNames}>
+        {crfNeedsEdits ? (
+          <FormLink type="edit" to={crfUrl} />
+        ) : crf.formio.state === "submitted" || !crfSubmissionPeriodOpen ? (
+          <FormLink type="view" to={crfUrl} />
+        ) : crf.formio.state === "draft" ? (
+          <FormLink type="edit" to={crfUrl} />
+        ) : null}
+      </th>
+
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
+
+      <td className={statusTableCellClassNames}>
+        <span>Close Out</span>
+        <br />
+        <span className="display-flex flex-align-center font-sans-2xs">
+          {crfStatus === "Needs Clarification" ? (
+            <TextWithTooltip
+              text={crfStatus}
+              tooltip="Check your email for instructions on what needs clarification"
+              iconClassNames="text-base-darkest"
+            />
+          ) : crfStatus === "Reimbursement Needed" ? (
+            <TextWithTooltip
+              text={crfStatus}
+              tooltip="Check your email for information on reimbursement needed"
+              iconClassNames="text-base-darkest"
+            />
+          ) : (
+            <>
+              <svg
+                className={clsx("usa-icon", crfApproved && "text-primary")}
+                aria-hidden="true"
+                focusable="false"
+                role="img"
+              >
+                <use href={`${icons}#${statusIconMap.get(crfStatus)}`} />
+              </svg>
+              <span className="margin-left-05">{crfStatus}</span>
+            </>
+          )}
+        </span>
+      </td>
+
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
+
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
+
+      <td className={statusTableCellClassNames}>
+        {_user_email}
+        <br />
+        <span title={`${date} ${time}`}>{date}</span>
+      </td>
+    </tr>
+  );
+}
 
 function Submissions2023() {
   const content = useContentData();
@@ -1557,7 +1771,7 @@ function Submissions2023() {
                 <Fragment key={rebate.rebateId}>
                   <FRF2023Submission rebate={rebate} />
                   <PRF2023Submission rebate={rebate} />
-                  {/* <CRF2023Submission rebate={rebate} /> */}
+                  <CRF2023Submission rebate={rebate} />
                   {/* blank row after all submissions but the last one */}
                   {index !== submissions.length - 1 && (
                     <tr className={clsx("tw:bg-white")}>
