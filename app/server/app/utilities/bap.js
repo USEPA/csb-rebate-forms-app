@@ -433,7 +433,7 @@ const { submissionPeriodOpen } = require("../config/formio");
  *  New_Bus_GVWR__c: number
  *  New_Bus_Rebate_Amount__c: number
  *  New_Bus_Purchase_Price__c: number
- * }[]} prf2022busRecordsQuery
+ * }[]} prf2022BusRecordsQuery
  */
 
 /**
@@ -1999,7 +1999,7 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
   //   Related_Order_Request__c = '${prf2022RecordId}' AND
   //   CSB_Rebate_Item_Type__c = 'New Bus'`
 
-  const prf2022busRecordsQuery = await bapConnection
+  const prf2022BusRecordsQuery = await bapConnection
     .sobject("Line_Item__c")
     .find(
       {
@@ -2031,7 +2031,7 @@ async function queryBapFor2022CRFData(req, frfReviewItemId, prfReviewItemId) {
     )
     .execute(async (err, records) => ((await err) ? err : records));
 
-  return { frf2022RecordQuery, prf2022RecordQuery, prf2022busRecordsQuery };
+  return { frf2022RecordQuery, prf2022RecordQuery, prf2022BusRecordsQuery };
 }
 
 /**

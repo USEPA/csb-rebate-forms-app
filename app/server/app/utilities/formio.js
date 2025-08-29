@@ -888,7 +888,7 @@ function fetchDataForCRFSubmission({ rebateYear, req, res }) {
         const {
           frf2022RecordQuery,
           prf2022RecordQuery,
-          prf2022busRecordsQuery,
+          prf2022BusRecordsQuery,
         } = results;
 
         const {
@@ -924,7 +924,7 @@ function fetchDataForCRFSubmission({ rebateYear, req, res }) {
           Total_Other_Infrastructure_Costs__c,
         } = prf2022RecordQuery[0];
 
-        const busInfo = prf2022busRecordsQuery.map((prf2022BusRecord) => {
+        const busInfo = prf2022BusRecordsQuery.map((prf2022BusRecord) => {
           const {
             Rebate_Item_num__c,
             CSB_VIN__c,
