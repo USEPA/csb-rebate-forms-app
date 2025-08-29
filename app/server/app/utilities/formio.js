@@ -1037,12 +1037,13 @@ function fetchDataForCRFSubmission({ rebateYear, req, res }) {
   }
 
   if (rebateYear === "2023") {
-    return getBapDataFor2023CRF(req, frfReviewItemId, prfReviewItemId)
+    return getBapDataFor2023CRF(req, prfReviewItemId)
       .then((results) => {
         const {
-          frf2023RecordQuery,
           prf2023RecordQuery,
-          prf2023busRecordsQuery,
+          prf2023BusRecordsQuery,
+          prf2023InfrastructureRecordsQuery,
+          prf2023InfrastructureOwnerRecordsQuery,
         } = results;
 
         return {
