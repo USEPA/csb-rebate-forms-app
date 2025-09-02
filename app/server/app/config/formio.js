@@ -150,6 +150,9 @@ const formioCSBMetadata = {
   "csb-app-cloud-origin": SERVER_URL || "localhost",
 };
 
+/** Example VIN value used in OpenAPI docs (used by EPA API scan) */
+const formioExampleVin = "00000000000000000";
+
 /** Example mongoId value used in OpenAPI docs (used by EPA API scan) */
 const formioExampleMongoId = "000000000000000000000000";
 
@@ -175,6 +178,7 @@ module.exports = {
   formIntroSubstring,
   submissionPeriodOpen,
   formioCSBMetadata,
+  formioExampleVin,
   formioExampleMongoId,
   formioExampleRebateId,
   formioExampleComboKey,

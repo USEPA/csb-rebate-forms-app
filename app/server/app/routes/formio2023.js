@@ -6,6 +6,7 @@ const {
   verifyMongoObjectId,
 } = require("../middleware");
 const {
+  checkVIN,
   searchNcesData,
   //
   downloadFileFromS3,
@@ -40,6 +41,11 @@ const rebateYear = "2023";
 const router = express.Router();
 
 router.use(ensureAuthenticated);
+
+// --- check for duplicate VINs in the BAP
+router.get("/check-vin{/:vin}", (req, res) => {
+  checkVIN({ rebateYear, req, res });
+});
 
 // --- search 2023 NCES data with the provided NCES ID and return a match
 router.get("/nces{/:searchText}", (req, res) => {
