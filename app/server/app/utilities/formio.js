@@ -876,6 +876,12 @@ function fetchDataForCRFSubmission({ rebateYear, req, res }) {
   const {
     UNIQUE_ENTITY_ID__c,
     ENTITY_EFT_INDICATOR__c,
+    LEGAL_BUSINESS_NAME__c,
+    PHYSICAL_ADDRESS_LINE_1__c,
+    PHYSICAL_ADDRESS_LINE_2__c,
+    PHYSICAL_ADDRESS_CITY__c,
+    PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
+    PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
     ELEC_BUS_POC_EMAIL__c,
     ALT_ELEC_BUS_POC_EMAIL__c,
     GOVT_BUS_POC_EMAIL__c,
@@ -1043,12 +1049,336 @@ function fetchDataForCRFSubmission({ rebateYear, req, res }) {
           prf2023RecordQuery,
           prf2023BusRecordsQuery,
           prf2023InfrastructureRecordsQuery,
-          prf2023InfrastructureOwnerRecordsQuery,
+          prf2023ContactsQuery,
         } = results;
+
+        const {
+          CSB_NCES_ID__c,
+          CSB_Snapshot__r,
+          Primary_Applicant__r,
+          Alternate_Applicant__r,
+          Applicant_Organization__r,
+          CSB_School_District__r,
+          School_District_Contact__r,
+          Org_District_Prioritized__c,
+          Prioritized_as_High_Need__c,
+          Prioritized_as_Tribal__c,
+          Prioritized_as_Rural__c,
+          Self_Certification_Category__c,
+          Num_Of_Buses_Requested_From_Application__c,
+          Total_Price_All_Buses__c,
+          Total_Bus_Rebate_Amount__c,
+          Total_All_Eligible_Infrastructure_Costs__c,
+          Total_Infrastructure_Rebate__c,
+          Total_Level_2_Charger_Costs__c,
+          Total_DC_Fast_Charger_Costs__c,
+          Total_Other_Infrastructure_Costs__c,
+          Funding_Alloc_for_Eligible_Infra_Costs__c,
+        } = prf2023RecordQuery[0];
+
+        const prf2023RecordJson = JSON.parse(CSB_Snapshot__r.JSON_Snapshot__c);
+
+        const [schoolDistrictStreetAddress1, schoolDistrictStreetAddress2] = (
+          CSB_School_District__r?.BillingStreet ?? "\n"
+        ).split("\n");
+
+        const org_organizations = prf2023ContactsQuery.reduce(
+          (array, contact) => {
+            const {
+              Id: contactId,
+              Record_Type_Name__c,
+              FirstName,
+              LastName,
+              Title,
+              Email,
+              Phone,
+              Account,
+            } = contact;
+
+            const {
+              Id: orgId,
+              Name: orgName,
+              BillingStreet,
+              BillingCity,
+              BillingState,
+              BillingPostalCode,
+              County__c,
+            } = Account || {};
+
+            const jsonOrg = prf2023RecordJson.data.org_organizations.find(
+              (org) => {
+                const matchedName = org?.org_name?.trim() === orgName?.trim();
+                const matchedEmail =
+                  org.org_contact_email?.trim()?.toLowerCase() ===
+                  Email?.trim()?.toLowerCase();
+
+                return matchedName && matchedEmail;
+              },
+            );
+
+            const orgAlreadyAdded = array.some((org) => org._org_id === orgId);
+
+            /**
+             * Ensure the org exists in the 2023 PRF submission's
+             * "org_organizations" array, and it hasn't already been added.
+             */
+            if (jsonOrg && !orgAlreadyAdded) {
+              const [orgStreetAddress1, orgStreetAddress2] = (
+                BillingStreet ?? "\n"
+              ).split("\n");
+
+              array.push({
+                org_number: jsonOrg.org_number,
+                org_type: jsonOrg.org_type,
+                _org_id: orgId,
+                _bap_org_name: orgName,
+                _bap_org_address_1: orgStreetAddress1,
+                _bap_org_address_2: orgStreetAddress2,
+                _bap_org_county: County__c,
+                _bap_org_city: BillingCity,
+                _bap_org_state: { name: BillingState },
+                _bap_org_zip: BillingPostalCode,
+                _bap_org_contact_id: contactId,
+                _bap_org_contact_recordtype: Record_Type_Name__c,
+                _bap_org_contact_fname: FirstName,
+                _bap_org_contact_lname: LastName,
+                _bap_org_contact_title: Title,
+                _bap_org_contact_email: Email,
+                _bap_org_contact_phone: Phone,
+              });
+            }
+
+            return array;
+          },
+          [],
+        );
+
+        const bus_buses = prf2023BusRecordsQuery.map((prf2023BusRecord) => {
+          const {
+            Rebate_Item_num__c,
+            CSB_VIN__c,
+            CSB_Model__c,
+            CSB_Model_Year__c,
+            CSB_Fuel_Type__c,
+            CSB_GVWR__c,
+            CSB_Manufacturer__c,
+            CSB_Manufacturer_if_Other__c,
+            CSB_Annual_Fuel_Consumption__c,
+            Annual_Mileage__c,
+            Old_Bus_Odometer_miles__c,
+            Old_Bus_NCES_District_ID__c,
+            Old_Bus_Estimated_Remaining_Life__c,
+            Old_Bus_Annual_Idling_Hours__c,
+            Old_Bus_Exclude__c,
+            New_Bus_EPA_Vehicle_Family__c,
+            New_Bus_Fuel_Type__c,
+            New_Bus_Make__c,
+            New_Bus_Manufacturer_if_Other__c,
+            New_Bus_Model__c,
+            New_Bus_Model_Year__c,
+            New_Bus_GVWR__c,
+            New_Bus_Rebate_Amount__c,
+            New_Bus_Purchase_Price__c,
+            New_Bus_ADA_Compliant__c,
+            ADA_Compliance_Costs__c,
+            Bus_Shipping_Costs__c,
+            Eligible_ADA_Compliance_Rebate__c,
+            Eligible_Bus_Shipping_Rebate__c,
+            New_Bus_Owner_Contact_ID__c,
+            Old_Bus_Owner_Contact_ID__c,
+          } = prf2023BusRecord;
+
+          const existingOwnerRecord = prf2023ContactsQuery.find((contact) => {
+            return contact.Id === Old_Bus_Owner_Contact_ID__c;
+          });
+
+          const newOwnerRecord = prf2023ContactsQuery.find((contact) => {
+            return contact.Id === New_Bus_Owner_Contact_ID__c;
+          });
+
+          return {
+            bus_number: Rebate_Item_num__c,
+            bus_existing_excluded: Old_Bus_Exclude__c,
+            _prf_existing_excluded: Old_Bus_Exclude__c,
+            bus_existing_owner: {
+              org_id: existingOwnerRecord?.Account?.Id,
+              org_name: existingOwnerRecord?.Account?.Name,
+              org_contact_id: existingOwnerRecord?.Id,
+              org_contact_fname: existingOwnerRecord?.FirstName,
+              org_contact_lname: existingOwnerRecord?.LastName,
+            },
+            bus_existing_vin: CSB_VIN__c,
+            bus_existing_fuel_type: CSB_Fuel_Type__c,
+            bus_existing_gvwr: CSB_GVWR__c,
+            bus_existing_odometer: Old_Bus_Odometer_miles__c,
+            bus_existing_model: CSB_Model__c,
+            bus_existing_model_year: CSB_Model_Year__c,
+            bus_existing_nces_id: Old_Bus_NCES_District_ID__c,
+            bus_existing_manufacturer: CSB_Manufacturer__c,
+            bus_existing_manufacturer_other: CSB_Manufacturer_if_Other__c, // TODO: determine if this is correct – we used this field in the 2023 PRF, but the query was for the frf2023BusRecordsQuery where it was ""
+            bus_existing_remaining_life: Old_Bus_Estimated_Remaining_Life__c,
+            bus_existing_annual_fuel_consumption: CSB_Annual_Fuel_Consumption__c, // prettier-ignore
+            bus_existing_annual_mileage: Annual_Mileage__c,
+            bus_existing_idling_hours: Old_Bus_Annual_Idling_Hours__c,
+            bus_new_owner: {
+              org_id: newOwnerRecord?.Account?.Id,
+              org_name: newOwnerRecord?.Account?.Name,
+              org_contact_id: newOwnerRecord?.Id,
+              org_contact_fname: newOwnerRecord?.FirstName,
+              org_contact_lname: newOwnerRecord?.LastName,
+            },
+            _bus_prf_new_purchase_price: New_Bus_Purchase_Price__c,
+            _bus_prf_bus_new_fuel_type: New_Bus_Fuel_Type__c,
+            _bus_prf_new_gvwr: New_Bus_GVWR__c,
+            _bus_prf_new_ada: New_Bus_ADA_Compliant__c,
+            _prf_bus_new_manufacturer: New_Bus_Make__c,
+            _prf_bus_new_manufacturer_other: New_Bus_Manufacturer_if_Other__c,
+            _prf_bus_new_model: New_Bus_Model__c,
+            _prf_bus_new_epa_carb: New_Bus_EPA_Vehicle_Family__c,
+            _prf_bus_new_model_year: New_Bus_Model_Year__c,
+            bus_rebate_shipping: Eligible_Bus_Shipping_Rebate__c, // TODO: new field so confirm
+            bus_rebate_shipping_costs: Bus_Shipping_Costs__c, // TODO: new field so confirm
+            bus_rebate_ada: Eligible_ADA_Compliance_Rebate__c, // TODO: new field so confirm. Could also be "New_Bus_ADA_Rebate_Requested__c"
+            bus_rebate_ada_costs: ADA_Compliance_Costs__c, // TODO: new field so confirm
+            _prf_funding_amount: New_Bus_Rebate_Amount__c,
+          };
+        });
+
+        const infra_infrastructure = prf2023InfrastructureRecordsQuery.map(
+          (prf2023InfrastructureRecord) => {
+            const {
+              Id,
+              CSB_Rebate_Item_Type__c,
+              Infrastructure_Type__c,
+              Infrastructure_Type_Other__c,
+              Description_of_Work__c,
+              Other_Eligible_Infra_Cost_from_PRF__c,
+              EVSE_Maximum_Output_Power_kW__c,
+              EVSE_Manufacturer__c,
+              EVSE_Manufacturer_if_Other__c,
+              EVSE_Model__c,
+              EVSE_Date_of_Manufacture__c,
+              Number_of_Plugs_on_EVSE__c,
+              Capable_of_Bidirectional_Charging__c,
+              Planning_to_Use_Bidirectional_Charging__c,
+              EVSE_Energy_Star__c,
+              Charger_Infra_Materials_BABA_Compliant__c,
+              Charger_Infrastructure_Quantity__c,
+              Infrastructure_Cost_per_Charger_from_PRF__c,
+              Charger_Cost_Includes_Installation__c,
+              Infrastructure_Owner_Contact_ID__c,
+            } = prf2023InfrastructureRecord;
+
+            const ownerRecord = prf2023ContactsQuery.find((contact) => {
+              return contact.Id === Infrastructure_Owner_Contact_ID__c;
+            });
+
+            return {
+              infra_type: Infrastructure_Type__c,
+              infra_other_type: Infrastructure_Type_Other__c,
+              infra_other_desc: Description_of_Work__c,
+              infra_other_cost: Other_Eligible_Infra_Cost_from_PRF__c,
+              infra_evse_max_output_power: EVSE_Maximum_Output_Power_kW__c,
+              infra_evse_manufacturer: EVSE_Manufacturer__c,
+              infra_evse_manufacturer_other: EVSE_Manufacturer_if_Other__c,
+              infra_evse_model: EVSE_Model__c,
+              infra_evse_manufacture_date: EVSE_Date_of_Manufacture__c,
+              infra_evse_number_plugs: Number_of_Plugs_on_EVSE__c,
+              infra_evse_bidirectional_charging: Capable_of_Bidirectional_Charging__c, // prettier-ignore
+              infra_evse_bidirectional_planning: Planning_to_Use_Bidirectional_Charging__c, // prettier-ignore
+              infra_evse_energy_star: EVSE_Energy_Star__c,
+              infra_evse_baba_compliant: Charger_Infra_Materials_BABA_Compliant__c, // prettier-ignore
+              infra_evse_quantity: Charger_Infrastructure_Quantity__c,
+              infra_evse_cost_charger: Infrastructure_Cost_per_Charger_from_PRF__c, // prettier-ignore
+              infra_evse_includes_installion: Charger_Cost_Includes_Installation__c, // prettier-ignore
+              infra_owner: {
+                org_id: ownerRecord?.Account?.Id,
+                org_name: ownerRecord?.Account?.Name,
+                org_contact_id: ownerRecord?.Id,
+                org_contact_fname: ownerRecord?.FirstName,
+                org_contact_lname: ownerRecord?.LastName,
+              },
+              infra_address: ownerRecord?.Account?.BillingStreet,
+              infra_city: ownerRecord?.Account?.BillingCity,
+              infra_state: ownerRecord?.Account?.BillingState,
+              infra_zip: ownerRecord?.Account?.BillingPostalCode,
+              infra_county: ownerRecord?.Account?.County__c,
+            };
+          },
+        );
 
         return {
           data: {
-            /* TODO */
+            _bap_entity_combo_key: comboKey,
+            _bap_rebate_id: rebateId,
+            _user_email: email,
+            _user_title: title,
+            _user_name: name,
+            _bap_applicant_email: email,
+            _bap_applicant_title: title,
+            _bap_applicant_name: name,
+            _bap_applicant_efti: ENTITY_EFT_INDICATOR__c || "0000",
+            _bap_applicant_uei: UNIQUE_ENTITY_ID__c,
+            _bap_applicant_organization_id: Applicant_Organization__r?.Id,
+            _bap_applicant_organization_name: LEGAL_BUSINESS_NAME__c,
+            _bap_applicant_street_address_1: PHYSICAL_ADDRESS_LINE_1__c,
+            _bap_applicant_street_address_2: PHYSICAL_ADDRESS_LINE_2__c,
+            _bap_applicant_county: Applicant_Organization__r?.County__c,
+            _bap_applicant_city: PHYSICAL_ADDRESS_CITY__c,
+            _bap_applicant_state: PHYSICAL_ADDRESS_PROVINCE_OR_STATE__c,
+            _bap_applicant_zip: PHYSICAL_ADDRESS_ZIPPOSTAL_CODE__c,
+            _bap_elec_bus_poc_email: ELEC_BUS_POC_EMAIL__c,
+            _bap_alt_elec_bus_poc_email: ALT_ELEC_BUS_POC_EMAIL__c,
+            _bap_govt_bus_poc_email: GOVT_BUS_POC_EMAIL__c,
+            _bap_alt_govt_bus_poc_email: ALT_GOVT_BUS_POC_EMAIL__c,
+            _bap_primary_id: Primary_Applicant__r?.Id,
+            _bap_primary_recordtype: Primary_Applicant__r?.Record_Type_Name__c,
+            _bap_primary_fname: Primary_Applicant__r?.FirstName,
+            _bap_primary_lname: Primary_Applicant__r?.LastName,
+            _bap_primary_title: Primary_Applicant__r?.Title,
+            _bap_primary_email: Primary_Applicant__r?.Email,
+            _bap_primary_phone: Primary_Applicant__r?.Phone,
+            _bap_alternate_id: Alternate_Applicant__r?.Id,
+            _bap_alternate_recordtype: Alternate_Applicant__r?.Record_Type_Name__c, // prettier-ignore
+            _bap_alternate_fname: Alternate_Applicant__r?.FirstName,
+            _bap_alternate_lname: Alternate_Applicant__r?.LastName,
+            _bap_alternate_title: Alternate_Applicant__r?.Title,
+            _bap_alternate_email: Alternate_Applicant__r?.Email,
+            _bap_alternate_phone: Alternate_Applicant__r?.Phone,
+            _bap_district_id: CSB_School_District__r?.Id,
+            _bap_district_nces_id: CSB_NCES_ID__c,
+            _bap_district_name: CSB_School_District__r?.Name,
+            _bap_district_address_1: schoolDistrictStreetAddress1 || "",
+            _bap_district_address_2: schoolDistrictStreetAddress2 || "",
+            _bap_district_city: CSB_School_District__r?.BillingCity,
+            _bap_district_state: CSB_School_District__r?.BillingState,
+            _bap_district_zip: CSB_School_District__r?.BillingPostalCode,
+            _bap_district_priority: Org_District_Prioritized__c,
+            _bap_district_priority_reason: {
+              highNeed: Prioritized_as_High_Need__c,
+              tribal: Prioritized_as_Tribal__c,
+              rural: Prioritized_as_Rural__c,
+            },
+            _bap_district_self_certify: Self_Certification_Category__c,
+            _bap_district_contact_id: School_District_Contact__r?.Id,
+            _bap_district_contact_recordtype: School_District_Contact__r?.Record_Type_Name__c, // prettier-ignore
+            _bap_district_contact_fname: School_District_Contact__r?.FirstName,
+            _bap_district_contact_lname: School_District_Contact__r?.LastName,
+            _bap_district_contact_title: School_District_Contact__r?.Title,
+            _bap_district_contact_email: School_District_Contact__r?.Email,
+            _bap_district_contact_phone: School_District_Contact__r?.Phone,
+            _bap_bus_frf_requested: Num_Of_Buses_Requested_From_Application__c,
+            _bap_bus_prf_total_costs: Total_Price_All_Buses__c,
+            _bap_bus_prf_total_rebate_received: Total_Bus_Rebate_Amount__c,
+            _bap_infra_prf_total_costs: Total_All_Eligible_Infrastructure_Costs__c, // prettier-ignore
+            _bap_infra_total_rebate_received: Total_Infrastructure_Rebate__c,
+            _bap_infra_total_level2_charger: Total_Level_2_Charger_Costs__c,
+            _bap_infra_total_dc_fast_charger: Total_DC_Fast_Charger_Costs__c,
+            _bap_infra_total_other_costs: Total_Other_Infrastructure_Costs__c,
+            _bap_infra_funding: Funding_Alloc_for_Eligible_Infra_Costs__c,
+            org_organizations,
+            bus_buses,
+            infra_infrastructure,
           },
           /** Add custom metadata to track formio submissions from wrapper. */
           metadata: { ...formioCSBMetadata },
