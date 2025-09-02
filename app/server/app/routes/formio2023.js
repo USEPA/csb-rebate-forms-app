@@ -25,10 +25,10 @@ const {
   updatePRFSubmission,
   deletePRFSubmission,
   //
-  // fetchCRFSubmissions,
-  // createCRFSubmission,
-  // fetchCRFSubmission,
-  // updateCRFSubmission,
+  fetchCRFSubmissions,
+  createCRFSubmission,
+  fetchCRFSubmission,
+  updateCRFSubmission,
   //
   fetchChangeRequests,
   fetchChangeRequestSchema,
@@ -135,23 +135,23 @@ router.post("/delete-prf-submission", fetchBapComboKeys, (req, res) => {
 
 // --- get user's 2023 CRF submissions from Formio
 router.get("/crf-submissions", fetchBapComboKeys, (req, res) => {
-  res.json([]); // TODO: replace with `fetchCRFSubmissions({ rebateYear, req, res })` when CRF is ready
+  fetchCRFSubmissions({ rebateYear, req, res });
 });
 
 // --- post a new 2023 CRF submission to Formio
-// router.post("/crf-submission", fetchBapComboKeys, (req, res) => {
-//   createCRFSubmission({ rebateYear, req, res });
-// });
+router.post("/crf-submission", fetchBapComboKeys, (req, res) => {
+  createCRFSubmission({ rebateYear, req, res });
+});
 
 // --- get an existing 2023 CRF's schema and submission data from Formio
-// router.get("/crf-submission/:rebateId", fetchBapComboKeys, (req, res) => {
-//   fetchCRFSubmission({ rebateYear, req, res });
-// });
+router.get("/crf-submission/:rebateId", fetchBapComboKeys, (req, res) => {
+  fetchCRFSubmission({ rebateYear, req, res });
+});
 
 // --- post an update to an existing draft 2023 CRF submission to Formio
-// router.post("/crf-submission/:rebateId", fetchBapComboKeys, (req, res) => {
-//   updateCRFSubmission({ rebateYear, req, res });
-// });
+router.post("/crf-submission/:rebateId", fetchBapComboKeys, (req, res) => {
+  updateCRFSubmission({ rebateYear, req, res });
+});
 
 // --- get user's 2023 Change Request form submissions from Formio
 router.get("/changes", fetchBapComboKeys, (req, res) => {
