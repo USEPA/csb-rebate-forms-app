@@ -1296,8 +1296,6 @@ function fetchDataForCRFSubmission({ rebateYear, req, res }) {
         const infra_infrastructure = prf2023InfrastructureRecordsQuery.map(
           (prf2023InfrastructureRecord) => {
             const {
-              Id,
-              CSB_Rebate_Item_Type__c,
               Infrastructure_Type__c,
               Infrastructure_Type_Other__c,
               Description_of_Work__c,
