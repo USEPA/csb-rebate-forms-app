@@ -776,6 +776,58 @@
         }
       }
     },
+    "/api/formio/2023/check-vin/{vin}": {
+      "get": {
+        "summary": "check for duplicate VINs in the BAP.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "vin",
+            "description": "The bus VIN to search for.",
+            "required": true,
+            "example": "11111111111111111",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "rebateId",
+            "description": "The CSB Rebate ID of the current submission.",
+            "required": false,
+            "example": "123456",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "debug",
+            "description": "Return debug info from the BAP in the response.",
+            "required": false,
+            "example": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An object containing the duplicate VIN data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
     "/api/formio/2023/nces/{searchText}": {
       "get": {
         "summary": "search 2023 NCES data with the provided NCES ID and return a match.",
