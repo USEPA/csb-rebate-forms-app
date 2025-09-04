@@ -540,14 +540,8 @@ const { submissionPeriodOpen } = require("../config/formio");
  *  Bus_Shipping_Costs__c: number | null
  *  Eligible_ADA_Compliance_Rebate__c: number | null
  *  Eligible_Bus_Shipping_Rebate__c: number | null
- *  Donee_Contact_ID__c: string | null
- *  Infrastructure_Other_Contact_ID__c: string | null
- *  Infrastructure_Owner_Contact_ID__c: string | null
- *  Infrastructure_Supplier_Contact_ID__c: string | null
  *  New_Bus_Owner_Contact_ID__c: string | null
  *  Old_Bus_Owner_Contact_ID__c: string | null
- *  Purchaser_Contact_ID__c: string | null
- *  Scrap_Contact_ID__c: string | null
  * }[]} prf2023BusRecordsQuery
  * @property {{
  *  attributes: { type: "Line_Item__c", url: string }
@@ -570,14 +564,7 @@ const { submissionPeriodOpen } = require("../config/formio");
  *  Charger_Infrastructure_Quantity__c: number | null
  *  Infrastructure_Cost_per_Charger_from_PRF__c: number | null
  *  Charger_Cost_Includes_Installation__c: boolean
- *  Donee_Contact_ID__c: string | null
- *  Infrastructure_Other_Contact_ID__c: string | null
  *  Infrastructure_Owner_Contact_ID__c: string | null
- *  Infrastructure_Supplier_Contact_ID__c: string | null
- *  New_Bus_Owner_Contact_ID__c: string | null
- *  Old_Bus_Owner_Contact_ID__c: string | null
- *  Purchaser_Contact_ID__c: string | null
- *  Scrap_Contact_ID__c: string | null
  * }[]} prf2023InfrastructureRecordsQuery
  * @property {{
  *  attributes: { type: "Contact", url: string }
@@ -2279,14 +2266,8 @@ async function queryBapFor2023CRFData(req, prfReviewItemId) {
   //   Bus_Shipping_Costs__c,
   //   Eligible_ADA_Compliance_Rebate__c,
   //   Eligible_Bus_Shipping_Rebate__c,
-  //   Donee_Contact_ID__c,
-  //   Infrastructure_Other_Contact_ID__c,
-  //   Infrastructure_Owner_Contact_ID__c,
-  //   Infrastructure_Supplier_Contact_ID__c,
   //   New_Bus_Owner_Contact_ID__c,
-  //   Old_Bus_Owner_Contact_ID__c,
-  //   Purchaser_Contact_ID__c,
-  //   Scrap_Contact_ID__c
+  //   Old_Bus_Owner_Contact_ID__c
   // FROM
   //   Line_Item__c
   // WHERE
@@ -2335,14 +2316,8 @@ async function queryBapFor2023CRFData(req, prfReviewItemId) {
         Bus_Shipping_Costs__c: 1,
         Eligible_ADA_Compliance_Rebate__c: 1,
         Eligible_Bus_Shipping_Rebate__c: 1,
-        Donee_Contact_ID__c: 1,
-        Infrastructure_Other_Contact_ID__c: 1,
-        Infrastructure_Owner_Contact_ID__c: 1,
-        Infrastructure_Supplier_Contact_ID__c: 1,
         New_Bus_Owner_Contact_ID__c: 1,
         Old_Bus_Owner_Contact_ID__c: 1,
-        Purchaser_Contact_ID__c: 1,
-        Scrap_Contact_ID__c: 1,
       },
     )
     .execute(async (err, records) => ((await err) ? err : records));
@@ -2367,14 +2342,7 @@ async function queryBapFor2023CRFData(req, prfReviewItemId) {
   //   Charger_Infrastructure_Quantity__c,
   //   Infrastructure_Cost_per_Charger_from_PRF__c,
   //   Charger_Cost_Includes_Installation__c,
-  //   Donee_Contact_ID__c,
-  //   Infrastructure_Other_Contact_ID__c,
-  //   Infrastructure_Owner_Contact_ID__c,
-  //   Infrastructure_Supplier_Contact_ID__c,
-  //   New_Bus_Owner_Contact_ID__c,
-  //   Old_Bus_Owner_Contact_ID__c,
-  //   Purchaser_Contact_ID__c,
-  //   Scrap_Contact_ID__c
+  //   Infrastructure_Owner_Contact_ID__c
   // FROM
   //   Line_Item__c
   // WHERE
@@ -2411,14 +2379,7 @@ async function queryBapFor2023CRFData(req, prfReviewItemId) {
         Charger_Infrastructure_Quantity__c: 1,
         Infrastructure_Cost_per_Charger_from_PRF__c: 1,
         Charger_Cost_Includes_Installation__c: 1,
-        Donee_Contact_ID__c: 1,
-        Infrastructure_Other_Contact_ID__c: 1,
         Infrastructure_Owner_Contact_ID__c: 1,
-        Infrastructure_Supplier_Contact_ID__c: 1,
-        New_Bus_Owner_Contact_ID__c: 1,
-        Old_Bus_Owner_Contact_ID__c: 1,
-        Purchaser_Contact_ID__c: 1,
-        Scrap_Contact_ID__c: 1,
       },
     )
     .execute(async (err, records) => ((await err) ? err : records));

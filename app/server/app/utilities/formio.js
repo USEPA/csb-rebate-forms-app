@@ -1180,20 +1180,20 @@ function fetchDataForCRFSubmission({ rebateYear, req, res }) {
                 org_number: jsonOrg.org_number,
                 org_type: jsonOrg.org_type,
                 _org_id: orgId,
-                _bap_org_name: orgName,
-                _bap_org_address_1: orgStreetAddress1,
-                _bap_org_address_2: orgStreetAddress2,
-                _bap_org_county: County__c,
-                _bap_org_city: BillingCity,
-                _bap_org_state: { name: BillingState },
-                _bap_org_zip: BillingPostalCode,
-                _bap_org_contact_id: contactId,
-                _bap_org_contact_recordtype: Record_Type_Name__c,
-                _bap_org_contact_fname: FirstName,
-                _bap_org_contact_lname: LastName,
-                _bap_org_contact_title: Title,
-                _bap_org_contact_email: Email,
-                _bap_org_contact_phone: Phone,
+                _org_name: orgName,
+                _org_address_1: orgStreetAddress1,
+                _org_address_2: orgStreetAddress2,
+                _org_county: County__c,
+                _org_city: BillingCity,
+                _org_state: BillingState,
+                _org_zip: BillingPostalCode,
+                _org_contact_id: contactId,
+                _org_contact_recordtype: Record_Type_Name__c,
+                _org_contact_fname: FirstName,
+                _org_contact_lname: LastName,
+                _org_contact_title: Title,
+                _org_contact_email: Email,
+                _org_contact_phone: Phone,
               });
             }
 
@@ -1248,7 +1248,7 @@ function fetchDataForCRFSubmission({ rebateYear, req, res }) {
           return {
             bus_number: Rebate_Item_num__c,
             bus_existing_excluded: Old_Bus_Exclude__c,
-            _prf_existing_excluded: Old_Bus_Exclude__c,
+            _bus_existing_excluded: Old_Bus_Exclude__c,
             bus_existing_owner: {
               org_id: existingOwnerRecord?.Account?.Id,
               org_name: existingOwnerRecord?.Account?.Name,
@@ -1276,28 +1276,26 @@ function fetchDataForCRFSubmission({ rebateYear, req, res }) {
               org_contact_fname: newOwnerRecord?.FirstName,
               org_contact_lname: newOwnerRecord?.LastName,
             },
-            _bus_prf_new_purchase_price: New_Bus_Purchase_Price__c,
-            _bus_prf_bus_new_fuel_type: New_Bus_Fuel_Type__c,
-            _bus_prf_new_gvwr: New_Bus_GVWR__c,
-            _bus_prf_new_ada: New_Bus_ADA_Compliant__c,
-            _prf_bus_new_manufacturer: New_Bus_Make__c,
-            _prf_bus_new_manufacturer_other: New_Bus_Manufacturer_if_Other__c,
-            _prf_bus_new_model: New_Bus_Model__c,
-            _prf_bus_new_epa_carb: New_Bus_EPA_Vehicle_Family__c,
-            _prf_bus_new_model_year: New_Bus_Model_Year__c,
+            _bus_new_purchase_price: New_Bus_Purchase_Price__c,
+            _bus_new_fuel_type: New_Bus_Fuel_Type__c,
+            _bus_new_gvwr: New_Bus_GVWR__c,
+            _bus_new_ada: New_Bus_ADA_Compliant__c,
+            _bus_new_manufacturer: New_Bus_Make__c,
+            _bus_new_manufacturer_other: New_Bus_Manufacturer_if_Other__c,
+            _bus_new_model: New_Bus_Model__c,
+            _bus_new_epa_carb: New_Bus_EPA_Vehicle_Family__c,
+            _bus_new_model_year: New_Bus_Model_Year__c,
             bus_rebate_shipping: Eligible_Bus_Shipping_Rebate__c, // TODO: new field so confirm
             bus_rebate_shipping_costs: Bus_Shipping_Costs__c, // TODO: new field so confirm
             bus_rebate_ada: Eligible_ADA_Compliance_Rebate__c, // TODO: new field so confirm. Could also be "New_Bus_ADA_Rebate_Requested__c"
             bus_rebate_ada_costs: ADA_Compliance_Costs__c, // TODO: new field so confirm
-            _prf_funding_amount: New_Bus_Rebate_Amount__c,
+            _bus_funding_amount: New_Bus_Rebate_Amount__c,
           };
         });
 
         const infra_infrastructure = prf2023InfrastructureRecordsQuery.map(
           (prf2023InfrastructureRecord) => {
             const {
-              Id,
-              CSB_Rebate_Item_Type__c,
               Infrastructure_Type__c,
               Infrastructure_Type_Other__c,
               Description_of_Work__c,
