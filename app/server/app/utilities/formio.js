@@ -7,6 +7,7 @@ const {
   formUrl,
   submissionPeriodOpen,
   formioCSBMetadata,
+  formioExampleVin,
   formioExampleMongoId,
   formioExampleRebateId,
   formioExampleComboKey,
@@ -19,6 +20,7 @@ const {
   getBapDataFor2024PRF,
   getBapDataFor2022CRF,
   getBapDataFor2023CRF,
+  checkForVinDuplicates,
   checkFormSubmissionPeriodAndBapStatus,
 } = require("../utilities/bap");
 const { checkUserData } = require("../utilities/user");
@@ -108,6 +110,53 @@ const formDataFieldNames = {
     ],
   },
 };
+
+/**
+ * @param {Object} param
+ * @param {RebateYear} param.rebateYear
+ * @param {express.Request} param.req
+ * @param {express.Response} param.res
+ *
+ * @example Example URLs:
+ * - /api/formio/2023/check-vin/11111111111111111
+ * - /api/formio/2023/check-vin/22222222222222222?rebateId=123456
+ * - /api/formio/2023/check-vin/33333333333333333?rebateId=123456&debug=true
+ */
+function checkVIN({ rebateYear, req, res }) {
+  const { vin } = req.params;
+  const { rebateId } = req.query;
+
+  // NOTE: included to support EPA API scan
+  if (vin === formioExampleVin) {
+    return true;
+  }
+
+  if (!vin) {
+    const logMessage = `No VIN passed to VIN duplicates lookup.`;
+    log({ level: "info", message: logMessage, req });
+
+    return false;
+  }
+
+  if (vin.length !== 17) {
+    const logMessage = `Invalid VIN '${vin}' passed to VIN duplicates lookup.`;
+    log({ level: "info", message: logMessage, req });
+
+    return false;
+  }
+
+  return checkForVinDuplicates(req, vin, rebateId)
+    .then((json) => {
+      const results = json.results[0];
+      res.json(results.hit || false);
+    })
+    .catch((_error) => {
+      // NOTE: logged in bap verifyBapConnection
+      const errorStatus = 500;
+      const errorMessage = `Error checking VIN duplicates from the BAP.`;
+      return res.status(errorStatus).json({ message: errorMessage });
+    });
+}
 
 /**
  * @param {Object} param
@@ -2826,6 +2875,7 @@ function fetchChangeRequest({ rebateYear, req, res }) {
 }
 
 module.exports = {
+  checkVIN,
   searchNcesData,
   getRebateIdFieldName,
   //

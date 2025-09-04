@@ -620,6 +620,20 @@ const { submissionPeriodOpen } = require("../config/formio");
  * }>} BapDuplicates
  */
 
+/**
+ * @typedef {{
+ *  timestamp: string
+ *  results: {
+ *    vin: string
+ *    validFormat: boolean
+ *    sourceRecordKeys: string[]
+ *    sourceExclusions: string[]
+ *    hitSources: string[]
+ *    hit: boolean
+ *  }[]
+ * }} VinDuplicates
+ */
+
 const {
   SERVER_URL,
   BAP_REST_API_VERSION,
@@ -2513,6 +2527,32 @@ async function queryBapForDuplicates(req) {
 }
 
 /**
+ * Uses cached JSforce connection to query the BAP for duplicate VINs.
+ *
+ * @param {express.Request} req
+ * @param {string} vin VIN provided to check for duplicates against
+ * @param {string | undefined} rebateId CSB Rebate ID (optional)
+ * @param {boolean | undefined} debug Show debug info (optional)
+ * @returns {Promise<VinDuplicates>}
+ */
+async function queryForVinDuplicates(req, vin, rebateId, debug) {
+  const logMessage =
+    `Querying the BAP for duplicate buses with VIN: '${vin}'` +
+    (rebateId ? ` and CSB Rebate ID: '${rebateId}'.` : ".");
+  log({ level: "info", message: logMessage, req });
+
+  /** @type {{ bapConnection: jsforce.Connection }} */
+  const { bapConnection } = req.app.locals;
+
+  const url =
+    `/v1/check-vin?vin=${vin}` +
+    (rebateId ? `&rebate=${rebateId}` : "") +
+    (debug ? `&debug=${debug}` : "");
+
+  return bapConnection.apex.get(url, (_err, res) => res);
+}
+
+/**
  * Verifies the BAP connection has been setup, then calls the provided callback
  * function with the provided arguments.
  *
@@ -2704,6 +2744,23 @@ function checkForBapDuplicates(req) {
 }
 
 /**
+ * Checks the BAP for duplicate VINs associated with a provided VIN and optional
+ * rebate ID.
+ *
+ * @param {express.Request} req
+ * @param {string} vin
+ * @param {string | undefined} rebateId
+ * @param {boolean | undefined} debug
+ * @returns {ReturnType<queryForVinDuplicates>}
+ */
+function checkForVinDuplicates(req, vin, rebateId, debug) {
+  return verifyBapConnection(req, {
+    name: queryForVinDuplicates,
+    args: [req, vin, rebateId, debug],
+  });
+}
+
+/**
  * Returns a resolved or rejected promise, depending on if the given form's
  * submission period is open (as set via environment variables), and if the form
  * submission has the status of "Edits Requested" or not (as stored in and
@@ -2758,5 +2815,6 @@ module.exports = {
   getBapDataFor2022CRF,
   getBapDataFor2023CRF,
   checkForBapDuplicates,
+  checkForVinDuplicates,
   checkFormSubmissionPeriodAndBapStatus,
 };
