@@ -620,6 +620,20 @@ const { submissionPeriodOpen } = require("../config/formio");
  * }>} BapDuplicates
  */
 
+/**
+ * @typedef {{
+ *  timestamp: string
+ *  results: {
+ *    vin: string
+ *    validFormat: boolean
+ *    sourceRecordKeys: string[]
+ *    sourceExclusions: string[]
+ *    hitSources: string[]
+ *    hit: boolean
+ *  }[]
+ * }} VinDuplicates
+ */
+
 const {
   SERVER_URL,
   BAP_REST_API_VERSION,
@@ -2519,7 +2533,7 @@ async function queryBapForDuplicates(req) {
  * @param {string} vin VIN provided to check for duplicates against
  * @param {string | undefined} rebateId CSB Rebate ID (optional)
  * @param {boolean | undefined} debug Show debug info (optional)
- * @returns {Promise<BapDuplicates>}
+ * @returns {Promise<VinDuplicates>}
  */
 async function queryForVinDuplicates(req, vin, rebateId, debug) {
   const logMessage =
@@ -2737,7 +2751,7 @@ function checkForBapDuplicates(req) {
  * @param {string} vin
  * @param {string | undefined} rebateId
  * @param {boolean | undefined} debug
- * @returns {ReturnType<queryBapForDuplicates>}
+ * @returns {ReturnType<queryForVinDuplicates>}
  */
 function checkForVinDuplicates(req, vin, rebateId, debug) {
   return verifyBapConnection(req, {
