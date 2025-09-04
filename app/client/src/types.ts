@@ -444,13 +444,16 @@ type FormioPRF2023FormDataFields = FormioPRF2023DashboardDataFields & {
 type FormioCRF2023DashboardDataFields = {
   _user_email: string;
   _bap_entity_combo_key: string;
+  _bap_rebate_id: string;
+  _bap_applicant_name: string;
+  _bap_district_name: string;
+  _bap_district_state: string;
 };
 
 type FormioCRF2023FormDataFields = FormioCRF2023DashboardDataFields & {
   [field: string]: unknown;
   _user_title: string;
   _user_name: string;
-  _bap_rebate_id: string;
 };
 
 type FormioChange2023DashboardDataFields = {

@@ -1619,7 +1619,14 @@ function CRF2023Submission(props: { rebate: Rebate2023 }) {
   // return if a Close Out submission has not been created for this rebate
   if (!crf.formio) return null;
 
-  const { _user_email, _bap_rebate_id } = crf.formio.data;
+  const {
+    _user_email,
+    _bap_entity_combo_key,
+    _bap_rebate_id,
+    _bap_applicant_name,
+    _bap_district_name,
+    _bap_district_state,
+  } = crf.formio.data;
 
   const date = new Date(crf.formio.modified).toLocaleDateString();
   const time = new Date(crf.formio.modified).toLocaleTimeString();
@@ -1716,6 +1723,24 @@ function CRF2023Submission(props: { rebate: Rebate2023 }) {
         {_user_email}
         <br />
         <span title={`${date} ${time}`}>{date}</span>
+      </td>
+
+      <td className={clsx("tw:min-[30rem]:text-right")}>
+        <ChangeRequest2023Button
+          data={{
+            formType: "crf",
+            comboKey: _bap_entity_combo_key,
+            rebateId: _bap_rebate_id,
+            mongoId: crf.formio._id,
+            state: crf.formio.state || "",
+            email,
+            title,
+            name,
+            applicantName: _bap_applicant_name,
+            districtName: _bap_district_name,
+            districtState: _bap_district_state,
+          }}
+        />
       </td>
     </tr>
   );
