@@ -22,10 +22,10 @@ import {
   type FormioCRF2022FormSubmission,
   type FormioFRF2023FormSubmission,
   type FormioPRF2023FormSubmission,
-  // type FormioCRF2023FormSubmission
+  type FormioCRF2023FormSubmission,
   type FormioFRF2024FormSubmission,
-  // type FormioPRF2025FormSubmission,
-  // type FormioCRF2023FormSubmission
+  // type FormioPRF2024FormSubmission,
+  // type FormioCRF2024FormSubmission
 } from "@/types";
 import {
   serverUrl,
@@ -121,6 +121,7 @@ function useSubmissionPDFQuery(options: {
     | FormioCRF2022FormSubmission
     | FormioFRF2023FormSubmission
     | FormioPRF2023FormSubmission
+    | FormioCRF2023FormSubmission
     | FormioFRF2024FormSubmission;
 }) {
   const { formio } = options;
@@ -179,6 +180,7 @@ function ResultTableRow(props: {
     | FormioCRF2022FormSubmission
     | FormioFRF2023FormSubmission
     | FormioPRF2023FormSubmission
+    | FormioCRF2023FormSubmission
     | FormioFRF2024FormSubmission;
   bap: BapSubmissionData | null;
 }) {
