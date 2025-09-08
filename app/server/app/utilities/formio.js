@@ -1123,6 +1123,8 @@ function fetchDataForCRFSubmission({ rebateYear, req, res }) {
           Total_DC_Fast_Charger_Costs__c,
           Total_Other_Infrastructure_Costs__c,
           Funding_Alloc_for_Eligible_Infra_Costs__c,
+          Original_CSB_Funds_Requested__c,
+          Total_Bus_And_Infrastructure_Rebate__c,
         } = prf2023RecordQuery[0];
 
         const prf2023RecordJson = JSON.parse(CSB_Snapshot__r.JSON_Snapshot__c);
@@ -1423,6 +1425,8 @@ function fetchDataForCRFSubmission({ rebateYear, req, res }) {
             _bap_infra_total_dc_fast_charger: Total_DC_Fast_Charger_Costs__c,
             _bap_infra_total_other_costs: Total_Other_Infrastructure_Costs__c,
             _bap_infra_funding: Funding_Alloc_for_Eligible_Infra_Costs__c,
+            _bap_requested_funds: Original_CSB_Funds_Requested__c,
+            _bap_received_funds: Total_Bus_And_Infrastructure_Rebate__c,
             org_organizations,
             bus_buses,
             infra_infrastructure,
@@ -2660,6 +2664,7 @@ function updateCRFSubmission({ rebateYear, req, res }) {
           const errorStatus = error.response?.status || 500;
           const errorMessage = `Error updating Formio ${rebateYear} Close Out form submission '${rebateId}'.`;
           return res.status(errorStatus).json({ message: errorMessage });
+          // return res.status(errorStatus).json(error.response.data);
         });
     })
     .catch((_error) => {

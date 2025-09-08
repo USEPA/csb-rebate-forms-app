@@ -506,6 +506,8 @@ const { submissionPeriodOpen } = require("../config/formio");
  *  Total_DC_Fast_Charger_Costs__c: number
  *  Total_Other_Infrastructure_Costs__c: number
  *  Funding_Alloc_for_Eligible_Infra_Costs__c: number
+ *  Original_CSB_Funds_Requested__c: number
+ *  Total_Bus_And_Infrastructure_Rebate__c: number
  * }[]} prf2023RecordQuery
  * @property {{
  *  attributes: { type: "Line_Item__c", url: string }
@@ -2136,7 +2138,9 @@ async function queryBapFor2023CRFData(req, prfReviewItemId) {
   //   Total_Level_2_Charger_Costs__c,
   //   Total_DC_Fast_Charger_Costs__c,
   //   Total_Other_Infrastructure_Costs__c,
-  //   Funding_Alloc_for_Eligible_Infra_Costs__c
+  //   Funding_Alloc_for_Eligible_Infra_Costs__c,
+  //   Original_CSB_Funds_Requested__c,
+  //   Total_Bus_And_Infrastructure_Rebate__c
   // FROM
   //   Order_Request__c
   // WHERE
@@ -2202,6 +2206,8 @@ async function queryBapFor2023CRFData(req, prfReviewItemId) {
         Total_DC_Fast_Charger_Costs__c: 1,
         Total_Other_Infrastructure_Costs__c: 1,
         Funding_Alloc_for_Eligible_Infra_Costs__c: 1,
+        Original_CSB_Funds_Requested__c: 1,
+        Total_Bus_And_Infrastructure_Rebate__c: 1,
       },
     )
     .execute(async (err, records) => ((await err) ? err : records));
