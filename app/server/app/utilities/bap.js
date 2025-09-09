@@ -522,12 +522,12 @@ const { submissionPeriodOpen } = require("../config/formio");
  *  CSB_Manufacturer__c: string
  *  CSB_Manufacturer_if_Other__c: string
  *  CSB_Annual_Fuel_Consumption__c: number
- *  Annual_Mileage__c: number
+ *  Old_Bus_Average_Annual_Mileage__c: number
  *  Old_Bus_Odometer_miles__c: number
  *  Old_Bus_NCES_District_ID__c: string
  *  Old_Bus_Estimated_Remaining_Life__c: number
  *  Old_Bus_Annual_Idling_Hours__c: number
- *  Old_Bus_Exclude__c: boolean
+ *  Bus_Excluded_in_PRF__c: boolean
  *  New_Bus_EPA_Vehicle_Family__c: string
  *  New_Bus_Fuel_Type__c: string
  *  New_Bus_Make__c: string
@@ -538,6 +538,7 @@ const { submissionPeriodOpen } = require("../config/formio");
  *  New_Bus_Rebate_Amount__c: number
  *  New_Bus_Purchase_Price__c: number
  *  New_Bus_ADA_Compliant__c: boolean
+ *  New_Bus_Infra_Rebate_Requested__c: number
  *  ADA_Compliance_Costs__c: number | null
  *  Bus_Shipping_Costs__c: number | null
  *  Eligible_ADA_Compliance_Rebate__c: number | null
@@ -559,7 +560,7 @@ const { submissionPeriodOpen } = require("../config/formio");
  *  EVSE_Model__c: string | null
  *  EVSE_Date_of_Manufacture__c: string | null
  *  Number_of_Plugs_on_EVSE__c: number | null
- *  Capable_of_Bidirectional_Charging__c: string
+ *  Capable_of_Bidirectional_Charging__c: "1" | "0"
  *  Planning_to_Use_Bidirectional_Charging__c: boolean
  *  EVSE_Energy_Star__c: boolean
  *  Charger_Infra_Materials_BABA_Compliant__c: boolean
@@ -2252,12 +2253,12 @@ async function queryBapFor2023CRFData(req, prfReviewItemId) {
   //   CSB_Manufacturer__c,
   //   CSB_Manufacturer_if_Other__c,
   //   CSB_Annual_Fuel_Consumption__c,
-  //   Annual_Mileage__c,
+  //   Old_Bus_Average_Annual_Mileage__c,
   //   Old_Bus_Odometer_miles__c,
   //   Old_Bus_NCES_District_ID__c,
   //   Old_Bus_Estimated_Remaining_Life__c,
   //   Old_Bus_Annual_Idling_Hours__c,
-  //   Old_Bus_Exclude__c,
+  //   Bus_Excluded_in_PRF__c,
   //   New_Bus_EPA_Vehicle_Family__c,
   //   New_Bus_Fuel_Type__c,
   //   New_Bus_Make__c,
@@ -2268,6 +2269,7 @@ async function queryBapFor2023CRFData(req, prfReviewItemId) {
   //   New_Bus_Rebate_Amount__c,
   //   New_Bus_Purchase_Price__c,
   //   New_Bus_ADA_Compliant__c,
+  //   New_Bus_Infra_Rebate_Requested__c,
   //   ADA_Compliance_Costs__c,
   //   Bus_Shipping_Costs__c,
   //   Eligible_ADA_Compliance_Rebate__c,
@@ -2302,12 +2304,12 @@ async function queryBapFor2023CRFData(req, prfReviewItemId) {
         CSB_Manufacturer__c: 1,
         CSB_Manufacturer_if_Other__c: 1,
         CSB_Annual_Fuel_Consumption__c: 1,
-        Annual_Mileage__c: 1,
+        Old_Bus_Average_Annual_Mileage__c: 1,
         Old_Bus_Odometer_miles__c: 1,
         Old_Bus_NCES_District_ID__c: 1,
         Old_Bus_Estimated_Remaining_Life__c: 1,
         Old_Bus_Annual_Idling_Hours__c: 1,
-        Old_Bus_Exclude__c: 1,
+        Bus_Excluded_in_PRF__c: 1,
         New_Bus_EPA_Vehicle_Family__c: 1,
         New_Bus_Fuel_Type__c: 1,
         New_Bus_Make__c: 1,
@@ -2318,6 +2320,7 @@ async function queryBapFor2023CRFData(req, prfReviewItemId) {
         New_Bus_Rebate_Amount__c: 1,
         New_Bus_Purchase_Price__c: 1,
         New_Bus_ADA_Compliant__c: 1,
+        New_Bus_Infra_Rebate_Requested__c: 1,
         ADA_Compliance_Costs__c: 1,
         Bus_Shipping_Costs__c: 1,
         Eligible_ADA_Compliance_Rebate__c: 1,
@@ -2391,14 +2394,9 @@ async function queryBapFor2023CRFData(req, prfReviewItemId) {
     .execute(async (err, records) => ((await err) ? err : records));
 
   const contactIdFields = [
-    "Donee_Contact_ID__c",
-    "Infrastructure_Other_Contact_ID__c",
     "Infrastructure_Owner_Contact_ID__c",
-    "Infrastructure_Supplier_Contact_ID__c",
     "New_Bus_Owner_Contact_ID__c",
     "Old_Bus_Owner_Contact_ID__c",
-    "Purchaser_Contact_ID__c",
-    "Scrap_Contact_ID__c",
   ];
 
   // Unique contact IDs from both bus and infrastructure records

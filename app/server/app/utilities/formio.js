@@ -1215,12 +1215,12 @@ function fetchDataForCRFSubmission({ rebateYear, req, res }) {
             CSB_Manufacturer__c,
             CSB_Manufacturer_if_Other__c,
             CSB_Annual_Fuel_Consumption__c,
-            Annual_Mileage__c,
+            Old_Bus_Average_Annual_Mileage__c,
             Old_Bus_Odometer_miles__c,
             Old_Bus_NCES_District_ID__c,
             Old_Bus_Estimated_Remaining_Life__c,
             Old_Bus_Annual_Idling_Hours__c,
-            Old_Bus_Exclude__c,
+            Bus_Excluded_in_PRF__c,
             New_Bus_EPA_Vehicle_Family__c,
             New_Bus_Fuel_Type__c,
             New_Bus_Make__c,
@@ -1231,6 +1231,7 @@ function fetchDataForCRFSubmission({ rebateYear, req, res }) {
             New_Bus_Rebate_Amount__c,
             New_Bus_Purchase_Price__c,
             New_Bus_ADA_Compliant__c,
+            New_Bus_Infra_Rebate_Requested__c,
             ADA_Compliance_Costs__c,
             Bus_Shipping_Costs__c,
             Eligible_ADA_Compliance_Rebate__c,
@@ -1249,8 +1250,8 @@ function fetchDataForCRFSubmission({ rebateYear, req, res }) {
 
           return {
             bus_number: Rebate_Item_num__c,
-            bus_existing_excluded: Old_Bus_Exclude__c,
-            _bus_existing_excluded: Old_Bus_Exclude__c,
+            bus_existing_excluded: Bus_Excluded_in_PRF__c,
+            _bus_existing_excluded: Bus_Excluded_in_PRF__c,
             bus_existing_owner: {
               org_id: existingOwnerRecord?.Account?.Id,
               org_name: existingOwnerRecord?.Account?.Name,
@@ -1266,10 +1267,10 @@ function fetchDataForCRFSubmission({ rebateYear, req, res }) {
             bus_existing_model_year: CSB_Model_Year__c,
             bus_existing_nces_id: Old_Bus_NCES_District_ID__c,
             bus_existing_manufacturer: CSB_Manufacturer__c,
-            bus_existing_manufacturer_other: CSB_Manufacturer_if_Other__c, // TODO: determine if this is correct – we used this field in the 2023 PRF, but the query was for the frf2023BusRecordsQuery where it was ""
+            bus_existing_manufacturer_other: CSB_Manufacturer_if_Other__c,
             bus_existing_remaining_life: Old_Bus_Estimated_Remaining_Life__c,
             bus_existing_annual_fuel_consumption: CSB_Annual_Fuel_Consumption__c, // prettier-ignore
-            bus_existing_annual_mileage: Annual_Mileage__c,
+            bus_existing_annual_mileage: Old_Bus_Average_Annual_Mileage__c,
             bus_existing_idling_hours: Old_Bus_Annual_Idling_Hours__c,
             bus_new_owner: {
               org_id: newOwnerRecord?.Account?.Id,
@@ -1287,11 +1288,12 @@ function fetchDataForCRFSubmission({ rebateYear, req, res }) {
             _bus_new_model: New_Bus_Model__c,
             _bus_new_epa_carb: New_Bus_EPA_Vehicle_Family__c,
             _bus_new_model_year: New_Bus_Model_Year__c,
-            bus_rebate_shipping: Eligible_Bus_Shipping_Rebate__c, // TODO: new field so confirm
-            bus_rebate_shipping_costs: Bus_Shipping_Costs__c, // TODO: new field so confirm
-            bus_rebate_ada: Eligible_ADA_Compliance_Rebate__c, // TODO: new field so confirm. Could also be "New_Bus_ADA_Rebate_Requested__c"
-            bus_rebate_ada_costs: ADA_Compliance_Costs__c, // TODO: new field so confirm
+            bus_rebate_shipping: Eligible_Bus_Shipping_Rebate__c,
+            bus_rebate_shipping_costs: Bus_Shipping_Costs__c,
+            bus_rebate_ada: Eligible_ADA_Compliance_Rebate__c,
+            bus_rebate_ada_costs: ADA_Compliance_Costs__c,
             _bus_funding_amount: New_Bus_Rebate_Amount__c,
+            _bus_max_rebate: New_Bus_Infra_Rebate_Requested__c,
           };
         });
 
@@ -1333,7 +1335,7 @@ function fetchDataForCRFSubmission({ rebateYear, req, res }) {
               infra_evse_model: EVSE_Model__c,
               infra_evse_manufacture_date: EVSE_Date_of_Manufacture__c,
               infra_evse_number_plugs: Number_of_Plugs_on_EVSE__c,
-              infra_evse_bidirectional_charging: Capable_of_Bidirectional_Charging__c, // prettier-ignore
+              _infra_evse_bidirectional_charging: Capable_of_Bidirectional_Charging__c, // prettier-ignore
               infra_evse_bidirectional_planning: Planning_to_Use_Bidirectional_Charging__c, // prettier-ignore
               infra_evse_energy_star: EVSE_Energy_Star__c,
               infra_evse_baba_compliant: Charger_Infra_Materials_BABA_Compliant__c, // prettier-ignore
