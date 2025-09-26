@@ -44,28 +44,63 @@ test.describe("Submission Enrollment Period", () => {
     });
 
     await page.goto(url);
-
-    const heading = page.getByRole("heading", { name: "Your Rebate Forms" });
-    await expect(heading).toBeVisible();
   });
 
-  test("Enrollment Period Closed", async ({ page }) => {
-    const select = page.getByLabel("Rebate Year:");
-
-    await select.selectOption("2024");
-
-    const table2024 = page.getByLabel("Your 2024 Rebate Forms");
+  test("'New Application' button is disabled when enrollment period is closed", async ({
+    page,
+  }) => {
     const button = page.getByRole("button", { name: "New Application" });
-
-    await expect(table2024).toBeVisible();
     await expect(button).toBeDisabled();
 
-    await select.selectOption("2023");
+    await page.getByLabel("Rebate Year:").selectOption("2023");
 
-    const table2023 = page.getByLabel("Your 2023 Rebate Forms");
     const link = page.getByRole("link", { name: "New Application" });
-
-    await expect(table2023).toBeVisible();
     await expect(link).toBeEnabled();
+  });
+});
+
+test.describe("No SAM.gov Data", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.route("*/**/api/bap/sam", async (route) => {
+      const response = await route.fetch();
+      const json = {
+        results: false,
+        entities: [],
+      };
+
+      await route.fulfill({ response, json });
+    });
+
+    await page.goto(url);
+  });
+
+  test("User is logged out and message is displayed when user has no SAM.gov data", async ({
+    page,
+  }) => {
+    const link = page.getByRole("link", { name: "Sign in" });
+    await expect(link).toBeVisible();
+
+    const message = page.getByText("No SAM.gov accounts match your email.");
+    await expect(message).toBeVisible();
+  });
+});
+
+test.describe("No Form Submissions", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.route("*/**/api/formio/2024/frf-submissions", async (route) => {
+      const response = await route.fetch();
+      const json: never[] = [];
+
+      await route.fulfill({ response, json });
+    });
+
+    await page.goto(url);
+  });
+
+  test("'New Application' message is displayed when user has no submissions", async ({
+    page,
+  }) => {
+    const message = page.getByText("Please select the “New Application” button above"); // prettier-ignore
+    await expect(message).toBeVisible();
   });
 });
