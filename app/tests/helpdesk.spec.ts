@@ -33,3 +33,29 @@ test.describe("No Submission Found", () => {
     await expect(message).toBeVisible();
   });
 });
+
+test.describe("Submission In BAP, But Not Formio", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto(url);
+    await page.locator("#root").getByRole("link", { name: "Helpdesk" }).click();
+
+    await page.route(
+      `*/**/api/help/formio/submission/2024/frf/${frf2024MongoId}`,
+      async (route) => {
+        const json = { rebateId: null, schema: {}, formio: null, bap: {} };
+
+        await route.fulfill({ json });
+      },
+    );
+  });
+
+  test("Message is displayed for a form submission that only exists in the BAP (due to being deleted from Formio)", async ({
+    page,
+  }) => {
+    await page.getByLabel("Search submissions by ID").fill(frf2024MongoId);
+    await page.locator("#root").getByRole("button", { name: "Search" }).click();
+
+    const message = page.getByText("The form submission was found in the BAP but not in Formio."); // prettier-ignore
+    await expect(message).toBeVisible();
+  });
+});
