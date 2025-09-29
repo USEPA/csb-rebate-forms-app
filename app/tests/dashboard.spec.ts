@@ -38,7 +38,7 @@ test.describe("Submission Enrollment Period", () => {
       const response = await route.fetch();
       const json = await response.json();
 
-      json["submissionPeriodOpen"]["2024"]["frf"] = false;
+      json.submissionPeriodOpen["2024"].frf = false;
 
       await route.fulfill({ response, json });
     });
@@ -62,13 +62,9 @@ test.describe("Submission Enrollment Period", () => {
 test.describe("No SAM.gov Data", () => {
   test.beforeEach(async ({ page }) => {
     await page.route("*/**/api/bap/sam", async (route) => {
-      const response = await route.fetch();
-      const json = {
-        results: false,
-        entities: [],
-      };
+      const json = { results: false, entities: [] };
 
-      await route.fulfill({ response, json });
+      await route.fulfill({ json });
     });
 
     await page.goto(url);
@@ -85,13 +81,84 @@ test.describe("No SAM.gov Data", () => {
   });
 });
 
+test.describe("SAM.gov Debt Subject to Offset", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.route("*/**/api/bap/sam", async (route) => {
+      const response = await route.fetch();
+      const json = await response.json();
+
+      for (const entity of json.entities) {
+        entity.DEBT_SUBJECT_TO_OFFSET_FLAG__c = "Y";
+      }
+
+      await route.fulfill({ response, json });
+    });
+
+    await page.goto(url);
+  });
+
+  test("When creating a new application, message is shown for a SAM.gov entity that has a debt subject to offset", async ({
+    page,
+  }) => {
+    page.getByRole("link", { name: "New Application" }).click();
+
+    const message = page.getByText("Ineligible SAM.gov Entities:");
+    await expect(message).toBeVisible();
+  });
+
+  test("When viewing an existing application, error message is shown for a SAM.gov entity that has a debt subject to offset", async ({
+    page,
+  }) => {
+    const table = page.getByLabel("Your 2024 Rebate Forms");
+    table.getByRole("rowheader").first().getByRole("link").click();
+
+    const message = page.getByText("Your SAM.gov account is either currently not active or ineligible due to an exclusion status or a debt subject to offset."); // prettier-ignore
+    await expect(message).toBeVisible();
+  });
+});
+
+test.describe("SAM.gov Exclusion Status", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.route("*/**/api/bap/sam", async (route) => {
+      const response = await route.fetch();
+      const json = await response.json();
+
+      for (const entity of json.entities) {
+        entity.EXCLUSION_STATUS_FLAG__c = "D";
+      }
+
+      await route.fulfill({ response, json });
+    });
+
+    await page.goto(url);
+  });
+
+  test("When creating a new application, message is shown for a SAM.gov entity that has an exclusion status", async ({
+    page,
+  }) => {
+    page.getByRole("link", { name: "New Application" }).click();
+
+    const message = page.getByText("Ineligible SAM.gov Entities:");
+    await expect(message).toBeVisible();
+  });
+
+  test("When viewing an existing application, error message is shown for a SAM.gov entity that has an exclusion status", async ({
+    page,
+  }) => {
+    const table = page.getByLabel("Your 2024 Rebate Forms");
+    table.getByRole("rowheader").first().getByRole("link").click();
+
+    const message = page.getByText("Your SAM.gov account is either currently not active or ineligible due to an exclusion status or a debt subject to offset."); // prettier-ignore
+    await expect(message).toBeVisible();
+  });
+});
+
 test.describe("No Form Submissions", () => {
   test.beforeEach(async ({ page }) => {
     await page.route("*/**/api/formio/2024/frf-submissions", async (route) => {
-      const response = await route.fetch();
       const json: never[] = [];
 
-      await route.fulfill({ response, json });
+      await route.fulfill({ json });
     });
 
     await page.goto(url);
