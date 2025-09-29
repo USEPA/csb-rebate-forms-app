@@ -97,7 +97,7 @@ test.describe("SAM.gov Debt Subject to Offset", () => {
     await page.goto(url);
   });
 
-  test("When creating a new application, message is shown for a SAM.gov entity that has a debt subject to offset", async ({
+  test("When creating a new application, message is shown for any SAM.gov entities that have a debt subject to offset", async ({
     page,
   }) => {
     page.getByRole("link", { name: "New Application" }).click();
@@ -133,7 +133,7 @@ test.describe("SAM.gov Exclusion Status", () => {
     await page.goto(url);
   });
 
-  test("When creating a new application, message is shown for a SAM.gov entity that has an exclusion status", async ({
+  test("When creating a new application, message is shown for any SAM.gov entities that have an exclusion status", async ({
     page,
   }) => {
     page.getByRole("link", { name: "New Application" }).click();
@@ -153,6 +153,35 @@ test.describe("SAM.gov Exclusion Status", () => {
   });
 });
 
+test.describe("No Active SAM.gov Accounts", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.route("*/**/api/bap/sam", async (route) => {
+      const response = await route.fetch();
+      const json = await response.json();
+
+      for (const entity of json.entities) {
+        entity.ENTITY_STATUS__c = ""; // NOTE: anything beyond "Active" is considered not active
+      }
+
+      await route.fulfill({ response, json });
+    });
+
+    await page.goto(url);
+  });
+
+  test("When creating a new application with no active SAM.gov accounts, messages are shown", async ({
+    page,
+  }) => {
+    const warningMessage = page.getByText("At least one of your SAM.gov accounts is currently not active.") // prettier-ignore
+    await expect(warningMessage).toBeVisible();
+
+    page.getByRole("link", { name: "New Application" }).click();
+
+    const infoMessage = page.getByText("There are no active SAM.gov accounts associated with your email."); // prettier-ignore
+    await expect(infoMessage).toBeVisible();
+  });
+});
+
 test.describe("No Form Submissions", () => {
   test.beforeEach(async ({ page }) => {
     await page.route("*/**/api/formio/2024/frf-submissions", async (route) => {
@@ -168,6 +197,19 @@ test.describe("No Form Submissions", () => {
     page,
   }) => {
     const message = page.getByText("Please select the “New Application” button above"); // prettier-ignore
+    await expect(message).toBeVisible();
+  });
+});
+
+test.describe("Form Submission Doesn't Exist", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto(`${url}/frf/2024/000000000000000000000000`);
+  });
+
+  test("Error message is displayed for a form submission that doesn't exist", async ({
+    page,
+  }) => {
+    const message = page.getByText("The requested submission does not exist, or you do not have access."); // prettier-ignore
     await expect(message).toBeVisible();
   });
 });
