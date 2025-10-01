@@ -129,21 +129,21 @@ function checkVIN({ rebateYear, req, res }) {
 
   // NOTE: included to support EPA API scan
   if (vin === formioExampleVin) {
-    return true;
+    return res.json(true);
   }
 
   if (!vin) {
     const logMessage = `No VIN passed to VIN duplicates lookup.`;
     log({ level: "info", message: logMessage, req });
 
-    return false;
+    return res.json(false);
   }
 
   if (vin.length !== 17) {
     const logMessage = `Invalid VIN '${vin}' passed to VIN duplicates lookup.`;
     log({ level: "info", message: logMessage, req });
 
-    return false;
+    return res.json(false);
   }
 
   return checkForVinDuplicates(req, vin, rebateId)
