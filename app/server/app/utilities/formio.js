@@ -208,6 +208,20 @@ function getRebateContacts({ rebateYear, req, res }) {
     return res.json([]);
   }
 
+  if (!rebateId) {
+    const logMessage = `No Rebate ID passed to CSB Rebate Contacts lookup.`;
+    log({ level: "info", message: logMessage, req });
+
+    return res.json([]);
+  }
+
+  if (rebateId.length !== 6) {
+    const logMessage = `Invalid Rebate ID '${rebateId}' passed to CSB Rebate Contacts lookup.`;
+    log({ level: "info", message: logMessage, req });
+
+    return res.json([]);
+  }
+
   return getCSBRebateContacts(req, rebateId)
     .then((json) => {
       const results = json.data || [];

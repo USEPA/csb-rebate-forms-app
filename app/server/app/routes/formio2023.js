@@ -54,7 +54,7 @@ router.get("/nces{/:searchText}", (req, res) => {
 });
 
 // --- get contacts associated with a provided CSB Rebate ID
-router.get("/contacts/:rebateId", (req, res) => {
+router.get("/contacts{/:rebateId}", (req, res) => {
   getRebateContacts({ rebateYear, req, res });
 });
 
