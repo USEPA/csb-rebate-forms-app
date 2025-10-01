@@ -8,6 +8,7 @@ const {
 const {
   checkVIN,
   searchNcesData,
+  getRebateContacts,
   //
   downloadFileFromS3,
   uploadFileToS3,
@@ -50,6 +51,11 @@ router.get("/check-vin{/:vin}", (req, res) => {
 // --- search 2023 NCES data with the provided NCES ID and return a match
 router.get("/nces{/:searchText}", (req, res) => {
   searchNcesData({ rebateYear, req, res });
+});
+
+// --- get contacts associated with a provided CSB Rebate ID
+router.get("/contacts/:rebateId", (req, res) => {
+  getRebateContacts({ rebateYear, req, res });
 });
 
 // --- download Formio file attachment from S3
