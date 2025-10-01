@@ -592,6 +592,29 @@ const { submissionPeriodOpen } = require("../config/formio");
  */
 
 /**
+ * @typedef {{
+ *  rebateId: string
+ *  rolesApplied: string[]
+ *  count: number
+ *  data: {
+ *    contactRole: string
+ *    contactType: string
+ *    salesforceId: string
+ *    salesforceOrgId: string
+ *    salesforceCreatedDate: string
+ *    salesforceLastModifiedDate: string
+ *    firstName: string
+ *    middleName: string
+ *    lastName: string
+ *    suffix: null
+ *    title: string
+ *    businessPhoneNumber: string
+ *    businessEmail: string
+ *  }[]
+ * }} CSBRebateContacts
+ */
+
+/**
  * @typedef {Object.<string, {
  *  dupeList: {
  *    Id: string
@@ -2471,6 +2494,26 @@ async function queryBapFor2023CRFData(req, prfReviewItemId) {
 }
 
 /**
+ * Uses cached JSforce connection to query the BAP for contacts associated with
+ * a CSB Rebate ID.
+ *
+ * @param {express.Request} req
+ * @param {string} rebateId CSB Rebate ID
+ * @returns {Promise<CSBRebateContacts>}
+ */
+async function queryForCSBRebateContacts(req, rebateId) {
+  const logMessage = `Querying the BAP for contacts associated with CSB Rebate ID: '${rebateId}'.`;
+  log({ level: "info", message: logMessage, req });
+
+  /** @type {{ bapConnection: jsforce.Connection }} */
+  const { bapConnection } = req.app.locals;
+
+  const url = `/csb/v1/rebates/${rebateId}/contacts`;
+
+  return bapConnection.apex.get(url, (_err, res) => res);
+}
+
+/**
  * Uses cached JSforce connection to query the BAP for duplicate contacts or
  * organizations.
  *
@@ -2696,6 +2739,20 @@ function getBapDataFor2023CRF(req, prfReviewItemId) {
 }
 
 /**
+ * Fetches contacts associated with a provided CSB Rebate ID.
+ *
+ * @param {express.Request} req
+ * @param {string} rebateId
+ * @returns {ReturnType<queryForCSBRebateContacts>}
+ */
+function getCSBRebateContacts(req, rebateId) {
+  return verifyBapConnection(req, {
+    name: queryForCSBRebateContacts,
+    args: [req, rebateId],
+  });
+}
+
+/**
  * Checks for duplicate contacts or organizations in the BAP.
  *
  * @param {express.Request} req
@@ -2710,7 +2767,7 @@ function checkForBapDuplicates(req) {
 
 /**
  * Checks the BAP for duplicate VINs associated with a provided VIN and optional
- * rebate ID.
+ * CSB Rebate ID.
  *
  * @param {express.Request} req
  * @param {string} vin
@@ -2779,6 +2836,7 @@ module.exports = {
   getBapDataFor2024PRF,
   getBapDataFor2022CRF,
   getBapDataFor2023CRF,
+  getCSBRebateContacts,
   checkForBapDuplicates,
   checkForVinDuplicates,
   checkFormSubmissionPeriodAndBapStatus,
