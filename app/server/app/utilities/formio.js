@@ -20,6 +20,7 @@ const {
   getBapDataFor2024PRF,
   getBapDataFor2022CRF,
   getBapDataFor2023CRF,
+  getCSBRebateContacts,
   checkForVinDuplicates,
   checkFormSubmissionPeriodAndBapStatus,
 } = require("../utilities/bap");
@@ -191,6 +192,33 @@ function searchNcesData({ rebateYear, req, res }) {
   log({ level: "info", message: logMessage, req });
 
   return res.json({ ...result });
+}
+
+/**
+ * @param {Object} param
+ * @param {RebateYear} param.rebateYear
+ * @param {express.Request} param.req
+ * @param {express.Response} param.res
+ */
+function getRebateContacts({ rebateYear, req, res }) {
+  const { rebateId } = req.params;
+
+  // NOTE: included to support EPA API scan
+  if (rebateId === formioExampleRebateId) {
+    return res.json([]);
+  }
+
+  return getCSBRebateContacts(req, rebateId)
+    .then((json) => {
+      const results = json.data || [];
+      res.json(results);
+    })
+    .catch((_error) => {
+      // NOTE: logged in bap verifyBapConnection
+      const errorStatus = 500;
+      const errorMessage = `Error getting CSB Rebate Contacts from the BAP.`;
+      return res.status(errorStatus).json({ message: errorMessage });
+    });
 }
 
 /**
@@ -2882,6 +2910,7 @@ function fetchChangeRequest({ rebateYear, req, res }) {
 module.exports = {
   checkVIN,
   searchNcesData,
+  getRebateContacts,
   getRebateIdFieldName,
   //
   downloadFileFromS3,
