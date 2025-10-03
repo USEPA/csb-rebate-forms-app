@@ -224,7 +224,7 @@ function getRebateContacts({ rebateYear, req, res }) {
 
   return getCSBRebateContacts(req, rebateId)
     .then((json) => {
-      const results = json.data || [];
+      const results = json.contacts || [];
       res.json(results);
     })
     .catch((_error) => {
