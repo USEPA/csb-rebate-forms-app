@@ -894,12 +894,7 @@ function Submissions2022() {
 /* --- 2023 Submissions --- */
 
 function ChangeRequests2023() {
-  const changeRequestsQuery = useChangeRequestsQuery("2023");
   const changeRequests = useChangeRequests("2023");
-
-  if (changeRequestsQuery.isFetching) {
-    return <Loading />;
-  }
 
   if (!changeRequests || changeRequests.length === 0) return null;
 
@@ -1776,7 +1771,7 @@ function Submissions2023() {
 
   return (
     <>
-      <ChangeRequests2023 />
+      {changeRequestsQuery.isFetching ? <Loading /> : <ChangeRequests2023 />}
 
       {content && (
         <div className="margin-top-4">
@@ -1822,12 +1817,7 @@ function Submissions2023() {
 /* --- 2024 Submissions --- */
 
 function ChangeRequests2024() {
-  const changeRequestsQuery = useChangeRequestsQuery("2024");
   const changeRequests = useChangeRequests("2024");
-
-  if (changeRequestsQuery.isFetching) {
-    return <Loading />;
-  }
 
   if (!changeRequests || changeRequests.length === 0) return null;
 
@@ -2448,7 +2438,7 @@ function Submissions2024() {
 
   return (
     <>
-      <ChangeRequests2024 />
+      {changeRequestsQuery.isFetching ? <Loading /> : <ChangeRequests2024 />}
 
       {content && (
         <div className="margin-top-4">
