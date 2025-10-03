@@ -43,7 +43,7 @@ export function Change2024() {
   const { query } = useFormioSubmissionQuery(mongoId);
   const { access, schema, submission } = query.data ?? {};
 
-  if (query.isInitialLoading) {
+  if (query.isLoading) {
     return <Loading />;
   }
 

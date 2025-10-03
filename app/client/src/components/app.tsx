@@ -217,11 +217,15 @@ function ProtectedRoute() {
     return <Navigate to="/welcome" replace />;
   }
 
+  if (!data || !data.mail) {
+    return null;
+  }
+
   return (
     <TooltipProvider>
       <ConfirmationDialog />
       <Notifications />
-      <UserDashboard email={data?.mail || ""} />
+      <UserDashboard email={data.mail} />
     </TooltipProvider>
   );
 }
@@ -260,12 +264,12 @@ export function App() {
         <Route path="prf/2022/:id" element={<PRF2022 />} />
         <Route path="crf/2022/:id" element={<CRF2022 />} />
 
-        <Route path="/change/2023/:id" element={<Change2023 />} />
+        <Route path="change/2023/:id" element={<Change2023 />} />
         <Route path="frf/2023/:id" element={<FRF2023 />} />
         <Route path="prf/2023/:id" element={<PRF2023 />} />
         <Route path="crf/2023/:id" element={<CRF2023 />} />
 
-        <Route path="/change/2024/:id" element={<Change2024 />} />
+        <Route path="change/2024/:id" element={<Change2024 />} />
         <Route path="frf/2024/:id" element={<FRF2024 />} />
         {/* <Route path="prf/2024/:id" element={<PRF2024 />} /> */}
         {/* <Route path="crf/2024/:id" element={<CRF2024 />} /> */}

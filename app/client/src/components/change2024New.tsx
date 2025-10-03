@@ -253,7 +253,7 @@ function ChangeRequest2024Form(props: {
    */
   const pendingSubmissionData = useRef<{ [field: string]: unknown }>({});
 
-  if (query.isInitialLoading) {
+  if (query.isLoading) {
     return <Loading />;
   }
 

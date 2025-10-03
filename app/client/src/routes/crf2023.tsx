@@ -153,7 +153,7 @@ function CloseOutRequestForm(props: { email: string }) {
     return <Message type="error" text={messages.formSubmissionsError} />;
   }
 
-  if (query.isInitialLoading) {
+  if (query.isLoading) {
     return <Loading />;
   }
 

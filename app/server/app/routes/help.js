@@ -245,9 +245,9 @@ router.get("/formio/submission/:rebateYear/:formType/:id", async (req, res) => {
   const rebateIdFieldName = getRebateIdFieldName({ rebateYear });
 
   /**
-   * NOTE: FRF submissions don't include a CSB Rebate Id field, as it's created
+   * NOTE: FRF submissions don't include a CSB Rebate ID field, as it's created
    * by the BAP after they ETL the FRF submissions. So if the user searched for
-   * an FRF submission with a CSB Rebate Id, we'll need to use the returned
+   * an FRF submission with a CSB Rebate ID, we'll need to use the returned
    * MongoDB ObjectId from the upcoming BAP query's response and then attempt to
    * re-fetch the formio submission data using that mongoId.
    */
