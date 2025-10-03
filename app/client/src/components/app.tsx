@@ -217,11 +217,15 @@ function ProtectedRoute() {
     return <Navigate to="/welcome" replace />;
   }
 
+  if (!data || !data.mail) {
+    return null;
+  }
+
   return (
     <TooltipProvider>
       <ConfirmationDialog />
       <Notifications />
-      <UserDashboard email={data?.mail || ""} />
+      <UserDashboard email={data.mail} />
     </TooltipProvider>
   );
 }
