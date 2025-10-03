@@ -1748,7 +1748,7 @@ function Submissions2023() {
   const submissions = useSubmissions("2023");
 
   if (
-    changeRequestsQuery.isInitialLoading ||
+    changeRequestsQuery.isLoading ||
     submissionsQueries.some((query) => query.isFetching)
   ) {
     return <Loading />;
@@ -2415,7 +2415,7 @@ function Submissions2024() {
   const submissions = useSubmissions("2024");
 
   if (
-    changeRequestsQuery.isInitialLoading ||
+    changeRequestsQuery.isLoading ||
     submissionsQueries.some((query) => query.isFetching)
   ) {
     return <Loading />;

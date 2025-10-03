@@ -153,7 +153,7 @@ function CloseOutRequestForm(props: { email: string }) {
     return <Message type="error" text={messages.formSubmissionsError} />;
   }
 
-  if (query.isInitialLoading) {
+  if (query.isLoading) {
     return <Loading />;
   }
 
@@ -411,6 +411,7 @@ function CloseOutRequestForm(props: { email: string }) {
             // to the form (ignoring current user fields)
             const currentData = { ...data };
             const submittedData = { ...lastSuccesfullySubmittedData.current };
+
             delete currentData.hidden_current_user_email;
             delete currentData.hidden_current_user_title;
             delete currentData.hidden_current_user_name;
