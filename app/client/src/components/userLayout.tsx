@@ -198,7 +198,7 @@ export function UserLayout(props: { email: string }) {
         </nav>
       </div>
 
-      <Outlet context={{ email }} />
+      {bapSamData.results && <Outlet context={{ email }} />}
     </div>
   );
 }
