@@ -23,7 +23,7 @@ import { Loading } from "@/components/loading";
 import { Message } from "@/components/message";
 import { MarkdownContent } from "@/components/markdownContent";
 import { Welcome } from "@/routes/welcome";
-import { UserDashboard } from "@/components/userDashboard";
+import { UserLayout } from "@/components/userLayout";
 import { ConfirmationDialog } from "@/components/confirmationDialog";
 import { Notifications } from "@/components/notifications";
 import { Helpdesk } from "@/routes/helpdesk";
@@ -225,7 +225,7 @@ function ProtectedRoute() {
     <TooltipProvider>
       <ConfirmationDialog />
       <Notifications />
-      <UserDashboard email={data.mail} />
+      <UserLayout email={data.mail} />
     </TooltipProvider>
   );
 }
