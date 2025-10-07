@@ -1,7 +1,7 @@
 import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import {
-  type UseMutationResult,
+  type UseQueryResult,
   useQueryClient,
   useQuery,
   useMutation,
@@ -166,12 +166,7 @@ function ResultTableRow(props: {
   setActionsData: Dispatch<
     SetStateAction<{ fetched: boolean; results: SubmissionAction[] }>
   >;
-  submissionMutation: UseMutationResult<
-    Response["formio"],
-    unknown,
-    DraftSubmission,
-    unknown
-  >;
+  submissionQuery: UseQueryResult<Response, Error>;
   formType: CSBFormType;
   rebateId: string | null;
   formio:
@@ -188,7 +183,7 @@ function ResultTableRow(props: {
     formDisplayed,
     setFormDisplayed,
     setActionsData,
-    submissionMutation,
+    submissionQuery,
     formType,
     rebateId,
     formio,
@@ -207,11 +202,12 @@ function ResultTableRow(props: {
     queryClient.resetQueries({ queryKey: ["helpdesk/actions"] });
   }, [queryClient]);
 
-  const actionsUrl = `${serverUrl}/api/help/formio/actions/${formId}/${mongoId}`;
-
   const actionsQuery = useQuery({
     queryKey: ["helpdesk/actions"],
-    queryFn: () => getData<SubmissionAction[]>(actionsUrl),
+    queryFn: () => {
+      const url = `${serverUrl}/api/help/formio/actions/${formId}/${mongoId}`;
+      return getData<SubmissionAction[]>(url);
+    },
     enabled: false,
   });
 
@@ -226,6 +222,25 @@ function ResultTableRow(props: {
   }, [actionsQuery.status, actionsQuery.data, setActionsData]);
 
   const pdfQuery = useSubmissionPDFQuery({ formio });
+
+  const submissionMutation = useMutation({
+    mutationFn: (submission: DraftSubmission) => {
+      const url = `${serverUrl}/api/help/formio/submission/${rebateYear}/${formType}/${mongoId}`;
+      return postData<Response["formio"]>(url, submission);
+    },
+    onSuccess: (res, _payload, _context) => {
+      queryClient.setQueryData<Response>(
+        ["helpdesk/submission"],
+        (prevData) => {
+          return prevData?.formio
+            ? { ...prevData, formio: { ...prevData.formio, submission: res } }
+            : prevData;
+        },
+      );
+
+      submissionQuery.refetch();
+    },
+  });
 
   if (!rebateYear) {
     return null;
@@ -457,12 +472,11 @@ export function Helpdesk() {
     queryClient.resetQueries({ queryKey: ["helpdesk/submission"] });
   }, [queryClient]);
 
-  const submissionUrl = `${serverUrl}/api/help/formio/submission/${rebateYear}/${formType}/${searchText}`;
-
   const submissionQuery = useQuery({
     queryKey: ["helpdesk/submission"],
     queryFn: () => {
-      return getData<Response>(submissionUrl).then((res) => {
+      const url = `${serverUrl}/api/help/formio/submission/${rebateYear}/${formType}/${searchText}`;
+      return getData<Response>(url).then((res) => {
         /**
          * Change the formUrl the File component uses, so the s3 requests are
          * routed through the CSB server app.
@@ -495,24 +509,6 @@ export function Helpdesk() {
       setResultDisplayed(true);
     }
   }, [submissionQuery.status, setResultDisplayed]);
-
-  const submissionMutation = useMutation({
-    mutationFn: (submission: DraftSubmission) => {
-      return postData<Response["formio"]>(submissionUrl, submission);
-    },
-    onSuccess: (res, _payload, _context) => {
-      queryClient.setQueryData<Response>(
-        ["helpdesk/submission"],
-        (prevData) => {
-          return prevData?.formio
-            ? { ...prevData, formio: { ...prevData.formio, submission: res } }
-            : prevData;
-        },
-      );
-
-      submissionQuery.refetch();
-    },
-  });
 
   const { rebateId, schema, formio, bap } = submissionQuery.data ?? {
     rebateId: null,
@@ -783,7 +779,7 @@ export function Helpdesk() {
                       formDisplayed={formDisplayed}
                       setFormDisplayed={setFormDisplayed}
                       setActionsData={setActionsData}
-                      submissionMutation={submissionMutation}
+                      submissionQuery={submissionQuery}
                       formType={formType}
                       rebateId={rebateId}
                       formio={formio}
