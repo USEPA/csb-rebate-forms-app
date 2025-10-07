@@ -23,11 +23,11 @@ import { Loading } from "@/components/loading";
 import { Message } from "@/components/message";
 import { MarkdownContent } from "@/components/markdownContent";
 import { Welcome } from "@/routes/welcome";
-import { UserDashboard } from "@/components/userDashboard";
+import { UserLayout } from "@/components/userLayout";
 import { ConfirmationDialog } from "@/components/confirmationDialog";
 import { Notifications } from "@/components/notifications";
 import { Helpdesk } from "@/routes/helpdesk";
-import { Submissions } from "@/routes/submissions";
+import { Dashboard } from "@/routes/dashboard";
 import { FRFNew } from "@/routes/frfNew";
 import { FRF2022 } from "@/routes/frf2022";
 import { PRF2022 } from "@/routes/prf2022";
@@ -225,7 +225,7 @@ function ProtectedRoute() {
     <TooltipProvider>
       <ConfirmationDialog />
       <Notifications />
-      <UserDashboard email={data.mail} />
+      <UserLayout email={data.mail} />
     </TooltipProvider>
   );
 }
@@ -239,7 +239,7 @@ export function App() {
     <Route errorElement={<Message type="error" text={messages.genericError} />}>
       <Route path="/welcome" element={<Welcome />} />
       <Route path="/" element={<ProtectedRoute />}>
-        <Route index element={<Submissions />} />
+        <Route index element={<Dashboard />} />
 
         <Route path="helpdesk" element={<Helpdesk />} />
 

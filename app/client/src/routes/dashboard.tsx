@@ -2481,9 +2481,9 @@ function Submissions2024() {
   );
 }
 
-/* --- Submissions --- */
+/* --- Dashboard --- */
 
-export function Submissions() {
+export function Dashboard() {
   const content = useContentData();
   const configData = useConfigData();
   const bapSamData = useBapSamData();

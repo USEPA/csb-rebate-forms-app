@@ -65,7 +65,7 @@ function SignOutIconText() {
   );
 }
 
-export function UserDashboard(props: { email: string }) {
+export function UserLayout(props: { email: string }) {
   const { email } = props;
 
   const { pathname } = useLocation();
@@ -198,7 +198,7 @@ export function UserDashboard(props: { email: string }) {
         </nav>
       </div>
 
-      <Outlet context={{ email }} />
+      {bapSamData.results && <Outlet context={{ email }} />}
     </div>
   );
 }
