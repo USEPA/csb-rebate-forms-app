@@ -264,15 +264,24 @@ function getRebateIdFieldName({ rebateYear }) {
 }
 
 /**
- * Modifies Formio schema to update API endpoints for datasource components to
- * use local development server instead of deployed server so the request can
- * occur when developing locally.
- * (e.g., `http://localhost:3000/api/...` instead of `https://.../api/...`)
+ * For local development, modifies the provided Formio schema to update API
+ * endpoints of datasource components to use the local development server
+ * instead of the deployed server so the request can occur when developing
+ * locally (otherwise they're blocked due to CORS restrictions).
+ *
+ * For example, requests will be made to `http://localhost:3000/api/...`
+ * instead of `https://.../api/...`.
+ *
+ * For non-development environments, the schema is returned unmodified.
  *
  * @param {Object} param
  * @param {Object} param.schema
  */
-function modifyDatasourceComponentsUrl({ schema }) {
+function applyDevelopmentSchemaModifications({ schema }) {
+  if (NODE_ENV !== "development") {
+    return schema;
+  }
+
   const result = { ...schema };
 
   ["components", "columns"].forEach((fieldName) => {
@@ -284,7 +293,7 @@ function modifyDatasourceComponentsUrl({ schema }) {
         }
 
         if (component.components || component.columns) {
-          modifyDatasourceComponentsUrl({ schema: component });
+          applyDevelopmentSchemaModifications({ schema: component });
         }
       });
     }
@@ -1954,12 +1963,11 @@ function fetchFRFSubmission({ rebateYear, req, res }) {
         return res.json(formioNoUserAccess);
       }
 
-      /** Modify 2023 and 2024 FRF's NCES API endpoint URL for local development */
+      /** NOTE: 2022 FRF's NCES data is fetched from GitHub */
       const formSchema =
-        NODE_ENV === "development" &&
-        (rebateYear === "2023" || rebateYear === "2024")
-          ? modifyDatasourceComponentsUrl({ schema })
-          : schema;
+        rebateYear === "2022"
+          ? schema
+          : applyDevelopmentSchemaModifications({ schema });
 
       return res.json({
         access: true,
@@ -2226,12 +2234,6 @@ function fetchPRFSubmission({ rebateYear, req, res }) {
         return res.status(errorStatus).json({ message: errorMessage });
       }
 
-      /** Modify 2024 PRF's NCES API endpoint URL for local development */
-      const formSchema =
-        NODE_ENV === "development" && rebateYear === "2024"
-          ? modifyDatasourceComponentsUrl({ schema })
-          : schema;
-
       /**
        * NOTE: We can't just use the returned submission data here because
        * Formio returns the string literal 'YES' instead of a base64 encoded
@@ -2244,6 +2246,8 @@ function fetchPRFSubmission({ rebateYear, req, res }) {
         .get(`${formioFormUrl}/submission/${mongoId}`)
         .then((axiosRes) => axiosRes.data)
         .then((submission) => {
+          const formSchema = applyDevelopmentSchemaModifications({ schema });
+
           return res.json({
             access: true,
             schema: formSchema,
@@ -2606,12 +2610,6 @@ function fetchCRFSubmission({ rebateYear, req, res }) {
         return res.status(errorStatus).json({ message: errorMessage });
       }
 
-      /** Modify 2023 CRF's VIN API endpoint URL for local development */
-      const formSchema =
-        NODE_ENV === "development" && rebateYear === "2023"
-          ? modifyDatasourceComponentsUrl({ schema })
-          : schema;
-
       /**
        * NOTE: We can't just use the returned submission data here because
        * Formio returns the string literal 'YES' instead of a base64 encoded
@@ -2624,6 +2622,8 @@ function fetchCRFSubmission({ rebateYear, req, res }) {
         .get(`${formioFormUrl}/submission/${mongoId}`)
         .then((axiosRes) => axiosRes.data)
         .then((submission) => {
+          const formSchema = applyDevelopmentSchemaModifications({ schema });
+
           return res.json({
             access: true,
             schema: formSchema,
@@ -2913,9 +2913,11 @@ function fetchChangeRequest({ rebateYear, req, res }) {
         return res.json(formioNoUserAccess);
       }
 
+      const formSchema = applyDevelopmentSchemaModifications({ schema });
+
       return res.json({
         access: true,
-        schema,
+        schema: formSchema,
         submission,
       });
     })
