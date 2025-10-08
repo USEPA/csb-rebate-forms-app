@@ -2606,6 +2606,12 @@ function fetchCRFSubmission({ rebateYear, req, res }) {
         return res.status(errorStatus).json({ message: errorMessage });
       }
 
+      /** Modify 2023 CRF's VIN API endpoint URL for local development */
+      const formSchema =
+        NODE_ENV === "development" && rebateYear === "2023"
+          ? modifyDatasourceComponentsUrl({ schema })
+          : schema;
+
       /**
        * NOTE: We can't just use the returned submission data here because
        * Formio returns the string literal 'YES' instead of a base64 encoded
@@ -2620,7 +2626,7 @@ function fetchCRFSubmission({ rebateYear, req, res }) {
         .then((submission) => {
           return res.json({
             access: true,
-            schema,
+            schema: formSchema,
             submission,
           });
         });
