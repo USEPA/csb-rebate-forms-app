@@ -69,6 +69,34 @@ type RebateByYear<Year> =
   Year extends "2024" ? Rebate2024 :
   never;
 
+export function getComboKeyFieldName({
+  rebateYear,
+}: {
+  rebateYear: RebateYear;
+}) {
+  return rebateYear === "2022"
+    ? "bap_hidden_entity_combo_key"
+    : rebateYear === "2023"
+      ? "_bap_entity_combo_key"
+      : rebateYear === "2024"
+        ? "_bap_entity_combo_key"
+        : "";
+}
+
+export function getRebateIdFieldName({
+  rebateYear,
+}: {
+  rebateYear: RebateYear;
+}) {
+  return rebateYear === "2022"
+    ? "hidden_bap_rebate_id"
+    : rebateYear === "2023"
+      ? "_bap_rebate_id"
+      : rebateYear === "2024"
+        ? "_bap_rebate_id"
+        : "";
+}
+
 async function fetchData<T = unknown>(url: string, options: RequestInit) {
   try {
     const response = await fetch(url, options);
