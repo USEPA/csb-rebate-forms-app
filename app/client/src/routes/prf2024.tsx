@@ -13,6 +13,7 @@ import {
 } from "@/types";
 import { serverUrl, messages } from "@/config";
 import {
+  getComboKeyFieldName,
   getData,
   postData,
   useContentData,
@@ -83,6 +84,8 @@ export function PRF2024() {
 function PaymentRequestForm(props: { email: string }) {
   const { email } = props;
 
+  const rebateYear = "2024";
+
   const navigate = useNavigate();
   const { id: rebateId } = useParams<"id">(); // CSB Rebate ID (6 digits)
 
@@ -95,19 +98,20 @@ function PaymentRequestForm(props: { email: string }) {
     dismissNotification,
   } = useNotificationsActions();
 
-  const submissionsQueries = useSubmissionsQueries("2024");
-  const submissions = useSubmissions("2024");
+  const submissionsQueries = useSubmissionsQueries(rebateYear);
+  const submissions = useSubmissions(rebateYear);
 
   const { query, mutation } = useFormioSubmissionQueryAndMutation(rebateId);
   const { access, schema, submission } = query.data ?? {};
 
+  const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
+  const comboKey = submission?.data?.[comboKeyFieldName] || "";
   const mongoId = submission?._id || "";
-  const comboKey = submission?.data._bap_entity_combo_key || "";
 
   const pdfQuery = useSubmissionPDFQuery({
-    rebateYear: "2024",
+    rebateYear,
     formType: "prf",
-    mongoId: submission?._id || "",
+    mongoId,
   });
 
   /**
@@ -177,7 +181,8 @@ function PaymentRequestForm(props: { email: string }) {
         bap: rebate.prf.bap,
       });
 
-  const prfSubmissionPeriodOpen = configData.submissionPeriodOpen["2024"].prf;
+  const prfSubmissionPeriodOpen =
+    configData.submissionPeriodOpen[rebateYear].prf;
 
   const formIsReadOnly =
     frfNeedsEdits ||
@@ -186,8 +191,7 @@ function PaymentRequestForm(props: { email: string }) {
 
   /** matched SAM.gov entity for the Payment Request submission */
   const entity = bapSamData.entities.find((entity) => {
-    const { ENTITY_COMBO_KEY__c } = entity;
-    return ENTITY_COMBO_KEY__c === submission.data._bap_entity_combo_key;
+    return entity.ENTITY_COMBO_KEY__c === comboKey;
   });
 
   if (!entity) {

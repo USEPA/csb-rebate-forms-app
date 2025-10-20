@@ -14,6 +14,7 @@ import {
 } from "@/types";
 import { serverUrl, messages } from "@/config";
 import {
+  getComboKeyFieldName,
   getData,
   postData,
   useContentData,
@@ -97,6 +98,8 @@ export function FRF2022() {
 function FundingRequestForm(props: { email: string }) {
   const { email } = props;
 
+  const rebateYear = "2022";
+
   const navigate = useNavigate();
   const { id: mongoId } = useParams<"id">(); // MongoDB ObjectId string
 
@@ -111,16 +114,17 @@ function FundingRequestForm(props: { email: string }) {
     dismissNotification,
   } = useNotificationsActions();
 
-  const submissionsQueries = useSubmissionsQueries("2022");
-  const submissions = useSubmissions("2022");
+  const submissionsQueries = useSubmissionsQueries(rebateYear);
+  const submissions = useSubmissions(rebateYear);
 
   const { query, mutation } = useFormioSubmissionQueryAndMutation(mongoId);
   const { access, schema, submission } = query.data ?? {};
 
-  const comboKey = submission?.data.bap_hidden_entity_combo_key || "";
+  const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
+  const comboKey = submission?.data?.[comboKeyFieldName] || "";
 
   const pdfQuery = useSubmissionPDFQuery({
-    rebateYear: "2022",
+    rebateYear,
     formType: "frf",
     mongoId,
   });
@@ -185,7 +189,8 @@ function FundingRequestForm(props: { email: string }) {
         bap: rebate.frf.bap,
       });
 
-  const frfSubmissionPeriodOpen = configData.submissionPeriodOpen["2022"].frf;
+  const frfSubmissionPeriodOpen =
+    configData.submissionPeriodOpen[rebateYear].frf;
 
   const formIsReadOnly =
     (submission.state === "submitted" || !frfSubmissionPeriodOpen) &&
@@ -193,8 +198,7 @@ function FundingRequestForm(props: { email: string }) {
 
   /** matched SAM.gov entity for the Application submission */
   const entity = bapSamData.entities.find((entity) => {
-    const { ENTITY_COMBO_KEY__c } = entity;
-    return ENTITY_COMBO_KEY__c === submission.data.bap_hidden_entity_combo_key;
+    return entity.ENTITY_COMBO_KEY__c === comboKey;
   });
 
   if (!entity) {
@@ -301,7 +305,7 @@ function FundingRequestForm(props: { email: string }) {
         postData(url, {
           mongoId: prf._id,
           rebateId: prf.data.hidden_bap_rebate_id,
-          comboKey: prf.data.bap_hidden_entity_combo_key,
+          comboKey: prf.data[comboKeyFieldName],
         })
           .then((_res) => {
             window.location.reload();
