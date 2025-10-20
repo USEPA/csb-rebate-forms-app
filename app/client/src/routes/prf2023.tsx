@@ -248,7 +248,7 @@ function PaymentRequestForm(props: { email: string }) {
         </li>
       </ul>
 
-      {submission?._id && (
+      {mongoId && (
         <p>
           <button
             className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
