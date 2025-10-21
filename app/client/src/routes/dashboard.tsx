@@ -182,7 +182,9 @@ function FRF2022Submission(props: { rebate: Rebate2022 }) {
 
   if (!configData || !bapSamData) return null;
 
-  /** matched SAM.gov entity for the FRF submission */
+  /**
+   * Matched SAM.gov entity for the FRF submission.
+   */
   const entity = bapSamData.entities.find((entity) => {
     return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === comboKey;
   });
@@ -422,7 +424,10 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
 
   if (!configData || !bapSamData) return null;
 
-  /** matched SAM.gov entity for the FRF submission */
+  /**
+   * Matched SAM.gov entity for the FRF submission
+   * (as the PRF might not have been created yet).
+   */
   const entity = bapSamData.entities.find((entity) => {
     const comboKey = String(frf.formio.data?.[comboKeyFieldName] ?? "");
     return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === comboKey;
@@ -636,7 +641,10 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
 
   if (!configData || !bapSamData) return null;
 
-  /** matched SAM.gov entity for the PRF submission */
+  /**
+   * Matched SAM.gov entity for the PRF submission
+   * (as the CRF might not have been created yet).
+   */
   const entity = bapSamData.entities.find((entity) => {
     const comboKey = String(prf.formio?.data?.[comboKeyFieldName] ?? "");
     return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === comboKey;
@@ -1057,7 +1065,9 @@ function FRF2023Submission(props: { rebate: Rebate2023 }) {
 
   if (!configData || !bapSamData) return null;
 
-  /** matched SAM.gov entity for the FRF submission */
+  /**
+   * Matched SAM.gov entity for the FRF submission.
+   */
   const entity = bapSamData.entities.find((entity) => {
     return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === comboKey;
   });
@@ -1293,7 +1303,10 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
 
   if (!configData || !bapSamData) return null;
 
-  /** matched SAM.gov entity for the FRF submission */
+  /**
+   * Matched SAM.gov entity for the FRF submission
+   * (as the PRF might not have been created yet).
+   */
   const entity = bapSamData.entities.find((entity) => {
     const comboKey = String(frf.formio.data?.[comboKeyFieldName] ?? "");
     return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === comboKey;
@@ -1532,7 +1545,10 @@ function CRF2023Submission(props: { rebate: Rebate2023 }) {
 
   if (!configData || !bapSamData) return null;
 
-  /** matched SAM.gov entity for the PRF submission */
+  /**
+   * Matched SAM.gov entity for the PRF submission
+   * (as the CRF might not have been created yet).
+   */
   const entity = bapSamData.entities.find((entity) => {
     const comboKey = String(prf.formio?.data?.[comboKeyFieldName] ?? "");
     return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === comboKey;
@@ -1987,7 +2003,9 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 
   if (!configData || !bapSamData) return null;
 
-  /** matched SAM.gov entity for the FRF submission */
+  /**
+   * Matched SAM.gov entity for the FRF submission.
+   */
   const entity = bapSamData.entities.find((entity) => {
     return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === comboKey;
   });
@@ -2208,7 +2226,10 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 
 //   if (!configData || !bapSamData) return null;
 
-//   /** matched SAM.gov entity for the FRF submission */
+//   /**
+//    * Matched SAM.gov entity for the FRF submission
+//    * (as the PRF might not have been created yet).
+//    */
 //   const entity = bapSamData.entities.find((entity) => {
 //     const comboKey = String(frf.formio.data?.[comboKeyFieldName] ?? "");
 //     return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === comboKey;
