@@ -175,6 +175,7 @@ function FRF2022Submission(props: { rebate: Rebate2022 }) {
   const { rebateYear, frf, prf, crf } = rebate;
 
   const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
+  const comboKey = String(frf.formio.data?.[comboKeyFieldName] ?? "");
 
   const configData = useConfigData();
   const bapSamData = useBapSamData();
@@ -183,7 +184,6 @@ function FRF2022Submission(props: { rebate: Rebate2022 }) {
 
   /** matched SAM.gov entity for the FRF submission */
   const entity = bapSamData.entities.find((entity) => {
-    const comboKey = frf.formio.data?.[comboKeyFieldName] || "";
     return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === comboKey;
   });
 
@@ -424,7 +424,7 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
 
   /** matched SAM.gov entity for the FRF submission */
   const entity = bapSamData.entities.find((entity) => {
-    const comboKey = frf.formio.data?.[comboKeyFieldName] || "";
+    const comboKey = String(frf.formio.data?.[comboKeyFieldName] ?? "");
     return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === comboKey;
   });
 
@@ -638,7 +638,7 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
 
   /** matched SAM.gov entity for the PRF submission */
   const entity = bapSamData.entities.find((entity) => {
-    const comboKey = prf.formio?.data?.[comboKeyFieldName] || "";
+    const comboKey = String(prf.formio?.data?.[comboKeyFieldName] ?? "");
     return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === comboKey;
   });
 
@@ -1048,6 +1048,7 @@ function FRF2023Submission(props: { rebate: Rebate2023 }) {
   const { rebateYear, frf, prf, crf } = rebate;
 
   const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
+  const comboKey = String(frf.formio.data?.[comboKeyFieldName] ?? "");
 
   const { email } = useOutletContext<{ email: string }>();
 
@@ -1058,7 +1059,6 @@ function FRF2023Submission(props: { rebate: Rebate2023 }) {
 
   /** matched SAM.gov entity for the FRF submission */
   const entity = bapSamData.entities.find((entity) => {
-    const comboKey = frf.formio.data?.[comboKeyFieldName] || "";
     return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === comboKey;
   });
 
@@ -1070,7 +1070,6 @@ function FRF2023Submission(props: { rebate: Rebate2023 }) {
 
   const {
     _user_email,
-    _bap_entity_combo_key,
     _bap_applicant_name,
     appInfo_uei,
     appInfo_efti,
@@ -1255,7 +1254,7 @@ handle when it's value is an empty string. */}
         <ChangeRequest2023Button
           data={{
             formType: "frf",
-            comboKey: _bap_entity_combo_key,
+            comboKey,
             rebateId: frf.bap?.rebateId || null,
             mongoId: frf.formio._id,
             state: frf.formio.state || "",
@@ -1296,7 +1295,7 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
 
   /** matched SAM.gov entity for the FRF submission */
   const entity = bapSamData.entities.find((entity) => {
-    const comboKey = frf.formio.data?.[comboKeyFieldName] || "";
+    const comboKey = String(frf.formio.data?.[comboKeyFieldName] ?? "");
     return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === comboKey;
   });
 
@@ -1535,7 +1534,7 @@ function CRF2023Submission(props: { rebate: Rebate2023 }) {
 
   /** matched SAM.gov entity for the PRF submission */
   const entity = bapSamData.entities.find((entity) => {
-    const comboKey = prf.formio?.data?.[comboKeyFieldName] || "";
+    const comboKey = String(prf.formio?.data?.[comboKeyFieldName] ?? "");
     return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === comboKey;
   });
 
@@ -1979,6 +1978,7 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
   const { rebateYear, frf, prf, crf } = rebate;
 
   const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
+  const comboKey = String(frf.formio.data?.[comboKeyFieldName] ?? "");
 
   const { email } = useOutletContext<{ email: string }>();
 
@@ -1989,7 +1989,6 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 
   /** matched SAM.gov entity for the FRF submission */
   const entity = bapSamData.entities.find((entity) => {
-    const comboKey = frf.formio.data?.[comboKeyFieldName] || "";
     return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === comboKey;
   });
 
@@ -2001,7 +2000,6 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 
   const {
     _user_email,
-    _bap_entity_combo_key,
     _bap_applicant_name,
     _formio_schoolDistrictName,
     appInfo_uei,
@@ -2171,7 +2169,7 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
         <ChangeRequest2024Button
           data={{
             formType: "frf",
-            comboKey: _bap_entity_combo_key,
+            comboKey,
             rebateId: frf.bap?.rebateId || null,
             mongoId: frf.formio._id,
             state: frf.formio.state || "",
@@ -2212,7 +2210,7 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 
 //   /** matched SAM.gov entity for the FRF submission */
 //   const entity = bapSamData.entities.find((entity) => {
-//     const comboKey = frf.formio.data?.[comboKeyFieldName] || "";
+//     const comboKey = String(frf.formio.data?.[comboKeyFieldName] ?? "");
 //     return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === comboKey;
 //   });
 

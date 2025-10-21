@@ -105,7 +105,7 @@ function CloseOutRequestForm(props: { email: string }) {
   const { access, schema, submission } = query.data ?? {};
 
   const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
-  const comboKey = submission?.data?.[comboKeyFieldName] || "";
+  const comboKey = String(submission?.data?.[comboKeyFieldName] ?? "");
   const mongoId = submission?._id || "";
 
   const pdfQuery = useSubmissionPDFQuery({

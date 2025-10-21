@@ -121,7 +121,7 @@ function FundingRequestForm(props: { email: string }) {
   const { access, schema, submission } = query.data ?? {};
 
   const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
-  const comboKey = submission?.data?.[comboKeyFieldName] || "";
+  const comboKey = String(submission?.data?.[comboKeyFieldName] ?? "");
 
   const pdfQuery = useSubmissionPDFQuery({
     rebateYear,
@@ -305,7 +305,7 @@ function FundingRequestForm(props: { email: string }) {
         postData(url, {
           mongoId: prf._id,
           rebateId: prf.data.hidden_bap_rebate_id,
-          comboKey: prf.data[comboKeyFieldName],
+          comboKey: String(prf.data[comboKeyFieldName] ?? ""),
         })
           .then((_res) => {
             window.location.reload();
