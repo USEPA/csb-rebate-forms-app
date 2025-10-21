@@ -105,7 +105,7 @@ function CloseOutRequestForm(props: { email: string }) {
   const { access, schema, submission } = query.data ?? {};
 
   const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
-  const comboKey = String(submission?.data?.[comboKeyFieldName] ?? "");
+  const crfComboKey = String(submission?.data?.[comboKeyFieldName] ?? "");
   const mongoId = submission?._id || "";
 
   const pdfQuery = useSubmissionPDFQuery({
@@ -181,9 +181,11 @@ function CloseOutRequestForm(props: { email: string }) {
     (submission.state === "submitted" || !crfSubmissionPeriodOpen) &&
     !crfNeedsEdits;
 
-  /** matched SAM.gov entity for the Close Out submission */
+  /**
+   * Matched SAM.gov entity for the CRF submission.
+   */
   const entity = bapSamData.entities.find((entity) => {
-    return entity.ENTITY_COMBO_KEY__c === comboKey;
+    return entity.ENTITY_COMBO_KEY__c === crfComboKey;
   });
 
   if (!entity) {
@@ -284,7 +286,7 @@ function CloseOutRequestForm(props: { email: string }) {
       <div className="csb-form">
         <Form
           src={schema}
-          url={`${serverUrl}/api/formio/2023/s3/crf/${mongoId}/${comboKey}`}
+          url={`${serverUrl}/api/formio/2023/s3/crf/${mongoId}/${crfComboKey}`}
           submission={{
             /**
              * NOTE: The `csb-form-submission-state` metadata field's value is

@@ -105,7 +105,7 @@ function PaymentRequestForm(props: { email: string }) {
   const { access, schema, submission } = query.data ?? {};
 
   const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
-  const comboKey = String(submission?.data?.[comboKeyFieldName] ?? "");
+  const prfComboKey = String(submission?.data?.[comboKeyFieldName] ?? "");
   const mongoId = submission?._id || "";
 
   const pdfQuery = useSubmissionPDFQuery({
@@ -189,9 +189,11 @@ function PaymentRequestForm(props: { email: string }) {
     ((submission.state === "submitted" || !prfSubmissionPeriodOpen) &&
       !prfNeedsEdits);
 
-  /** matched SAM.gov entity for the Payment Request submission */
+  /**
+   * Matched SAM.gov entity for the PRF submission.
+   */
   const entity = bapSamData.entities.find((entity) => {
-    return entity.ENTITY_COMBO_KEY__c === comboKey;
+    return entity.ENTITY_COMBO_KEY__c === prfComboKey;
   });
 
   if (!entity) {
@@ -296,7 +298,7 @@ function PaymentRequestForm(props: { email: string }) {
       <div className="csb-form">
         <Form
           src={schema}
-          url={`${serverUrl}/api/formio/2024/s3/prf/${mongoId}/${comboKey}`}
+          url={`${serverUrl}/api/formio/2024/s3/prf/${mongoId}/${prfComboKey}`}
           submission={{
             /**
              * NOTE: The `csb-form-submission-state` metadata field's value is

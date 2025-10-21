@@ -121,7 +121,7 @@ function FundingRequestForm(props: { email: string }) {
   const { access, schema, submission } = query.data ?? {};
 
   const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
-  const comboKey = String(submission?.data?.[comboKeyFieldName] ?? "");
+  const frfComboKey = String(submission?.data?.[comboKeyFieldName] ?? "");
 
   const pdfQuery = useSubmissionPDFQuery({
     rebateYear,
@@ -196,9 +196,11 @@ function FundingRequestForm(props: { email: string }) {
     (submission.state === "submitted" || !frfSubmissionPeriodOpen) &&
     !frfNeedsEdits;
 
-  /** matched SAM.gov entity for the Application submission */
+  /**
+   * Matched SAM.gov entity for the FRF submission.
+   */
   const entity = bapSamData.entities.find((entity) => {
-    return entity.ENTITY_COMBO_KEY__c === comboKey;
+    return entity.ENTITY_COMBO_KEY__c === frfComboKey;
   });
 
   if (!entity) {
@@ -266,6 +268,7 @@ function FundingRequestForm(props: { email: string }) {
       confirmText: "Delete Payment Request Form Submission",
       confirmedAction: () => {
         const prf = rebate.prf.formio;
+        const prfComboKey = String(prf?.data?.[comboKeyFieldName] ?? "");
 
         if (!prf) {
           displayErrorNotification({
@@ -305,7 +308,7 @@ function FundingRequestForm(props: { email: string }) {
         postData(url, {
           mongoId: prf._id,
           rebateId: prf.data.hidden_bap_rebate_id,
-          comboKey: String(prf.data[comboKeyFieldName] ?? ""),
+          comboKey: prfComboKey,
         })
           .then((_res) => {
             window.location.reload();
@@ -429,7 +432,7 @@ function FundingRequestForm(props: { email: string }) {
       <div className="csb-form">
         <Form
           src={schema}
-          url={`${serverUrl}/api/formio/2022/s3/frf/${mongoId}/${comboKey}`}
+          url={`${serverUrl}/api/formio/2022/s3/frf/${mongoId}/${frfComboKey}`}
           submission={{
             /**
              * NOTE: The `csb-form-submission-state` metadata field's value is
