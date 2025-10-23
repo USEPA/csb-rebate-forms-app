@@ -69,6 +69,32 @@ type RebateByYear<Year> =
   Year extends "2024" ? Rebate2024 :
   never;
 
+/** Formio SAM.gov entity combo key field name by rebate year. */
+const comboKeyFieldNamesByYear = {
+  "2022": "bap_hidden_entity_combo_key",
+  "2023": "_bap_entity_combo_key",
+  "2024": "_bap_entity_combo_key",
+} as const;
+
+/** Formio CSB Rebate Id field name by rebate year. */
+const rebateIdFieldNamesByYear = {
+  "2022": "hidden_bap_rebate_id",
+  "2023": "_bap_rebate_id",
+  "2024": "_bap_rebate_id",
+} as const;
+
+export function getComboKeyFieldName<
+  Year extends keyof typeof comboKeyFieldNamesByYear,
+>(rebateYear: Year): (typeof comboKeyFieldNamesByYear)[Year] {
+  return comboKeyFieldNamesByYear[rebateYear];
+}
+
+export function getRebateIdFieldName<
+  Year extends keyof typeof rebateIdFieldNamesByYear,
+>(rebateYear: Year): (typeof rebateIdFieldNamesByYear)[Year] {
+  return rebateIdFieldNamesByYear[rebateYear];
+}
+
 async function fetchData<T = unknown>(url: string, options: RequestInit) {
   try {
     const response = await fetch(url, options);
