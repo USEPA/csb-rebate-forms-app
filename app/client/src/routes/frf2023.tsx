@@ -14,6 +14,7 @@ import {
 import { serverUrl, messages } from "@/config";
 import {
   getComboKeyFieldName,
+  getRebateIdFieldName,
   getData,
   postData,
   useContentData,
@@ -105,6 +106,7 @@ function FundingRequestForm(props: { email: string }) {
   const { access, schema, submission } = query.data ?? {};
 
   const comboKeyFieldName = getComboKeyFieldName(rebateYear);
+  const rebateIdFieldName = getRebateIdFieldName(rebateYear);
 
   const frfComboKey = String(submission?.data?.[comboKeyFieldName] ?? "");
 
@@ -255,6 +257,7 @@ function FundingRequestForm(props: { email: string }) {
         const prf = rebate.prf.formio;
 
         const prfComboKey = String(prf?.data?.[comboKeyFieldName] ?? "");
+        const prfRebateId = String(prf?.data?.[rebateIdFieldName] ?? "");
 
         if (!prf) {
           displayErrorNotification({
@@ -293,7 +296,7 @@ function FundingRequestForm(props: { email: string }) {
 
         postData(url, {
           mongoId: prf._id,
-          rebateId: prf.data._bap_rebate_id,
+          rebateId: prfRebateId,
           comboKey: prfComboKey,
         })
           .then((_res) => {

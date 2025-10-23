@@ -24,6 +24,7 @@ import {
 } from "@/config";
 import {
   getComboKeyFieldName,
+  getRebateIdFieldName,
   postData,
   useContentData,
   useConfigData,
@@ -408,8 +409,10 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
   const { rebateYear, frf, prf, crf } = rebate;
 
   const comboKeyFieldName = getComboKeyFieldName(rebateYear);
+  const rebateIdFieldName = getRebateIdFieldName(rebateYear);
 
   const frfComboKey = String(frf.formio.data?.[comboKeyFieldName] ?? "");
+  const prfRebateId = String(prf.formio?.data?.[rebateIdFieldName] ?? "");
 
   const navigate = useNavigate();
   const { email } = useOutletContext<{ email: string }>();
@@ -525,7 +528,7 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
   // return if a Payment Request submission has not been created for this rebate
   if (!prf.formio) return null;
 
-  const { hidden_current_user_email, hidden_bap_rebate_id } = prf.formio.data;
+  const { hidden_current_user_email } = prf.formio.data;
 
   const date = new Date(prf.formio.modified).toLocaleDateString();
   const time = new Date(prf.formio.modified).toLocaleTimeString();
@@ -558,7 +561,7 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
 
   const hiddenTableCellClassNames = "tw:!hidden tw:min-[30rem]:!table-cell";
 
-  const prfUrl = `/prf/2022/${hidden_bap_rebate_id}`;
+  const prfUrl = `/prf/2022/${prfRebateId}`;
 
   return (
     <tr
@@ -626,8 +629,10 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
   const { rebateYear, frf, prf, crf } = rebate;
 
   const comboKeyFieldName = getComboKeyFieldName(rebateYear);
+  const rebateIdFieldName = getRebateIdFieldName(rebateYear);
 
   const prfComboKey = String(prf.formio?.data?.[comboKeyFieldName] ?? "");
+  const crfRebateId = String(crf.formio?.data?.[rebateIdFieldName] ?? "");
 
   const navigate = useNavigate();
   const { email } = useOutletContext<{ email: string }>();
@@ -743,7 +748,7 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
   // return if a Close Out submission has not been created for this rebate
   if (!crf.formio) return null;
 
-  const { hidden_current_user_email, hidden_bap_rebate_id } = crf.formio.data;
+  const { hidden_current_user_email } = crf.formio.data;
 
   const date = new Date(crf.formio.modified).toLocaleDateString();
   const time = new Date(crf.formio.modified).toLocaleTimeString();
@@ -778,7 +783,7 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
 
   const hiddenTableCellClassNames = "tw:!hidden tw:min-[30rem]:!table-cell";
 
-  const crfUrl = `/crf/2022/${hidden_bap_rebate_id}`;
+  const crfUrl = `/crf/2022/${crfRebateId}`;
 
   return (
     <tr
@@ -914,7 +919,9 @@ function Submissions2022() {
 /* --- 2023 Submissions --- */
 
 function ChangeRequests2023() {
-  const changeRequests = useChangeRequests("2023");
+  const rebateYear = "2023";
+
+  const changeRequests = useChangeRequests(rebateYear);
 
   if (!changeRequests || changeRequests.length === 0) return null;
 
@@ -1290,9 +1297,11 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
   const { rebateYear, frf, prf, crf } = rebate;
 
   const comboKeyFieldName = getComboKeyFieldName(rebateYear);
+  const rebateIdFieldName = getRebateIdFieldName(rebateYear);
 
   const frfComboKey = String(frf.formio.data?.[comboKeyFieldName] ?? "");
   const prfComboKey = String(prf.formio?.data?.[comboKeyFieldName] ?? "");
+  const prfRebateId = String(prf.formio?.data?.[rebateIdFieldName] ?? "");
 
   const navigate = useNavigate();
   const { email } = useOutletContext<{ email: string }>();
@@ -1410,7 +1419,6 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
 
   const {
     _user_email,
-    _bap_rebate_id,
     _bap_applicant_name,
     _bap_district_name,
     _bap_district_state,
@@ -1447,7 +1455,7 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
 
   const hiddenTableCellClassNames = "tw:!hidden tw:min-[30rem]:!table-cell";
 
-  const prfUrl = `/prf/2023/${_bap_rebate_id}`;
+  const prfUrl = `/prf/2023/${prfRebateId}`;
 
   return (
     <tr
@@ -1512,7 +1520,7 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
           data={{
             formType: "prf",
             comboKey: prfComboKey,
-            rebateId: _bap_rebate_id,
+            rebateId: prfRebateId,
             mongoId: prf.formio._id,
             state: prf.formio.state || "",
             email,
@@ -1533,9 +1541,11 @@ function CRF2023Submission(props: { rebate: Rebate2023 }) {
   const { rebateYear, frf, prf, crf } = rebate;
 
   const comboKeyFieldName = getComboKeyFieldName(rebateYear);
+  const rebateIdFieldName = getRebateIdFieldName(rebateYear);
 
   const prfComboKey = String(prf.formio?.data?.[comboKeyFieldName] ?? "");
   const crfComboKey = String(crf.formio?.data?.[comboKeyFieldName] ?? "");
+  const crfRebateId = String(crf.formio?.data?.[rebateIdFieldName] ?? "");
 
   const navigate = useNavigate();
   const { email } = useOutletContext<{ email: string }>();
@@ -1653,7 +1663,6 @@ function CRF2023Submission(props: { rebate: Rebate2023 }) {
 
   const {
     _user_email,
-    _bap_rebate_id,
     _bap_applicant_name,
     _bap_district_name,
     _bap_district_state,
@@ -1692,7 +1701,7 @@ function CRF2023Submission(props: { rebate: Rebate2023 }) {
 
   const hiddenTableCellClassNames = "tw:!hidden tw:min-[30rem]:!table-cell";
 
-  const crfUrl = `/crf/2023/${_bap_rebate_id}`;
+  const crfUrl = `/crf/2023/${crfRebateId}`;
 
   return (
     <tr
@@ -1761,7 +1770,7 @@ function CRF2023Submission(props: { rebate: Rebate2023 }) {
           data={{
             formType: "crf",
             comboKey: crfComboKey,
-            rebateId: _bap_rebate_id,
+            rebateId: crfRebateId,
             mongoId: crf.formio._id,
             state: crf.formio.state || "",
             email,
@@ -1855,7 +1864,9 @@ function Submissions2023() {
 /* --- 2024 Submissions --- */
 
 function ChangeRequests2024() {
-  const changeRequests = useChangeRequests("2024");
+  const rebateYear = "2024";
+
+  const changeRequests = useChangeRequests(rebateYear);
 
   if (!changeRequests || changeRequests.length === 0) return null;
 
@@ -2216,9 +2227,11 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 //   const { rebateYear, frf, prf, crf } = rebate;
 
 //   const comboKeyFieldName = getComboKeyFieldName(rebateYear);
+//   const rebateIdFieldName = getRebateIdFieldName(rebateYear);
 
 //   const frfComboKey = String(frf.formio.data?.[comboKeyFieldName] ?? "");
 //   const prfComboKey = String(prf.formio?.data?.[comboKeyFieldName] ?? "");
+//   const prfRebateId = String(prf.formio?.data?.[rebateIdFieldName] ?? "");
 
 //   const navigate = useNavigate();
 //   const { email } = useOutletContext<{ email: string }>();
@@ -2334,7 +2347,6 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 
 //   const {
 //     _user_email,
-//     _bap_rebate_id,
 //     _bap_applicant_name,
 //     _bap_district_name,
 //     _bap_district_state,
@@ -2371,7 +2383,7 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 
 //   const hiddenTableCellClassNames = "tw:!hidden tw:min-[30rem]:!table-cell";
 
-//   const prfUrl = `/prf/2024/${_bap_rebate_id}`;
+//   const prfUrl = `/prf/2024/${prfRebateId}`;
 
 //   return (
 //     <tr
@@ -2436,7 +2448,7 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 //           data={{
 //             formType: "prf",
 //             comboKey: prfComboKey,
-//             rebateId: _bap_rebate_id,
+//             rebateId: prfRebateId,
 //             mongoId: prf.formio._id,
 //             state: prf.formio.state || "",
 //             email,
