@@ -69,11 +69,7 @@ type RebateByYear<Year> =
   Year extends "2024" ? Rebate2024 :
   never;
 
-export function getComboKeyFieldName({
-  rebateYear,
-}: {
-  rebateYear: RebateYear;
-}) {
+export function getComboKeyFieldName(rebateYear: RebateYear) {
   return rebateYear === "2022"
     ? "bap_hidden_entity_combo_key"
     : rebateYear === "2023"
@@ -83,11 +79,7 @@ export function getComboKeyFieldName({
         : "";
 }
 
-export function getRebateIdFieldName({
-  rebateYear,
-}: {
-  rebateYear: RebateYear;
-}) {
+export function getRebateIdFieldName(rebateYear: RebateYear) {
   return rebateYear === "2022"
     ? "hidden_bap_rebate_id"
     : rebateYear === "2023"

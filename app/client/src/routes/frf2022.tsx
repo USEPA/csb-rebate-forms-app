@@ -120,7 +120,8 @@ function FundingRequestForm(props: { email: string }) {
   const { query, mutation } = useFormioSubmissionQueryAndMutation(mongoId);
   const { access, schema, submission } = query.data ?? {};
 
-  const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
+  const comboKeyFieldName = getComboKeyFieldName(rebateYear);
+
   const frfComboKey = String(submission?.data?.[comboKeyFieldName] ?? "");
 
   const pdfQuery = useSubmissionPDFQuery({
@@ -268,6 +269,7 @@ function FundingRequestForm(props: { email: string }) {
       confirmText: "Delete Payment Request Form Submission",
       confirmedAction: () => {
         const prf = rebate.prf.formio;
+
         const prfComboKey = String(prf?.data?.[comboKeyFieldName] ?? "");
 
         if (!prf) {

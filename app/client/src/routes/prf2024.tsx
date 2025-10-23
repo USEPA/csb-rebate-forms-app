@@ -104,7 +104,8 @@ function PaymentRequestForm(props: { email: string }) {
   const { query, mutation } = useFormioSubmissionQueryAndMutation(rebateId);
   const { access, schema, submission } = query.data ?? {};
 
-  const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
+  const comboKeyFieldName = getComboKeyFieldName(rebateYear);
+
   const prfComboKey = String(submission?.data?.[comboKeyFieldName] ?? "");
   const mongoId = submission?._id || "";
 

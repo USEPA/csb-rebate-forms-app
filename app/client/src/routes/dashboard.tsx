@@ -174,7 +174,8 @@ function FRF2022Submission(props: { rebate: Rebate2022 }) {
   const { rebate } = props;
   const { rebateYear, frf, prf, crf } = rebate;
 
-  const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
+  const comboKeyFieldName = getComboKeyFieldName(rebateYear);
+
   const frfComboKey = String(frf.formio.data?.[comboKeyFieldName] ?? "");
 
   const configData = useConfigData();
@@ -406,7 +407,8 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
   const { rebate } = props;
   const { rebateYear, frf, prf, crf } = rebate;
 
-  const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
+  const comboKeyFieldName = getComboKeyFieldName(rebateYear);
+
   const frfComboKey = String(frf.formio.data?.[comboKeyFieldName] ?? "");
 
   const navigate = useNavigate();
@@ -623,7 +625,8 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
   const { rebate } = props;
   const { rebateYear, frf, prf, crf } = rebate;
 
-  const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
+  const comboKeyFieldName = getComboKeyFieldName(rebateYear);
+
   const prfComboKey = String(prf.formio?.data?.[comboKeyFieldName] ?? "");
 
   const navigate = useNavigate();
@@ -1055,7 +1058,8 @@ function FRF2023Submission(props: { rebate: Rebate2023 }) {
   const { rebate } = props;
   const { rebateYear, frf, prf, crf } = rebate;
 
-  const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
+  const comboKeyFieldName = getComboKeyFieldName(rebateYear);
+
   const frfComboKey = String(frf.formio.data?.[comboKeyFieldName] ?? "");
 
   const { email } = useOutletContext<{ email: string }>();
@@ -1285,7 +1289,8 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
   const { rebate } = props;
   const { rebateYear, frf, prf, crf } = rebate;
 
-  const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
+  const comboKeyFieldName = getComboKeyFieldName(rebateYear);
+
   const frfComboKey = String(frf.formio.data?.[comboKeyFieldName] ?? "");
   const prfComboKey = String(prf.formio?.data?.[comboKeyFieldName] ?? "");
 
@@ -1527,7 +1532,8 @@ function CRF2023Submission(props: { rebate: Rebate2023 }) {
   const { rebate } = props;
   const { rebateYear, frf, prf, crf } = rebate;
 
-  const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
+  const comboKeyFieldName = getComboKeyFieldName(rebateYear);
+
   const prfComboKey = String(prf.formio?.data?.[comboKeyFieldName] ?? "");
   const crfComboKey = String(crf.formio?.data?.[comboKeyFieldName] ?? "");
 
@@ -1993,7 +1999,8 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
   const { rebate } = props;
   const { rebateYear, frf, prf, crf } = rebate;
 
-  const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
+  const comboKeyFieldName = getComboKeyFieldName(rebateYear);
+
   const frfComboKey = String(frf.formio.data?.[comboKeyFieldName] ?? "");
 
   const { email } = useOutletContext<{ email: string }>();
@@ -2208,7 +2215,8 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 //   const { rebate } = props;
 //   const { rebateYear, frf, prf, crf } = rebate;
 
-//   const comboKeyFieldName = getComboKeyFieldName({ rebateYear });
+//   const comboKeyFieldName = getComboKeyFieldName(rebateYear);
+
 //   const frfComboKey = String(frf.formio.data?.[comboKeyFieldName] ?? "");
 //   const prfComboKey = String(prf.formio?.data?.[comboKeyFieldName] ?? "");
 
