@@ -31,7 +31,8 @@ type ChangeRequestData = {
   comboKey: string;
   rebateId: string | null;
   mongoId: string;
-  state: string;
+  formioState: string;
+  bapStatus: string;
   email: string;
   title: string;
   name: string;
@@ -208,7 +209,8 @@ function ChangeRequest2024Form(props: {
     comboKey,
     rebateId,
     mongoId,
-    state,
+    formioState,
+    bapStatus,
     email,
     title,
     name,
@@ -302,7 +304,8 @@ function ChangeRequest2024Form(props: {
               _bap_entity_combo_key: comboKey,
               _bap_rebate_id: rebateId,
               _mongo_id: mongoId,
-              _formio_state: state,
+              _formio_state: formioState,
+              _bap_status: bapStatus,
               _user_email: email,
               _user_title: title,
               _user_name: name,
