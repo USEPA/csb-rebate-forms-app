@@ -543,6 +543,7 @@ const { submissionPeriodOpen } = require("../config/formio");
  *  Bus_Shipping_Costs__c: number | null
  *  Eligible_ADA_Compliance_Rebate__c: number | null
  *  Eligible_Bus_Shipping_Rebate__c: number | null
+ *  New_Bus_Dealer__c: string | null
  *  New_Bus_Owner_Contact_ID__c: string | null
  *  Old_Bus_Owner_Contact_ID__c: string | null
  * }[]} prf2023BusRecordsQuery
@@ -2297,6 +2298,7 @@ async function queryBapFor2023CRFData(req, prfReviewItemId) {
   //   Bus_Shipping_Costs__c,
   //   Eligible_ADA_Compliance_Rebate__c,
   //   Eligible_Bus_Shipping_Rebate__c,
+  //   New_Bus_Dealer__c,
   //   New_Bus_Owner_Contact_ID__c,
   //   Old_Bus_Owner_Contact_ID__c
   // FROM
@@ -2348,6 +2350,7 @@ async function queryBapFor2023CRFData(req, prfReviewItemId) {
         Bus_Shipping_Costs__c: 1,
         Eligible_ADA_Compliance_Rebate__c: 1,
         Eligible_Bus_Shipping_Rebate__c: 1,
+        New_Bus_Dealer__c: 1,
         New_Bus_Owner_Contact_ID__c: 1,
         Old_Bus_Owner_Contact_ID__c: 1,
       },
@@ -2417,9 +2420,10 @@ async function queryBapFor2023CRFData(req, prfReviewItemId) {
     .execute(async (err, records) => ((await err) ? err : records));
 
   const contactIdFields = [
-    "Infrastructure_Owner_Contact_ID__c",
+    "New_Bus_Dealer__c",
     "New_Bus_Owner_Contact_ID__c",
     "Old_Bus_Owner_Contact_ID__c",
+    "Infrastructure_Owner_Contact_ID__c",
   ];
 
   // Unique contact IDs from both bus and infrastructure records
