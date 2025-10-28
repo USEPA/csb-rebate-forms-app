@@ -33,9 +33,9 @@ type ChangeRequestData = {
   mongoId: string;
   formioState: string;
   bapStatus: string;
-  email: string;
-  title: string;
-  name: string;
+  userEmail: string;
+  userTitle: string;
+  userName: string;
   applicantName: string;
   districtName: string;
   districtState: string;
@@ -211,9 +211,9 @@ function ChangeRequest2023Form(props: {
     mongoId,
     formioState,
     bapStatus,
-    email,
-    title,
-    name,
+    userEmail,
+    userTitle,
+    userName,
     applicantName,
     districtName,
     districtState,
@@ -306,9 +306,9 @@ function ChangeRequest2023Form(props: {
               _mongo_id: mongoId,
               _formio_state: formioState,
               _bap_status: bapStatus,
-              _user_email: email,
-              _user_title: title,
-              _user_name: name,
+              _user_email: userEmail,
+              _user_title: userTitle,
+              _user_name: userName,
               _bap_applicant_name: applicantName,
               _bap_district_name: districtName,
               _bap_district_state: districtState,
