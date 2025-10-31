@@ -26,19 +26,33 @@ import { Message } from "@/components/message";
 import { MarkdownContent } from "@/components/markdownContent";
 import { useNotificationsActions } from "@/contexts/notifications";
 
-type ChangeRequestData = {
-  formType: CSBFormType;
-  comboKey: string;
-  rebateId: string | null;
-  mongoId: string;
-  formioState: string;
-  bapStatus: string;
+type SubmissionData = {
   userEmail: string;
   userTitle: string;
   userName: string;
   applicantName: string;
+  districtId: string;
+  districtNcesId: string;
   districtName: string;
+  districtAddress1: string;
+  districtAddress2: string;
+  districtCity: string;
   districtState: string;
+  districtZip: string;
+  districtPriority: string;
+  districtPriorityReason: {
+    highNeed: boolean;
+    tribal: boolean;
+    rural: boolean;
+  };
+  districtSelfCertify: string;
+  districtContactId: string;
+  districtContactRecordType: string;
+  districtContactFirstName: string;
+  districtContactLastName: string;
+  districtContactTitle: string;
+  districtContactEmail: string;
+  districtContactPhone: string;
 };
 
 type Response = FormType;
@@ -69,9 +83,15 @@ function useFormioSubmissionMutation() {
   return { mutation };
 }
 
-export function ChangeRequest2024Button(props: { data: ChangeRequestData }) {
-  const { data } = props;
-
+export function ChangeRequest2024Button(props: {
+  formType: CSBFormType;
+  comboKey: string;
+  rebateId: string | null;
+  mongoId: string;
+  formioState: string;
+  bapStatus: string;
+  data: SubmissionData;
+}) {
   const [dialogShown, setDialogShown] = useState(false);
 
   function closeDialog() {
@@ -105,7 +125,7 @@ export function ChangeRequest2024Button(props: { data: ChangeRequestData }) {
       <ChangeRequest2024Dialog
         dialogShown={dialogShown}
         closeDialog={closeDialog}
-        data={data}
+        {...props}
       />
     </>
   );
@@ -114,9 +134,15 @@ export function ChangeRequest2024Button(props: { data: ChangeRequestData }) {
 function ChangeRequest2024Dialog(props: {
   dialogShown: boolean;
   closeDialog: () => void;
-  data: ChangeRequestData;
+  formType: CSBFormType;
+  comboKey: string;
+  rebateId: string | null;
+  mongoId: string;
+  formioState: string;
+  bapStatus: string;
+  data: SubmissionData;
 }) {
-  const { dialogShown, closeDialog, data } = props;
+  const { dialogShown, closeDialog } = props;
 
   /*
    * NOTE: Formio form Combobox inputs won't receive click events if the
@@ -188,7 +214,7 @@ function ChangeRequest2024Dialog(props: {
               </div>
 
               <div className={clsx("tw:m-auto tw:max-w-6xl tw:p-4")}>
-                <ChangeRequest2024Form data={data} closeDialog={closeDialog} />
+                <ChangeRequest2024Form {...props} />
               </div>
             </TransitionChild>
             {/* </DialogPanel> */}
@@ -200,24 +226,26 @@ function ChangeRequest2024Dialog(props: {
 }
 
 function ChangeRequest2024Form(props: {
-  data: ChangeRequestData;
+  dialogShown: boolean;
   closeDialog: () => void;
+  formType: CSBFormType;
+  comboKey: string;
+  rebateId: string | null;
+  mongoId: string;
+  formioState: string;
+  bapStatus: string;
+  data: SubmissionData;
 }) {
-  const { data, closeDialog } = props;
   const {
+    closeDialog,
     formType,
     comboKey,
     rebateId,
     mongoId,
     formioState,
     bapStatus,
-    userEmail,
-    userTitle,
-    userName,
-    applicantName,
-    districtName,
-    districtState,
-  } = data;
+    data,
+  } = props;
 
   const content = useContentData();
   const {
@@ -306,12 +334,28 @@ function ChangeRequest2024Form(props: {
               _mongo_id: mongoId,
               _formio_state: formioState,
               _bap_status: bapStatus,
-              _user_email: userEmail,
-              _user_title: userTitle,
-              _user_name: userName,
-              _bap_applicant_name: applicantName,
-              _bap_district_name: districtName,
-              _bap_district_state: districtState,
+              _user_email: data.userEmail,
+              _user_title: data.userTitle,
+              _user_name: data.userName,
+              _bap_applicant_name: data.applicantName,
+              _bap_district_id: data.districtId,
+              _bap_district_nces_id: data.districtNcesId,
+              _bap_district_name: data.districtName,
+              _bap_district_address_1: data.districtAddress1,
+              _bap_district_address_2: data.districtAddress2,
+              _bap_district_city: data.districtCity,
+              _bap_district_state: data.districtState,
+              _bap_district_zip: data.districtZip,
+              _bap_district_priority: data.districtPriority,
+              _bap_district_priority_reason: data.districtPriorityReason,
+              _bap_district_self_certify: data.districtSelfCertify,
+              _bap_district_contact_id: data.districtContactId,
+              _bap_district_contact_recordtype: data.districtContactRecordType,
+              _bap_district_contact_first_name: data.districtContactFirstName,
+              _bap_district_contact_last_name: data.districtContactLastName,
+              _bap_district_contact_title: data.districtContactTitle,
+              _bap_district_contact_email: data.districtContactEmail,
+              _bap_district_contact_phone: data.districtContactPhone,
               ...pendingSubmissionData.current,
             },
           }}
