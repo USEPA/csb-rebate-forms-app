@@ -1096,8 +1096,20 @@ function FRF2023Submission(props: { rebate: Rebate2023 }) {
     appInfo_efti,
     appInfo_orgName,
     _formio_schoolDistrictName,
+    org_district_ncesId,
     org_district_orgName,
+    org_district_address1,
+    org_district_address2,
+    org_district_city,
     org_district_state,
+    org_district_zipCode,
+    org_district_prioritized,
+    org_district_priorityReason,
+    org_district_contactFName,
+    org_district_contactLName,
+    org_district_contactTitle,
+    org_district_contactEmail,
+    org_district_contactPhone,
   } = frf.formio.data;
 
   const date = new Date(frf.formio.modified).toLocaleDateString();
@@ -1273,18 +1285,35 @@ handle when it's value is an empty string. */}
 
       <td className={clsx("tw:min-[30rem]:text-right")}>
         <ChangeRequest2023Button
+          formType={"frf"}
+          comboKey={frfComboKey}
+          rebateId={frf.bap?.rebateId || null}
+          mongoId={frf.formio._id}
+          formioState={frf.formio.state || ""}
+          bapStatus={frfBapStatus || ""}
           data={{
-            formType: "frf",
-            comboKey: frfComboKey,
-            rebateId: frf.bap?.rebateId || null,
-            mongoId: frf.formio._id,
-            state: frf.formio.state || "",
-            email,
-            title,
-            name,
+            userEmail: email,
+            userTitle: title,
+            userName: name,
             applicantName: _bap_applicant_name,
+            districtId: "", // NOTE: not available in the 2023 FRF
+            districtNcesId: org_district_ncesId,
             districtName: org_district_orgName,
+            districtAddress1: org_district_address1,
+            districtAddress2: org_district_address2,
+            districtCity: org_district_city,
             districtState: org_district_state,
+            districtZip: org_district_zipCode,
+            districtPriority: org_district_prioritized,
+            districtPriorityReason: org_district_priorityReason,
+            districtSelfCertify: "", // NOTE: not available in the 2023 FRF
+            districtContactId: "", // NOTE: not available in the 2023 FRF
+            districtContactRecordType: "", // NOTE: not available in the 2023 FRF
+            districtContactFirstName: org_district_contactFName,
+            districtContactLastName: org_district_contactLName,
+            districtContactTitle: org_district_contactTitle,
+            districtContactEmail: org_district_contactEmail,
+            districtContactPhone: org_district_contactPhone,
           }}
         />
       </td>
@@ -1420,8 +1449,23 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
   const {
     _user_email,
     _bap_applicant_name,
+    _bap_district_id,
+    _bap_district_nces_id,
     _bap_district_name,
+    _bap_district_address_1,
+    _bap_district_address_2,
+    _bap_district_city,
     _bap_district_state,
+    _bap_district_zip,
+    _bap_district_priority,
+    _bap_district_priority_reason,
+    _bap_district_self_certify,
+    _bap_district_contact_id,
+    _bap_district_contact_fname,
+    _bap_district_contact_lname,
+    _bap_district_contact_title,
+    _bap_district_contact_email,
+    _bap_district_contact_phone,
   } = prf.formio.data;
 
   const date = new Date(prf.formio.modified).toLocaleDateString();
@@ -1517,18 +1561,35 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
 
       <td className={clsx("tw:min-[30rem]:text-right")}>
         <ChangeRequest2023Button
+          formType={"prf"}
+          comboKey={prfComboKey}
+          rebateId={prfRebateId}
+          mongoId={prf.formio._id}
+          formioState={prf.formio.state || ""}
+          bapStatus={prfBapStatus || ""}
           data={{
-            formType: "prf",
-            comboKey: prfComboKey,
-            rebateId: prfRebateId,
-            mongoId: prf.formio._id,
-            state: prf.formio.state || "",
-            email,
-            title,
-            name,
+            userEmail: email,
+            userTitle: title,
+            userName: name,
             applicantName: _bap_applicant_name,
+            districtId: _bap_district_id,
+            districtNcesId: _bap_district_nces_id,
             districtName: _bap_district_name,
+            districtAddress1: _bap_district_address_1,
+            districtAddress2: _bap_district_address_2,
+            districtCity: _bap_district_city,
             districtState: _bap_district_state,
+            districtZip: _bap_district_zip,
+            districtPriority: _bap_district_priority,
+            districtPriorityReason: _bap_district_priority_reason,
+            districtSelfCertify: _bap_district_self_certify,
+            districtContactId: _bap_district_contact_id,
+            districtContactRecordType: "", // NOTE: not available in the 2023 PRF
+            districtContactFirstName: _bap_district_contact_fname,
+            districtContactLastName: _bap_district_contact_lname,
+            districtContactTitle: _bap_district_contact_title,
+            districtContactEmail: _bap_district_contact_email,
+            districtContactPhone: _bap_district_contact_phone,
           }}
         />
       </td>
@@ -1664,8 +1725,24 @@ function CRF2023Submission(props: { rebate: Rebate2023 }) {
   const {
     _user_email,
     _bap_applicant_name,
+    _bap_district_id,
+    _bap_district_nces_id,
     _bap_district_name,
+    _bap_district_address_1,
+    _bap_district_address_2,
+    _bap_district_city,
     _bap_district_state,
+    _bap_district_zip,
+    _bap_district_priority,
+    _bap_district_priority_reason,
+    _bap_district_self_certify,
+    _bap_district_contact_id,
+    _bap_district_contact_recordtype,
+    _bap_district_contact_fname,
+    _bap_district_contact_lname,
+    _bap_district_contact_title,
+    _bap_district_contact_email,
+    _bap_district_contact_phone,
   } = crf.formio.data;
 
   const date = new Date(crf.formio.modified).toLocaleDateString();
@@ -1767,18 +1844,35 @@ function CRF2023Submission(props: { rebate: Rebate2023 }) {
 
       <td className={clsx("tw:min-[30rem]:text-right")}>
         <ChangeRequest2023Button
+          formType={"crf"}
+          comboKey={crfComboKey}
+          rebateId={crfRebateId}
+          mongoId={crf.formio._id}
+          formioState={crf.formio.state || ""}
+          bapStatus={crfBapStatus || ""}
           data={{
-            formType: "crf",
-            comboKey: crfComboKey,
-            rebateId: crfRebateId,
-            mongoId: crf.formio._id,
-            state: crf.formio.state || "",
-            email,
-            title,
-            name,
+            userEmail: email,
+            userTitle: title,
+            userName: name,
             applicantName: _bap_applicant_name,
+            districtId: _bap_district_id,
+            districtNcesId: _bap_district_nces_id,
             districtName: _bap_district_name,
+            districtAddress1: _bap_district_address_1,
+            districtAddress2: _bap_district_address_2,
+            districtCity: _bap_district_city,
             districtState: _bap_district_state,
+            districtZip: _bap_district_zip,
+            districtPriority: _bap_district_priority,
+            districtPriorityReason: _bap_district_priority_reason,
+            districtSelfCertify: _bap_district_self_certify,
+            districtContactId: _bap_district_contact_id,
+            districtContactRecordType: _bap_district_contact_recordtype,
+            districtContactFirstName: _bap_district_contact_fname,
+            districtContactLastName: _bap_district_contact_lname,
+            districtContactTitle: _bap_district_contact_title,
+            districtContactEmail: _bap_district_contact_email,
+            districtContactPhone: _bap_district_contact_phone,
           }}
         />
       </td>
@@ -2041,8 +2135,21 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
     appInfo_uei,
     appInfo_efti,
     appInfo_organization_name,
+    org_district_nces_id,
     org_district_name,
+    org_district_address_1,
+    org_district_address_2,
+    org_district_city,
     org_district_state,
+    org_district_zip,
+    org_district_prioritized,
+    org_district_priorityReason,
+    org_district_self_certify,
+    org_district_contact_fname,
+    org_district_contact_lname,
+    org_district_contact_title,
+    org_district_contact_email,
+    org_district_contact_phone,
   } = frf.formio.data;
 
   const date = new Date(frf.formio.modified).toLocaleDateString();
@@ -2203,18 +2310,35 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 
       <td className={clsx("tw:min-[30rem]:text-right")}>
         <ChangeRequest2024Button
+          formType={"frf"}
+          comboKey={frfComboKey}
+          rebateId={frf.bap?.rebateId || null}
+          mongoId={frf.formio._id}
+          formioState={frf.formio.state || ""}
+          bapStatus={frfBapStatus || ""}
           data={{
-            formType: "frf",
-            comboKey: frfComboKey,
-            rebateId: frf.bap?.rebateId || null,
-            mongoId: frf.formio._id,
-            state: frf.formio.state || "",
-            email,
-            title,
-            name,
+            userEmail: email,
+            userTitle: title,
+            userName: name,
             applicantName: _bap_applicant_name,
+            districtId: "", // NOTE: not available in the 2024 FRF
+            districtNcesId: org_district_nces_id,
             districtName: org_district_name,
+            districtAddress1: org_district_address_1,
+            districtAddress2: org_district_address_2,
+            districtCity: org_district_city,
             districtState: org_district_state,
+            districtZip: org_district_zip,
+            districtPriority: org_district_prioritized,
+            districtPriorityReason: org_district_priorityReason,
+            districtSelfCertify: org_district_self_certify,
+            districtContactId: "", // NOTE: not available in the 2024 FRF
+            districtContactRecordType: "", // NOTE: not available in the 2024 FRF
+            districtContactFirstName: org_district_contact_fname,
+            districtContactLastName: org_district_contact_lname,
+            districtContactTitle: org_district_contact_title,
+            districtContactEmail: org_district_contact_email,
+            districtContactPhone: org_district_contact_phone,
           }}
         />
       </td>
@@ -2348,8 +2472,23 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 //   const {
 //     _user_email,
 //     _bap_applicant_name,
+//     _bap_district_id,
+//     _bap_district_nces_id,
 //     _bap_district_name,
+//     _bap_district_address_1,
+//     _bap_district_address_2,
+//     _bap_district_city,
 //     _bap_district_state,
+//     _bap_district_zip,
+//     _bap_district_priority,
+//     _bap_district_priority_reason,
+//     _bap_district_self_certify,
+//     _bap_district_contact_id,
+//     _bap_district_contact_fname,
+//     _bap_district_contact_lname,
+//     _bap_district_contact_title,
+//     _bap_district_contact_email,
+//     _bap_district_contact_phone,
 //   } = prf.formio.data;
 
 //   const date = new Date(prf.formio.modified).toLocaleDateString();
@@ -2445,18 +2584,35 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 
 //       <td className={clsx("tw:min-[30rem]:text-right")}>
 //         <ChangeRequest2024Button
+//           formType={"prf"}
+//           comboKey={prfComboKey}
+//           rebateId={prfRebateId}
+//           mongoId={prf.formio._id}
+//           formioState={prf.formio.state || ""}
+//           bapStatus={prfBapStatus || ""}
 //           data={{
-//             formType: "prf",
-//             comboKey: prfComboKey,
-//             rebateId: prfRebateId,
-//             mongoId: prf.formio._id,
-//             state: prf.formio.state || "",
-//             email,
-//             title,
-//             name,
+//             userEmail: email,
+//             userTitle: title,
+//             userName: name,
 //             applicantName: _bap_applicant_name,
+//             districtId: _bap_district_id,
+//             districtNcesId: _bap_district_nces_id,
 //             districtName: _bap_district_name,
+//             districtAddress1: _bap_district_address_1,
+//             districtAddress2: _bap_district_address_2,
+//             districtCity: _bap_district_city,
 //             districtState: _bap_district_state,
+//             districtZip: _bap_district_zip,
+//             districtPriority: _bap_district_priority,
+//             districtPriorityReason: _bap_district_priority_reason,
+//             districtSelfCertify: _bap_district_self_certify,
+//             districtContactId: _bap_district_contact_id,
+//             districtContactRecordType: "", // NOTE: not available in the 2024 PRF
+//             districtContactFirstName: _bap_district_contact_fname,
+//             districtContactLastName: _bap_district_contact_lname,
+//             districtContactTitle: _bap_district_contact_title,
+//             districtContactEmail: _bap_district_contact_email,
+//             districtContactPhone: _bap_district_contact_phone,
 //           }}
 //         />
 //       </td>
