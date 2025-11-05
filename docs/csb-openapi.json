@@ -1277,6 +1277,121 @@
         }
       }
     },
+    "/api/formio/2023/crf-submissions": {
+      "get": {
+        "summary": "Get user's 2023 CRF submissions from Formio.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "An array of 2023 CRF submissions.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/formio/2023/crf-submission": {
+      "post": {
+        "summary": "Post a new 2023 CRF submission to Formio.",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The newly created 2023 CRF submission.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/formio/2023/crf-submission/{rebateId}": {
+      "get": {
+        "summary": "Get an existing 2023 CRF's schema and submission data from Formio.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/rebateId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The 2023 CRF schema, form submission, and user access status.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FormioSchemaAndSubmission"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "summary": "Post an update to an existing draft 2023 CRF submission to Formio.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/rebateId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated 2023 CRF submission.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
     "/api/formio/2023/changes": {
       "get": {
         "summary": "Get user's 2023 Change Request form submissions from Formio.",
@@ -2025,6 +2140,17 @@
         }
       }
     },
+    "/api/status/formio/2023/crf": {
+      "get": {
+        "summary": "CSB Formio 2023 CRF schema check.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/status/formio/2023/change": {
       "get": {
         "summary": "CSB Formio 2023 Change Request form schema check.",
@@ -2064,7 +2190,7 @@
       "rebateYear": {
         "in": "path",
         "name": "rebateYear",
-        "description": "The Clean School Bus Rebate year (2022, 2023).",
+        "description": "The Clean School Bus Rebate year (2022, 2023, 2024).",
         "required": true,
         "example": "2022",
         "schema": {
