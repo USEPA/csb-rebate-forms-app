@@ -62,7 +62,13 @@ const formDataFieldNames = {
       "hidden_current_user_email",
       "hidden_bap_rebate_id",
     ],
-    change: [],
+    change: [
+      "_request_form",
+      "_bap_rebate_id",
+      "_mongo_id",
+      "_user_email",
+      "request_type",
+    ],
   },
   2023: {
     frf: [
