@@ -2118,6 +2118,17 @@
         }
       }
     },
+    "/api/status/formio/2022/change": {
+      "get": {
+        "summary": "CSB Formio 2022 Change Request form schema check.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/status/formio/2023/frf": {
       "get": {
         "summary": "CSB Formio 2023 FRF schema check.",
