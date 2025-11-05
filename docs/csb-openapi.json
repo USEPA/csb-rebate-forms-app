@@ -860,19 +860,40 @@
         }
       }
     },
+    "/api/formio/2023/district/{formType}/{rebateId}": {
+      "get": {
+        "summary": "Get the school district info associated with a provided CSB Rebate ID",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/formType"
+          },
+          {
+            "$ref": "#/components/parameters/rebateId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An object containing school district info associated with the CSB Rebate ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
     "/api/formio/2023/contacts/{rebateId}": {
       "get": {
         "summary": "Get contacts associated with a provided CSB Rebate ID",
         "parameters": [
           {
-            "in": "path",
-            "name": "rebateId",
-            "description": "The CSB Rebate ID",
-            "required": true,
-            "example": "000000",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/rebateId"
           }
         ],
         "responses": {

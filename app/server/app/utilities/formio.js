@@ -20,6 +20,7 @@ const {
   getBapDataFor2024PRF,
   getBapDataFor2022CRF,
   getBapDataFor2023CRF,
+  getCSBRebateSchoolDistrictInfo,
   getCSBRebateContacts,
   checkForVinDuplicates,
   checkFormSubmissionPeriodAndBapStatus,
@@ -31,6 +32,10 @@ const { NODE_ENV } = process.env;
 
 /**
  * @typedef {'2022' | '2023' | '2024'} RebateYear
+ */
+
+/**
+ * @typedef {'frf' | 'prf' | 'crf'} FormType
  */
 
 /**
@@ -255,6 +260,51 @@ function searchNcesData({ rebateYear, req, res }) {
   log({ level: "info", message: logMessage, req });
 
   return res.json({ ...result });
+}
+
+/**
+ * @param {Object} param
+ * @param {RebateYear} param.rebateYear
+ * @param {express.Request} param.req
+ * @param {express.Response} param.res
+ */
+function getRebateSchoolDistrictInfo({ rebateYear, req, res }) {
+  const { formType, rebateId } = req.params;
+
+  // NOTE: included to support EPA API scan
+  if (rebateId === formioExampleRebateId) {
+    return res.json({});
+  }
+
+  if (!rebateId) {
+    const logMessage = `No Rebate ID passed to CSB Rebate School District info lookup.`;
+    log({ level: "info", message: logMessage, req });
+
+    return res.json({});
+  }
+
+  if (rebateId.length !== 6) {
+    const logMessage = `Invalid Rebate ID '${rebateId}' passed to CSB Rebate School District info lookup.`;
+    log({ level: "info", message: logMessage, req });
+
+    return res.json({});
+  }
+
+  return getCSBRebateSchoolDistrictInfo({
+    rebateYear,
+    formType,
+    rebateId,
+    req,
+  })
+    .then((json) => {
+      res.json(json);
+    })
+    .catch((_error) => {
+      // NOTE: logged in bap verifyBapConnection
+      const errorStatus = 500;
+      const errorMessage = `Error getting CSB Rebate School District Info from the BAP.`;
+      return res.status(errorStatus).json({ message: errorMessage });
+    });
 }
 
 /**
@@ -2995,6 +3045,7 @@ function fetchChangeRequest({ rebateYear, req, res }) {
 module.exports = {
   checkVIN,
   searchNcesData,
+  getRebateSchoolDistrictInfo,
   getRebateContacts,
   getRebateIdFieldName,
   //
