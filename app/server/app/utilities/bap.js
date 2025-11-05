@@ -594,6 +594,33 @@ const { submissionPeriodOpen } = require("../config/formio");
 
 /**
  * @typedef {{
+ *  attributes: { type: "Order_Request__c", url: string }
+ *  Id: string
+ *  CSB_NCES_ID__c: string
+ *  CSB_School_District__r: {
+ *    attributes: { type: "Account", url: string }
+ *    Id: string
+ *    Name: string
+ *    BillingStreet: string
+ *    BillingCity: string
+ *    BillingState: string
+ *    BillingPostalCode: string
+ *  }
+ *  School_District_Contact__r: {
+ *    attributes: { type: "Contact", url: string }
+ *    Id: string
+ *    Record_Type_Name__c: string
+ *    FirstName: string
+ *    LastName: string
+ *    Title: string
+ *    Email: string
+ *    Phone: string
+ *  }
+ * }} CSBRebateSchoolDistrictInfo
+ */
+
+/**
+ * @typedef {{
  *  rebateId: string
  *  rolesApplied: string[]
  *  count: number
@@ -657,6 +684,66 @@ const {
   BAP_USER,
   BAP_PASSWORD,
 } = process.env;
+
+/**
+ * Get 'DeveloperName' field value for use in BAP queries, based on rebate year
+ * and form type.
+ *
+ * @param {Object} param
+ * @param {RebateYear} param.rebateYear
+ * @param {FormType} param.formType
+ */
+function getDeveloperNameField({ rebateYear, formType }) {
+  const developerNameField = {
+    2022: {
+      frf: "CSB_Funding_Request",
+      prf: "CSB_Payment_Request",
+      crf: "CSB_Closeout_Request",
+    },
+    2023: {
+      frf: "CSB_Funding_Request_2023",
+      prf: "CSB_Payment_Request_2023",
+      crf: "CSB_Closeout_Request_2023",
+    },
+    2024: {
+      frf: "CSB_Funding_Request_2024",
+      prf: "CSB_Payment_Request_2024",
+      crf: "CSB_Closeout_Request_2024",
+    },
+  };
+
+  return developerNameField[rebateYear][formType];
+}
+
+/**
+ * Get 'Record_Type_Name__c' field value for use in BAP queries, based on rebate
+ * year and form type.
+ *
+ * @param {Object} param
+ * @param {RebateYear} param.rebateYear
+ * @param {FormType} param.formType
+ */
+function getRecordTypeNameField({ rebateYear, formType }) {
+  const recordTypeNameField = {
+    2022: {
+      frf: "CSB Funding Request",
+      prf: "CSB Payment Request",
+      crf: "CSB Close Out Request",
+    },
+    2023: {
+      frf: "CSB Funding Request 2023",
+      prf: "CSB Payment Request 2023",
+      crf: "CSB Close Out Request 2023",
+    },
+    2024: {
+      frf: "CSB Funding Request 2024",
+      prf: "CSB Payment Request 2024",
+      crf: "CSB Close Out Request 2024",
+    },
+  };
+
+  return recordTypeNameField[rebateYear][formType];
+}
 
 /**
  * Sets up the BAP connection and stores it in the Express app's locals object.
@@ -812,25 +899,7 @@ async function queryForBapFormSubmissionData(
   /** @type {{ bapConnection: jsforce.Connection }} */
   const { bapConnection } = req.app.locals;
 
-  const developerNameField = {
-    2022: {
-      frf: "CSB_Funding_Request",
-      prf: "CSB_Payment_Request",
-      crf: "CSB_Closeout_Request",
-    },
-    2023: {
-      frf: "CSB_Funding_Request_2023",
-      prf: "CSB_Payment_Request_2023",
-      crf: "CSB_Closeout_Request_2023",
-    },
-    2024: {
-      frf: "CSB_Funding_Request_2024",
-      prf: "CSB_Payment_Request_2024",
-      crf: "CSB_Closeout_Request_2024",
-    },
-  };
-
-  const developerName = developerNameField[rebateYear][formType];
+  const developerName = getDeveloperNameField({ rebateYear, formType });
 
   if (!developerName) return null;
 
@@ -2498,15 +2567,101 @@ async function queryBapFor2023CRFData(req, prfReviewItemId) {
 }
 
 /**
+ * Uses cached JSforce connection to query the BAP for school district info
+ * associated with a rebate year, form type, and CSB Rebate ID.
+ *
+ * @param {express.Request} req
+ * @param {RebateYear} rebateYear
+ * @param {FormType} formType
+ * @param {string} rebateId
+ * @returns {Promise<CSBRebateSchoolDistrictInfo>}
+ */
+async function queryForCSBRebateSchoolDistrictInfo(
+  req,
+  rebateYear,
+  formType,
+  rebateId,
+) {
+  const logMessage =
+    `Querying the BAP for school district info associated with ` +
+    `${rebateYear} ${formType.toUpperCase()} submission with ` +
+    `CSB Rebate ID: '${rebateId}'.`;
+  log({ level: "info", message: logMessage, req });
+
+  /** @type {{ bapConnection: jsforce.Connection }} */
+  const { bapConnection } = req.app.locals;
+
+  const recordTypeName = getRecordTypeNameField({ rebateYear, formType });
+
+  if (!recordTypeName) return null;
+
+  // `SELECT
+  //   Id,
+  //   CSB_NCES_ID__c,
+  //   CSB_School_District__r.Id,
+  //   CSB_School_District__r.Name,
+  //   CSB_School_District__r.BillingStreet,
+  //   CSB_School_District__r.BillingCity,
+  //   CSB_School_District__r.BillingState,
+  //   CSB_School_District__r.BillingPostalCode,
+  //   School_District_Contact__r.Id,
+  //   School_District_Contact__r.Record_Type_Name__c,
+  //   School_District_Contact__r.FirstName,
+  //   School_District_Contact__r.LastName,
+  //   School_District_Contact__r.Title,
+  //   School_District_Contact__r.Email,
+  //   School_District_Contact__r.Phone,
+  // FROM
+  //   Order_Request__c
+  // WHERE
+  //   Record_Type_Name__c = '${recordTypeName}' AND
+  //   Parent_Rebate_ID__c = '${rebateId}' AND
+  //   Latest_Version__c = TRUE`
+
+  const schoolDistrictInfoQuery = await bapConnection
+    .sobject("Order_Request__c")
+    .find(
+      {
+        Record_Type_Name__c: recordTypeName,
+        Parent_Rebate_ID__c: rebateId,
+        Latest_Version__c: true,
+      },
+      {
+        // "*": 1,
+        Id: 1, // Salesforce record ID
+        CSB_NCES_ID__c: 1,
+        "CSB_School_District__r.Id": 1,
+        "CSB_School_District__r.Name": 1,
+        "CSB_School_District__r.BillingStreet": 1,
+        "CSB_School_District__r.BillingCity": 1,
+        "CSB_School_District__r.BillingState": 1,
+        "CSB_School_District__r.BillingPostalCode": 1,
+        "School_District_Contact__r.Id": 1,
+        "School_District_Contact__r.Record_Type_Name__c": 1,
+        "School_District_Contact__r.FirstName": 1,
+        "School_District_Contact__r.LastName": 1,
+        "School_District_Contact__r.Title": 1,
+        "School_District_Contact__r.Phone": 1,
+        "School_District_Contact__r.Email": 1,
+      },
+    )
+    .execute(async (err, records) => ((await err) ? err : records));
+
+  return schoolDistrictInfoQuery?.[0] || {};
+}
+
+/**
  * Uses cached JSforce connection to query the BAP for contacts associated with
  * a CSB Rebate ID.
  *
  * @param {express.Request} req
- * @param {string} rebateId CSB Rebate ID
+ * @param {string} rebateId
  * @returns {Promise<CSBRebateContacts>}
  */
 async function queryForCSBRebateContacts(req, rebateId) {
-  const logMessage = `Querying the BAP for contacts associated with CSB Rebate ID: '${rebateId}'.`;
+  const logMessage =
+    `Querying the BAP for contacts associated with ` +
+    `CSB Rebate ID: '${rebateId}'.`;
   log({ level: "info", message: logMessage, req });
 
   /** @type {{ bapConnection: jsforce.Connection }} */
@@ -2743,6 +2898,29 @@ function getBapDataFor2023CRF(req, prfReviewItemId) {
 }
 
 /**
+ * Fetches school district info associated with a provided a rebate year, form
+ * type, and CSB Rebate ID.
+ *
+ * @param {Object} param
+ * @param {RebateYear} param.rebateYear
+ * @param {FormType} param.formType
+ * @param {string} param.rebateId
+ * @param {express.Request} param.req
+ * @returns {ReturnType<queryForCSBRebateSchoolDistrictInfo>}
+ */
+function getCSBRebateSchoolDistrictInfo({
+  rebateYear,
+  formType,
+  rebateId,
+  req,
+}) {
+  return verifyBapConnection(req, {
+    name: queryForCSBRebateSchoolDistrictInfo,
+    args: [req, rebateYear, formType, rebateId],
+  });
+}
+
+/**
  * Fetches contacts associated with a provided CSB Rebate ID.
  *
  * @param {express.Request} req
@@ -2840,6 +3018,7 @@ module.exports = {
   getBapDataFor2024PRF,
   getBapDataFor2022CRF,
   getBapDataFor2023CRF,
+  getCSBRebateSchoolDistrictInfo,
   getCSBRebateContacts,
   checkForBapDuplicates,
   checkForVinDuplicates,
