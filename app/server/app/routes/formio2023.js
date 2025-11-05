@@ -8,6 +8,7 @@ const {
 const {
   checkVIN,
   searchNcesData,
+  getRebateSchoolDistrictInfo,
   getRebateContacts,
   //
   downloadFileFromS3,
@@ -51,6 +52,11 @@ router.get("/check-vin{/:vin}", (req, res) => {
 // --- search 2023 NCES data with the provided NCES ID and return a match
 router.get("/nces{/:searchText}", (req, res) => {
   searchNcesData({ rebateYear, req, res });
+});
+
+// --- get the school district info associated with a provided CSB Rebate ID
+router.get("/district/:formType{/:rebateId}", (req, res) => {
+  getRebateSchoolDistrictInfo({ rebateYear, req, res });
 });
 
 // --- get contacts associated with a provided CSB Rebate ID
