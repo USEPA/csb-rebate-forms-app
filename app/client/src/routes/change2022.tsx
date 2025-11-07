@@ -1,0 +1,87 @@
+import { useEffect } from "react";
+import { useParams } from "react-router";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
+import { Form } from "@formio/react";
+import icons from "uswds/img/sprite.svg";
+// ---
+import {
+  type FormioSchemaAndSubmission,
+  type FormioChange2022FormSubmission,
+} from "@/types";
+import { serverUrl, messages } from "@/config";
+import { getData, useContentData } from "@/utilities";
+import { Loading } from "@/components/loading";
+import { Message } from "@/components/message";
+import { MarkdownContent } from "@/components/markdownContent";
+
+type Response = FormioSchemaAndSubmission<FormioChange2022FormSubmission>;
+
+/** Custom hook to fetch Formio submission data */
+function useFormioSubmissionQuery(mongoId: string | undefined) {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    queryClient.resetQueries({ queryKey: ["formio/2022/change"] });
+  }, [queryClient]);
+
+  const url = `${serverUrl}/api/formio/2022/change/${mongoId}`;
+
+  const query = useQuery({
+    queryKey: ["formio/2022/change", { id: mongoId }],
+    queryFn: () => getData<Response>(url),
+    refetchOnWindowFocus: false,
+  });
+
+  return { query };
+}
+
+export function Change2022() {
+  const { id: mongoId } = useParams<"id">(); // MongoDB ObjectId string
+
+  const content = useContentData();
+
+  const { query } = useFormioSubmissionQuery(mongoId);
+  const { access, schema, submission } = query.data ?? {};
+
+  if (query.isLoading) {
+    return <Loading />;
+  }
+
+  if (query.isError || !access || !schema || !submission) {
+    return <Message type="error" text={messages.formSubmissionError} />;
+  }
+
+  return (
+    <div className="margin-top-2">
+      {content && (
+        <div className="margin-top-4">
+          <MarkdownContent children={content.submittedChangeIntro} />
+        </div>
+      )}
+
+      <ul className="usa-icon-list">
+        <li className="usa-icon-list__item">
+          <div className="usa-icon-list__icon text-primary">
+            <svg className="usa-icon" aria-hidden="true" role="img">
+              <use href={`${icons}#local_offer`} />
+            </svg>
+          </div>
+          <div className="usa-icon-list__content">
+            <strong>Change Request ID:</strong> {submission._id}
+          </div>
+        </li>
+      </ul>
+
+      <div className="csb-form">
+        <Form
+          src={schema}
+          submission={submission}
+          options={{
+            readOnly: true,
+            noAlerts: true,
+          }}
+        />
+      </div>
+    </div>
+  );
+}

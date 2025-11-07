@@ -141,11 +141,13 @@ export type FormioSubmission = Submission & {
 
 type FormioFRF2022DashboardDataFields = {
   bap_hidden_entity_combo_key: string;
+  sam_hidden_applicant_name: string;
   applicantUEI: string;
   applicantEfti: string;
   applicantEfti_display: string;
   applicantOrganizationName: string;
   schoolDistrictName: string;
+  schoolDistrictState: string;
   last_updated_by: string;
 };
 
@@ -156,7 +158,6 @@ type FormioFRF2022FormDataFields = FormioFRF2022DashboardDataFields & {
   hidden_current_user_name: string;
   sam_hidden_applicant_email: string;
   sam_hidden_applicant_title: string;
-  sam_hidden_applicant_name: string;
   sam_hidden_applicant_efti: string;
   sam_hidden_applicant_uei: string;
   sam_hidden_applicant_organization_name: string;
@@ -171,6 +172,8 @@ type FormioPRF2022DashboardDataFields = {
   bap_hidden_entity_combo_key: string;
   hidden_current_user_email: string;
   hidden_bap_rebate_id: string;
+  applicantName: string;
+  schoolDistrictName: string;
 };
 
 type FormioPRF2022FormDataFields = FormioPRF2022DashboardDataFields & {
@@ -209,13 +212,13 @@ type FormioPRF2022FormDataFields = FormioPRF2022DashboardDataFields & {
     hidden_bap_max_rebate: number;
   }[];
   purchaseOrders: [];
-  applicantName: string;
 };
 
 type FormioCRF2022DashboardDataFields = {
   bap_hidden_entity_combo_key: string;
   hidden_current_user_email: string;
   hidden_bap_rebate_id: string;
+  schoolDistrictName: string;
 };
 
 type FormioCRF2022FormDataFields = FormioCRF2022DashboardDataFields & {
@@ -292,6 +295,24 @@ type FormioCRF2022FormDataFields = FormioCRF2022DashboardDataFields & {
     hidden_prf_rebate: number;
   }[];
   signatureName: string;
+};
+
+type FormioChange2022DashboardDataFields = {
+  _request_form: CSBFormType;
+  _bap_rebate_id: string;
+  _mongo_id: string;
+  _user_email: string;
+  request_type: {
+    label: string;
+    value: string;
+  };
+};
+
+type FormioChange2022FormDataFields = FormioChange2022DashboardDataFields & {
+  [field: string]: unknown;
+  _bap_entity_combo_key: string;
+  _user_title: string;
+  _user_name: string;
 };
 
 type FormioFRF2023DashboardDataFields = {
@@ -878,6 +899,14 @@ export type FormioCRF2022DashboardSubmission = FormioSubmission & {
 
 export type FormioCRF2022FormSubmission = FormioSubmission & {
   data: FormioCRF2022FormDataFields;
+};
+
+export type FormioChange2022DashboardSubmission = FormioSubmission & {
+  data: FormioChange2022DashboardDataFields;
+};
+
+export type FormioChange2022FormSubmission = FormioSubmission & {
+  data: FormioChange2022FormDataFields;
 };
 
 export type FormioFRF2023DashboardSubmission = FormioSubmission & {

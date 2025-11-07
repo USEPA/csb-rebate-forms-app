@@ -106,6 +106,21 @@ router.get("/formio/2022/crf", (req, res) => {
     });
 });
 
+router.get("/formio/2022/change", (req, res) => {
+  const substring = "";
+
+  axiosFormio(req)
+    .get(formUrl["2022"].change)
+    .then((axiosRes) => axiosRes.data)
+    .then((schema) => {
+      return res.json({ status: verifySchema({ schema, substring }) });
+    })
+    .catch((_error) => {
+      // NOTE: error is logged in axiosFormio response interceptor
+      return res.json({ status: false });
+    });
+});
+
 router.get("/formio/2023/frf", (req, res) => {
   const substring = formIntroSubstring["2023"].frf;
 

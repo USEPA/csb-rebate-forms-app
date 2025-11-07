@@ -45,24 +45,35 @@ const formDataFieldNames = {
   2022: {
     frf: [
       "bap_hidden_entity_combo_key",
+      "sam_hidden_applicant_name",
       "applicantUEI",
       "applicantEfti",
       "applicantEfti_display",
       "applicantOrganizationName",
       "schoolDistrictName",
+      "schoolDistrictState",
       "last_updated_by",
     ],
     prf: [
       "bap_hidden_entity_combo_key",
       "hidden_current_user_email",
       "hidden_bap_rebate_id",
+      "applicantName",
+      "schoolDistrictName",
     ],
     crf: [
       "bap_hidden_entity_combo_key",
       "hidden_current_user_email",
       "hidden_bap_rebate_id",
+      "schoolDistrictName",
     ],
-    change: [],
+    change: [
+      "_request_form",
+      "_bap_rebate_id",
+      "_mongo_id",
+      "_user_email",
+      "request_type",
+    ],
   },
   2023: {
     frf: [
