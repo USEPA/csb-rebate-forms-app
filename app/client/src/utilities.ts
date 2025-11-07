@@ -24,6 +24,7 @@ import {
   type FormioFRF2022DashboardSubmission,
   type FormioPRF2022DashboardSubmission,
   type FormioCRF2022DashboardSubmission,
+  type FormioChange2022DashboardSubmission,
   type FormioFRF2023DashboardSubmission,
   type FormioPRF2023DashboardSubmission,
   type FormioCRF2023DashboardSubmission,
@@ -45,7 +46,7 @@ import {
 /** Formio Change Request submissions by rebate year. */
 /* prettier-ignore */
 type FormioChangeRequestsByYear<Year> =
-  Year extends "2022" ? never[] | undefined :
+  Year extends "2022" ? FormioChange2022DashboardSubmission[] | undefined :
   Year extends "2023" ? FormioChange2023DashboardSubmission[] | undefined :
   Year extends "2024" ? FormioChange2024DashboardSubmission[] | undefined :
   never;
@@ -300,13 +301,12 @@ export function useSubmissionPDFQuery(options: {
 export function useChangeRequestsQuery<Year extends RebateYear>(
   rebateYear: Year,
 ): UseQueryResult<FormioChangeRequestsByYear<Year>> {
-  /*
-   * NOTE: Change Request form was added in the 2023 rebate year, so there's no
-   * change request data to fetch for 2022.
-   */
   const changeRequest2022Query = {
     queryKey: ["formio/2022/changes"],
-    queryFn: () => Promise.resolve([]),
+    queryFn: () => {
+      const url = `${serverUrl}/api/formio/2022/changes`;
+      return getData<FormioChange2022DashboardSubmission[]>(url);
+    },
     refetchOnWindowFocus: false,
   };
 
@@ -356,7 +356,7 @@ export function useChangeRequests<Year extends RebateYear>(
 ): FormioChangeRequestsByYear<Year> {
   const queryClient = useQueryClient();
 
-  const changeRequest2022Data = queryClient.getQueryData<[]>(["formio/2022/changes"]); // prettier-ignore
+  const changeRequest2022Data = queryClient.getQueryData<FormioChange2022DashboardSubmission[]>(["formio/2022/changes"]); // prettier-ignore
   const changeRequest2023Data = queryClient.getQueryData<FormioChange2023DashboardSubmission[]>(["formio/2023/changes"]); // prettier-ignore
   const changeRequest2024Data = queryClient.getQueryData<FormioChange2024DashboardSubmission[]>(["formio/2024/changes"]); // prettier-ignore
 

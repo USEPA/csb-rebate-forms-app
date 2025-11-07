@@ -294,6 +294,24 @@ type FormioCRF2022FormDataFields = FormioCRF2022DashboardDataFields & {
   signatureName: string;
 };
 
+type FormioChange2022DashboardDataFields = {
+  _request_form: CSBFormType;
+  _bap_rebate_id: string;
+  _mongo_id: string;
+  _user_email: string;
+  request_type: {
+    label: string;
+    value: string;
+  };
+};
+
+type FormioChange2022FormDataFields = FormioChange2022DashboardDataFields & {
+  [field: string]: unknown;
+  _bap_entity_combo_key: string;
+  _user_title: string;
+  _user_name: string;
+};
+
 type FormioFRF2023DashboardDataFields = {
   _user_email: string;
   _bap_entity_combo_key: string;
@@ -878,6 +896,14 @@ export type FormioCRF2022DashboardSubmission = FormioSubmission & {
 
 export type FormioCRF2022FormSubmission = FormioSubmission & {
   data: FormioCRF2022FormDataFields;
+};
+
+export type FormioChange2022DashboardSubmission = FormioSubmission & {
+  data: FormioChange2022DashboardDataFields;
+};
+
+export type FormioChange2022FormSubmission = FormioSubmission & {
+  data: FormioChange2022FormDataFields;
 };
 
 export type FormioFRF2023DashboardSubmission = FormioSubmission & {
