@@ -218,6 +218,7 @@ type FormioCRF2022DashboardDataFields = {
   bap_hidden_entity_combo_key: string;
   hidden_current_user_email: string;
   hidden_bap_rebate_id: string;
+  schoolDistrictName: string;
 };
 
 type FormioCRF2022FormDataFields = FormioCRF2022DashboardDataFields & {

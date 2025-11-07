@@ -818,6 +818,7 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
   const rebateIdFieldName = getRebateIdFieldName(rebateYear);
 
   const prfComboKey = String(prf.formio?.data?.[comboKeyFieldName] ?? "");
+  const crfComboKey = String(crf.formio?.data?.[comboKeyFieldName] ?? "");
   const crfRebateId = String(crf.formio?.data?.[rebateIdFieldName] ?? "");
 
   const navigate = useNavigate();
@@ -934,7 +935,7 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
   // return if a Close Out submission has not been created for this rebate
   if (!crf.formio) return null;
 
-  const { hidden_current_user_email } = crf.formio.data;
+  const { hidden_current_user_email, schoolDistrictName } = crf.formio.data;
 
   const date = new Date(crf.formio.modified).toLocaleDateString();
   const time = new Date(crf.formio.modified).toLocaleTimeString();
@@ -1031,6 +1032,25 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
         {hidden_current_user_email}
         <br />
         <span title={`${date} ${time}`}>{date}</span>
+      </td>
+
+      <td className={clsx("tw:min-[30rem]:text-right")}>
+        <ChangeRequest2022Button
+          formType={"crf"}
+          comboKey={crfComboKey}
+          rebateId={crfRebateId}
+          mongoId={crf.formio._id}
+          formioState={crf.formio.state || ""}
+          bapStatus={crfBapStatus || ""}
+          data={{
+            userEmail: email,
+            userTitle: title,
+            userName: name,
+            applicantName: "", // NOTE: not available in the 2022 CRF
+            districtName: schoolDistrictName,
+            districtState: "", // NOTE: not available in the 2022 CRF
+          }}
+        />
       </td>
     </tr>
   );

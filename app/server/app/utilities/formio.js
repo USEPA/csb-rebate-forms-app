@@ -65,6 +65,7 @@ const formDataFieldNames = {
       "bap_hidden_entity_combo_key",
       "hidden_current_user_email",
       "hidden_bap_rebate_id",
+      "schoolDistrictName",
     ],
     change: [
       "_request_form",
