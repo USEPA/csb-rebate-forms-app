@@ -63,6 +63,7 @@ jobs:
       FORMIO_2022_FRF_PATH: ${{ secrets.FORMIO_2022_FRF_PATH }}
       FORMIO_2022_PRF_PATH: ${{ secrets.FORMIO_2022_PRF_PATH }}
       FORMIO_2022_CRF_PATH: ${{ secrets.FORMIO_2022_CRF_PATH }}
+      FORMIO_2022_CHANGE_PATH: ${{ secrets.FORMIO_2022_CHANGE_PATH }}
       FORMIO_2023_FRF_PATH: ${{ secrets.FORMIO_2023_FRF_PATH }}
       FORMIO_2023_PRF_PATH: ${{ secrets.FORMIO_2023_PRF_PATH }}
       FORMIO_2023_CRF_PATH: ${{ secrets.FORMIO_2023_CRF_PATH }}
@@ -167,6 +168,7 @@ jobs:
           cf set-env $APP_NAME "FORMIO_2022_FRF_PATH" "$FORMIO_2022_FRF_PATH" > /dev/null
           cf set-env $APP_NAME "FORMIO_2022_PRF_PATH" "$FORMIO_2022_PRF_PATH" > /dev/null
           cf set-env $APP_NAME "FORMIO_2022_CRF_PATH" "$FORMIO_2022_CRF_PATH" > /dev/null
+          cf set-env $APP_NAME "FORMIO_2022_CHANGE_PATH" "$FORMIO_2022_CHANGE_PATH" > /dev/null
           cf set-env $APP_NAME "FORMIO_2023_FRF_PATH" "$FORMIO_2023_FRF_PATH" > /dev/null
           cf set-env $APP_NAME "FORMIO_2023_PRF_PATH" "$FORMIO_2023_PRF_PATH" > /dev/null
           cf set-env $APP_NAME "FORMIO_2023_CRF_PATH" "$FORMIO_2023_CRF_PATH" > /dev/null
