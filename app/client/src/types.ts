@@ -172,6 +172,8 @@ type FormioPRF2022DashboardDataFields = {
   bap_hidden_entity_combo_key: string;
   hidden_current_user_email: string;
   hidden_bap_rebate_id: string;
+  applicantName: string;
+  schoolDistrictName: string;
 };
 
 type FormioPRF2022FormDataFields = FormioPRF2022DashboardDataFields & {
@@ -210,7 +212,6 @@ type FormioPRF2022FormDataFields = FormioPRF2022DashboardDataFields & {
     hidden_bap_max_rebate: number;
   }[];
   purchaseOrders: [];
-  applicantName: string;
 };
 
 type FormioCRF2022DashboardDataFields = {

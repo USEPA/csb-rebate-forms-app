@@ -577,6 +577,7 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
   const rebateIdFieldName = getRebateIdFieldName(rebateYear);
 
   const frfComboKey = String(frf.formio.data?.[comboKeyFieldName] ?? "");
+  const prfComboKey = String(prf.formio?.data?.[comboKeyFieldName] ?? "");
   const prfRebateId = String(prf.formio?.data?.[rebateIdFieldName] ?? "");
 
   const navigate = useNavigate();
@@ -693,7 +694,8 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
   // return if a Payment Request submission has not been created for this rebate
   if (!prf.formio) return null;
 
-  const { hidden_current_user_email } = prf.formio.data;
+  const { hidden_current_user_email, applicantName, schoolDistrictName } =
+    prf.formio.data;
 
   const date = new Date(prf.formio.modified).toLocaleDateString();
   const time = new Date(prf.formio.modified).toLocaleTimeString();
@@ -784,6 +786,25 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
         {hidden_current_user_email}
         <br />
         <span title={`${date} ${time}`}>{date}</span>
+      </td>
+
+      <td className={clsx("tw:min-[30rem]:text-right")}>
+        <ChangeRequest2022Button
+          formType={"prf"}
+          comboKey={prfComboKey}
+          rebateId={prfRebateId}
+          mongoId={prf.formio._id}
+          formioState={prf.formio.state || ""}
+          bapStatus={prfBapStatus || ""}
+          data={{
+            userEmail: email,
+            userTitle: title,
+            userName: name,
+            applicantName: applicantName,
+            districtName: schoolDistrictName,
+            districtState: "", // NOTE: not available in the 2022 PRF
+          }}
+        />
       </td>
     </tr>
   );
