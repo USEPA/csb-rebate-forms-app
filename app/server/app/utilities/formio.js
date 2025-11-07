@@ -45,11 +45,13 @@ const formDataFieldNames = {
   2022: {
     frf: [
       "bap_hidden_entity_combo_key",
+      "sam_hidden_applicant_name",
       "applicantUEI",
       "applicantEfti",
       "applicantEfti_display",
       "applicantOrganizationName",
       "schoolDistrictName",
+      "schoolDistrictState",
       "last_updated_by",
     ],
     prf: [

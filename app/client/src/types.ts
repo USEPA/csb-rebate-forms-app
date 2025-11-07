@@ -141,11 +141,13 @@ export type FormioSubmission = Submission & {
 
 type FormioFRF2022DashboardDataFields = {
   bap_hidden_entity_combo_key: string;
+  sam_hidden_applicant_name: string;
   applicantUEI: string;
   applicantEfti: string;
   applicantEfti_display: string;
   applicantOrganizationName: string;
   schoolDistrictName: string;
+  schoolDistrictState: string;
   last_updated_by: string;
 };
 
@@ -156,7 +158,6 @@ type FormioFRF2022FormDataFields = FormioFRF2022DashboardDataFields & {
   hidden_current_user_name: string;
   sam_hidden_applicant_email: string;
   sam_hidden_applicant_title: string;
-  sam_hidden_applicant_name: string;
   sam_hidden_applicant_efti: string;
   sam_hidden_applicant_uei: string;
   sam_hidden_applicant_organization_name: string;

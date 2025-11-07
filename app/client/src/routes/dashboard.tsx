@@ -42,6 +42,7 @@ import { Loading, LoadingButtonIcon } from "@/components/loading";
 import { Message } from "@/components/message";
 import { MarkdownContent } from "@/components/markdownContent";
 import { TextWithTooltip } from "@/components/tooltip";
+import { ChangeRequest2022Button } from "@/components/change2022New";
 import { ChangeRequest2023Button } from "@/components/change2023New";
 import { ChangeRequest2024Button } from "@/components/change2024New";
 import { useNotificationsActions } from "@/contexts/notifications";
@@ -318,6 +319,8 @@ function FRF2022Submission(props: { rebate: Rebate2022 }) {
 
   const frfComboKey = String(frf.formio.data?.[comboKeyFieldName] ?? "");
 
+  const { email } = useOutletContext<{ email: string }>();
+
   const configData = useConfigData();
   const bapSamData = useBapSamData();
 
@@ -332,14 +335,18 @@ function FRF2022Submission(props: { rebate: Rebate2022 }) {
 
   if (!entity) return null;
 
+  const { title, name } = getUserInfo(email, entity);
+
   const frfSubmissionPeriodOpen = configData.submissionPeriodOpen["2022"].frf;
 
   const {
+    sam_hidden_applicant_name,
     applicantUEI,
     applicantEfti,
     applicantEfti_display,
     applicantOrganizationName,
     schoolDistrictName,
+    schoolDistrictState,
     last_updated_by,
   } = frf.formio.data;
 
@@ -538,6 +545,25 @@ save the form for the EFT indicator to be displayed. */
         {last_updated_by}
         <br />
         <span title={`${date} ${time}`}>{date}</span>
+      </td>
+
+      <td className={clsx("tw:min-[30rem]:text-right")}>
+        <ChangeRequest2022Button
+          formType={"frf"}
+          comboKey={frfComboKey}
+          rebateId={frf.bap?.rebateId || null}
+          mongoId={frf.formio._id}
+          formioState={frf.formio.state || ""}
+          bapStatus={frfBapStatus || ""}
+          data={{
+            userEmail: email,
+            userTitle: title,
+            userName: name,
+            applicantName: sam_hidden_applicant_name,
+            districtName: schoolDistrictName,
+            districtState: schoolDistrictState,
+          }}
+        />
       </td>
     </tr>
   );
