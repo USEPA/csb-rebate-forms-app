@@ -596,7 +596,6 @@ const { submissionPeriodOpen } = require("../config/formio");
  * @typedef {{
  *  attributes: { type: "Order_Request__c", url: string }
  *  Id: string
- *  CSB_NCES_ID__c: string
  *  CSB_School_District__r: {
  *    attributes: { type: "Account", url: string }
  *    Id: string
@@ -616,6 +615,12 @@ const { submissionPeriodOpen } = require("../config/formio");
  *    Email: string
  *    Phone: string
  *  }
+ *  CSB_NCES_ID__c: string
+ *  Org_District_Prioritized__c: string
+ *  Self_Certification_Category__c: string
+ *  Prioritized_as_High_Need__c: boolean
+ *  Prioritized_as_Tribal__c: boolean
+ *  Prioritized_as_Rural__c: boolean
  * }} CSBRebateSchoolDistrictInfo
  */
 
@@ -2597,7 +2602,6 @@ async function queryForCSBRebateSchoolDistrictInfo(
 
   // `SELECT
   //   Id,
-  //   CSB_NCES_ID__c,
   //   CSB_School_District__r.Id,
   //   CSB_School_District__r.Name,
   //   CSB_School_District__r.BillingStreet,
@@ -2611,6 +2615,12 @@ async function queryForCSBRebateSchoolDistrictInfo(
   //   School_District_Contact__r.Title,
   //   School_District_Contact__r.Email,
   //   School_District_Contact__r.Phone,
+  //   CSB_NCES_ID__c,
+  //   Org_District_Prioritized__c,
+  //   Self_Certification_Category__c,
+  //   Prioritized_as_High_Need__c,
+  //   Prioritized_as_Tribal__c,
+  //   Prioritized_as_Rural__c
   // FROM
   //   Order_Request__c
   // WHERE
@@ -2629,7 +2639,6 @@ async function queryForCSBRebateSchoolDistrictInfo(
       {
         // "*": 1,
         Id: 1, // Salesforce record ID
-        CSB_NCES_ID__c: 1,
         "CSB_School_District__r.Id": 1,
         "CSB_School_District__r.Name": 1,
         "CSB_School_District__r.BillingStreet": 1,
@@ -2643,6 +2652,12 @@ async function queryForCSBRebateSchoolDistrictInfo(
         "School_District_Contact__r.Title": 1,
         "School_District_Contact__r.Phone": 1,
         "School_District_Contact__r.Email": 1,
+        CSB_NCES_ID__c: 1,
+        Org_District_Prioritized__c: 1,
+        Self_Certification_Category__c: 1,
+        Prioritized_as_High_Need__c: 1,
+        Prioritized_as_Tribal__c: 1,
+        Prioritized_as_Rural__c: 1,
       },
     )
     .execute(async (err, records) => ((await err) ? err : records));
