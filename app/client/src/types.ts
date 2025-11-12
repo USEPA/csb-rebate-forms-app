@@ -323,24 +323,8 @@ type FormioFRF2023DashboardDataFields = {
   appInfo_efti: string;
   appInfo_orgName: string;
   _formio_schoolDistrictName: string;
-  org_district_ncesId: string;
   org_district_orgName: string;
-  org_district_address1: string;
-  org_district_address2: string;
-  org_district_city: string;
   org_district_state: string;
-  org_district_zipCode: string;
-  org_district_prioritized: string;
-  org_district_priorityReason: {
-    highNeed: boolean;
-    tribal: boolean;
-    rural: boolean;
-  };
-  org_district_contactFName: string;
-  org_district_contactLName: string;
-  org_district_contactTitle: string;
-  org_district_contactEmail: string;
-  org_district_contactPhone: string;
 };
 
 type FormioFRF2023FormDataFields = FormioFRF2023DashboardDataFields & {
@@ -364,27 +348,8 @@ type FormioPRF2023DashboardDataFields = {
   _bap_entity_combo_key: string;
   _bap_rebate_id: string;
   _bap_applicant_name: string;
-  _bap_district_id: string;
-  _bap_district_nces_id: string;
   _bap_district_name: string;
-  _bap_district_address_1: string;
-  _bap_district_address_2: string;
-  _bap_district_city: string;
   _bap_district_state: string;
-  _bap_district_zip: string;
-  _bap_district_priority: string;
-  _bap_district_priority_reason: {
-    highNeed: boolean;
-    tribal: boolean;
-    rural: boolean;
-  };
-  _bap_district_self_certify: string;
-  _bap_district_contact_id: string;
-  _bap_district_contact_fname: string;
-  _bap_district_contact_lname: string;
-  _bap_district_contact_title: string;
-  _bap_district_contact_email: string;
-  _bap_district_contact_phone: string;
 };
 
 type FormioPRF2023FormDataFields = FormioPRF2023DashboardDataFields & {
@@ -420,6 +385,25 @@ type FormioPRF2023FormDataFields = FormioPRF2023DashboardDataFields & {
   _bap_alternate_title: string | null;
   _bap_alternate_email: string | null;
   _bap_alternate_phone: string | null;
+  _bap_district_id: string;
+  _bap_district_nces_id: string;
+  _bap_district_address_1: string;
+  _bap_district_address_2: string;
+  _bap_district_city: string;
+  _bap_district_zip: string;
+  _bap_district_priority: string;
+  _bap_district_priority_reason: {
+    highNeed: boolean;
+    tribal: boolean;
+    rural: boolean;
+  };
+  _bap_district_self_certify: string;
+  _bap_district_contact_id: string;
+  _bap_district_contact_fname: string;
+  _bap_district_contact_lname: string;
+  _bap_district_contact_title: string;
+  _bap_district_contact_email: string;
+  _bap_district_contact_phone: string;
   org_organizations: {
     org_number: number;
     org_type: {
@@ -483,28 +467,8 @@ type FormioCRF2023DashboardDataFields = {
   _bap_entity_combo_key: string;
   _bap_rebate_id: string;
   _bap_applicant_name: string;
-  _bap_district_id: string;
-  _bap_district_nces_id: string;
   _bap_district_name: string;
-  _bap_district_address_1: string;
-  _bap_district_address_2: string;
-  _bap_district_city: string;
   _bap_district_state: string;
-  _bap_district_zip: string;
-  _bap_district_priority: string;
-  _bap_district_priority_reason: {
-    highNeed: boolean;
-    tribal: boolean;
-    rural: boolean;
-  };
-  _bap_district_self_certify: string;
-  _bap_district_contact_id: string;
-  _bap_district_contact_recordtype: string;
-  _bap_district_contact_fname: string;
-  _bap_district_contact_lname: string;
-  _bap_district_contact_title: string;
-  _bap_district_contact_email: string;
-  _bap_district_contact_phone: string;
 };
 
 type FormioCRF2023FormDataFields = FormioCRF2023DashboardDataFields & {
@@ -541,6 +505,26 @@ type FormioCRF2023FormDataFields = FormioCRF2023DashboardDataFields & {
   _bap_alternate_title: string | null;
   _bap_alternate_email: string | null;
   _bap_alternate_phone: string | null;
+  _bap_district_id: string;
+  _bap_district_nces_id: string;
+  _bap_district_address_1: string;
+  _bap_district_address_2: string;
+  _bap_district_city: string;
+  _bap_district_zip: string;
+  _bap_district_priority: string;
+  _bap_district_priority_reason: {
+    highNeed: boolean;
+    tribal: boolean;
+    rural: boolean;
+  };
+  _bap_district_self_certify: string;
+  _bap_district_contact_id: string;
+  _bap_district_contact_recordtype: string;
+  _bap_district_contact_fname: string;
+  _bap_district_contact_lname: string;
+  _bap_district_contact_title: string;
+  _bap_district_contact_email: string;
+  _bap_district_contact_phone: string;
   _bap_bus_frf_requested: number;
   _bap_bus_prf_total_costs: number;
   _bap_bus_prf_total_rebate_received: number;
@@ -678,25 +662,8 @@ type FormioFRF2024DashboardDataFields = {
   appInfo_uei: string;
   appInfo_efti: string;
   appInfo_organization_name: string;
-  org_district_nces_id: string;
   org_district_name: string;
-  org_district_address_1: string;
-  org_district_address_2: string;
-  org_district_city: string;
   org_district_state: string;
-  org_district_zip: string;
-  org_district_prioritized: string;
-  org_district_priorityReason: {
-    highNeed: boolean;
-    tribal: boolean;
-    rural: boolean;
-  };
-  org_district_self_certify: string;
-  org_district_contact_fname: string;
-  org_district_contact_lname: string;
-  org_district_contact_title: string;
-  org_district_contact_email: string;
-  org_district_contact_phone: string;
 };
 
 type FormioFRF2024FormDataFields = FormioFRF2024DashboardDataFields & {
@@ -720,27 +687,8 @@ type FormioPRF2024DashboardDataFields = {
   _bap_entity_combo_key: string;
   _bap_rebate_id: string;
   _bap_applicant_name: string;
-  _bap_district_id: string;
-  _bap_district_nces_id: string;
   _bap_district_name: string;
-  _bap_district_address_1: string;
-  _bap_district_address_2: string;
-  _bap_district_city: string;
   _bap_district_state: string;
-  _bap_district_zip: string;
-  _bap_district_priority: string;
-  _bap_district_priority_reason: {
-    highNeed: boolean;
-    tribal: boolean;
-    rural: boolean;
-  };
-  _bap_district_self_certify: string;
-  _bap_district_contact_id: string;
-  _bap_district_contact_fname: string;
-  _bap_district_contact_lname: string;
-  _bap_district_contact_title: string;
-  _bap_district_contact_email: string;
-  _bap_district_contact_phone: string;
 };
 
 type FormioPRF2024FormDataFields = FormioPRF2024DashboardDataFields & {
@@ -776,6 +724,25 @@ type FormioPRF2024FormDataFields = FormioPRF2024DashboardDataFields & {
   _bap_alternate_title: string | null;
   _bap_alternate_email: string | null;
   _bap_alternate_phone: string | null;
+  _bap_district_id: string;
+  _bap_district_nces_id: string;
+  _bap_district_address_1: string;
+  _bap_district_address_2: string;
+  _bap_district_city: string;
+  _bap_district_zip: string;
+  _bap_district_priority: string;
+  _bap_district_priority_reason: {
+    highNeed: boolean;
+    tribal: boolean;
+    rural: boolean;
+  };
+  _bap_district_self_certify: string;
+  _bap_district_contact_id: string;
+  _bap_district_contact_fname: string;
+  _bap_district_contact_lname: string;
+  _bap_district_contact_title: string;
+  _bap_district_contact_email: string;
+  _bap_district_contact_phone: string;
   org_organizations: {
     _bap_org_frf: boolean;
     org_number: number;
