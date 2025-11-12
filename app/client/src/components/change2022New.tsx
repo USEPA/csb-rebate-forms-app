@@ -234,10 +234,7 @@ function ChangeRequest2022Form(props: {
     dismissNotification,
   } = useNotificationsActions();
 
-  const changeRequestsQuery = useChangeRequestsQuery("2022");
-
-  const { query } = useFormioSchemaQuery();
-  const { mutation } = useFormioSubmissionMutation();
+  const changeRequestsQuery = useChangeRequestsQuery("2022", false);
 
   const schema = query.data;
 
