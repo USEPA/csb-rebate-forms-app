@@ -298,15 +298,20 @@ export function useSubmissionPDFQuery(options: {
 }
 
 /** Custom hook to fetch Change Request form submissions from Formio. */
-export function useChangeRequestsQuery<Year extends RebateYear>(
-  rebateYear: Year,
-): UseQueryResult<FormioChangeRequestsByYear<Year>> {
+export function useChangeRequestsQuery<Year extends RebateYear>({
+  rebateYear,
+  enabled = true,
+}: {
+  rebateYear: Year;
+  enabled?: boolean;
+}): UseQueryResult<FormioChangeRequestsByYear<Year>> {
   const changeRequest2022Query = {
     queryKey: ["formio/2022/changes"],
     queryFn: () => {
       const url = `${serverUrl}/api/formio/2022/changes`;
       return getData<FormioChange2022DashboardSubmission[]>(url);
     },
+    enabled,
     refetchOnWindowFocus: false,
   };
 
@@ -316,6 +321,7 @@ export function useChangeRequestsQuery<Year extends RebateYear>(
       const url = `${serverUrl}/api/formio/2023/changes`;
       return getData<FormioChange2023DashboardSubmission[]>(url);
     },
+    enabled,
     refetchOnWindowFocus: false,
   };
 
@@ -325,6 +331,7 @@ export function useChangeRequestsQuery<Year extends RebateYear>(
       const url = `${serverUrl}/api/formio/2024/changes`;
       return getData<FormioChange2024DashboardSubmission[]>(url);
     },
+    enabled,
     refetchOnWindowFocus: false,
   };
 
@@ -332,6 +339,7 @@ export function useChangeRequestsQuery<Year extends RebateYear>(
   const changeRequestFallbackQuery = {
     queryKey: ["formio/changes"],
     queryFn: () => Promise.resolve([]),
+    enabled,
     refetchOnWindowFocus: false,
   };
 
