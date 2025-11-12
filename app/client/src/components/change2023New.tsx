@@ -31,28 +31,8 @@ type SubmissionData = {
   userTitle: string;
   userName: string;
   applicantName: string;
-  districtId: string;
-  districtNcesId: string;
   districtName: string;
-  districtAddress1: string;
-  districtAddress2: string;
-  districtCity: string;
   districtState: string;
-  districtZip: string;
-  districtPriority: string;
-  districtPriorityReason: {
-    highNeed: boolean;
-    tribal: boolean;
-    rural: boolean;
-  };
-  districtSelfCertify: string;
-  districtContactId: string;
-  districtContactRecordType: string;
-  districtContactFirstName: string;
-  districtContactLastName: string;
-  districtContactTitle: string;
-  districtContactEmail: string;
-  districtContactPhone: string;
 };
 
 type Response = FormType;
@@ -338,24 +318,8 @@ function ChangeRequest2023Form(props: {
               _user_title: data.userTitle,
               _user_name: data.userName,
               _bap_applicant_name: data.applicantName,
-              _bap_district_id: data.districtId,
-              _bap_district_nces_id: data.districtNcesId,
               _bap_district_name: data.districtName,
-              _bap_district_address_1: data.districtAddress1,
-              _bap_district_address_2: data.districtAddress2,
-              _bap_district_city: data.districtCity,
               _bap_district_state: data.districtState,
-              _bap_district_zip: data.districtZip,
-              _bap_district_priority: data.districtPriority,
-              _bap_district_priority_reason: data.districtPriorityReason,
-              _bap_district_self_certify: data.districtSelfCertify,
-              _bap_district_contact_id: data.districtContactId,
-              _bap_district_contact_recordtype: data.districtContactRecordType,
-              _bap_district_contact_first_name: data.districtContactFirstName,
-              _bap_district_contact_last_name: data.districtContactLastName,
-              _bap_district_contact_title: data.districtContactTitle,
-              _bap_district_contact_email: data.districtContactEmail,
-              _bap_district_contact_phone: data.districtContactPhone,
               ...pendingSubmissionData.current,
             },
           }}
