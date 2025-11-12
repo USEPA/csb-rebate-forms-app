@@ -35,24 +35,15 @@ type SubmissionData = {
   districtState: string;
 };
 
-type Response = FormType;
-
-/** Custom hook to fetch Formio schema */
-function useFormioSchemaQuery() {
+/** Custom hook to fetch Formio schema and update Formio submission data */
+function useFormioSchemaQueryAndSubmissionMutation() {
   const url = `${serverUrl}/api/formio/2023/change`;
 
   const query = useQuery({
     queryKey: ["formio/2023/change"],
-    queryFn: () => getData<Response>(url),
+    queryFn: () => getData<FormType>(url),
     refetchOnWindowFocus: false,
   });
-
-  return { query };
-}
-
-/** Custom hook to update Formio submission submission data */
-function useFormioSubmissionMutation() {
-  const url = `${serverUrl}/api/formio/2023/change/`;
 
   const mutation = useMutation({
     mutationFn: (submission: Submission) => {
@@ -60,7 +51,7 @@ function useFormioSubmissionMutation() {
     },
   });
 
-  return { mutation };
+  return { query, mutation };
 }
 
 export function ChangeRequest2023Button(props: {
@@ -239,8 +230,7 @@ function ChangeRequest2023Form(props: {
     enabled: false,
   });
 
-  const { query } = useFormioSchemaQuery();
-  const { mutation } = useFormioSubmissionMutation();
+  const { query, mutation } = useFormioSchemaQueryAndSubmissionMutation();
 
   const schema = query.data;
 
