@@ -234,7 +234,10 @@ function ChangeRequest2023Form(props: {
     dismissNotification,
   } = useNotificationsActions();
 
-  const changeRequestsQuery = useChangeRequestsQuery("2023", false);
+  const changeRequestsQuery = useChangeRequestsQuery({
+    rebateYear: "2023",
+    enabled: false,
+  });
 
   const { query } = useFormioSchemaQuery();
   const { mutation } = useFormioSubmissionMutation();

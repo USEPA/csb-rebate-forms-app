@@ -1060,7 +1060,7 @@ function Submissions2022() {
   const rebateYear = "2022";
 
   const content = useContentData();
-  const changeRequestsQuery = useChangeRequestsQuery(rebateYear);
+  const changeRequestsQuery = useChangeRequestsQuery({ rebateYear });
   const submissionsQueries = useSubmissionsQueries(rebateYear);
   const submissions = useSubmissions(rebateYear);
 
@@ -2008,7 +2008,7 @@ function Submissions2023() {
   const rebateYear = "2023";
 
   const content = useContentData();
-  const changeRequestsQuery = useChangeRequestsQuery(rebateYear);
+  const changeRequestsQuery = useChangeRequestsQuery({ rebateYear });
   const submissionsQueries = useSubmissionsQueries(rebateYear);
   const submissions = useSubmissions(rebateYear);
 
@@ -2692,7 +2692,7 @@ function Submissions2024() {
   const rebateYear = "2024";
 
   const content = useContentData();
-  const changeRequestsQuery = useChangeRequestsQuery(rebateYear);
+  const changeRequestsQuery = useChangeRequestsQuery({ rebateYear });
   const submissionsQueries = useSubmissionsQueries(rebateYear);
   const submissions = useSubmissions(rebateYear);
 

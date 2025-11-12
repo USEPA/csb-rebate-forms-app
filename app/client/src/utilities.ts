@@ -298,10 +298,13 @@ export function useSubmissionPDFQuery(options: {
 }
 
 /** Custom hook to fetch Change Request form submissions from Formio. */
-export function useChangeRequestsQuery<Year extends RebateYear>(
-  rebateYear: Year,
+export function useChangeRequestsQuery<Year extends RebateYear>({
+  rebateYear,
   enabled = true,
-): UseQueryResult<FormioChangeRequestsByYear<Year>> {
+}: {
+  rebateYear: Year;
+  enabled?: boolean;
+}): UseQueryResult<FormioChangeRequestsByYear<Year>> {
   const changeRequest2022Query = {
     queryKey: ["formio/2022/changes"],
     queryFn: () => {
