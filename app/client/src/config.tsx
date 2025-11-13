@@ -146,7 +146,7 @@ export const formioNameField = {
   2023: {
     frf: "_user_name",
     prf: "_user_name",
-    crf: "_user_name", // TODO: confirm when the 2023 CRF is created
+    crf: "_user_name",
   },
   2024: {
     frf: "_user_name",
@@ -167,7 +167,7 @@ export const formioEmailField = {
   2023: {
     frf: "_user_email",
     prf: "_user_email",
-    crf: "_user_email", // TODO: confirm when the 2023 CRF is created
+    crf: "_user_email",
   },
   2024: {
     frf: "_user_email",
