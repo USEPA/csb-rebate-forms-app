@@ -100,7 +100,11 @@ export const bapStatusMap = {
       .set("Withdrawn", "Withdrawn")
       .set("Coordinator Denied", "Funding Denied")
       .set("Accepted", "Funding Approved"),
-    crf: new Map<string, string>(), // TODO
+    crf: new Map<string, string>()
+      .set("Needs Clarification", "Needs Clarification")
+      .set("Withdrawn", "Withdrawn")
+      .set("Coordinator Denied", "Close Out Not Approved")
+      .set("Accepted", "Close Out Approved"),
   },
   2024: {
     frf: new Map<string, string>()
