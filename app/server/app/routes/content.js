@@ -1,7 +1,7 @@
 const { resolve } = require("node:path");
 const { readFile } = require("node:fs/promises");
 const express = require("express");
-const axios = require("axios").default || require("axios"); // TODO: https://github.com/axios/axios/issues/5011
+const axios = require("axios");
 // ---
 const { s3BucketUrl } = require("../config/s3");
 const log = require("../utilities/logger");

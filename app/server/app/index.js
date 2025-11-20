@@ -3,7 +3,7 @@ require("dotenv").config();
 const { resolve } = require("node:path");
 const { readFile } = require("node:fs/promises");
 const express = require("express");
-const axios = require("axios").default || require("axios"); // TODO: https://github.com/axios/axios/issues/5011
+const axios = require("axios");
 const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
