@@ -11,7 +11,7 @@ import {
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { type FormType, type Submission, Form } from "@formio/react";
 import clsx from "clsx";
-import icons from "uswds/img/sprite.svg";
+import icons from "@uswds/uswds/img/sprite.svg";
 // ---
 import { type CSBFormType, type FormioChange2023FormSubmission } from "@/types";
 import { serverUrl, messages } from "@/config";

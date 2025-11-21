@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useParams } from "react-router";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { Form } from "@formio/react";
-import icons from "uswds/img/sprite.svg";
+import icons from "@uswds/uswds/img/sprite.svg";
 // ---
 import {
   type FormioSchemaAndSubmission,

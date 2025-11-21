@@ -10,8 +10,8 @@ import { Formio } from "@formio/js";
 import { type FormType, Form } from "@formio/react";
 import clsx from "clsx";
 import { cloneDeep } from "lodash";
-import icon from "uswds/img/usa-icons-bg/search--white.svg";
-import icons from "uswds/img/sprite.svg";
+import search from "@uswds/uswds/img/usa-icons-bg/search--white.svg";
+import icons from "@uswds/uswds/img/sprite.svg";
 // ---
 import {
   type RebateYear,
@@ -669,7 +669,7 @@ export function Helpdesk() {
               <span className="usa-search__submit-text">Search</span>
               <img
                 className="usa-search__submit-icon"
-                src={icon}
+                src={search}
                 alt="Search"
               />
             </button>

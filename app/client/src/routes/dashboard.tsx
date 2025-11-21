@@ -7,7 +7,7 @@ import {
 } from "react-router";
 import { ChevronUpIcon } from "@heroicons/react/20/solid";
 import clsx from "clsx";
-import icons from "uswds/img/sprite.svg";
+import icons from "@uswds/uswds/img/sprite.svg";
 // ---
 import {
   type RebateYear,

@@ -3,7 +3,7 @@ import { Formio } from "@formio/js";
 import bootstrap4 from "@formio/bootstrap/bootstrap4";
 import premium from "@formio/premium";
 import uswds from "@formio/uswds";
-import icons from "uswds/img/sprite.svg";
+import icons from "@uswds/uswds/img/sprite.svg";
 // ---
 import { serverUrl, formioPremiumKey } from "@/config";
 import {

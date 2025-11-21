@@ -47,6 +47,7 @@
     "@radix-ui/react-tooltip": "1.2.8",
     "@tanstack/react-query": "5.90.2",
     "@tanstack/react-query-devtools": "5.90.2",
+    "@uswds/uswds": "3.13.0",
     "bootstrap": "5.3.8",
     "lodash": "4.17.21",
     "react": "19.1.1",
@@ -54,7 +55,6 @@
     "react-idle-timer": "5.7.2",
     "react-markdown": "10.1.0",
     "react-router": "7.9.3",
-    "remark-gfm": "4.0.1",
-    "uswds": "2.14.0"
+    "remark-gfm": "4.0.1"
   }
 }
