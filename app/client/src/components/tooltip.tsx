@@ -1,6 +1,6 @@
 import { Root, Trigger, Portal, Content, Arrow } from "@radix-ui/react-tooltip";
 import clsx from "clsx";
-import icons from "uswds/img/sprite.svg";
+import icons from "@uswds/uswds/img/sprite.svg";
 
 export function TextWithTooltip(props: {
   text: string;
