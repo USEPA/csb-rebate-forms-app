@@ -5,6 +5,7 @@ export type RebateYear = "2022" | "2023" | "2024";
 export type CSBFormType = "frf" | "prf" | "crf";
 
 export type PublicConfigData = {
+  loginEnabled: boolean;
   staticContent: {
     siteAlert: string;
     helpdeskIntro: string;

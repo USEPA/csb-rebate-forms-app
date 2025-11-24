@@ -3,10 +3,14 @@ import { useSearchParams } from "react-router";
 import icons from "@uswds/uswds/img/sprite.svg";
 // ---
 import { serverUrl, messages } from "@/config";
+import { usePublicConfigData } from "@/utilities";
 import { Message } from "@/components/message";
 
 export function Welcome() {
   const [searchParams, setSearchParams] = useSearchParams();
+
+  const publicConfigData = usePublicConfigData();
+  const loginEnabled = publicConfigData?.loginEnabled;
 
   const [message, setMessage] = useState<{
     displayed: boolean;
@@ -76,29 +80,31 @@ export function Welcome() {
 
       {message.displayed && <Message type={message.type} text={message.text} />}
 
-      <div className="padding-9 border-1px border-base-lighter bg-base-lightest text-center">
-        <p>
-          Click the <strong>Sign in</strong> button below to login to the{" "}
-          <em>Clean School Bus Rebate Dashboard</em> using Login.gov.
-        </p>
+      {loginEnabled && (
+        <div className="padding-9 border-1px border-base-lighter bg-base-lightest text-center">
+          <p>
+            Click the <strong>Sign in</strong> button below to login to the{" "}
+            <em>Clean School Bus Rebate Dashboard</em> using Login.gov.
+          </p>
 
-        <a
-          className="usa-button margin-top-1 margin-right-0 font-sans-2xs"
-          href={`${serverUrl}/login`}
-        >
-          <span className="display-flex flex-align-center">
-            <span className="margin-right-1">Sign in</span>
-            <svg
-              className="usa-icon"
-              aria-hidden="true"
-              focusable="false"
-              role="img"
-            >
-              <use href={`${icons}#login`} />
-            </svg>
-          </span>
-        </a>
-      </div>
+          <a
+            className="usa-button margin-top-1 margin-right-0 font-sans-2xs"
+            href={`${serverUrl}/login`}
+          >
+            <span className="display-flex flex-align-center">
+              <span className="margin-right-1">Sign in</span>
+              <svg
+                className="usa-icon"
+                aria-hidden="true"
+                focusable="false"
+                role="img"
+              >
+                <use href={`${icons}#login`} />
+              </svg>
+            </span>
+          </a>
+        </div>
+      )}
     </>
   );
 }

@@ -52,7 +52,7 @@ router.get("/", (req, res) => {
       log({ level: "info", message: logMessage });
 
       return res.json({
-        loginEnabled: CSB_LOGIN_ENABLED || true,
+        loginEnabled: CSB_LOGIN_ENABLED === "true",
         staticContent: {
           siteAlert: data[0],
           helpdeskIntro: data[1],
