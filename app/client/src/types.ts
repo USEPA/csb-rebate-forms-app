@@ -5,19 +5,21 @@ export type RebateYear = "2022" | "2023" | "2024";
 export type CSBFormType = "frf" | "prf" | "crf";
 
 export type PublicConfigData = {
-  siteAlert: string;
-  helpdeskIntro: string;
-  allRebatesIntro: string;
-  allRebatesOutro: string;
-  newFRFDialog: string;
-  draftFRFIntro: string;
-  submittedFRFIntro: string;
-  draftPRFIntro: string;
-  submittedPRFIntro: string;
-  draftCRFIntro: string;
-  submittedCRFIntro: string;
-  newChangeIntro: string;
-  submittedChangeIntro: string;
+  staticContent: {
+    siteAlert: string;
+    helpdeskIntro: string;
+    allRebatesIntro: string;
+    allRebatesOutro: string;
+    newFRFDialog: string;
+    draftFRFIntro: string;
+    submittedFRFIntro: string;
+    draftPRFIntro: string;
+    submittedPRFIntro: string;
+    draftCRFIntro: string;
+    submittedCRFIntro: string;
+    newChangeIntro: string;
+    submittedChangeIntro: string;
+  };
 };
 
 export type PrivateConfigData = {

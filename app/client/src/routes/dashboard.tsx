@@ -1062,12 +1062,15 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
 function Submissions2022() {
   const rebateYear = "2022";
 
-  const content = usePublicConfigData();
+  const publicConfigData = usePublicConfigData();
+  const { staticContent } = publicConfigData || {};
+
   const changeRequestsQuery = useChangeRequestsQuery({ rebateYear });
   const submissionsQueries = useSubmissionsQueries(rebateYear);
   const submissions = useSubmissions(rebateYear);
 
   if (
+    !staticContent ||
     changeRequestsQuery.isLoading ||
     submissionsQueries.some((query) => query.isFetching)
   ) {
@@ -1093,11 +1096,9 @@ function Submissions2022() {
     <>
       {changeRequestsQuery.isFetching ? <Loading /> : <ChangeRequests2022 />}
 
-      {content && (
-        <div className="margin-top-4">
-          <MarkdownContent children={content.allRebatesIntro} />
-        </div>
-      )}
+      <div className="margin-top-4">
+        <MarkdownContent children={staticContent.allRebatesIntro} />
+      </div>
 
       <div className="usa-table-container--scrollable" tabIndex={0}>
         <table
@@ -2013,12 +2014,15 @@ function CRF2023Submission(props: { rebate: Rebate2023 }) {
 function Submissions2023() {
   const rebateYear = "2023";
 
-  const content = usePublicConfigData();
+  const publicConfigData = usePublicConfigData();
+  const { staticContent } = publicConfigData || {};
+
   const changeRequestsQuery = useChangeRequestsQuery({ rebateYear });
   const submissionsQueries = useSubmissionsQueries(rebateYear);
   const submissions = useSubmissions(rebateYear);
 
   if (
+    !staticContent ||
     changeRequestsQuery.isLoading ||
     submissionsQueries.some((query) => query.isFetching)
   ) {
@@ -2044,11 +2048,9 @@ function Submissions2023() {
     <>
       {changeRequestsQuery.isFetching ? <Loading /> : <ChangeRequests2023 />}
 
-      {content && (
-        <div className="margin-top-4">
-          <MarkdownContent children={content.allRebatesIntro} />
-        </div>
-      )}
+      <div className="margin-top-4">
+        <MarkdownContent children={staticContent.allRebatesIntro} />
+      </div>
 
       <div className="usa-table-container--scrollable" tabIndex={0}>
         <table
@@ -2699,12 +2701,15 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 function Submissions2024() {
   const rebateYear = "2024";
 
-  const content = usePublicConfigData();
+  const publicConfigData = usePublicConfigData();
+  const { staticContent } = publicConfigData || {};
+
   const changeRequestsQuery = useChangeRequestsQuery({ rebateYear });
   const submissionsQueries = useSubmissionsQueries(rebateYear);
   const submissions = useSubmissions(rebateYear);
 
   if (
+    !staticContent ||
     changeRequestsQuery.isLoading ||
     submissionsQueries.some((query) => query.isFetching)
   ) {
@@ -2730,11 +2735,9 @@ function Submissions2024() {
     <>
       {changeRequestsQuery.isFetching ? <Loading /> : <ChangeRequests2024 />}
 
-      {content && (
-        <div className="margin-top-4">
-          <MarkdownContent children={content.allRebatesIntro} />
-        </div>
-      )}
+      <div className="margin-top-4">
+        <MarkdownContent children={staticContent.allRebatesIntro} />
+      </div>
 
       <div className="usa-table-container--scrollable" tabIndex={0}>
         <table
@@ -2774,13 +2777,15 @@ function Submissions2024() {
 /* --- Dashboard --- */
 
 export function Dashboard() {
-  const content = usePublicConfigData();
+  const publicConfigData = usePublicConfigData();
+  const { staticContent } = publicConfigData || {};
+
   const privateConfigData = usePrivateConfigData();
   const bapSamData = useBapSamData();
   const { rebateYear } = useRebateYearState();
   const { setRebateYear } = useRebateYearActions();
 
-  if (!privateConfigData || !rebateYear) {
+  if (!staticContent || !privateConfigData || !rebateYear) {
     return <Loading />;
   }
 
@@ -2845,11 +2850,9 @@ export function Dashboard() {
       {rebateYear === "2023" && <Submissions2023 />}
       {rebateYear === "2024" && <Submissions2024 />}
 
-      {content && (
-        <div className="margin-top-4 padding-2 padding-bottom-0 border-1px border-base-lighter bg-base-lightest">
-          <MarkdownContent children={content.allRebatesOutro} />
-        </div>
-      )}
+      <div className="margin-top-4 padding-2 padding-bottom-0 border-1px border-base-lighter bg-base-lightest">
+        <MarkdownContent children={staticContent.allRebatesOutro} />
+      </div>
     </>
   );
 }

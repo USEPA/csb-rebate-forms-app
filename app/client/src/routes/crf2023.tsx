@@ -89,7 +89,9 @@ function CloseOutRequestForm(props: { email: string }) {
   const navigate = useNavigate();
   const { id: rebateId } = useParams<"id">(); // CSB Rebate ID (6 digits)
 
-  const content = usePublicConfigData();
+  const publicConfigData = usePublicConfigData();
+  const { staticContent } = publicConfigData || {};
+
   const privateConfigData = usePrivateConfigData();
   const bapSamData = useBapSamData();
   const {
@@ -146,7 +148,7 @@ function CloseOutRequestForm(props: { email: string }) {
    */
   const lastSuccesfullySubmittedData = useRef<{ [field: string]: unknown }>({});
 
-  if (!privateConfigData || !bapSamData) {
+  if (!staticContent || !privateConfigData || !bapSamData) {
     return <Loading />;
   }
 
@@ -212,19 +214,17 @@ function CloseOutRequestForm(props: { email: string }) {
 
   return (
     <div className="margin-top-2">
-      {content && (
-        <div className="margin-top-4">
-          <MarkdownContent
-            children={
-              submission.state === "draft"
-                ? content.draftCRFIntro
-                : submission.state === "submitted"
-                  ? content.submittedCRFIntro
-                  : ""
-            }
-          />
-        </div>
-      )}
+      <div className="margin-top-4">
+        <MarkdownContent
+          children={
+            submission.state === "draft"
+              ? staticContent.draftCRFIntro
+              : submission.state === "submitted"
+                ? staticContent.submittedCRFIntro
+                : ""
+          }
+        />
+      </div>
 
       <ul className="usa-icon-list">
         <li className="usa-icon-list__item">

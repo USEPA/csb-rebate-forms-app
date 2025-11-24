@@ -52,19 +52,21 @@ router.get("/", (req, res) => {
       log({ level: "info", message: logMessage });
 
       return res.json({
-        siteAlert: data[0],
-        helpdeskIntro: data[1],
-        allRebatesIntro: data[2],
-        allRebatesOutro: data[3],
-        newFRFDialog: data[4],
-        draftFRFIntro: data[5],
-        submittedFRFIntro: data[6],
-        draftPRFIntro: data[7],
-        submittedPRFIntro: data[8],
-        draftCRFIntro: data[9],
-        submittedCRFIntro: data[10],
-        newChangeIntro: data[11],
-        submittedChangeIntro: data[12],
+        staticContent: {
+          siteAlert: data[0],
+          helpdeskIntro: data[1],
+          allRebatesIntro: data[2],
+          allRebatesOutro: data[3],
+          newFRFDialog: data[4],
+          draftFRFIntro: data[5],
+          submittedFRFIntro: data[6],
+          draftPRFIntro: data[7],
+          submittedPRFIntro: data[8],
+          draftCRFIntro: data[9],
+          submittedCRFIntro: data[10],
+          newChangeIntro: data[11],
+          submittedChangeIntro: data[12],
+        },
       });
     })
     .catch((error) => {

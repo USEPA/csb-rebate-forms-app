@@ -218,7 +218,9 @@ function ChangeRequest2024Form(props: {
     data,
   } = props;
 
-  const content = usePublicConfigData();
+  const publicConfigData = usePublicConfigData();
+  const { staticContent } = publicConfigData || {};
+
   const {
     displaySuccessNotification,
     displayErrorNotification,
@@ -256,7 +258,7 @@ function ChangeRequest2024Form(props: {
    */
   const pendingSubmissionData = useRef<{ [field: string]: unknown }>({});
 
-  if (query.isLoading) {
+  if (query.isLoading || !staticContent) {
     return <Loading />;
   }
 
@@ -266,14 +268,12 @@ function ChangeRequest2024Form(props: {
 
   return (
     <>
-      {content && (
-        <MarkdownContent
-          children={content.newChangeIntro}
-          components={{
-            h2: (props) => <DialogTitle>{props.children}</DialogTitle>,
-          }}
-        />
-      )}
+      <MarkdownContent
+        children={staticContent.newChangeIntro}
+        components={{
+          h2: (props) => <DialogTitle>{props.children}</DialogTitle>,
+        }}
+      />
 
       <Dialog open={dataIsPosting.current} onClose={(_value) => {}}>
         <DialogBackdrop

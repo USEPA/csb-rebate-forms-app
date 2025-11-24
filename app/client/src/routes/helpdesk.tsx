@@ -448,7 +448,9 @@ export function Helpdesk() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const content = usePublicConfigData();
+  const publicConfigData = usePublicConfigData();
+  const { staticContent } = publicConfigData || {};
+
   const helpdeskAccess = useHelpdeskAccess();
   const { rebateYear } = useRebateYearState();
   const { setRebateYear } = useRebateYearActions();
@@ -517,7 +519,7 @@ export function Helpdesk() {
     bap: null,
   };
 
-  if (helpdeskAccess === "pending" || !rebateYear) {
+  if (!staticContent || helpdeskAccess === "pending" || !rebateYear) {
     return <Loading />;
   }
 
@@ -531,11 +533,9 @@ export function Helpdesk() {
 
   return (
     <>
-      {content && (
-        <div className="margin-top-4">
-          <MarkdownContent children={content.helpdeskIntro} />
-        </div>
-      )}
+      <div className="margin-top-4">
+        <MarkdownContent children={staticContent.helpdeskIntro} />
+      </div>
 
       <div className="margin-top-1 padding-2 border-1px border-base-lighter bg-base-lightest">
         <nav className="flex-align-center tablet:display-flex">

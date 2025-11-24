@@ -89,7 +89,9 @@ function PaymentRequestForm(props: { email: string }) {
   const navigate = useNavigate();
   const { id: rebateId } = useParams<"id">(); // CSB Rebate ID (6 digits)
 
-  const content = usePublicConfigData();
+  const publicConfigData = usePublicConfigData();
+  const { staticContent } = publicConfigData || {};
+
   const privateConfigData = usePrivateConfigData();
   const bapSamData = useBapSamData();
   const {
@@ -146,7 +148,7 @@ function PaymentRequestForm(props: { email: string }) {
    */
   const lastSuccesfullySubmittedData = useRef<{ [field: string]: unknown }>({});
 
-  if (!privateConfigData || !bapSamData) {
+  if (!staticContent || !privateConfigData || !bapSamData) {
     return <Loading />;
   }
 
@@ -222,19 +224,17 @@ function PaymentRequestForm(props: { email: string }) {
 
   return (
     <div className="margin-top-2">
-      {content && (
-        <div className="margin-top-4">
-          <MarkdownContent
-            children={
-              submission.state === "draft"
-                ? content.draftPRFIntro
-                : submission.state === "submitted"
-                  ? content.submittedPRFIntro
-                  : ""
-            }
-          />
-        </div>
-      )}
+      <div className="margin-top-4">
+        <MarkdownContent
+          children={
+            submission.state === "draft"
+              ? staticContent.draftPRFIntro
+              : submission.state === "submitted"
+                ? staticContent.submittedPRFIntro
+                : ""
+          }
+        />
+      </div>
 
       {frfNeedsEdits && (
         <Message type="warning" text={messages.prfWillBeDeleted} />

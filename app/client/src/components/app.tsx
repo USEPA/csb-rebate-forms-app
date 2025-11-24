@@ -45,10 +45,11 @@ import { useDialogState, useDialogActions } from "@/contexts/dialog";
 
 /** Custom hook to display a site-wide alert banner */
 function useSiteAlertBanner() {
-  const content = usePublicConfigData();
+  const publicConfigData = usePublicConfigData();
+  const { staticContent } = publicConfigData || {};
 
   useEffect(() => {
-    if (!content || content.siteAlert === "") return;
+    if (!staticContent || staticContent.siteAlert === "") return;
 
     const container = document.querySelector(".usa-site-alert");
     if (!container) return;
@@ -64,7 +65,7 @@ function useSiteAlertBanner() {
           <div className="usa-alert__content">
             <div className="usa-alert__text">
               <MarkdownContent
-                children={content.siteAlert}
+                children={staticContent.siteAlert}
                 components={{
                   h1: (props) => <h3 className="usa-alert__heading">{props.children}</h3>, // prettier-ignore
                   h2: (props) => <h3 className="usa-alert__heading">{props.children}</h3>, // prettier-ignore
@@ -76,7 +77,7 @@ function useSiteAlertBanner() {
         </div>
       </div>,
     );
-  }, [content]);
+  }, [staticContent]);
 }
 
 /** Custom hook to display the CSB disclaimer banner for development/staging */
