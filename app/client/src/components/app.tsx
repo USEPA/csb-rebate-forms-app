@@ -14,8 +14,8 @@ import { TooltipProvider } from "@radix-ui/react-tooltip";
 // ---
 import { serverBasePath, serverUrl, cloudSpace, messages } from "@/config";
 import {
-  useContentQuery,
-  useContentData,
+  usePublicConfigQuery,
+  usePublicConfigData,
   useUserQuery,
   useUserData,
 } from "@/utilities";
@@ -45,7 +45,7 @@ import { useDialogState, useDialogActions } from "@/contexts/dialog";
 
 /** Custom hook to display a site-wide alert banner */
 function useSiteAlertBanner() {
-  const content = useContentData();
+  const content = usePublicConfigData();
 
   useEffect(() => {
     if (!content || content.siteAlert === "") return;
@@ -232,7 +232,7 @@ function ProtectedRoute() {
 }
 
 export function App() {
-  useContentQuery();
+  usePublicConfigQuery();
   useSiteAlertBanner();
   useDisclaimerBanner();
 

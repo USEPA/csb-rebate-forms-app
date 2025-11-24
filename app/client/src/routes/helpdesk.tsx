@@ -38,7 +38,7 @@ import {
 import {
   getData,
   postData,
-  useContentData,
+  usePublicConfigData,
   useHelpdeskAccess,
   submissionNeedsEdits,
   submissionNeedsReimbursement,
@@ -448,7 +448,7 @@ export function Helpdesk() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const content = useContentData();
+  const content = usePublicConfigData();
   const helpdeskAccess = useHelpdeskAccess();
   const { rebateYear } = useRebateYearState();
   const { setRebateYear } = useRebateYearActions();

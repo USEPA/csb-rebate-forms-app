@@ -12,7 +12,7 @@ import { Formio } from "@formio/js";
 import {
   type RebateYear,
   type CSBFormType,
-  type Content,
+  type PublicConfigData,
   type PrivateConfigData,
   type UserData,
   type BapSamEntity,
@@ -133,56 +133,29 @@ export function postData<T = unknown>(url: string, data: object) {
   });
 }
 
-/** Custom hook to fetch content data. */
-export function useContentQuery() {
+/** Custom hook to fetch CSB public configuration data. */
+export function usePublicConfigQuery() {
   const query = useQuery({
-    queryKey: ["content"],
-    queryFn: () => getData<Content>(`${serverUrl}/api/content`),
+    queryKey: ["public-config"],
+    queryFn: () => {
+      const url = `${serverUrl}/api/config/public`;
+      return getData<PublicConfigData>(url);
+    },
     refetchOnWindowFocus: false,
   });
 
   return query;
 }
 
-/** Custom hook that returns cached fetched content data. */
-export function useContentData() {
+/** Custom hook that returns cached fetched CSB public configuration data. */
+export function usePublicConfigData() {
   const queryClient = useQueryClient();
-  return queryClient.getQueryData<Content>(["content"]);
-}
-
-/** Custom hook to fetch user data. */
-export function useUserQuery() {
-  const query = useQuery({
-    queryKey: ["user"],
-    queryFn: () => getData<UserData>(`${serverUrl}/api/user`),
-    enabled: false,
-    retry: false,
-  });
-
-  return query;
-}
-
-/** Custom hook that returns cached fetched user data. */
-export function useUserData() {
-  const queryClient = useQueryClient();
-  return queryClient.getQueryData<UserData>(["user"]);
-}
-
-/** Custom hook to check if user should have access to the helpdesk page. */
-export function useHelpdeskAccess() {
-  const user = useUserData();
-  const userRoles = user?.memberof.split(",") || [];
-
-  return !user
-    ? "pending"
-    : userRoles.includes("csb_admin") || userRoles.includes("csb_helpdesk")
-      ? "success"
-      : "failure";
+  return queryClient.getQueryData<PublicConfigData>(["public-config"]);
 }
 
 /**
- * Custom hook to fetch CSB private configuration and set Formio URLs and rebate
- * year.
+ * Custom hook to fetch CSB private configuration data and set Formio URLs and
+ * rebate year.
  */
 export function usePrivateConfigQuery() {
   const state = useRebateYearState();
@@ -222,10 +195,40 @@ export function usePrivateConfigQuery() {
   return query;
 }
 
-/** Custom hook that returns cached fetched CSB private configuration. */
+/** Custom hook that returns cached fetched CSB private configuration data. */
 export function usePrivateConfigData() {
   const queryClient = useQueryClient();
   return queryClient.getQueryData<PrivateConfigData>(["private-config"]);
+}
+
+/** Custom hook to fetch user data. */
+export function useUserQuery() {
+  const query = useQuery({
+    queryKey: ["user"],
+    queryFn: () => getData<UserData>(`${serverUrl}/api/user`),
+    enabled: false,
+    retry: false,
+  });
+
+  return query;
+}
+
+/** Custom hook that returns cached fetched user data. */
+export function useUserData() {
+  const queryClient = useQueryClient();
+  return queryClient.getQueryData<UserData>(["user"]);
+}
+
+/** Custom hook to check if user should have access to the helpdesk page. */
+export function useHelpdeskAccess() {
+  const user = useUserData();
+  const userRoles = user?.memberof.split(",") || [];
+
+  return !user
+    ? "pending"
+    : userRoles.includes("csb_admin") || userRoles.includes("csb_helpdesk")
+      ? "success"
+      : "failure";
 }
 
 /**

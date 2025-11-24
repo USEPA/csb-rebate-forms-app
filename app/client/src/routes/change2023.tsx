@@ -9,7 +9,7 @@ import {
   type FormioChange2023FormSubmission,
 } from "@/types";
 import { serverUrl, messages } from "@/config";
-import { getData, useContentData } from "@/utilities";
+import { getData, usePublicConfigData } from "@/utilities";
 import { Loading } from "@/components/loading";
 import { Message } from "@/components/message";
 import { MarkdownContent } from "@/components/markdownContent";
@@ -38,7 +38,7 @@ function useFormioSubmissionQuery(mongoId: string | undefined) {
 export function Change2023() {
   const { id: mongoId } = useParams<"id">(); // MongoDB ObjectId string
 
-  const content = useContentData();
+  const content = usePublicConfigData();
 
   const { query } = useFormioSubmissionQuery(mongoId);
   const { access, schema, submission } = query.data ?? {};

@@ -18,7 +18,7 @@ import { serverUrl, messages } from "@/config";
 import {
   getData,
   postData,
-  useContentData,
+  usePublicConfigData,
   useChangeRequestsQuery,
 } from "@/utilities";
 import { Loading } from "@/components/loading";
@@ -218,7 +218,7 @@ function ChangeRequest2024Form(props: {
     data,
   } = props;
 
-  const content = useContentData();
+  const content = usePublicConfigData();
   const {
     displaySuccessNotification,
     displayErrorNotification,

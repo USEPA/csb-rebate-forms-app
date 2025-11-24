@@ -22,7 +22,7 @@ import {
 import { serverUrl, messages } from "@/config";
 import {
   postData,
-  useContentData,
+  usePublicConfigData,
   usePrivateConfigData,
   useBapSamData,
   entityIsActive,
@@ -112,7 +112,7 @@ export function FRFNew() {
   const navigate = useNavigate();
   const { email } = useOutletContext<{ email: string }>();
 
-  const content = useContentData();
+  const content = usePublicConfigData();
   const privateConfigData = usePrivateConfigData();
   const bapSamData = useBapSamData();
   const { rebateYear } = useRebateYearState();

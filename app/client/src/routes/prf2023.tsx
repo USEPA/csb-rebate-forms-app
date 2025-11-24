@@ -16,7 +16,7 @@ import {
   getComboKeyFieldName,
   getData,
   postData,
-  useContentData,
+  usePublicConfigData,
   usePrivateConfigData,
   useBapSamData,
   useSubmissionPDFQuery,
@@ -89,7 +89,7 @@ function PaymentRequestForm(props: { email: string }) {
   const navigate = useNavigate();
   const { id: rebateId } = useParams<"id">(); // CSB Rebate ID (6 digits)
 
-  const content = useContentData();
+  const content = usePublicConfigData();
   const privateConfigData = usePrivateConfigData();
   const bapSamData = useBapSamData();
   const {

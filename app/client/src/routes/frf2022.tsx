@@ -18,7 +18,7 @@ import {
   getRebateIdFieldName,
   getData,
   postData,
-  useContentData,
+  usePublicConfigData,
   usePrivateConfigData,
   useBapSamData,
   useSubmissionPDFQuery,
@@ -104,7 +104,7 @@ function FundingRequestForm(props: { email: string }) {
   const navigate = useNavigate();
   const { id: mongoId } = useParams<"id">(); // MongoDB ObjectId string
 
-  const content = useContentData();
+  const content = usePublicConfigData();
   const privateConfigData = usePrivateConfigData();
   const bapSamData = useBapSamData();
   const { displayDialog } = useDialogActions();

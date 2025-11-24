@@ -26,7 +26,7 @@ import {
   getComboKeyFieldName,
   getRebateIdFieldName,
   postData,
-  useContentData,
+  usePublicConfigData,
   usePrivateConfigData,
   useBapSamData,
   useChangeRequestsQuery,
@@ -1062,7 +1062,7 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
 function Submissions2022() {
   const rebateYear = "2022";
 
-  const content = useContentData();
+  const content = usePublicConfigData();
   const changeRequestsQuery = useChangeRequestsQuery({ rebateYear });
   const submissionsQueries = useSubmissionsQueries(rebateYear);
   const submissions = useSubmissions(rebateYear);
@@ -2013,7 +2013,7 @@ function CRF2023Submission(props: { rebate: Rebate2023 }) {
 function Submissions2023() {
   const rebateYear = "2023";
 
-  const content = useContentData();
+  const content = usePublicConfigData();
   const changeRequestsQuery = useChangeRequestsQuery({ rebateYear });
   const submissionsQueries = useSubmissionsQueries(rebateYear);
   const submissions = useSubmissions(rebateYear);
@@ -2699,7 +2699,7 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 function Submissions2024() {
   const rebateYear = "2024";
 
-  const content = useContentData();
+  const content = usePublicConfigData();
   const changeRequestsQuery = useChangeRequestsQuery({ rebateYear });
   const submissionsQueries = useSubmissionsQueries(rebateYear);
   const submissions = useSubmissions(rebateYear);
@@ -2774,7 +2774,7 @@ function Submissions2024() {
 /* --- Dashboard --- */
 
 export function Dashboard() {
-  const content = useContentData();
+  const content = usePublicConfigData();
   const privateConfigData = usePrivateConfigData();
   const bapSamData = useBapSamData();
   const { rebateYear } = useRebateYearState();
