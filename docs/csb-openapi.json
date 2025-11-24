@@ -152,9 +152,9 @@
         }
       }
     },
-    "/api/config": {
+    "/api/config/private": {
       "get": {
-        "summary": "Get CSB app specific configuration (form open enrollment status, etc.)",
+        "summary": "Get CSB app specific private configuration (form open enrollment status, etc.)",
         "parameters": [],
         "responses": {
           "200": {
