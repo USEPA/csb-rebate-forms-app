@@ -6,7 +6,7 @@ const axios = require("axios");
 const { s3BucketUrl } = require("../config/s3");
 const log = require("../utilities/logger");
 
-const { NODE_ENV } = process.env;
+const { NODE_ENV, CSB_LOGIN_ENABLED } = process.env;
 
 const router = express.Router();
 
@@ -52,6 +52,7 @@ router.get("/", (req, res) => {
       log({ level: "info", message: logMessage });
 
       return res.json({
+        loginEnabled: CSB_LOGIN_ENABLED || true,
         staticContent: {
           siteAlert: data[0],
           helpdeskIntro: data[1],
