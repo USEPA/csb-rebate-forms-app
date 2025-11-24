@@ -18,7 +18,7 @@ import {
   getData,
   postData,
   useContentData,
-  useConfigData,
+  usePrivateConfigData,
   useBapSamData,
   useSubmissionPDFQuery,
   useSubmissionsQueries,
@@ -89,7 +89,7 @@ function FundingRequestForm(props: { email: string }) {
   const { id: mongoId } = useParams<"id">(); // MongoDB ObjectId string
 
   const content = useContentData();
-  const configData = useConfigData();
+  const privateConfigData = usePrivateConfigData();
   const bapSamData = useBapSamData();
   const { displayDialog } = useDialogActions();
   const {
@@ -147,7 +147,7 @@ function FundingRequestForm(props: { email: string }) {
    */
   const lastSuccesfullySubmittedData = useRef<{ [field: string]: unknown }>({});
 
-  if (!configData || !bapSamData) {
+  if (!privateConfigData || !bapSamData) {
     return <Loading />;
   }
 
@@ -177,7 +177,7 @@ function FundingRequestForm(props: { email: string }) {
       });
 
   const frfSubmissionPeriodOpen =
-    configData.submissionPeriodOpen[rebateYear].frf;
+    privateConfigData.submissionPeriodOpen[rebateYear].frf;
 
   const formIsReadOnly =
     (submission.state === "submitted" || !frfSubmissionPeriodOpen) &&

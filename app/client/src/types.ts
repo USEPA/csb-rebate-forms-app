@@ -20,13 +20,7 @@ export type Content = {
   submittedChangeIntro: string;
 };
 
-export type UserData = {
-  mail: string;
-  memberof: string;
-  exp: number;
-};
-
-export type ConfigData = {
+export type PrivateConfigData = {
   formioBaseUrl: string;
   formioProjectName: string;
   rebateYear: RebateYear;
@@ -35,6 +29,12 @@ export type ConfigData = {
     2023: { frf: boolean; prf: boolean; crf: boolean };
     2024: { frf: boolean; prf: boolean; crf: boolean };
   };
+};
+
+export type UserData = {
+  mail: string;
+  memberof: string;
+  exp: number;
 };
 
 export type BapSamEntity = {

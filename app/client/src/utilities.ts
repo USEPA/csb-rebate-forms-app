@@ -13,8 +13,8 @@ import {
   type RebateYear,
   type CSBFormType,
   type Content,
+  type PrivateConfigData,
   type UserData,
-  type ConfigData,
   type BapSamEntity,
   type BapSamData,
   type BapFormSubmission,
@@ -180,14 +180,20 @@ export function useHelpdeskAccess() {
       : "failure";
 }
 
-/** Custom hook to fetch CSB config and set Formio URLs and rebate year. */
-export function useConfigQuery() {
+/**
+ * Custom hook to fetch CSB private configuration and set Formio URLs and rebate
+ * year.
+ */
+export function usePrivateConfigQuery() {
   const state = useRebateYearState();
   const { setRebateYear } = useRebateYearActions();
 
   const query = useQuery({
-    queryKey: ["config"],
-    queryFn: () => getData<ConfigData>(`${serverUrl}/api/config`),
+    queryKey: ["private-config"],
+    queryFn: () => {
+      const url = `${serverUrl}/api/config/private`;
+      return getData<PrivateConfigData>(url);
+    },
     refetchOnWindowFocus: false,
   });
 
@@ -205,7 +211,7 @@ export function useConfigQuery() {
     if (query.status === "success" && rebateYear) {
       /**
        * NOTE: `state.rebateYear` is initialized as null, so only redefine it on
-       * the initial config data fetch.
+       * the initial private config data fetch.
        */
       if (state.rebateYear === null) {
         setRebateYear(rebateYear);
@@ -216,10 +222,10 @@ export function useConfigQuery() {
   return query;
 }
 
-/** Custom hook that returns cached fetched CSB config. */
-export function useConfigData() {
+/** Custom hook that returns cached fetched CSB private configuration. */
+export function usePrivateConfigData() {
   const queryClient = useQueryClient();
-  return queryClient.getQueryData<ConfigData>(["config"]);
+  return queryClient.getQueryData<PrivateConfigData>(["private-config"]);
 }
 
 /**

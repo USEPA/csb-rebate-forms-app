@@ -17,7 +17,7 @@ import {
   getData,
   postData,
   useContentData,
-  useConfigData,
+  usePrivateConfigData,
   useBapSamData,
   useSubmissionPDFQuery,
   useSubmissionsQueries,
@@ -90,7 +90,7 @@ function CloseOutRequestForm(props: { email: string }) {
   const { id: rebateId } = useParams<"id">(); // CSB Rebate ID (6 digits)
 
   const content = useContentData();
-  const configData = useConfigData();
+  const privateConfigData = usePrivateConfigData();
   const bapSamData = useBapSamData();
   const {
     displaySuccessNotification,
@@ -146,7 +146,7 @@ function CloseOutRequestForm(props: { email: string }) {
    */
   const lastSuccesfullySubmittedData = useRef<{ [field: string]: unknown }>({});
 
-  if (!configData || !bapSamData) {
+  if (!privateConfigData || !bapSamData) {
     return <Loading />;
   }
 
@@ -176,7 +176,7 @@ function CloseOutRequestForm(props: { email: string }) {
       });
 
   const crfSubmissionPeriodOpen =
-    configData.submissionPeriodOpen[rebateYear].crf;
+    privateConfigData.submissionPeriodOpen[rebateYear].crf;
 
   const formIsReadOnly =
     (submission.state === "submitted" || !crfSubmissionPeriodOpen) &&

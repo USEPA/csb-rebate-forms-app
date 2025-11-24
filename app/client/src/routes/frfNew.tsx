@@ -23,7 +23,7 @@ import { serverUrl, messages } from "@/config";
 import {
   postData,
   useContentData,
-  useConfigData,
+  usePrivateConfigData,
   useBapSamData,
   entityIsActive,
   entityHasExclusionStatus,
@@ -113,7 +113,7 @@ export function FRFNew() {
   const { email } = useOutletContext<{ email: string }>();
 
   const content = useContentData();
-  const configData = useConfigData();
+  const privateConfigData = usePrivateConfigData();
   const bapSamData = useBapSamData();
   const { rebateYear } = useRebateYearState();
 
@@ -139,12 +139,12 @@ export function FRFNew() {
    */
   const [postingDataId, setPostingDataId] = useState("0");
 
-  if (!configData || !bapSamData || !rebateYear) {
+  if (!privateConfigData || !bapSamData || !rebateYear) {
     return <Loading />;
   }
 
   const frfSubmissionPeriodOpen =
-    configData.submissionPeriodOpen[rebateYear].frf;
+    privateConfigData.submissionPeriodOpen[rebateYear].frf;
 
   const samEntities = bapSamData.entities.reduce(
     (object, entity) => {
