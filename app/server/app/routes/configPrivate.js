@@ -13,7 +13,7 @@ const router = express.Router();
 
 router.use(ensureAuthenticated);
 
-// --- get CSB app specific configuration
+// --- get CSB app specific private configuration
 router.get("/", (_req, res) => {
   // NOTE: fallback to current year if CSB_REBATE_YEAR is not set
   const date = new Date();
