@@ -3,7 +3,7 @@ const express = require("express");
 const router = express.Router();
 
 router.use("/", require("./auth"));
-router.use("/api/content", require("./content"));
+router.use("/api/config/public", require("./configPublic"));
 router.use("/api/config/private", require("./configPrivate"));
 router.use("/api/user", require("./user"));
 router.use("/api/bap", require("./bap"));

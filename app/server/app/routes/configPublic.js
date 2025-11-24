@@ -10,9 +10,9 @@ const { NODE_ENV } = process.env;
 
 const router = express.Router();
 
-// --- get static content from S3
+// --- get CSB app specific public configuration
 router.get("/", (req, res) => {
-  /** NOTE: static content files found in `app/server/app/content/` directory. */
+  /** NOTE: content files found in `app/server/app/content/` directory. */
   const filenames = [
     "site-alert.md",
     "helpdesk-intro.md",
@@ -75,7 +75,7 @@ router.get("/", (req, res) => {
       const logMessage = `S3 Error: ${errorStatus} ${errorMethod} ${errorUrl}`;
       log({ level: "error", message: logMessage, req });
 
-      const errorMessage = `Error getting static content from S3 bucket.`;
+      const errorMessage = `Error getting content files from S3 bucket.`;
       return res.status(errorStatus).json({ message: errorMessage });
     });
 });
