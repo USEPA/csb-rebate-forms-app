@@ -8,6 +8,7 @@ export type PublicConfigData = {
   loginEnabled: boolean;
   staticContent: {
     siteAlert: string;
+    scheduledMaintenance: string;
     helpdeskIntro: string;
     allRebatesIntro: string;
     allRebatesOutro: string;
