@@ -4,29 +4,27 @@ export type RebateYear = "2022" | "2023" | "2024";
 
 export type CSBFormType = "frf" | "prf" | "crf";
 
-export type Content = {
-  siteAlert: string;
-  helpdeskIntro: string;
-  allRebatesIntro: string;
-  allRebatesOutro: string;
-  newFRFDialog: string;
-  draftFRFIntro: string;
-  submittedFRFIntro: string;
-  draftPRFIntro: string;
-  submittedPRFIntro: string;
-  draftCRFIntro: string;
-  submittedCRFIntro: string;
-  newChangeIntro: string;
-  submittedChangeIntro: string;
+export type PublicConfigData = {
+  loginEnabled: boolean;
+  staticContent: {
+    siteAlert: string;
+    scheduledMaintenance: string;
+    helpdeskIntro: string;
+    allRebatesIntro: string;
+    allRebatesOutro: string;
+    newFRFDialog: string;
+    draftFRFIntro: string;
+    submittedFRFIntro: string;
+    draftPRFIntro: string;
+    submittedPRFIntro: string;
+    draftCRFIntro: string;
+    submittedCRFIntro: string;
+    newChangeIntro: string;
+    submittedChangeIntro: string;
+  };
 };
 
-export type UserData = {
-  mail: string;
-  memberof: string;
-  exp: number;
-};
-
-export type ConfigData = {
+export type PrivateConfigData = {
   formioBaseUrl: string;
   formioProjectName: string;
   rebateYear: RebateYear;
@@ -35,6 +33,12 @@ export type ConfigData = {
     2023: { frf: boolean; prf: boolean; crf: boolean };
     2024: { frf: boolean; prf: boolean; crf: boolean };
   };
+};
+
+export type UserData = {
+  mail: string;
+  memberof: string;
+  exp: number;
 };
 
 export type BapSamEntity = {

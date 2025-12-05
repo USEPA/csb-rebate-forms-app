@@ -12,9 +12,9 @@ import { Formio } from "@formio/js";
 import {
   type RebateYear,
   type CSBFormType,
-  type Content,
+  type PublicConfigData,
+  type PrivateConfigData,
   type UserData,
-  type ConfigData,
   type BapSamEntity,
   type BapSamData,
   type BapFormSubmission,
@@ -133,21 +133,72 @@ export function postData<T = unknown>(url: string, data: object) {
   });
 }
 
-/** Custom hook to fetch content data. */
-export function useContentQuery() {
+/** Custom hook to fetch CSB public configuration data. */
+export function usePublicConfigQuery() {
   const query = useQuery({
-    queryKey: ["content"],
-    queryFn: () => getData<Content>(`${serverUrl}/api/content`),
+    queryKey: ["public-config"],
+    queryFn: () => {
+      const url = `${serverUrl}/api/config/public`;
+      return getData<PublicConfigData>(url);
+    },
     refetchOnWindowFocus: false,
   });
 
   return query;
 }
 
-/** Custom hook that returns cached fetched content data. */
-export function useContentData() {
+/** Custom hook that returns cached fetched CSB public configuration data. */
+export function usePublicConfigData() {
   const queryClient = useQueryClient();
-  return queryClient.getQueryData<Content>(["content"]);
+  return queryClient.getQueryData<PublicConfigData>(["public-config"]);
+}
+
+/**
+ * Custom hook to fetch CSB private configuration data and set Formio URLs and
+ * rebate year.
+ */
+export function usePrivateConfigQuery() {
+  const state = useRebateYearState();
+  const { setRebateYear } = useRebateYearActions();
+
+  const query = useQuery({
+    queryKey: ["private-config"],
+    queryFn: () => {
+      const url = `${serverUrl}/api/config/private`;
+      return getData<PrivateConfigData>(url);
+    },
+    refetchOnWindowFocus: false,
+  });
+
+  useEffect(() => {
+    const { formioBaseUrl, formioProjectName, rebateYear } = query.data ?? {};
+
+    if (query.status === "success" && formioBaseUrl) {
+      Formio.setBaseUrl(formioBaseUrl);
+    }
+
+    if (query.status === "success" && formioBaseUrl && formioProjectName) {
+      Formio.setProjectUrl(`${formioBaseUrl}/${formioProjectName}`);
+    }
+
+    if (query.status === "success" && rebateYear) {
+      /**
+       * NOTE: `state.rebateYear` is initialized as null, so only redefine it on
+       * the initial private config data fetch.
+       */
+      if (state.rebateYear === null) {
+        setRebateYear(rebateYear);
+      }
+    }
+  }, [query.status, query.data, state.rebateYear, setRebateYear]);
+
+  return query;
+}
+
+/** Custom hook that returns cached fetched CSB private configuration data. */
+export function usePrivateConfigData() {
+  const queryClient = useQueryClient();
+  return queryClient.getQueryData<PrivateConfigData>(["private-config"]);
 }
 
 /** Custom hook to fetch user data. */
@@ -178,48 +229,6 @@ export function useHelpdeskAccess() {
     : userRoles.includes("csb_admin") || userRoles.includes("csb_helpdesk")
       ? "success"
       : "failure";
-}
-
-/** Custom hook to fetch CSB config and set Formio URLs and rebate year. */
-export function useConfigQuery() {
-  const state = useRebateYearState();
-  const { setRebateYear } = useRebateYearActions();
-
-  const query = useQuery({
-    queryKey: ["config"],
-    queryFn: () => getData<ConfigData>(`${serverUrl}/api/config`),
-    refetchOnWindowFocus: false,
-  });
-
-  useEffect(() => {
-    const { formioBaseUrl, formioProjectName, rebateYear } = query.data ?? {};
-
-    if (query.status === "success" && formioBaseUrl) {
-      Formio.setBaseUrl(formioBaseUrl);
-    }
-
-    if (query.status === "success" && formioBaseUrl && formioProjectName) {
-      Formio.setProjectUrl(`${formioBaseUrl}/${formioProjectName}`);
-    }
-
-    if (query.status === "success" && rebateYear) {
-      /**
-       * NOTE: `state.rebateYear` is initialized as null, so only redefine it on
-       * the initial config data fetch.
-       */
-      if (state.rebateYear === null) {
-        setRebateYear(rebateYear);
-      }
-    }
-  }, [query.status, query.data, state.rebateYear, setRebateYear]);
-
-  return query;
-}
-
-/** Custom hook that returns cached fetched CSB config. */
-export function useConfigData() {
-  const queryClient = useQueryClient();
-  return queryClient.getQueryData<ConfigData>(["config"]);
 }
 
 /**

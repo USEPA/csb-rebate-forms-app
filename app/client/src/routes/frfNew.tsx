@@ -22,8 +22,8 @@ import {
 import { serverUrl, messages } from "@/config";
 import {
   postData,
-  useContentData,
-  useConfigData,
+  usePublicConfigData,
+  usePrivateConfigData,
   useBapSamData,
   entityIsActive,
   entityHasExclusionStatus,
@@ -112,8 +112,10 @@ export function FRFNew() {
   const navigate = useNavigate();
   const { email } = useOutletContext<{ email: string }>();
 
-  const content = useContentData();
-  const configData = useConfigData();
+  const publicConfigData = usePublicConfigData();
+  const { staticContent } = publicConfigData || {};
+
+  const privateConfigData = usePrivateConfigData();
   const bapSamData = useBapSamData();
   const { rebateYear } = useRebateYearState();
 
@@ -139,12 +141,12 @@ export function FRFNew() {
    */
   const [postingDataId, setPostingDataId] = useState("0");
 
-  if (!configData || !bapSamData || !rebateYear) {
+  if (!staticContent || !privateConfigData || !bapSamData || !rebateYear) {
     return <Loading />;
   }
 
   const frfSubmissionPeriodOpen =
-    configData.submissionPeriodOpen[rebateYear].frf;
+    privateConfigData.submissionPeriodOpen[rebateYear].frf;
 
   const samEntities = bapSamData.entities.reduce(
     (object, entity) => {
@@ -246,28 +248,24 @@ export function FRFNew() {
                     </div>
                   ) : (
                     <>
-                      {content && (
-                        <div
-                          className={clsx("tw:mt-4", "tw:[&_h2]:text-center")}
-                        >
-                          <MarkdownContent
-                            children={content.newFRFDialog}
-                            components={{
-                              h2: (props) => (
-                                <DialogTitle
-                                  className={clsx(
-                                    "tw:text-xl",
-                                    "tw:sm:text-2xl",
-                                    "tw:md:text-3xl",
-                                  )}
-                                >
-                                  {props.children}
-                                </DialogTitle>
-                              ),
-                            }}
-                          />
-                        </div>
-                      )}
+                      <div className={clsx("tw:mt-4", "tw:[&_h2]:text-center")}>
+                        <MarkdownContent
+                          children={staticContent.newFRFDialog}
+                          components={{
+                            h2: (props) => (
+                              <DialogTitle
+                                className={clsx(
+                                  "tw:text-xl",
+                                  "tw:sm:text-2xl",
+                                  "tw:md:text-3xl",
+                                )}
+                              >
+                                {props.children}
+                              </DialogTitle>
+                            ),
+                          }}
+                        />
+                      </div>
 
                       {errorMessage.displayed && (
                         <Message type="error" text={errorMessage.text} />

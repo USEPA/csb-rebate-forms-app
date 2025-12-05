@@ -3,9 +3,9 @@ const express = require("express");
 const router = express.Router();
 
 router.use("/", require("./auth"));
-router.use("/api/content", require("./content"));
+router.use("/api/config/public", require("./configPublic"));
+router.use("/api/config/private", require("./configPrivate"));
 router.use("/api/user", require("./user"));
-router.use("/api/config", require("./config"));
 router.use("/api/bap", require("./bap"));
 router.use("/api/formio/2022", require("./formio2022"));
 router.use("/api/formio/2023", require("./formio2023"));

@@ -8,8 +8,8 @@ import icons from "@uswds/uswds/img/sprite.svg";
 import { serverUrl, formioPremiumKey } from "@/config";
 import {
   useHelpdeskAccess,
-  useConfigQuery,
-  useConfigData,
+  usePrivateConfigQuery,
+  usePrivateConfigData,
   useBapSamQuery,
   useBapSamData,
 } from "@/utilities";
@@ -71,10 +71,10 @@ export function UserLayout(props: { email: string }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
-  useConfigQuery();
+  usePrivateConfigQuery();
   useBapSamQuery();
 
-  const configData = useConfigData();
+  const privateConfigData = usePrivateConfigData();
   const bapSamData = useBapSamData();
 
   const { displayDialog } = useDialogActions();
@@ -107,7 +107,7 @@ export function UserLayout(props: { email: string }) {
     });
   }
 
-  if (!configData || !bapSamData || !email) {
+  if (!privateConfigData || !bapSamData || !email) {
     return <Loading />;
   }
 

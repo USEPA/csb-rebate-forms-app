@@ -99,24 +99,6 @@
         }
       }
     },
-    "/api/content": {
-      "get": {
-        "summary": "Get static content from S3.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "An object containing text from each static markdown file.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/user": {
       "get": {
         "summary": "Get user data from EPA Gateway/Login.gov.",
@@ -152,9 +134,36 @@
         }
       }
     },
-    "/api/config": {
+    "/api/config/public": {
       "get": {
-        "summary": "Get CSB app specific configuration (form open enrollment status, etc.)",
+        "summary": "Get CSB app specific public configuration (csb app login status and static content)",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "CSB app login status and static content from S3.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "loginEnabled": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "staticContent": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/config/private": {
+      "get": {
+        "summary": "Get CSB app specific private configuration (form open enrollment status, etc.)",
         "parameters": [],
         "responses": {
           "200": {

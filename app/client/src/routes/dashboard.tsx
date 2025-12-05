@@ -26,8 +26,8 @@ import {
   getComboKeyFieldName,
   getRebateIdFieldName,
   postData,
-  useContentData,
-  useConfigData,
+  usePublicConfigData,
+  usePrivateConfigData,
   useBapSamData,
   useChangeRequestsQuery,
   useChangeRequests,
@@ -321,10 +321,10 @@ function FRF2022Submission(props: { rebate: Rebate2022 }) {
 
   const { email } = useOutletContext<{ email: string }>();
 
-  const configData = useConfigData();
+  const privateConfigData = usePrivateConfigData();
   const bapSamData = useBapSamData();
 
-  if (!configData || !bapSamData) return null;
+  if (!privateConfigData || !bapSamData) return null;
 
   /**
    * Matched SAM.gov entity for the FRF submission.
@@ -337,7 +337,8 @@ function FRF2022Submission(props: { rebate: Rebate2022 }) {
 
   const { title, name } = getUserInfo(email, entity);
 
-  const frfSubmissionPeriodOpen = configData.submissionPeriodOpen["2022"].frf;
+  const frfSubmissionPeriodOpen =
+    privateConfigData.submissionPeriodOpen["2022"].frf;
 
   const {
     sam_hidden_applicant_name,
@@ -583,7 +584,7 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
   const navigate = useNavigate();
   const { email } = useOutletContext<{ email: string }>();
 
-  const configData = useConfigData();
+  const privateConfigData = usePrivateConfigData();
   const bapSamData = useBapSamData();
   const { displayErrorNotification } = useNotificationsActions();
 
@@ -594,7 +595,7 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
    */
   const [dataIsPosting, setDataIsPosting] = useState(false);
 
-  if (!configData || !bapSamData) return null;
+  if (!privateConfigData || !bapSamData) return null;
 
   /**
    * Matched SAM.gov entity for the FRF submission
@@ -608,7 +609,8 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
 
   const { title, name } = getUserInfo(email, entity);
 
-  const prfSubmissionPeriodOpen = configData.submissionPeriodOpen["2022"].prf;
+  const prfSubmissionPeriodOpen =
+    privateConfigData.submissionPeriodOpen["2022"].prf;
 
   const frfSelected = frf.bap?.status === "Accepted";
   const frfSelectedButNoPRF = frfSelected && !Boolean(prf.formio);
@@ -824,7 +826,7 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
   const navigate = useNavigate();
   const { email } = useOutletContext<{ email: string }>();
 
-  const configData = useConfigData();
+  const privateConfigData = usePrivateConfigData();
   const bapSamData = useBapSamData();
   const { displayErrorNotification } = useNotificationsActions();
 
@@ -835,7 +837,7 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
    */
   const [dataIsPosting, setDataIsPosting] = useState(false);
 
-  if (!configData || !bapSamData) return null;
+  if (!privateConfigData || !bapSamData) return null;
 
   /**
    * Matched SAM.gov entity for the PRF submission
@@ -849,7 +851,8 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
 
   const { title, name } = getUserInfo(email, entity);
 
-  const crfSubmissionPeriodOpen = configData.submissionPeriodOpen["2022"].crf;
+  const crfSubmissionPeriodOpen =
+    privateConfigData.submissionPeriodOpen["2022"].crf;
 
   const prfApproved = prf.bap?.status === "Accepted";
   const prfApprovedButNoCRF = prfApproved && !Boolean(crf.formio);
@@ -1059,12 +1062,15 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
 function Submissions2022() {
   const rebateYear = "2022";
 
-  const content = useContentData();
+  const publicConfigData = usePublicConfigData();
+  const { staticContent } = publicConfigData || {};
+
   const changeRequestsQuery = useChangeRequestsQuery({ rebateYear });
   const submissionsQueries = useSubmissionsQueries(rebateYear);
   const submissions = useSubmissions(rebateYear);
 
   if (
+    !staticContent ||
     changeRequestsQuery.isLoading ||
     submissionsQueries.some((query) => query.isFetching)
   ) {
@@ -1090,11 +1096,9 @@ function Submissions2022() {
     <>
       {changeRequestsQuery.isFetching ? <Loading /> : <ChangeRequests2022 />}
 
-      {content && (
-        <div className="margin-top-4">
-          <MarkdownContent children={content.allRebatesIntro} />
-        </div>
-      )}
+      <div className="margin-top-4">
+        <MarkdownContent children={staticContent.allRebatesIntro} />
+      </div>
 
       <div className="usa-table-container--scrollable" tabIndex={0}>
         <table
@@ -1286,10 +1290,10 @@ function FRF2023Submission(props: { rebate: Rebate2023 }) {
 
   const { email } = useOutletContext<{ email: string }>();
 
-  const configData = useConfigData();
+  const privateConfigData = usePrivateConfigData();
   const bapSamData = useBapSamData();
 
-  if (!configData || !bapSamData) return null;
+  if (!privateConfigData || !bapSamData) return null;
 
   /**
    * Matched SAM.gov entity for the FRF submission.
@@ -1302,7 +1306,8 @@ function FRF2023Submission(props: { rebate: Rebate2023 }) {
 
   const { title, name } = getUserInfo(email, entity);
 
-  const frfSubmissionPeriodOpen = configData.submissionPeriodOpen["2023"].frf;
+  const frfSubmissionPeriodOpen =
+    privateConfigData.submissionPeriodOpen["2023"].frf;
 
   const {
     _user_email,
@@ -1522,7 +1527,7 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
   const navigate = useNavigate();
   const { email } = useOutletContext<{ email: string }>();
 
-  const configData = useConfigData();
+  const privateConfigData = usePrivateConfigData();
   const bapSamData = useBapSamData();
   const { displayErrorNotification } = useNotificationsActions();
 
@@ -1533,7 +1538,7 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
    */
   const [dataIsPosting, setDataIsPosting] = useState(false);
 
-  if (!configData || !bapSamData) return null;
+  if (!privateConfigData || !bapSamData) return null;
 
   /**
    * Matched SAM.gov entity for the FRF submission
@@ -1547,7 +1552,8 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
 
   const { title, name } = getUserInfo(email, entity);
 
-  const prfSubmissionPeriodOpen = configData.submissionPeriodOpen["2023"].prf;
+  const prfSubmissionPeriodOpen =
+    privateConfigData.submissionPeriodOpen["2023"].prf;
 
   const frfSelected = frf.bap?.status === "Accepted";
   const frfSelectedButNoPRF = frfSelected && !Boolean(prf.formio);
@@ -1767,7 +1773,7 @@ function CRF2023Submission(props: { rebate: Rebate2023 }) {
   const navigate = useNavigate();
   const { email } = useOutletContext<{ email: string }>();
 
-  const configData = useConfigData();
+  const privateConfigData = usePrivateConfigData();
   const bapSamData = useBapSamData();
   const { displayErrorNotification } = useNotificationsActions();
 
@@ -1778,7 +1784,7 @@ function CRF2023Submission(props: { rebate: Rebate2023 }) {
    */
   const [dataIsPosting, setDataIsPosting] = useState(false);
 
-  if (!configData || !bapSamData) return null;
+  if (!privateConfigData || !bapSamData) return null;
 
   /**
    * Matched SAM.gov entity for the PRF submission
@@ -1792,7 +1798,8 @@ function CRF2023Submission(props: { rebate: Rebate2023 }) {
 
   const { title, name } = getUserInfo(email, entity);
 
-  const crfSubmissionPeriodOpen = configData.submissionPeriodOpen["2023"].crf;
+  const crfSubmissionPeriodOpen =
+    privateConfigData.submissionPeriodOpen["2023"].crf;
 
   const prfApproved = prf.bap?.status === "Accepted";
   const prfApprovedButNoCRF = prfApproved && !Boolean(crf.formio);
@@ -2007,12 +2014,15 @@ function CRF2023Submission(props: { rebate: Rebate2023 }) {
 function Submissions2023() {
   const rebateYear = "2023";
 
-  const content = useContentData();
+  const publicConfigData = usePublicConfigData();
+  const { staticContent } = publicConfigData || {};
+
   const changeRequestsQuery = useChangeRequestsQuery({ rebateYear });
   const submissionsQueries = useSubmissionsQueries(rebateYear);
   const submissions = useSubmissions(rebateYear);
 
   if (
+    !staticContent ||
     changeRequestsQuery.isLoading ||
     submissionsQueries.some((query) => query.isFetching)
   ) {
@@ -2038,11 +2048,9 @@ function Submissions2023() {
     <>
       {changeRequestsQuery.isFetching ? <Loading /> : <ChangeRequests2023 />}
 
-      {content && (
-        <div className="margin-top-4">
-          <MarkdownContent children={content.allRebatesIntro} />
-        </div>
-      )}
+      <div className="margin-top-4">
+        <MarkdownContent children={staticContent.allRebatesIntro} />
+      </div>
 
       <div className="usa-table-container--scrollable" tabIndex={0}>
         <table
@@ -2234,10 +2242,10 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 
   const { email } = useOutletContext<{ email: string }>();
 
-  const configData = useConfigData();
+  const privateConfigData = usePrivateConfigData();
   const bapSamData = useBapSamData();
 
-  if (!configData || !bapSamData) return null;
+  if (!privateConfigData || !bapSamData) return null;
 
   /**
    * Matched SAM.gov entity for the FRF submission.
@@ -2250,7 +2258,8 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 
   const { title, name } = getUserInfo(email, entity);
 
-  const frfSubmissionPeriodOpen = configData.submissionPeriodOpen["2024"].frf;
+  const frfSubmissionPeriodOpen =
+    privateConfigData.submissionPeriodOpen["2024"].frf;
 
   const {
     _user_email,
@@ -2455,7 +2464,7 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 //   const navigate = useNavigate();
 //   const { email } = useOutletContext<{ email: string }>();
 
-//   const configData = useConfigData();
+//   const privateConfigData = usePrivateConfigData();
 //   const bapSamData = useBapSamData();
 //   const { displayErrorNotification } = useNotificationsActions();
 
@@ -2466,7 +2475,7 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 //    */
 //   const [dataIsPosting, setDataIsPosting] = useState(false);
 
-//   if (!configData || !bapSamData) return null;
+//   if (!privateConfigData || !bapSamData) return null;
 
 //   /**
 //    * Matched SAM.gov entity for the FRF submission
@@ -2480,7 +2489,8 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 
 //   const { title, name } = getUserInfo(email, entity);
 
-//   const prfSubmissionPeriodOpen = configData.submissionPeriodOpen["2024"].prf;
+//   const prfSubmissionPeriodOpen =
+//     privateConfigData.submissionPeriodOpen["2024"].prf;
 
 //   const frfSelected = frf.bap?.status === "Accepted";
 //   const frfSelectedButNoPRF = frfSelected && !Boolean(prf.formio);
@@ -2691,12 +2701,15 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 function Submissions2024() {
   const rebateYear = "2024";
 
-  const content = useContentData();
+  const publicConfigData = usePublicConfigData();
+  const { staticContent } = publicConfigData || {};
+
   const changeRequestsQuery = useChangeRequestsQuery({ rebateYear });
   const submissionsQueries = useSubmissionsQueries(rebateYear);
   const submissions = useSubmissions(rebateYear);
 
   if (
+    !staticContent ||
     changeRequestsQuery.isLoading ||
     submissionsQueries.some((query) => query.isFetching)
   ) {
@@ -2722,11 +2735,9 @@ function Submissions2024() {
     <>
       {changeRequestsQuery.isFetching ? <Loading /> : <ChangeRequests2024 />}
 
-      {content && (
-        <div className="margin-top-4">
-          <MarkdownContent children={content.allRebatesIntro} />
-        </div>
-      )}
+      <div className="margin-top-4">
+        <MarkdownContent children={staticContent.allRebatesIntro} />
+      </div>
 
       <div className="usa-table-container--scrollable" tabIndex={0}>
         <table
@@ -2766,19 +2777,22 @@ function Submissions2024() {
 /* --- Dashboard --- */
 
 export function Dashboard() {
-  const content = useContentData();
-  const configData = useConfigData();
+  const publicConfigData = usePublicConfigData();
+  const { staticContent } = publicConfigData || {};
+
+  const privateConfigData = usePrivateConfigData();
   const bapSamData = useBapSamData();
   const { rebateYear } = useRebateYearState();
   const { setRebateYear } = useRebateYearActions();
 
-  if (!rebateYear) {
+  if (!staticContent || !privateConfigData || !rebateYear) {
     return <Loading />;
   }
 
-  const frfSubmissionPeriodOpen = configData?.submissionPeriodOpen[rebateYear]
-    ? configData.submissionPeriodOpen[rebateYear].frf
-    : false;
+  const frfSubmissionPeriodOpen =
+    privateConfigData.submissionPeriodOpen[rebateYear] // prettier-ignore
+      ? privateConfigData.submissionPeriodOpen[rebateYear].frf
+      : false;
 
   const btnClassNames =
     "usa-button margin-0 padding-x-2 padding-y-1 width-full font-sans-2xs";
@@ -2836,11 +2850,9 @@ export function Dashboard() {
       {rebateYear === "2023" && <Submissions2023 />}
       {rebateYear === "2024" && <Submissions2024 />}
 
-      {content && (
-        <div className="margin-top-4 padding-2 padding-bottom-0 border-1px border-base-lighter bg-base-lightest">
-          <MarkdownContent children={content.allRebatesOutro} />
-        </div>
-      )}
+      <div className="margin-top-4 padding-2 padding-bottom-0 border-1px border-base-lighter bg-base-lightest">
+        <MarkdownContent children={staticContent.allRebatesOutro} />
+      </div>
     </>
   );
 }

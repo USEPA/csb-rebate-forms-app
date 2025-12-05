@@ -9,7 +9,7 @@ import {
   type FormioChange2022FormSubmission,
 } from "@/types";
 import { serverUrl, messages } from "@/config";
-import { getData, useContentData } from "@/utilities";
+import { getData, usePublicConfigData } from "@/utilities";
 import { Loading } from "@/components/loading";
 import { Message } from "@/components/message";
 import { MarkdownContent } from "@/components/markdownContent";
@@ -38,12 +38,13 @@ function useFormioSubmissionQuery(mongoId: string | undefined) {
 export function Change2022() {
   const { id: mongoId } = useParams<"id">(); // MongoDB ObjectId string
 
-  const content = useContentData();
+  const publicConfigData = usePublicConfigData();
+  const { staticContent } = publicConfigData || {};
 
   const { query } = useFormioSubmissionQuery(mongoId);
   const { access, schema, submission } = query.data ?? {};
 
-  if (query.isLoading) {
+  if (query.isLoading || !staticContent) {
     return <Loading />;
   }
 
@@ -53,11 +54,9 @@ export function Change2022() {
 
   return (
     <div className="margin-top-2">
-      {content && (
-        <div className="margin-top-4">
-          <MarkdownContent children={content.submittedChangeIntro} />
-        </div>
-      )}
+      <div className="margin-top-4">
+        <MarkdownContent children={staticContent.submittedChangeIntro} />
+      </div>
 
       <ul className="usa-icon-list">
         <li className="usa-icon-list__item">

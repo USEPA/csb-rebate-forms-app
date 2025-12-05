@@ -18,8 +18,8 @@ import {
   getRebateIdFieldName,
   getData,
   postData,
-  useContentData,
-  useConfigData,
+  usePublicConfigData,
+  usePrivateConfigData,
   useBapSamData,
   useSubmissionPDFQuery,
   useSubmissionsQueries,
@@ -104,8 +104,10 @@ function FundingRequestForm(props: { email: string }) {
   const navigate = useNavigate();
   const { id: mongoId } = useParams<"id">(); // MongoDB ObjectId string
 
-  const content = useContentData();
-  const configData = useConfigData();
+  const publicConfigData = usePublicConfigData();
+  const { staticContent } = publicConfigData || {};
+
+  const privateConfigData = usePrivateConfigData();
   const bapSamData = useBapSamData();
   const { displayDialog } = useDialogActions();
   const {
@@ -163,7 +165,7 @@ function FundingRequestForm(props: { email: string }) {
    */
   const lastSuccesfullySubmittedData = useRef<{ [field: string]: unknown }>({});
 
-  if (!configData || !bapSamData) {
+  if (!staticContent || !privateConfigData || !bapSamData) {
     return <Loading />;
   }
 
@@ -193,7 +195,7 @@ function FundingRequestForm(props: { email: string }) {
       });
 
   const frfSubmissionPeriodOpen =
-    configData.submissionPeriodOpen[rebateYear].frf;
+    privateConfigData.submissionPeriodOpen[rebateYear].frf;
 
   const formIsReadOnly =
     (submission.state === "submitted" || !frfSubmissionPeriodOpen) &&
@@ -351,19 +353,17 @@ function FundingRequestForm(props: { email: string }) {
 
   return (
     <div className="margin-top-2">
-      {content && (
-        <div className="margin-top-4">
-          <MarkdownContent
-            children={
-              submission.state === "draft"
-                ? content.draftFRFIntro
-                : submission.state === "submitted"
-                  ? content.submittedFRFIntro
-                  : ""
-            }
-          />
-        </div>
-      )}
+      <div className="margin-top-4">
+        <MarkdownContent
+          children={
+            submission.state === "draft"
+              ? staticContent.draftFRFIntro
+              : submission.state === "submitted"
+                ? staticContent.submittedFRFIntro
+                : ""
+          }
+        />
+      </div>
 
       <ul className="usa-icon-list">
         <li className="usa-icon-list__item">

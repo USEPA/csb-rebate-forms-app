@@ -30,6 +30,7 @@ const requiredEnvironmentVariables = [
   "JWT_PRIVATE_KEY",
   "JWT_PUBLIC_KEY",
   "CSB_REBATE_YEAR",
+  "CSB_LOGIN_ENABLED",
   "CSB_2022_FRF_OPEN",
   "CSB_2022_PRF_OPEN",
   "CSB_2022_CRF_OPEN",
