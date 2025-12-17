@@ -594,9 +594,10 @@ const { submissionPeriodOpen } = require("../config/formio");
 
 /**
  * @typedef {{
- *  attributes: { type: "Order_Request__c", url: string }
+ *  attributes: { type: "Application__c", url: string }
  *  Id: string
- *  CSB_School_District__r: {
+ *  CSB_School_District_ID_NCES__c: string
+ *  School_District__r: {
  *    attributes: { type: "Account", url: string }
  *    Id: string
  *    Name: string
@@ -605,22 +606,38 @@ const { submissionPeriodOpen } = require("../config/formio");
  *    BillingState: string
  *    BillingPostalCode: string
  *  }
- *  School_District_Contact__r: {
- *    attributes: { type: "Contact", url: string }
- *    Id: string
- *    Record_Type_Name__c: string
- *    FirstName: string
- *    LastName: string
- *    Title: string
- *    Email: string
- *    Phone: string
+ *  Object_Item_Contacts__r: {
+ *    totalSize: 1
+ *    done: true
+ *    records: {
+ *      attributes: { type: "Application_Contact__c", url: string }
+ *      Id: string
+ *      Name: string
+ *      Contact__r: {
+ *        attributes: { type: "Contact", url: string }
+ *        Id: string
+ *        FirstName: string
+ *        LastName: string
+ *        Title: string
+ *        Email: string
+ *        Phone: string
+ *      }
+ *    }[]
  *  }
- *  CSB_NCES_ID__c: string
- *  Org_District_Prioritized__c: string
- *  Self_Certification_Category__c: string
- *  Prioritized_as_High_Need__c: boolean
- *  Prioritized_as_Tribal__c: boolean
- *  Prioritized_as_Rural__c: boolean
+ *  Order_Requests__r: {
+ *    totalSize: 1
+ *    done: true
+ *    records: {
+ *      attributes: { type: "Order_Request__c", url: string }
+ *      Id: string
+ *      CSB_NCES_ID__c: string
+ *      Org_District_Prioritized__c: string
+ *      Self_Certification_Category__c: string
+ *      Prioritized_as_High_Need__c: boolean
+ *      Prioritized_as_Tribal__c: boolean
+ *      Prioritized_as_Rural__c: boolean
+ *    }[]
+ *  }
  * }} CSBRebateSchoolDistrictInfo
  */
 
@@ -2573,93 +2590,125 @@ async function queryBapFor2023CRFData(req, prfReviewItemId) {
 
 /**
  * Uses cached JSforce connection to query the BAP for school district info
- * associated with a rebate year, form type, and CSB Rebate ID.
+ * associated with a CSB Rebate ID.
  *
  * @param {express.Request} req
- * @param {RebateYear} rebateYear
- * @param {FormType} formType
  * @param {string} rebateId
  * @returns {Promise<CSBRebateSchoolDistrictInfo>}
  */
-async function queryForCSBRebateSchoolDistrictInfo(
-  req,
-  rebateYear,
-  formType,
-  rebateId,
-) {
+async function queryForCSBRebateSchoolDistrictInfo(req, rebateId) {
   const logMessage =
     `Querying the BAP for school district info associated with ` +
-    `${rebateYear} ${formType.toUpperCase()} submission with ` +
     `CSB Rebate ID: '${rebateId}'.`;
   log({ level: "info", message: logMessage, req });
 
   /** @type {{ bapConnection: jsforce.Connection }} */
   const { bapConnection } = req.app.locals;
 
-  const recordTypeName = getRecordTypeNameField({ rebateYear, formType });
-
-  if (!recordTypeName) return null;
-
-  // `SELECT
+  // SELECT
   //   Id,
-  //   CSB_School_District__r.Id,
-  //   CSB_School_District__r.Name,
-  //   CSB_School_District__r.BillingStreet,
-  //   CSB_School_District__r.BillingCity,
-  //   CSB_School_District__r.BillingState,
-  //   CSB_School_District__r.BillingPostalCode,
-  //   School_District_Contact__r.Id,
-  //   School_District_Contact__r.Record_Type_Name__c,
-  //   School_District_Contact__r.FirstName,
-  //   School_District_Contact__r.LastName,
-  //   School_District_Contact__r.Title,
-  //   School_District_Contact__r.Email,
-  //   School_District_Contact__r.Phone,
-  //   CSB_NCES_ID__c,
-  //   Org_District_Prioritized__c,
-  //   Self_Certification_Category__c,
-  //   Prioritized_as_High_Need__c,
-  //   Prioritized_as_Tribal__c,
-  //   Prioritized_as_Rural__c
+  //   CSB_School_District_ID_NCES__c,
+  //   School_District__r.Id,
+  //   School_District__r.Name,
+  //   School_District__r.BillingStreet,
+  //   School_District__r.BillingCity,
+  //   School_District__r.BillingState,
+  //   School_District__r.BillingPostalCode,
+  //   (
+  //     SELECT
+  //       Id,
+  //       Name,
+  //       Contact__r.Id,
+  //       Contact__r.FirstName,
+  //       Contact__r.LastName,
+  //       Contact__r.Title,
+  //       Contact__r.Email,
+  //       Contact__r.Phone
+  //     FROM
+  //       Object_Item_Contacts__r
+  //     WHERE
+  //       Contact_Type__c = 'School District Contact'
+  //     ORDER BY
+  //       CreatedDate DESC
+  //     LIMIT 1
+  //   ),
+  //   (
+  //     SELECT
+  //       Id,
+  //       CSB_NCES_ID__c,
+  //       Org_District_Prioritized__c,
+  //       Self_Certification_Category__c,
+  //       Prioritized_as_High_Need__c,
+  //       Prioritized_as_Tribal__c,
+  //       Prioritized_as_Rural__c
+  //     FROM
+  //       Order_Requests__r
+  //     WHERE
+  //       Record_Type_Name__c = 'CSB Change Request' AND
+  //       Latest_Version__c = TRUE
+  //     ORDER BY
+  //       CreatedDate DESC
+  //     LIMIT 1
+  //   )
   // FROM
-  //   Order_Request__c
+  //   Application__c
   // WHERE
-  //   Record_Type_Name__c = '${recordTypeName}' AND
-  //   Parent_Rebate_ID__c = '${rebateId}' AND
-  //   Latest_Version__c = TRUE`
+  //   RecordType.DeveloperName = 'CSB_Rebate' AND
+  //   CSB_Rebate_ID__c = '${rebateId}'
 
   const schoolDistrictInfoQuery = await bapConnection
-    .sobject("Order_Request__c")
-    .find(
-      {
-        Record_Type_Name__c: recordTypeName,
-        Parent_Rebate_ID__c: rebateId,
-        Latest_Version__c: true,
-      },
-      {
-        // "*": 1,
-        Id: 1, // Salesforce record ID
-        "CSB_School_District__r.Id": 1,
-        "CSB_School_District__r.Name": 1,
-        "CSB_School_District__r.BillingStreet": 1,
-        "CSB_School_District__r.BillingCity": 1,
-        "CSB_School_District__r.BillingState": 1,
-        "CSB_School_District__r.BillingPostalCode": 1,
-        "School_District_Contact__r.Id": 1,
-        "School_District_Contact__r.Record_Type_Name__c": 1,
-        "School_District_Contact__r.FirstName": 1,
-        "School_District_Contact__r.LastName": 1,
-        "School_District_Contact__r.Title": 1,
-        "School_District_Contact__r.Phone": 1,
-        "School_District_Contact__r.Email": 1,
-        CSB_NCES_ID__c: 1,
-        Org_District_Prioritized__c: 1,
-        Self_Certification_Category__c: 1,
-        Prioritized_as_High_Need__c: 1,
-        Prioritized_as_Tribal__c: 1,
-        Prioritized_as_Rural__c: 1,
-      },
-    )
+    .sobject("Application__c")
+    .select({
+      // "*": 1,
+      Id: 1, // Salesforce record ID
+      CSB_School_District_ID_NCES__c: 1,
+      "School_District__r.Id": 1,
+      "School_District__r.Name": 1,
+      "School_District__r.BillingStreet": 1,
+      "School_District__r.BillingCity": 1,
+      "School_District__r.BillingState": 1,
+      "School_District__r.BillingPostalCode": 1,
+    })
+    .where({
+      "RecordType.DeveloperName": "CSB_Rebate",
+      CSB_Rebate_ID__c: rebateId,
+    })
+    .include("Object_Item_Contacts__r")
+    .select({
+      // "*": 1,
+      Id: 1, // Salesforce record ID
+      Name: 1,
+      "Contact__r.Id": 1,
+      "Contact__r.FirstName": 1,
+      "Contact__r.LastName": 1,
+      "Contact__r.Title": 1,
+      "Contact__r.Email": 1,
+      "Contact__r.Phone": 1,
+    })
+    .where({
+      Contact_Type__c: "School District Contact",
+    })
+    .sort({ CreatedDate: -1 })
+    .limit(1)
+    .end()
+    .include("Order_Requests__r")
+    .select({
+      // "*": 1,
+      Id: 1, // Salesforce record ID
+      CSB_NCES_ID__c: 1,
+      Org_District_Prioritized__c: 1,
+      Self_Certification_Category__c: 1,
+      Prioritized_as_High_Need__c: 1,
+      Prioritized_as_Tribal__c: 1,
+      Prioritized_as_Rural__c: 1,
+    })
+    .where({
+      Record_Type_Name__c: "CSB Change Request",
+      Latest_Version__c: true,
+    })
+    .sort({ CreatedDate: -1 })
+    .limit(1)
+    .end()
     .execute(async (err, records) => ((await err) ? err : records));
 
   return schoolDistrictInfoQuery?.[0] || {};
@@ -2913,25 +2962,17 @@ function getBapDataFor2023CRF(req, prfReviewItemId) {
 }
 
 /**
- * Fetches school district info associated with a provided a rebate year, form
- * type, and CSB Rebate ID.
+ * Fetches school district info associated with a provided CSB Rebate ID.
  *
  * @param {Object} param
- * @param {RebateYear} param.rebateYear
- * @param {FormType} param.formType
  * @param {string} param.rebateId
  * @param {express.Request} param.req
  * @returns {ReturnType<queryForCSBRebateSchoolDistrictInfo>}
  */
-function getCSBRebateSchoolDistrictInfo({
-  rebateYear,
-  formType,
-  rebateId,
-  req,
-}) {
+function getCSBRebateSchoolDistrictInfo({ rebateId, req }) {
   return verifyBapConnection(req, {
     name: queryForCSBRebateSchoolDistrictInfo,
-    args: [req, rebateYear, formType, rebateId],
+    args: [req, rebateId],
   });
 }
 

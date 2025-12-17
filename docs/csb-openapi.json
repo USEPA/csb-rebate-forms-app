@@ -309,6 +309,31 @@
         }
       }
     },
+    "/api/formio/2022/district/{rebateId}": {
+      "get": {
+        "summary": "Get the school district info associated with a provided CSB Rebate ID",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/rebateId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An object containing school district info associated with the CSB Rebate ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
     "/api/formio/2022/s3/{formType}/{mongoId}/{comboKey}/storage/s3": {
       "get": {
         "summary": "Download Formio file attachment from S3 for a 2022 submission.",
@@ -969,13 +994,10 @@
         }
       }
     },
-    "/api/formio/2023/district/{formType}/{rebateId}": {
+    "/api/formio/2023/district/{rebateId}": {
       "get": {
         "summary": "Get the school district info associated with a provided CSB Rebate ID",
         "parameters": [
-          {
-            "$ref": "#/components/parameters/formType"
-          },
           {
             "$ref": "#/components/parameters/rebateId"
           }
@@ -1619,6 +1641,31 @@
         "responses": {
           "200": {
             "description": "An object containing the matched NCES data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/formio/2024/district/{rebateId}": {
+      "get": {
+        "summary": "Get the school district info associated with a provided CSB Rebate ID",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/rebateId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An object containing school district info associated with the CSB Rebate ID.",
             "content": {
               "application/json": {
                 "schema": {

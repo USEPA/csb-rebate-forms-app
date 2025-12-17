@@ -48,7 +48,7 @@ router.get("/nces{/:searchText}", (req, res) => {
 });
 
 // --- get the school district info associated with a provided CSB Rebate ID
-router.get("/district/:formType{/:rebateId}", (req, res) => {
+router.get("/district{/:rebateId}", (req, res) => {
   getRebateSchoolDistrictInfo({ rebateYear, req, res });
 });
 
