@@ -6,6 +6,8 @@ const {
   verifyMongoObjectId,
 } = require("../middleware");
 const {
+  getRebateSchoolDistrictInfo,
+  //
   downloadFileFromS3,
   uploadFileToS3,
   deleteFileFromS3,
@@ -38,6 +40,11 @@ const rebateYear = "2022";
 const router = express.Router();
 
 router.use(ensureAuthenticated);
+
+// --- get the school district info associated with a provided CSB Rebate ID
+router.get("/district{/:rebateId}", (req, res) => {
+  getRebateSchoolDistrictInfo({ rebateYear, req, res });
+});
 
 // --- download Formio file attachment from S3
 router.get(

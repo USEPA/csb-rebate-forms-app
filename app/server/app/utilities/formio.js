@@ -224,7 +224,7 @@ function searchNcesData({ rebateYear, req, res }) {
  * @param {express.Response} param.res
  */
 function getRebateSchoolDistrictInfo({ rebateYear, req, res }) {
-  const { formType, rebateId } = req.params;
+  const { rebateId } = req.params;
 
   // NOTE: included to support EPA API scan
   if (rebateId === formioExampleRebateId) {
@@ -245,12 +245,7 @@ function getRebateSchoolDistrictInfo({ rebateYear, req, res }) {
     return res.json({});
   }
 
-  return getCSBRebateSchoolDistrictInfo({
-    rebateYear,
-    formType,
-    rebateId,
-    req,
-  })
+  return getCSBRebateSchoolDistrictInfo({ rebateId, req })
     .then((json) => {
       res.json(json);
     })
