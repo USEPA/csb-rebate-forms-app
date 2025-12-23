@@ -2645,6 +2645,7 @@ async function queryForCSBRebateSchoolDistrictInfo(req, rebateId) {
   //       Order_Requests__r
   //     WHERE
   //       Record_Type_Name__c = 'CSB Change Request' AND
+  //       Request_Type__c = 'School District Changes' AND
   //       Latest_Version__c = TRUE
   //     ORDER BY
   //       CreatedDate DESC
@@ -2704,6 +2705,7 @@ async function queryForCSBRebateSchoolDistrictInfo(req, rebateId) {
     })
     .where({
       Record_Type_Name__c: "CSB Change Request",
+      Request_Type__c: "School District Changes",
       Latest_Version__c: true,
     })
     .sort({ CreatedDate: -1 })
