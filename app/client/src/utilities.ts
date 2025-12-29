@@ -12,9 +12,9 @@ import { Formio } from "@formio/js";
 import {
   type RebateYear,
   type CSBFormType,
-  type Content,
+  type PublicConfigData,
+  type PrivateConfigData,
   type UserData,
-  type ConfigData,
   type BapSamEntity,
   type BapSamData,
   type BapFormSubmission,
@@ -24,6 +24,7 @@ import {
   type FormioFRF2022DashboardSubmission,
   type FormioPRF2022DashboardSubmission,
   type FormioCRF2022DashboardSubmission,
+  type FormioChange2022DashboardSubmission,
   type FormioFRF2023DashboardSubmission,
   type FormioPRF2023DashboardSubmission,
   type FormioCRF2023DashboardSubmission,
@@ -45,7 +46,7 @@ import {
 /** Formio Change Request submissions by rebate year. */
 /* prettier-ignore */
 type FormioChangeRequestsByYear<Year> =
-  Year extends "2022" ? never[] | undefined :
+  Year extends "2022" ? FormioChange2022DashboardSubmission[] | undefined :
   Year extends "2023" ? FormioChange2023DashboardSubmission[] | undefined :
   Year extends "2024" ? FormioChange2024DashboardSubmission[] | undefined :
   never;
@@ -68,6 +69,32 @@ type RebateByYear<Year> =
   Year extends "2023" ? Rebate2023 :
   Year extends "2024" ? Rebate2024 :
   never;
+
+/** Formio SAM.gov entity combo key field name by rebate year. */
+const comboKeyFieldNamesByYear = {
+  "2022": "bap_hidden_entity_combo_key",
+  "2023": "_bap_entity_combo_key",
+  "2024": "_bap_entity_combo_key",
+} as const;
+
+/** Formio CSB Rebate Id field name by rebate year. */
+const rebateIdFieldNamesByYear = {
+  "2022": "hidden_bap_rebate_id",
+  "2023": "_bap_rebate_id",
+  "2024": "_bap_rebate_id",
+} as const;
+
+export function getComboKeyFieldName<
+  Year extends keyof typeof comboKeyFieldNamesByYear,
+>(rebateYear: Year): (typeof comboKeyFieldNamesByYear)[Year] {
+  return comboKeyFieldNamesByYear[rebateYear];
+}
+
+export function getRebateIdFieldName<
+  Year extends keyof typeof rebateIdFieldNamesByYear,
+>(rebateYear: Year): (typeof rebateIdFieldNamesByYear)[Year] {
+  return rebateIdFieldNamesByYear[rebateYear];
+}
 
 async function fetchData<T = unknown>(url: string, options: RequestInit) {
   try {
@@ -106,21 +133,72 @@ export function postData<T = unknown>(url: string, data: object) {
   });
 }
 
-/** Custom hook to fetch content data. */
-export function useContentQuery() {
+/** Custom hook to fetch CSB public configuration data. */
+export function usePublicConfigQuery() {
   const query = useQuery({
-    queryKey: ["content"],
-    queryFn: () => getData<Content>(`${serverUrl}/api/content`),
+    queryKey: ["public-config"],
+    queryFn: () => {
+      const url = `${serverUrl}/api/config/public`;
+      return getData<PublicConfigData>(url);
+    },
     refetchOnWindowFocus: false,
   });
 
   return query;
 }
 
-/** Custom hook that returns cached fetched content data. */
-export function useContentData() {
+/** Custom hook that returns cached fetched CSB public configuration data. */
+export function usePublicConfigData() {
   const queryClient = useQueryClient();
-  return queryClient.getQueryData<Content>(["content"]);
+  return queryClient.getQueryData<PublicConfigData>(["public-config"]);
+}
+
+/**
+ * Custom hook to fetch CSB private configuration data and set Formio URLs and
+ * rebate year.
+ */
+export function usePrivateConfigQuery() {
+  const state = useRebateYearState();
+  const { setRebateYear } = useRebateYearActions();
+
+  const query = useQuery({
+    queryKey: ["private-config"],
+    queryFn: () => {
+      const url = `${serverUrl}/api/config/private`;
+      return getData<PrivateConfigData>(url);
+    },
+    refetchOnWindowFocus: false,
+  });
+
+  useEffect(() => {
+    const { formioBaseUrl, formioProjectName, rebateYear } = query.data ?? {};
+
+    if (query.status === "success" && formioBaseUrl) {
+      Formio.setBaseUrl(formioBaseUrl);
+    }
+
+    if (query.status === "success" && formioBaseUrl && formioProjectName) {
+      Formio.setProjectUrl(`${formioBaseUrl}/${formioProjectName}`);
+    }
+
+    if (query.status === "success" && rebateYear) {
+      /**
+       * NOTE: `state.rebateYear` is initialized as null, so only redefine it on
+       * the initial private config data fetch.
+       */
+      if (state.rebateYear === null) {
+        setRebateYear(rebateYear);
+      }
+    }
+  }, [query.status, query.data, state.rebateYear, setRebateYear]);
+
+  return query;
+}
+
+/** Custom hook that returns cached fetched CSB private configuration data. */
+export function usePrivateConfigData() {
+  const queryClient = useQueryClient();
+  return queryClient.getQueryData<PrivateConfigData>(["private-config"]);
 }
 
 /** Custom hook to fetch user data. */
@@ -151,48 +229,6 @@ export function useHelpdeskAccess() {
     : userRoles.includes("csb_admin") || userRoles.includes("csb_helpdesk")
       ? "success"
       : "failure";
-}
-
-/** Custom hook to fetch CSB config and set Formio URLs and rebate year. */
-export function useConfigQuery() {
-  const state = useRebateYearState();
-  const { setRebateYear } = useRebateYearActions();
-
-  const query = useQuery({
-    queryKey: ["config"],
-    queryFn: () => getData<ConfigData>(`${serverUrl}/api/config`),
-    refetchOnWindowFocus: false,
-  });
-
-  useEffect(() => {
-    const { formioBaseUrl, formioProjectName, rebateYear } = query.data ?? {};
-
-    if (query.status === "success" && formioBaseUrl) {
-      Formio.setBaseUrl(formioBaseUrl);
-    }
-
-    if (query.status === "success" && formioBaseUrl && formioProjectName) {
-      Formio.setProjectUrl(`${formioBaseUrl}/${formioProjectName}`);
-    }
-
-    if (query.status === "success" && rebateYear) {
-      /**
-       * NOTE: `state.rebateYear` is initialized as null, so only redefine it on
-       * the initial config data fetch.
-       */
-      if (state.rebateYear === null) {
-        setRebateYear(rebateYear);
-      }
-    }
-  }, [query.status, query.data, state.rebateYear, setRebateYear]);
-
-  return query;
-}
-
-/** Custom hook that returns cached fetched CSB config. */
-export function useConfigData() {
-  const queryClient = useQueryClient();
-  return queryClient.getQueryData<ConfigData>(["config"]);
 }
 
 /**
@@ -271,16 +307,20 @@ export function useSubmissionPDFQuery(options: {
 }
 
 /** Custom hook to fetch Change Request form submissions from Formio. */
-export function useChangeRequestsQuery<Year extends RebateYear>(
-  rebateYear: Year,
-): UseQueryResult<FormioChangeRequestsByYear<Year>> {
-  /*
-   * NOTE: Change Request form was added in the 2023 rebate year, so there's no
-   * change request data to fetch for 2022.
-   */
+export function useChangeRequestsQuery<Year extends RebateYear>({
+  rebateYear,
+  enabled = true,
+}: {
+  rebateYear: Year;
+  enabled?: boolean;
+}): UseQueryResult<FormioChangeRequestsByYear<Year>> {
   const changeRequest2022Query = {
     queryKey: ["formio/2022/changes"],
-    queryFn: () => Promise.resolve([]),
+    queryFn: () => {
+      const url = `${serverUrl}/api/formio/2022/changes`;
+      return getData<FormioChange2022DashboardSubmission[]>(url);
+    },
+    enabled,
     refetchOnWindowFocus: false,
   };
 
@@ -290,6 +330,7 @@ export function useChangeRequestsQuery<Year extends RebateYear>(
       const url = `${serverUrl}/api/formio/2023/changes`;
       return getData<FormioChange2023DashboardSubmission[]>(url);
     },
+    enabled,
     refetchOnWindowFocus: false,
   };
 
@@ -299,6 +340,7 @@ export function useChangeRequestsQuery<Year extends RebateYear>(
       const url = `${serverUrl}/api/formio/2024/changes`;
       return getData<FormioChange2024DashboardSubmission[]>(url);
     },
+    enabled,
     refetchOnWindowFocus: false,
   };
 
@@ -306,6 +348,7 @@ export function useChangeRequestsQuery<Year extends RebateYear>(
   const changeRequestFallbackQuery = {
     queryKey: ["formio/changes"],
     queryFn: () => Promise.resolve([]),
+    enabled,
     refetchOnWindowFocus: false,
   };
 
@@ -330,7 +373,7 @@ export function useChangeRequests<Year extends RebateYear>(
 ): FormioChangeRequestsByYear<Year> {
   const queryClient = useQueryClient();
 
-  const changeRequest2022Data = queryClient.getQueryData<[]>(["formio/2022/changes"]); // prettier-ignore
+  const changeRequest2022Data = queryClient.getQueryData<FormioChange2022DashboardSubmission[]>(["formio/2022/changes"]); // prettier-ignore
   const changeRequest2023Data = queryClient.getQueryData<FormioChange2023DashboardSubmission[]>(["formio/2023/changes"]); // prettier-ignore
   const changeRequest2024Data = queryClient.getQueryData<FormioChange2024DashboardSubmission[]>(["formio/2024/changes"]); // prettier-ignore
 

@@ -4,29 +4,27 @@ export type RebateYear = "2022" | "2023" | "2024";
 
 export type CSBFormType = "frf" | "prf" | "crf";
 
-export type Content = {
-  siteAlert: string;
-  helpdeskIntro: string;
-  allRebatesIntro: string;
-  allRebatesOutro: string;
-  newFRFDialog: string;
-  draftFRFIntro: string;
-  submittedFRFIntro: string;
-  draftPRFIntro: string;
-  submittedPRFIntro: string;
-  draftCRFIntro: string;
-  submittedCRFIntro: string;
-  newChangeIntro: string;
-  submittedChangeIntro: string;
+export type PublicConfigData = {
+  loginEnabled: boolean;
+  staticContent: {
+    siteAlert: string;
+    scheduledMaintenance: string;
+    helpdeskIntro: string;
+    allRebatesIntro: string;
+    allRebatesOutro: string;
+    newFRFDialog: string;
+    draftFRFIntro: string;
+    submittedFRFIntro: string;
+    draftPRFIntro: string;
+    submittedPRFIntro: string;
+    draftCRFIntro: string;
+    submittedCRFIntro: string;
+    newChangeIntro: string;
+    submittedChangeIntro: string;
+  };
 };
 
-export type UserData = {
-  mail: string;
-  memberof: string;
-  exp: number;
-};
-
-export type ConfigData = {
+export type PrivateConfigData = {
   formioBaseUrl: string;
   formioProjectName: string;
   rebateYear: RebateYear;
@@ -35,6 +33,12 @@ export type ConfigData = {
     2023: { frf: boolean; prf: boolean; crf: boolean };
     2024: { frf: boolean; prf: boolean; crf: boolean };
   };
+};
+
+export type UserData = {
+  mail: string;
+  memberof: string;
+  exp: number;
 };
 
 export type BapSamEntity = {
@@ -141,11 +145,13 @@ export type FormioSubmission = Submission & {
 
 type FormioFRF2022DashboardDataFields = {
   bap_hidden_entity_combo_key: string;
+  sam_hidden_applicant_name: string;
   applicantUEI: string;
   applicantEfti: string;
   applicantEfti_display: string;
   applicantOrganizationName: string;
   schoolDistrictName: string;
+  schoolDistrictState: string;
   last_updated_by: string;
 };
 
@@ -156,7 +162,6 @@ type FormioFRF2022FormDataFields = FormioFRF2022DashboardDataFields & {
   hidden_current_user_name: string;
   sam_hidden_applicant_email: string;
   sam_hidden_applicant_title: string;
-  sam_hidden_applicant_name: string;
   sam_hidden_applicant_efti: string;
   sam_hidden_applicant_uei: string;
   sam_hidden_applicant_organization_name: string;
@@ -171,6 +176,8 @@ type FormioPRF2022DashboardDataFields = {
   bap_hidden_entity_combo_key: string;
   hidden_current_user_email: string;
   hidden_bap_rebate_id: string;
+  applicantName: string;
+  schoolDistrictName: string;
 };
 
 type FormioPRF2022FormDataFields = FormioPRF2022DashboardDataFields & {
@@ -209,13 +216,13 @@ type FormioPRF2022FormDataFields = FormioPRF2022DashboardDataFields & {
     hidden_bap_max_rebate: number;
   }[];
   purchaseOrders: [];
-  applicantName: string;
 };
 
 type FormioCRF2022DashboardDataFields = {
   bap_hidden_entity_combo_key: string;
   hidden_current_user_email: string;
   hidden_bap_rebate_id: string;
+  schoolDistrictName: string;
 };
 
 type FormioCRF2022FormDataFields = FormioCRF2022DashboardDataFields & {
@@ -292,6 +299,24 @@ type FormioCRF2022FormDataFields = FormioCRF2022DashboardDataFields & {
     hidden_prf_rebate: number;
   }[];
   signatureName: string;
+};
+
+type FormioChange2022DashboardDataFields = {
+  _request_form: CSBFormType;
+  _bap_rebate_id: string;
+  _mongo_id: string;
+  _user_email: string;
+  request_type: {
+    label: string;
+    value: string;
+  };
+};
+
+type FormioChange2022FormDataFields = FormioChange2022DashboardDataFields & {
+  [field: string]: unknown;
+  _bap_entity_combo_key: string;
+  _user_title: string;
+  _user_name: string;
 };
 
 type FormioFRF2023DashboardDataFields = {
@@ -444,13 +469,175 @@ type FormioPRF2023FormDataFields = FormioPRF2023DashboardDataFields & {
 type FormioCRF2023DashboardDataFields = {
   _user_email: string;
   _bap_entity_combo_key: string;
+  _bap_rebate_id: string;
+  _bap_applicant_name: string;
+  _bap_district_name: string;
+  _bap_district_state: string;
 };
 
 type FormioCRF2023FormDataFields = FormioCRF2023DashboardDataFields & {
   [field: string]: unknown;
   _user_title: string;
   _user_name: string;
-  _bap_rebate_id: string;
+  _bap_applicant_email: string;
+  _bap_applicant_title: string;
+  _bap_applicant_efti: string;
+  _bap_applicant_uei: string;
+  _bap_applicant_organization_id: string;
+  _bap_applicant_organization_name: string;
+  _bap_applicant_street_address_1: string;
+  _bap_applicant_street_address_2: string;
+  _bap_applicant_county: string;
+  _bap_applicant_city: string;
+  _bap_applicant_state: string;
+  _bap_applicant_zip: string;
+  _bap_elec_bus_poc_email: string | null;
+  _bap_alt_elec_bus_poc_email: string | null;
+  _bap_govt_bus_poc_email: string | null;
+  _bap_alt_govt_bus_poc_email: string | null;
+  _bap_primary_id: string;
+  _bap_primary_recordtype: string;
+  _bap_primary_fname: string;
+  _bap_primary_lname: string;
+  _bap_primary_title: string;
+  _bap_primary_email: string;
+  _bap_primary_phone: string;
+  _bap_alternate_id: string | null;
+  _bap_alternate_recordtype: string | null;
+  _bap_alternate_fname: string | null;
+  _bap_alternate_lname: string | null;
+  _bap_alternate_title: string | null;
+  _bap_alternate_email: string | null;
+  _bap_alternate_phone: string | null;
+  _bap_district_id: string;
+  _bap_district_nces_id: string;
+  _bap_district_address_1: string;
+  _bap_district_address_2: string;
+  _bap_district_city: string;
+  _bap_district_zip: string;
+  _bap_district_priority: string;
+  _bap_district_priority_reason: {
+    highNeed: boolean;
+    tribal: boolean;
+    rural: boolean;
+  };
+  _bap_district_self_certify: string;
+  _bap_district_contact_id: string;
+  _bap_district_contact_recordtype: string;
+  _bap_district_contact_fname: string;
+  _bap_district_contact_lname: string;
+  _bap_district_contact_title: string;
+  _bap_district_contact_email: string;
+  _bap_district_contact_phone: string;
+  _bap_bus_frf_requested: number;
+  _bap_bus_prf_total_costs: number;
+  _bap_bus_prf_total_rebate_received: number;
+  _bap_infra_prf_total_costs: number;
+  _bap_infra_total_rebate_received: number;
+  _bap_infra_total_level2_charger: number;
+  _bap_infra_total_dc_fast_charger: number;
+  _bap_infra_total_other_costs: number;
+  _bap_infra_funding: number;
+  org_organizations: {
+    org_number: number;
+    org_type: {
+      existingBusOwner: boolean;
+      newBusOwner: boolean;
+      privateFleet: boolean;
+    };
+    _org_id: string;
+    _org_name: string;
+    _org_address_1: string;
+    _org_address_2: string;
+    _org_county: string;
+    _org_city: string;
+    _org_state: string;
+    _org_zip: string;
+    _org_contact_id: string;
+    _org_contact_recordtype: string;
+    _org_contact_fname: string;
+    _org_contact_lname: string;
+    _org_contact_title: string;
+    _org_contact_email: string;
+    _org_contact_phone: string;
+  }[];
+  bus_buses: {
+    bus_number: number;
+    bus_existing_excluded: boolean;
+    _bus_existing_excluded: boolean;
+    bus_existing_owner: {
+      org_id: string;
+      org_name: string;
+      org_contact_id: string;
+      org_contact_fname: string;
+      org_contact_lname: string;
+    };
+    bus_existing_vin: string;
+    bus_existing_fuel_type: string;
+    bus_existing_gvwr: number;
+    bus_existing_odometer: number;
+    bus_existing_model: string;
+    bus_existing_model_year: number;
+    bus_existing_nces_id: string;
+    bus_existing_manufacturer: string;
+    bus_existing_manufacturer_other: string | null;
+    bus_existing_remaining_life: number;
+    bus_existing_annual_fuel_consumption: number;
+    bus_existing_annual_mileage: number;
+    bus_existing_idling_hours: number;
+    bus_new_owner: {
+      org_id: string;
+      org_name: string;
+      org_contact_id: string;
+      org_contact_fname: string;
+      org_contact_lname: string;
+    };
+    _bus_new_purchase_price: number;
+    _bus_new_fuel_type: string;
+    _bus_new_gvwr: number;
+    _bus_new_ada: boolean;
+    _bus_new_manufacturer: string;
+    _bus_new_manufacturer_other: string | null;
+    _bus_new_model: string;
+    _bus_new_epa_carb: string;
+    _bus_new_model_year: number;
+    bus_rebate_shipping: number;
+    bus_rebate_shipping_costs: number;
+    bus_rebate_ada: boolean;
+    bus_rebate_ada_costs: number;
+    _bus_funding_amount: number;
+  }[];
+  infra_infrastructure: {
+    infra_type: string;
+    infra_other_type: string | null;
+    infra_other_desc: string | null;
+    infra_other_cost: number | null;
+    infra_evse_max_output_power: number | null;
+    infra_evse_manufacturer: string | null;
+    infra_evse_manufacturer_other: string | null;
+    infra_evse_model: string | null;
+    infra_evse_manufacture_date: string | null;
+    infra_evse_number_plugs: number | null;
+    infra_evse_bidirectional_charging: string;
+    infra_evse_bidirectional_planning: boolean;
+    infra_evse_energy_star: boolean;
+    infra_evse_baba_compliant: boolean;
+    infra_evse_quantity: number | null;
+    infra_evse_cost_charger: number | null;
+    infra_evse_includes_installion: boolean;
+    infra_owner: {
+      org_id: string;
+      org_name: string;
+      org_contact_id: string;
+      org_contact_fname: string;
+      org_contact_lname: string;
+    };
+    infra_address: string;
+    infra_city: string;
+    infra_state: string;
+    infra_zip: string;
+    infra_county: string;
+  }[];
 };
 
 type FormioChange2023DashboardDataFields = {
@@ -683,6 +870,14 @@ export type FormioCRF2022DashboardSubmission = FormioSubmission & {
 
 export type FormioCRF2022FormSubmission = FormioSubmission & {
   data: FormioCRF2022FormDataFields;
+};
+
+export type FormioChange2022DashboardSubmission = FormioSubmission & {
+  data: FormioChange2022DashboardDataFields;
+};
+
+export type FormioChange2022FormSubmission = FormioSubmission & {
+  data: FormioChange2022FormDataFields;
 };
 
 export type FormioFRF2023DashboardSubmission = FormioSubmission & {

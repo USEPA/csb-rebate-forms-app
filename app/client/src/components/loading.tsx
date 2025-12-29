@@ -1,8 +1,6 @@
 import clsx from "clsx";
+import loader from "@uswds/uswds/img/loader.svg";
 // ---
-// NOTE: React JSX doesn't support namespaces, so `uswds/img/loader.svg` copied
-// into app's `images/loader.svg` with namespace tags removed
-import loader from "@/images/loader.svg";
 import loaderWhite from "@/images/loader-white.svg";
 
 export function Loading() {

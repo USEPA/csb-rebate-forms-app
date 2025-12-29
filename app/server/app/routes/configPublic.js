@@ -1,20 +1,21 @@
 const { resolve } = require("node:path");
 const { readFile } = require("node:fs/promises");
 const express = require("express");
-const axios = require("axios").default || require("axios"); // TODO: https://github.com/axios/axios/issues/5011
+const axios = require("axios");
 // ---
 const { s3BucketUrl } = require("../config/s3");
 const log = require("../utilities/logger");
 
-const { NODE_ENV } = process.env;
+const { NODE_ENV, CSB_LOGIN_ENABLED } = process.env;
 
 const router = express.Router();
 
-// --- get static content from S3
+// --- get CSB app specific public configuration
 router.get("/", (req, res) => {
-  /** NOTE: static content files found in `app/server/app/content/` directory. */
+  /** NOTE: content files found in `app/server/app/content/` directory. */
   const filenames = [
     "site-alert.md",
+    "scheduled-maintenance.md",
     "helpdesk-intro.md",
     "all-rebates-intro.md",
     "all-rebates-outro.md",
@@ -52,19 +53,23 @@ router.get("/", (req, res) => {
       log({ level: "info", message: logMessage });
 
       return res.json({
-        siteAlert: data[0],
-        helpdeskIntro: data[1],
-        allRebatesIntro: data[2],
-        allRebatesOutro: data[3],
-        newFRFDialog: data[4],
-        draftFRFIntro: data[5],
-        submittedFRFIntro: data[6],
-        draftPRFIntro: data[7],
-        submittedPRFIntro: data[8],
-        draftCRFIntro: data[9],
-        submittedCRFIntro: data[10],
-        newChangeIntro: data[11],
-        submittedChangeIntro: data[12],
+        loginEnabled: CSB_LOGIN_ENABLED === "true",
+        staticContent: {
+          siteAlert: data[0],
+          scheduledMaintenance: data[1],
+          helpdeskIntro: data[2],
+          allRebatesIntro: data[3],
+          allRebatesOutro: data[4],
+          newFRFDialog: data[5],
+          draftFRFIntro: data[6],
+          submittedFRFIntro: data[7],
+          draftPRFIntro: data[8],
+          submittedPRFIntro: data[9],
+          draftCRFIntro: data[10],
+          submittedCRFIntro: data[11],
+          newChangeIntro: data[12],
+          submittedChangeIntro: data[13],
+        },
       });
     })
     .catch((error) => {
@@ -75,7 +80,7 @@ router.get("/", (req, res) => {
       const logMessage = `S3 Error: ${errorStatus} ${errorMethod} ${errorUrl}`;
       log({ level: "error", message: logMessage, req });
 
-      const errorMessage = `Error getting static content from S3 bucket.`;
+      const errorMessage = `Error getting content files from S3 bucket.`;
       return res.status(errorStatus).json({ message: errorMessage });
     });
 });

@@ -11,14 +11,14 @@ import {
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { type FormType, type Submission, Form } from "@formio/react";
 import clsx from "clsx";
-import icons from "uswds/img/sprite.svg";
+import icons from "@uswds/uswds/img/sprite.svg";
 // ---
 import { type CSBFormType, type FormioChange2023FormSubmission } from "@/types";
 import { serverUrl, messages } from "@/config";
 import {
   getData,
   postData,
-  useContentData,
+  usePublicConfigData,
   useChangeRequestsQuery,
 } from "@/utilities";
 import { Loading } from "@/components/loading";
@@ -26,38 +26,24 @@ import { Message } from "@/components/message";
 import { MarkdownContent } from "@/components/markdownContent";
 import { useNotificationsActions } from "@/contexts/notifications";
 
-type ChangeRequestData = {
-  formType: CSBFormType;
-  comboKey: string;
-  rebateId: string | null;
-  mongoId: string;
-  state: string;
-  email: string;
-  title: string;
-  name: string;
+type SubmissionData = {
+  userEmail: string;
+  userTitle: string;
+  userName: string;
   applicantName: string;
   districtName: string;
   districtState: string;
 };
 
-type Response = FormType;
-
-/** Custom hook to fetch Formio schema */
-function useFormioSchemaQuery() {
+/** Custom hook to fetch Formio schema and update Formio submission data */
+function useFormioSchemaQueryAndSubmissionMutation() {
   const url = `${serverUrl}/api/formio/2023/change`;
 
   const query = useQuery({
     queryKey: ["formio/2023/change"],
-    queryFn: () => getData<Response>(url),
+    queryFn: () => getData<FormType>(url),
     refetchOnWindowFocus: false,
   });
-
-  return { query };
-}
-
-/** Custom hook to update Formio submission submission data */
-function useFormioSubmissionMutation() {
-  const url = `${serverUrl}/api/formio/2023/change/`;
 
   const mutation = useMutation({
     mutationFn: (submission: Submission) => {
@@ -65,12 +51,18 @@ function useFormioSubmissionMutation() {
     },
   });
 
-  return { mutation };
+  return { query, mutation };
 }
 
-export function ChangeRequest2023Button(props: { data: ChangeRequestData }) {
-  const { data } = props;
-
+export function ChangeRequest2023Button(props: {
+  formType: CSBFormType;
+  comboKey: string;
+  rebateId: string | null;
+  mongoId: string;
+  formioState: string;
+  bapStatus: string;
+  data: SubmissionData;
+}) {
   const [dialogShown, setDialogShown] = useState(false);
 
   function closeDialog() {
@@ -104,7 +96,7 @@ export function ChangeRequest2023Button(props: { data: ChangeRequestData }) {
       <ChangeRequest2023Dialog
         dialogShown={dialogShown}
         closeDialog={closeDialog}
-        data={data}
+        {...props}
       />
     </>
   );
@@ -113,9 +105,15 @@ export function ChangeRequest2023Button(props: { data: ChangeRequestData }) {
 function ChangeRequest2023Dialog(props: {
   dialogShown: boolean;
   closeDialog: () => void;
-  data: ChangeRequestData;
+  formType: CSBFormType;
+  comboKey: string;
+  rebateId: string | null;
+  mongoId: string;
+  formioState: string;
+  bapStatus: string;
+  data: SubmissionData;
 }) {
-  const { dialogShown, closeDialog, data } = props;
+  const { dialogShown, closeDialog } = props;
 
   /*
    * NOTE: Formio form Combobox inputs won't receive click events if the
@@ -187,7 +185,7 @@ function ChangeRequest2023Dialog(props: {
               </div>
 
               <div className={clsx("tw:m-auto tw:max-w-6xl tw:p-4")}>
-                <ChangeRequest2023Form data={data} closeDialog={closeDialog} />
+                <ChangeRequest2023Form {...props} />
               </div>
             </TransitionChild>
             {/* </DialogPanel> */}
@@ -199,35 +197,42 @@ function ChangeRequest2023Dialog(props: {
 }
 
 function ChangeRequest2023Form(props: {
-  data: ChangeRequestData;
+  dialogShown: boolean;
   closeDialog: () => void;
+  formType: CSBFormType;
+  comboKey: string;
+  rebateId: string | null;
+  mongoId: string;
+  formioState: string;
+  bapStatus: string;
+  data: SubmissionData;
 }) {
-  const { data, closeDialog } = props;
   const {
+    closeDialog,
     formType,
     comboKey,
     rebateId,
     mongoId,
-    state,
-    email,
-    title,
-    name,
-    applicantName,
-    districtName,
-    districtState,
-  } = data;
+    formioState,
+    bapStatus,
+    data,
+  } = props;
 
-  const content = useContentData();
+  const publicConfigData = usePublicConfigData();
+  const { staticContent } = publicConfigData || {};
+
   const {
     displaySuccessNotification,
     displayErrorNotification,
     dismissNotification,
   } = useNotificationsActions();
 
-  const changeRequestsQuery = useChangeRequestsQuery("2023");
+  const changeRequestsQuery = useChangeRequestsQuery({
+    rebateYear: "2023",
+    enabled: false,
+  });
 
-  const { query } = useFormioSchemaQuery();
-  const { mutation } = useFormioSubmissionMutation();
+  const { query, mutation } = useFormioSchemaQueryAndSubmissionMutation();
 
   const schema = query.data;
 
@@ -253,7 +258,7 @@ function ChangeRequest2023Form(props: {
    */
   const pendingSubmissionData = useRef<{ [field: string]: unknown }>({});
 
-  if (query.isInitialLoading) {
+  if (query.isLoading || !staticContent) {
     return <Loading />;
   }
 
@@ -263,14 +268,12 @@ function ChangeRequest2023Form(props: {
 
   return (
     <>
-      {content && (
-        <MarkdownContent
-          children={content.newChangeIntro}
-          components={{
-            h2: (props) => <DialogTitle>{props.children}</DialogTitle>,
-          }}
-        />
-      )}
+      <MarkdownContent
+        children={staticContent.newChangeIntro}
+        components={{
+          h2: (props) => <DialogTitle>{props.children}</DialogTitle>,
+        }}
+      />
 
       <Dialog open={dataIsPosting.current} onClose={(_value) => {}}>
         <DialogBackdrop
@@ -302,13 +305,14 @@ function ChangeRequest2023Form(props: {
               _bap_entity_combo_key: comboKey,
               _bap_rebate_id: rebateId,
               _mongo_id: mongoId,
-              _formio_state: state,
-              _user_email: email,
-              _user_title: title,
-              _user_name: name,
-              _bap_applicant_name: applicantName,
-              _bap_district_name: districtName,
-              _bap_district_state: districtState,
+              _formio_state: formioState,
+              _bap_status: bapStatus,
+              _user_email: data.userEmail,
+              _user_title: data.userTitle,
+              _user_name: data.userName,
+              _bap_applicant_name: data.applicantName,
+              _bap_district_name: data.districtName,
+              _bap_district_state: data.districtState,
               ...pendingSubmissionData.current,
             },
           }}

@@ -7,7 +7,7 @@ import {
 } from "react-router";
 import { ChevronUpIcon } from "@heroicons/react/20/solid";
 import clsx from "clsx";
-import icons from "uswds/img/sprite.svg";
+import icons from "@uswds/uswds/img/sprite.svg";
 // ---
 import {
   type RebateYear,
@@ -23,9 +23,11 @@ import {
   statusIconMap,
 } from "@/config";
 import {
+  getComboKeyFieldName,
+  getRebateIdFieldName,
   postData,
-  useContentData,
-  useConfigData,
+  usePublicConfigData,
+  usePrivateConfigData,
   useBapSamData,
   useChangeRequestsQuery,
   useChangeRequests,
@@ -40,6 +42,7 @@ import { Loading, LoadingButtonIcon } from "@/components/loading";
 import { Message } from "@/components/message";
 import { MarkdownContent } from "@/components/markdownContent";
 import { TextWithTooltip } from "@/components/tooltip";
+import { ChangeRequest2022Button } from "@/components/change2022New";
 import { ChangeRequest2023Button } from "@/components/change2023New";
 import { ChangeRequest2024Button } from "@/components/change2024New";
 import { useNotificationsActions } from "@/contexts/notifications";
@@ -92,9 +95,7 @@ function NewApplicationIconText() {
   );
 }
 
-function SubmissionsTableHeader(props: { rebateYear: RebateYear }) {
-  const { rebateYear } = props;
-
+function SubmissionsTableHeader() {
   return (
     <thead>
       <tr className="font-sans-2xs text-no-wrap text-bottom">
@@ -154,14 +155,12 @@ function SubmissionsTableHeader(props: { rebateYear: RebateYear }) {
           />
         </th>
 
-        {rebateYear === "2023" || rebateYear === "2024" ? (
-          <th scope="col" className={clsx("tw:text-right")}>
-            <TextWithTooltip
-              text="Change Request"
-              tooltip="Submit a change request for an extension, to request edits, or to withdraw from the rebate program"
-            />
-          </th>
-        ) : null}
+        <th scope="col" className={clsx("tw:text-right")}>
+          <TextWithTooltip
+            text="Change Request"
+            tooltip="Submit a change request for an extension, to request edits, or to withdraw from the rebate program"
+          />
+        </th>
       </tr>
     </thead>
   );
@@ -169,31 +168,186 @@ function SubmissionsTableHeader(props: { rebateYear: RebateYear }) {
 
 /* --- 2022 Submissions --- */
 
+function ChangeRequests2022() {
+  const rebateYear = "2022";
+
+  const changeRequests = useChangeRequests(rebateYear);
+
+  if (!changeRequests || changeRequests.length === 0) return null;
+
+  return (
+    <details
+      className={clsx(
+        "tw:mt-4 tw:border tw:border-solid tw:border-blue-100 tw:bg-blue-50",
+        "tw:group",
+      )}
+      open
+    >
+      <summary
+        className={clsx(
+          "tw:!flex tw:cursor-pointer tw:items-center tw:justify-between tw:bg-blue-100 tw:p-2",
+          "tw:marker:content-none",
+        )}
+      >
+        <span
+          className={clsx(
+            "tw:px-1 tw:text-[15px] tw:font-semibold tw:text-slate-800",
+          )}
+        >
+          Your Change Requests
+        </span>
+        <ChevronUpIcon
+          className={clsx(
+            "tw:size-5 tw:rotate-90 tw:transform tw:text-slate-900 tw:duration-100",
+            "tw:group-open:rotate-180",
+          )}
+          aria-hidden="true"
+        />
+      </summary>
+
+      <div
+        className={clsx(
+          "usa-table-container--scrollable",
+          "tw:!m-0 tw:p-1",
+          "tw:[&_tr:last-of-type_:is(th,td)]:!border-b-0",
+        )}
+        tabIndex={0}
+      >
+        <table
+          aria-label="Your 2023 Change Requests"
+          className="usa-table usa-table--stacked usa-table--borderless width-full"
+        >
+          <thead>
+            <tr className="font-sans-2xs text-no-wrap text-bottom">
+              <th scope="col">
+                <TextWithTooltip
+                  text="Rebate ID"
+                  tooltip="Unique Clean School Bus Rebate ID"
+                />
+              </th>
+
+              <th scope="col">
+                <TextWithTooltip
+                  text="Form Type"
+                  tooltip="Application, Payment Request, or Close Out form"
+                />
+              </th>
+
+              <th scope="col">
+                <TextWithTooltip
+                  text="Request Type"
+                  tooltip="Edit, Extension, or Withdrawl Request"
+                />
+              </th>
+
+              <th scope="col">
+                <TextWithTooltip
+                  text="Submitted By"
+                  tooltip="Person that submitted this request"
+                />
+              </th>
+
+              <th scope="col" className={clsx("tw:text-right")}>
+                <TextWithTooltip
+                  text="Date"
+                  tooltip="Date this request was submitted"
+                />
+              </th>
+            </tr>
+          </thead>
+          <tbody className={clsx("tw:[&_:is(th,td)]:text-[15px]")}>
+            {changeRequests.map((request, index) => {
+              const { _id, modified, data } = request;
+              const {
+                _request_form,
+                _bap_rebate_id,
+                _mongo_id,
+                _user_email,
+                request_type,
+              } = data;
+
+              const date = new Date(modified).toLocaleDateString();
+              const time = new Date(modified).toLocaleTimeString();
+
+              const formType =
+                _request_form === "frf"
+                  ? "Application"
+                  : _request_form === "prf"
+                    ? "Payment Request"
+                    : _request_form === "crf"
+                      ? "Close Out"
+                      : "";
+
+              return (
+                <Fragment key={index}>
+                  <tr>
+                    <th scope="row">
+                      <Link to={`/change/2022/${_id}`} viewTransition>
+                        {_bap_rebate_id || _mongo_id}
+                      </Link>
+                    </th>
+
+                    <th scope="row">
+                      <span>{formType}</span>
+                    </th>
+
+                    <td>
+                      <span>{request_type?.label}</span>
+                    </td>
+
+                    <td>{_user_email}</td>
+
+                    <td className={clsx("tw:min-[480px]:text-right")}>
+                      <span title={`${date} ${time}`}>{date}</span>
+                    </td>
+                  </tr>
+                </Fragment>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </details>
+  );
+}
+
 function FRF2022Submission(props: { rebate: Rebate2022 }) {
   const { rebate } = props;
-  const { frf, prf, crf } = rebate;
+  const { rebateYear, frf, prf, crf } = rebate;
 
-  const configData = useConfigData();
+  const comboKeyFieldName = getComboKeyFieldName(rebateYear);
+
+  const frfComboKey = String(frf.formio.data?.[comboKeyFieldName] ?? "");
+
+  const { email } = useOutletContext<{ email: string }>();
+
+  const privateConfigData = usePrivateConfigData();
   const bapSamData = useBapSamData();
 
-  if (!configData || !bapSamData) return null;
+  if (!privateConfigData || !bapSamData) return null;
 
-  /** matched SAM.gov entity for the FRF submission */
+  /**
+   * Matched SAM.gov entity for the FRF submission.
+   */
   const entity = bapSamData.entities.find((entity) => {
-    const comboKey = frf.formio.data.bap_hidden_entity_combo_key;
-    return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === comboKey;
+    return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === frfComboKey;
   });
 
   if (!entity) return null;
 
-  const frfSubmissionPeriodOpen = configData.submissionPeriodOpen["2022"].frf;
+  const { title, name } = getUserInfo(email, entity);
+
+  const frfSubmissionPeriodOpen =
+    privateConfigData.submissionPeriodOpen["2022"].frf;
 
   const {
+    sam_hidden_applicant_name,
     applicantUEI,
     applicantEfti,
     applicantEfti_display,
     applicantOrganizationName,
     schoolDistrictName,
+    schoolDistrictState,
     last_updated_by,
   } = frf.formio.data;
 
@@ -393,18 +547,44 @@ save the form for the EFT indicator to be displayed. */
         <br />
         <span title={`${date} ${time}`}>{date}</span>
       </td>
+
+      <td className={clsx("tw:min-[30rem]:text-right")}>
+        <ChangeRequest2022Button
+          formType={"frf"}
+          comboKey={frfComboKey}
+          rebateId={frf.bap?.rebateId || null}
+          mongoId={frf.formio._id}
+          formioState={frf.formio.state || ""}
+          bapStatus={frfBapStatus || ""}
+          data={{
+            userEmail: email,
+            userTitle: title,
+            userName: name,
+            applicantName: sam_hidden_applicant_name,
+            districtName: schoolDistrictName,
+            districtState: schoolDistrictState,
+          }}
+        />
+      </td>
     </tr>
   );
 }
 
 function PRF2022Submission(props: { rebate: Rebate2022 }) {
   const { rebate } = props;
-  const { frf, prf, crf } = rebate;
+  const { rebateYear, frf, prf, crf } = rebate;
+
+  const comboKeyFieldName = getComboKeyFieldName(rebateYear);
+  const rebateIdFieldName = getRebateIdFieldName(rebateYear);
+
+  const frfComboKey = String(frf.formio.data?.[comboKeyFieldName] ?? "");
+  const prfComboKey = String(prf.formio?.data?.[comboKeyFieldName] ?? "");
+  const prfRebateId = String(prf.formio?.data?.[rebateIdFieldName] ?? "");
 
   const navigate = useNavigate();
   const { email } = useOutletContext<{ email: string }>();
 
-  const configData = useConfigData();
+  const privateConfigData = usePrivateConfigData();
   const bapSamData = useBapSamData();
   const { displayErrorNotification } = useNotificationsActions();
 
@@ -415,19 +595,22 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
    */
   const [dataIsPosting, setDataIsPosting] = useState(false);
 
-  if (!configData || !bapSamData) return null;
+  if (!privateConfigData || !bapSamData) return null;
 
-  /** matched SAM.gov entity for the FRF submission */
+  /**
+   * Matched SAM.gov entity for the FRF submission
+   * (as the PRF might not have been created yet).
+   */
   const entity = bapSamData.entities.find((entity) => {
-    const comboKey = frf.formio.data.bap_hidden_entity_combo_key;
-    return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === comboKey;
+    return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === frfComboKey;
   });
 
   if (!entity) return null;
 
   const { title, name } = getUserInfo(email, entity);
 
-  const prfSubmissionPeriodOpen = configData.submissionPeriodOpen["2022"].prf;
+  const prfSubmissionPeriodOpen =
+    privateConfigData.submissionPeriodOpen["2022"].prf;
 
   const frfSelected = frf.bap?.status === "Accepted";
   const frfSelectedButNoPRF = frfSelected && !Boolean(prf.formio);
@@ -513,7 +696,8 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
   // return if a Payment Request submission has not been created for this rebate
   if (!prf.formio) return null;
 
-  const { hidden_current_user_email, hidden_bap_rebate_id } = prf.formio.data;
+  const { hidden_current_user_email, applicantName, schoolDistrictName } =
+    prf.formio.data;
 
   const date = new Date(prf.formio.modified).toLocaleDateString();
   const time = new Date(prf.formio.modified).toLocaleTimeString();
@@ -546,7 +730,7 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
 
   const hiddenTableCellClassNames = "tw:!hidden tw:min-[30rem]:!table-cell";
 
-  const prfUrl = `/prf/2022/${hidden_bap_rebate_id}`;
+  const prfUrl = `/prf/2022/${prfRebateId}`;
 
   return (
     <tr
@@ -605,18 +789,44 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
         <br />
         <span title={`${date} ${time}`}>{date}</span>
       </td>
+
+      <td className={clsx("tw:min-[30rem]:text-right")}>
+        <ChangeRequest2022Button
+          formType={"prf"}
+          comboKey={prfComboKey}
+          rebateId={prfRebateId}
+          mongoId={prf.formio._id}
+          formioState={prf.formio.state || ""}
+          bapStatus={prfBapStatus || ""}
+          data={{
+            userEmail: email,
+            userTitle: title,
+            userName: name,
+            applicantName: applicantName,
+            districtName: schoolDistrictName,
+            districtState: "", // NOTE: not available in the 2022 PRF
+          }}
+        />
+      </td>
     </tr>
   );
 }
 
 function CRF2022Submission(props: { rebate: Rebate2022 }) {
   const { rebate } = props;
-  const { frf, prf, crf } = rebate;
+  const { rebateYear, frf, prf, crf } = rebate;
+
+  const comboKeyFieldName = getComboKeyFieldName(rebateYear);
+  const rebateIdFieldName = getRebateIdFieldName(rebateYear);
+
+  const prfComboKey = String(prf.formio?.data?.[comboKeyFieldName] ?? "");
+  const crfComboKey = String(crf.formio?.data?.[comboKeyFieldName] ?? "");
+  const crfRebateId = String(crf.formio?.data?.[rebateIdFieldName] ?? "");
 
   const navigate = useNavigate();
   const { email } = useOutletContext<{ email: string }>();
 
-  const configData = useConfigData();
+  const privateConfigData = usePrivateConfigData();
   const bapSamData = useBapSamData();
   const { displayErrorNotification } = useNotificationsActions();
 
@@ -627,19 +837,22 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
    */
   const [dataIsPosting, setDataIsPosting] = useState(false);
 
-  if (!configData || !bapSamData) return null;
+  if (!privateConfigData || !bapSamData) return null;
 
-  /** matched SAM.gov entity for the PRF submission */
+  /**
+   * Matched SAM.gov entity for the PRF submission
+   * (as the CRF might not have been created yet).
+   */
   const entity = bapSamData.entities.find((entity) => {
-    const comboKey = prf.formio?.data.bap_hidden_entity_combo_key;
-    return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === comboKey;
+    return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === prfComboKey;
   });
 
   if (!entity) return null;
 
   const { title, name } = getUserInfo(email, entity);
 
-  const crfSubmissionPeriodOpen = configData.submissionPeriodOpen["2022"].crf;
+  const crfSubmissionPeriodOpen =
+    privateConfigData.submissionPeriodOpen["2022"].crf;
 
   const prfApproved = prf.bap?.status === "Accepted";
   const prfApprovedButNoCRF = prfApproved && !Boolean(crf.formio);
@@ -725,7 +938,7 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
   // return if a Close Out submission has not been created for this rebate
   if (!crf.formio) return null;
 
-  const { hidden_current_user_email, hidden_bap_rebate_id } = crf.formio.data;
+  const { hidden_current_user_email, schoolDistrictName } = crf.formio.data;
 
   const date = new Date(crf.formio.modified).toLocaleDateString();
   const time = new Date(crf.formio.modified).toLocaleTimeString();
@@ -760,7 +973,7 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
 
   const hiddenTableCellClassNames = "tw:!hidden tw:min-[30rem]:!table-cell";
 
-  const crfUrl = `/crf/2022/${hidden_bap_rebate_id}`;
+  const crfUrl = `/crf/2022/${crfRebateId}`;
 
   return (
     <tr
@@ -823,20 +1036,51 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
         <br />
         <span title={`${date} ${time}`}>{date}</span>
       </td>
+
+      <td className={clsx("tw:min-[30rem]:text-right")}>
+        <ChangeRequest2022Button
+          formType={"crf"}
+          comboKey={crfComboKey}
+          rebateId={crfRebateId}
+          mongoId={crf.formio._id}
+          formioState={crf.formio.state || ""}
+          bapStatus={crfBapStatus || ""}
+          data={{
+            userEmail: email,
+            userTitle: title,
+            userName: name,
+            applicantName: "", // NOTE: not available in the 2022 CRF
+            districtName: schoolDistrictName,
+            districtState: "", // NOTE: not available in the 2022 CRF
+          }}
+        />
+      </td>
     </tr>
   );
 }
 
 function Submissions2022() {
-  const content = useContentData();
-  const submissionsQueries = useSubmissionsQueries("2022");
-  const submissions = useSubmissions("2022");
+  const rebateYear = "2022";
 
-  if (submissionsQueries.some((query) => query.isFetching)) {
+  const publicConfigData = usePublicConfigData();
+  const { staticContent } = publicConfigData || {};
+
+  const changeRequestsQuery = useChangeRequestsQuery({ rebateYear });
+  const submissionsQueries = useSubmissionsQueries(rebateYear);
+  const submissions = useSubmissions(rebateYear);
+
+  if (
+    !staticContent ||
+    changeRequestsQuery.isLoading ||
+    submissionsQueries.some((query) => query.isFetching)
+  ) {
     return <Loading />;
   }
 
-  if (submissionsQueries.some((query) => query.isError)) {
+  if (
+    changeRequestsQuery.isError ||
+    submissionsQueries.some((query) => query.isError)
+  ) {
     return <Message type="error" text={messages.formSubmissionsError} />;
   }
 
@@ -850,21 +1094,21 @@ function Submissions2022() {
 
   return (
     <>
-      {content && (
-        <div className="margin-top-4">
-          <MarkdownContent children={content.allRebatesIntro} />
-        </div>
-      )}
+      {changeRequestsQuery.isFetching ? <Loading /> : <ChangeRequests2022 />}
+
+      <div className="margin-top-4">
+        <MarkdownContent children={staticContent.allRebatesIntro} />
+      </div>
 
       <div className="usa-table-container--scrollable" tabIndex={0}>
         <table
           aria-label="Your 2022 Rebate Forms"
           className="usa-table usa-table--stacked usa-table--borderless width-full"
         >
-          <SubmissionsTableHeader rebateYear="2022" />
+          <SubmissionsTableHeader />
           <tbody className={clsx("tw:[&_:is(th,td)]:text-[15px]")}>
             {submissions.map((rebate, index) => {
-              return rebate.rebateYear === "2022" ? (
+              return rebate.rebateYear === rebateYear ? (
                 <Fragment key={rebate.rebateId}>
                   <FRF2022Submission rebate={rebate} />
                   <PRF2022Submission rebate={rebate} />
@@ -894,12 +1138,9 @@ function Submissions2022() {
 /* --- 2023 Submissions --- */
 
 function ChangeRequests2023() {
-  const changeRequestsQuery = useChangeRequestsQuery("2023");
-  const changeRequests = useChangeRequests("2023");
+  const rebateYear = "2023";
 
-  if (changeRequestsQuery.isFetching) {
-    return <Loading />;
-  }
+  const changeRequests = useChangeRequests(rebateYear);
 
   if (!changeRequests || changeRequests.length === 0) return null;
 
@@ -1041,30 +1282,35 @@ function ChangeRequests2023() {
 
 function FRF2023Submission(props: { rebate: Rebate2023 }) {
   const { rebate } = props;
-  const { frf, prf, crf } = rebate;
+  const { rebateYear, frf, prf, crf } = rebate;
+
+  const comboKeyFieldName = getComboKeyFieldName(rebateYear);
+
+  const frfComboKey = String(frf.formio.data?.[comboKeyFieldName] ?? "");
 
   const { email } = useOutletContext<{ email: string }>();
 
-  const configData = useConfigData();
+  const privateConfigData = usePrivateConfigData();
   const bapSamData = useBapSamData();
 
-  if (!configData || !bapSamData) return null;
+  if (!privateConfigData || !bapSamData) return null;
 
-  /** matched SAM.gov entity for the FRF submission */
+  /**
+   * Matched SAM.gov entity for the FRF submission.
+   */
   const entity = bapSamData.entities.find((entity) => {
-    const comboKey = frf.formio.data._bap_entity_combo_key;
-    return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === comboKey;
+    return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === frfComboKey;
   });
 
   if (!entity) return null;
 
   const { title, name } = getUserInfo(email, entity);
 
-  const frfSubmissionPeriodOpen = configData.submissionPeriodOpen["2023"].frf;
+  const frfSubmissionPeriodOpen =
+    privateConfigData.submissionPeriodOpen["2023"].frf;
 
   const {
     _user_email,
-    _bap_entity_combo_key,
     _bap_applicant_name,
     appInfo_uei,
     appInfo_efti,
@@ -1247,15 +1493,16 @@ handle when it's value is an empty string. */}
 
       <td className={clsx("tw:min-[30rem]:text-right")}>
         <ChangeRequest2023Button
+          formType={"frf"}
+          comboKey={frfComboKey}
+          rebateId={frf.bap?.rebateId || null}
+          mongoId={frf.formio._id}
+          formioState={frf.formio.state || ""}
+          bapStatus={frfBapStatus || ""}
           data={{
-            formType: "frf",
-            comboKey: _bap_entity_combo_key,
-            rebateId: frf.bap?.rebateId || null,
-            mongoId: frf.formio._id,
-            state: frf.formio.state || "",
-            email,
-            title,
-            name,
+            userEmail: email,
+            userTitle: title,
+            userName: name,
             applicantName: _bap_applicant_name,
             districtName: org_district_orgName,
             districtState: org_district_state,
@@ -1268,12 +1515,19 @@ handle when it's value is an empty string. */}
 
 function PRF2023Submission(props: { rebate: Rebate2023 }) {
   const { rebate } = props;
-  const { frf, prf, crf } = rebate;
+  const { rebateYear, frf, prf, crf } = rebate;
+
+  const comboKeyFieldName = getComboKeyFieldName(rebateYear);
+  const rebateIdFieldName = getRebateIdFieldName(rebateYear);
+
+  const frfComboKey = String(frf.formio.data?.[comboKeyFieldName] ?? "");
+  const prfComboKey = String(prf.formio?.data?.[comboKeyFieldName] ?? "");
+  const prfRebateId = String(prf.formio?.data?.[rebateIdFieldName] ?? "");
 
   const navigate = useNavigate();
   const { email } = useOutletContext<{ email: string }>();
 
-  const configData = useConfigData();
+  const privateConfigData = usePrivateConfigData();
   const bapSamData = useBapSamData();
   const { displayErrorNotification } = useNotificationsActions();
 
@@ -1284,19 +1538,22 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
    */
   const [dataIsPosting, setDataIsPosting] = useState(false);
 
-  if (!configData || !bapSamData) return null;
+  if (!privateConfigData || !bapSamData) return null;
 
-  /** matched SAM.gov entity for the FRF submission */
+  /**
+   * Matched SAM.gov entity for the FRF submission
+   * (as the PRF might not have been created yet).
+   */
   const entity = bapSamData.entities.find((entity) => {
-    const comboKey = frf.formio.data._bap_entity_combo_key;
-    return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === comboKey;
+    return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === frfComboKey;
   });
 
   if (!entity) return null;
 
   const { title, name } = getUserInfo(email, entity);
 
-  const prfSubmissionPeriodOpen = configData.submissionPeriodOpen["2023"].prf;
+  const prfSubmissionPeriodOpen =
+    privateConfigData.submissionPeriodOpen["2023"].prf;
 
   const frfSelected = frf.bap?.status === "Accepted";
   const frfSelectedButNoPRF = frfSelected && !Boolean(prf.formio);
@@ -1384,8 +1641,6 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
 
   const {
     _user_email,
-    _bap_entity_combo_key,
-    _bap_rebate_id,
     _bap_applicant_name,
     _bap_district_name,
     _bap_district_state,
@@ -1422,7 +1677,7 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
 
   const hiddenTableCellClassNames = "tw:!hidden tw:min-[30rem]:!table-cell";
 
-  const prfUrl = `/prf/2023/${_bap_rebate_id}`;
+  const prfUrl = `/prf/2023/${prfRebateId}`;
 
   return (
     <tr
@@ -1484,15 +1739,16 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
 
       <td className={clsx("tw:min-[30rem]:text-right")}>
         <ChangeRequest2023Button
+          formType={"prf"}
+          comboKey={prfComboKey}
+          rebateId={prfRebateId}
+          mongoId={prf.formio._id}
+          formioState={prf.formio.state || ""}
+          bapStatus={prfBapStatus || ""}
           data={{
-            formType: "prf",
-            comboKey: _bap_entity_combo_key,
-            rebateId: _bap_rebate_id,
-            mongoId: prf.formio._id,
-            state: prf.formio.state || "",
-            email,
-            title,
-            name,
+            userEmail: email,
+            userTitle: title,
+            userName: name,
             applicantName: _bap_applicant_name,
             districtName: _bap_district_name,
             districtState: _bap_district_state,
@@ -1503,18 +1759,271 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
   );
 }
 
-// function CRF2023Submission(props: { rebate: Rebate2023 }) {
-//   //
-// }
+function CRF2023Submission(props: { rebate: Rebate2023 }) {
+  const { rebate } = props;
+  const { rebateYear, frf, prf, crf } = rebate;
+
+  const comboKeyFieldName = getComboKeyFieldName(rebateYear);
+  const rebateIdFieldName = getRebateIdFieldName(rebateYear);
+
+  const prfComboKey = String(prf.formio?.data?.[comboKeyFieldName] ?? "");
+  const crfComboKey = String(crf.formio?.data?.[comboKeyFieldName] ?? "");
+  const crfRebateId = String(crf.formio?.data?.[rebateIdFieldName] ?? "");
+
+  const navigate = useNavigate();
+  const { email } = useOutletContext<{ email: string }>();
+
+  const privateConfigData = usePrivateConfigData();
+  const bapSamData = useBapSamData();
+  const { displayErrorNotification } = useNotificationsActions();
+
+  /**
+   * Stores when data is being posted to the server, so a loading indicator can
+   * be rendered inside the "New Close Out" button, and we can prevent double
+   * submits/creations of new Close Out form submissions.
+   */
+  const [dataIsPosting, setDataIsPosting] = useState(false);
+
+  if (!privateConfigData || !bapSamData) return null;
+
+  /**
+   * Matched SAM.gov entity for the PRF submission
+   * (as the CRF might not have been created yet).
+   */
+  const entity = bapSamData.entities.find((entity) => {
+    return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === prfComboKey;
+  });
+
+  if (!entity) return null;
+
+  const { title, name } = getUserInfo(email, entity);
+
+  const crfSubmissionPeriodOpen =
+    privateConfigData.submissionPeriodOpen["2023"].crf;
+
+  const prfApproved = prf.bap?.status === "Accepted";
+  const prfApprovedButNoCRF = prfApproved && !Boolean(crf.formio);
+
+  if (prfApprovedButNoCRF) {
+    return (
+      <tr className={highlightedTableRowClassNames}>
+        <th scope="row" colSpan={7}>
+          <button
+            className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
+            disabled={!crfSubmissionPeriodOpen}
+            onClick={(_ev) => {
+              if (!crfSubmissionPeriodOpen) return;
+              if (!frf.bap || !prf.bap) return;
+
+              // account for when data is posting to prevent double submits
+              if (dataIsPosting) return;
+              setDataIsPosting(true);
+
+              // create a new draft CRF submission
+              postData(`${serverUrl}/api/formio/2023/crf-submission/`, {
+                email,
+                title,
+                name,
+                entity,
+                comboKey: prf.bap.comboKey,
+                rebateId: prf.bap.rebateId, // CSB Rebate ID (6 digits)
+                frfReviewItemId: frf.bap.reviewItemId, // CSB Rebate ID with form/version ID (9 digits)
+                prfReviewItemId: prf.bap.reviewItemId, // CSB Rebate ID with form/version ID (9 digits)
+                prfModified: prf.bap.modified,
+              })
+                .then((_res) => {
+                  navigate(`/crf/2023/${prf.bap?.rebateId}`, {
+                    viewTransition: true,
+                  });
+                })
+                .catch((_err) => {
+                  displayErrorNotification({
+                    id: Date.now(),
+                    body: (
+                      <>
+                        <p
+                          className={clsx(
+                            "tw:text-sm tw:font-medium tw:text-gray-900",
+                          )}
+                        >
+                          Error creating Close Out <em>{prf.bap?.rebateId}</em>.
+                        </p>
+                        <p
+                          className={clsx(
+                            "tw:mt-1 tw:text-sm tw:text-gray-500",
+                          )}
+                        >
+                          Please try again.
+                        </p>
+                      </>
+                    ),
+                  });
+                })
+                .finally(() => {
+                  setDataIsPosting(false);
+                });
+            }}
+          >
+            <span className="display-flex flex-align-center">
+              <svg
+                className="usa-icon"
+                aria-hidden="true"
+                focusable="false"
+                role="img"
+              >
+                <use href={`${icons}#add_circle`} />
+              </svg>
+              <span className="margin-left-1">New Close Out</span>
+              {dataIsPosting && <LoadingButtonIcon position="end" />}
+            </span>
+          </button>
+        </th>
+      </tr>
+    );
+  }
+
+  // return if a Close Out submission has not been created for this rebate
+  if (!crf.formio) return null;
+
+  const {
+    _user_email,
+    _bap_applicant_name,
+    _bap_district_name,
+    _bap_district_state,
+  } = crf.formio.data;
+
+  const date = new Date(crf.formio.modified).toLocaleDateString();
+  const time = new Date(crf.formio.modified).toLocaleTimeString();
+
+  const crfNeedsEdits = submissionNeedsEdits({
+    formio: crf.formio,
+    bap: crf.bap,
+  });
+
+  const crfBapInternalStatus = crf.bap?.status || "";
+  const crfBapStatus = bapStatusMap["2023"].crf.get(crfBapInternalStatus);
+  const crfFormioStatus = formioStatusMap.get(crf.formio.state || "");
+  const crfBapReimbursementNeeded = crf.bap?.reimbursementNeeded || false;
+
+  const crfNeedsReimbursement = submissionNeedsReimbursement({
+    status: crfBapInternalStatus,
+    reimbursementNeeded: crfBapReimbursementNeeded,
+  });
+
+  const crfStatus = crfNeedsEdits
+    ? "Edits Requested"
+    : crfNeedsReimbursement
+      ? "Reimbursement Needed"
+      : crfBapStatus || crfFormioStatus || "";
+
+  const crfApproved = crfStatus === "Close Out Approved";
+
+  const statusTableCellClassNames =
+    crfFormioStatus === "Submitted" || !crfSubmissionPeriodOpen
+      ? "text-italic"
+      : "";
+
+  const hiddenTableCellClassNames = "tw:!hidden tw:min-[30rem]:!table-cell";
+
+  const crfUrl = `/crf/2023/${crfRebateId}`;
+
+  return (
+    <tr
+      className={
+        crfNeedsEdits || prfApprovedButNoCRF
+          ? highlightedTableRowClassNames
+          : defaultTableRowClassNames
+      }
+    >
+      <th scope="row" className={statusTableCellClassNames}>
+        {crfNeedsEdits ? (
+          <FormLink type="edit" to={crfUrl} />
+        ) : crf.formio.state === "submitted" || !crfSubmissionPeriodOpen ? (
+          <FormLink type="view" to={crfUrl} />
+        ) : crf.formio.state === "draft" ? (
+          <FormLink type="edit" to={crfUrl} />
+        ) : null}
+      </th>
+
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
+
+      <td className={statusTableCellClassNames}>
+        <span>Close Out</span>
+        <br />
+        <span className="display-flex flex-align-center font-sans-2xs">
+          {crfStatus === "Needs Clarification" ? (
+            <TextWithTooltip
+              text={crfStatus}
+              tooltip="Check your email for instructions on what needs clarification"
+              iconClassNames="text-base-darkest"
+            />
+          ) : crfStatus === "Reimbursement Needed" ? (
+            <TextWithTooltip
+              text={crfStatus}
+              tooltip="Check your email for information on reimbursement needed"
+              iconClassNames="text-base-darkest"
+            />
+          ) : (
+            <>
+              <svg
+                className={clsx("usa-icon", crfApproved && "text-primary")}
+                aria-hidden="true"
+                focusable="false"
+                role="img"
+              >
+                <use href={`${icons}#${statusIconMap.get(crfStatus)}`} />
+              </svg>
+              <span className="margin-left-05">{crfStatus}</span>
+            </>
+          )}
+        </span>
+      </td>
+
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
+
+      <td className={hiddenTableCellClassNames}>&nbsp;</td>
+
+      <td className={statusTableCellClassNames}>
+        {_user_email}
+        <br />
+        <span title={`${date} ${time}`}>{date}</span>
+      </td>
+
+      <td className={clsx("tw:min-[30rem]:text-right")}>
+        <ChangeRequest2023Button
+          formType={"crf"}
+          comboKey={crfComboKey}
+          rebateId={crfRebateId}
+          mongoId={crf.formio._id}
+          formioState={crf.formio.state || ""}
+          bapStatus={crfBapStatus || ""}
+          data={{
+            userEmail: email,
+            userTitle: title,
+            userName: name,
+            applicantName: _bap_applicant_name,
+            districtName: _bap_district_name,
+            districtState: _bap_district_state,
+          }}
+        />
+      </td>
+    </tr>
+  );
+}
 
 function Submissions2023() {
-  const content = useContentData();
-  const changeRequestsQuery = useChangeRequestsQuery("2023");
-  const submissionsQueries = useSubmissionsQueries("2023");
-  const submissions = useSubmissions("2023");
+  const rebateYear = "2023";
+
+  const publicConfigData = usePublicConfigData();
+  const { staticContent } = publicConfigData || {};
+
+  const changeRequestsQuery = useChangeRequestsQuery({ rebateYear });
+  const submissionsQueries = useSubmissionsQueries(rebateYear);
+  const submissions = useSubmissions(rebateYear);
 
   if (
-    changeRequestsQuery.isInitialLoading ||
+    !staticContent ||
+    changeRequestsQuery.isLoading ||
     submissionsQueries.some((query) => query.isFetching)
   ) {
     return <Loading />;
@@ -1537,27 +2046,25 @@ function Submissions2023() {
 
   return (
     <>
-      <ChangeRequests2023 />
+      {changeRequestsQuery.isFetching ? <Loading /> : <ChangeRequests2023 />}
 
-      {content && (
-        <div className="margin-top-4">
-          <MarkdownContent children={content.allRebatesIntro} />
-        </div>
-      )}
+      <div className="margin-top-4">
+        <MarkdownContent children={staticContent.allRebatesIntro} />
+      </div>
 
       <div className="usa-table-container--scrollable" tabIndex={0}>
         <table
           aria-label="Your 2023 Rebate Forms"
           className="usa-table usa-table--stacked usa-table--borderless width-full"
         >
-          <SubmissionsTableHeader rebateYear="2023" />
+          <SubmissionsTableHeader />
           <tbody className={clsx("tw:[&_:is(th,td)]:text-[15px]")}>
             {submissions.map((rebate, index) => {
-              return rebate.rebateYear === "2023" ? (
+              return rebate.rebateYear === rebateYear ? (
                 <Fragment key={rebate.rebateId}>
                   <FRF2023Submission rebate={rebate} />
                   <PRF2023Submission rebate={rebate} />
-                  {/* <CRF2023Submission rebate={rebate} /> */}
+                  <CRF2023Submission rebate={rebate} />
                   {/* blank row after all submissions but the last one */}
                   {index !== submissions.length - 1 && (
                     <tr className={clsx("tw:bg-white")}>
@@ -1583,12 +2090,9 @@ function Submissions2023() {
 /* --- 2024 Submissions --- */
 
 function ChangeRequests2024() {
-  const changeRequestsQuery = useChangeRequestsQuery("2024");
-  const changeRequests = useChangeRequests("2024");
+  const rebateYear = "2024";
 
-  if (changeRequestsQuery.isFetching) {
-    return <Loading />;
-  }
+  const changeRequests = useChangeRequests(rebateYear);
 
   if (!changeRequests || changeRequests.length === 0) return null;
 
@@ -1730,30 +2234,35 @@ function ChangeRequests2024() {
 
 function FRF2024Submission(props: { rebate: Rebate2024 }) {
   const { rebate } = props;
-  const { frf, prf, crf } = rebate;
+  const { rebateYear, frf, prf, crf } = rebate;
+
+  const comboKeyFieldName = getComboKeyFieldName(rebateYear);
+
+  const frfComboKey = String(frf.formio.data?.[comboKeyFieldName] ?? "");
 
   const { email } = useOutletContext<{ email: string }>();
 
-  const configData = useConfigData();
+  const privateConfigData = usePrivateConfigData();
   const bapSamData = useBapSamData();
 
-  if (!configData || !bapSamData) return null;
+  if (!privateConfigData || !bapSamData) return null;
 
-  /** matched SAM.gov entity for the FRF submission */
+  /**
+   * Matched SAM.gov entity for the FRF submission.
+   */
   const entity = bapSamData.entities.find((entity) => {
-    const comboKey = frf.formio.data._bap_entity_combo_key;
-    return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === comboKey;
+    return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === frfComboKey;
   });
 
   if (!entity) return null;
 
   const { title, name } = getUserInfo(email, entity);
 
-  const frfSubmissionPeriodOpen = configData.submissionPeriodOpen["2024"].frf;
+  const frfSubmissionPeriodOpen =
+    privateConfigData.submissionPeriodOpen["2024"].frf;
 
   const {
     _user_email,
-    _bap_entity_combo_key,
     _bap_applicant_name,
     _formio_schoolDistrictName,
     appInfo_uei,
@@ -1921,15 +2430,16 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 
       <td className={clsx("tw:min-[30rem]:text-right")}>
         <ChangeRequest2024Button
+          formType={"frf"}
+          comboKey={frfComboKey}
+          rebateId={frf.bap?.rebateId || null}
+          mongoId={frf.formio._id}
+          formioState={frf.formio.state || ""}
+          bapStatus={frfBapStatus || ""}
           data={{
-            formType: "frf",
-            comboKey: _bap_entity_combo_key,
-            rebateId: frf.bap?.rebateId || null,
-            mongoId: frf.formio._id,
-            state: frf.formio.state || "",
-            email,
-            title,
-            name,
+            userEmail: email,
+            userTitle: title,
+            userName: name,
             applicantName: _bap_applicant_name,
             districtName: org_district_name,
             districtState: org_district_state,
@@ -1942,12 +2452,19 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 
 // function PRF2024Submission(props: { rebate: Rebate2024 }) {
 //   const { rebate } = props;
-//   const { frf, prf, crf } = rebate;
+//   const { rebateYear, frf, prf, crf } = rebate;
+
+//   const comboKeyFieldName = getComboKeyFieldName(rebateYear);
+//   const rebateIdFieldName = getRebateIdFieldName(rebateYear);
+
+//   const frfComboKey = String(frf.formio.data?.[comboKeyFieldName] ?? "");
+//   const prfComboKey = String(prf.formio?.data?.[comboKeyFieldName] ?? "");
+//   const prfRebateId = String(prf.formio?.data?.[rebateIdFieldName] ?? "");
 
 //   const navigate = useNavigate();
 //   const { email } = useOutletContext<{ email: string }>();
 
-//   const configData = useConfigData();
+//   const privateConfigData = usePrivateConfigData();
 //   const bapSamData = useBapSamData();
 //   const { displayErrorNotification } = useNotificationsActions();
 
@@ -1958,19 +2475,22 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 //    */
 //   const [dataIsPosting, setDataIsPosting] = useState(false);
 
-//   if (!configData || !bapSamData) return null;
+//   if (!privateConfigData || !bapSamData) return null;
 
-//   /** matched SAM.gov entity for the FRF submission */
+//   /**
+//    * Matched SAM.gov entity for the FRF submission
+//    * (as the PRF might not have been created yet).
+//    */
 //   const entity = bapSamData.entities.find((entity) => {
-//     const comboKey = frf.formio.data._bap_entity_combo_key;
-//     return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === comboKey;
+//     return entityIsActive(entity) && entity.ENTITY_COMBO_KEY__c === frfComboKey;
 //   });
 
 //   if (!entity) return null;
 
 //   const { title, name } = getUserInfo(email, entity);
 
-//   const prfSubmissionPeriodOpen = configData.submissionPeriodOpen["2024"].prf;
+//   const prfSubmissionPeriodOpen =
+//     privateConfigData.submissionPeriodOpen["2024"].prf;
 
 //   const frfSelected = frf.bap?.status === "Accepted";
 //   const frfSelectedButNoPRF = frfSelected && !Boolean(prf.formio);
@@ -2056,8 +2576,6 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 
 //   const {
 //     _user_email,
-//     _bap_entity_combo_key,
-//     _bap_rebate_id,
 //     _bap_applicant_name,
 //     _bap_district_name,
 //     _bap_district_state,
@@ -2094,7 +2612,7 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 
 //   const hiddenTableCellClassNames = "tw:!hidden tw:min-[30rem]:!table-cell";
 
-//   const prfUrl = `/prf/2024/${_bap_rebate_id}`;
+//   const prfUrl = `/prf/2024/${prfRebateId}`;
 
 //   return (
 //     <tr
@@ -2156,15 +2674,16 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 
 //       <td className={clsx("tw:min-[30rem]:text-right")}>
 //         <ChangeRequest2024Button
+//           formType={"prf"}
+//           comboKey={prfComboKey}
+//           rebateId={prfRebateId}
+//           mongoId={prf.formio._id}
+//           formioState={prf.formio.state || ""}
+//           bapStatus={prfBapStatus || ""}
 //           data={{
-//             formType: "prf",
-//             comboKey: _bap_entity_combo_key,
-//             rebateId: _bap_rebate_id,
-//             mongoId: prf.formio._id,
-//             state: prf.formio.state || "",
-//             email,
-//             title,
-//             name,
+//             userEmail: email,
+//             userTitle: title,
+//             userName: name,
 //             applicantName: _bap_applicant_name,
 //             districtName: _bap_district_name,
 //             districtState: _bap_district_state,
@@ -2180,13 +2699,18 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 // }
 
 function Submissions2024() {
-  const content = useContentData();
-  const changeRequestsQuery = useChangeRequestsQuery("2024");
-  const submissionsQueries = useSubmissionsQueries("2024");
-  const submissions = useSubmissions("2024");
+  const rebateYear = "2024";
+
+  const publicConfigData = usePublicConfigData();
+  const { staticContent } = publicConfigData || {};
+
+  const changeRequestsQuery = useChangeRequestsQuery({ rebateYear });
+  const submissionsQueries = useSubmissionsQueries(rebateYear);
+  const submissions = useSubmissions(rebateYear);
 
   if (
-    changeRequestsQuery.isInitialLoading ||
+    !staticContent ||
+    changeRequestsQuery.isLoading ||
     submissionsQueries.some((query) => query.isFetching)
   ) {
     return <Loading />;
@@ -2209,23 +2733,21 @@ function Submissions2024() {
 
   return (
     <>
-      <ChangeRequests2024 />
+      {changeRequestsQuery.isFetching ? <Loading /> : <ChangeRequests2024 />}
 
-      {content && (
-        <div className="margin-top-4">
-          <MarkdownContent children={content.allRebatesIntro} />
-        </div>
-      )}
+      <div className="margin-top-4">
+        <MarkdownContent children={staticContent.allRebatesIntro} />
+      </div>
 
       <div className="usa-table-container--scrollable" tabIndex={0}>
         <table
           aria-label="Your 2024 Rebate Forms"
           className="usa-table usa-table--stacked usa-table--borderless width-full"
         >
-          <SubmissionsTableHeader rebateYear="2024" />
+          <SubmissionsTableHeader />
           <tbody className={clsx("tw:[&_:is(th,td)]:text-[15px]")}>
             {submissions.map((rebate, index) => {
-              return rebate.rebateYear === "2024" ? (
+              return rebate.rebateYear === rebateYear ? (
                 <Fragment key={rebate.rebateId}>
                   <FRF2024Submission rebate={rebate} />
                   {/* <PRF2024Submission rebate={rebate} /> */}
@@ -2252,22 +2774,25 @@ function Submissions2024() {
   );
 }
 
-/* --- Submissions --- */
+/* --- Dashboard --- */
 
-export function Submissions() {
-  const content = useContentData();
-  const configData = useConfigData();
+export function Dashboard() {
+  const publicConfigData = usePublicConfigData();
+  const { staticContent } = publicConfigData || {};
+
+  const privateConfigData = usePrivateConfigData();
   const bapSamData = useBapSamData();
   const { rebateYear } = useRebateYearState();
   const { setRebateYear } = useRebateYearActions();
 
-  if (!rebateYear) {
+  if (!staticContent || !privateConfigData || !rebateYear) {
     return <Loading />;
   }
 
-  const frfSubmissionPeriodOpen = configData?.submissionPeriodOpen[rebateYear]
-    ? configData.submissionPeriodOpen[rebateYear].frf
-    : false;
+  const frfSubmissionPeriodOpen =
+    privateConfigData.submissionPeriodOpen[rebateYear] // prettier-ignore
+      ? privateConfigData.submissionPeriodOpen[rebateYear].frf
+      : false;
 
   const btnClassNames =
     "usa-button margin-0 padding-x-2 padding-y-1 width-full font-sans-2xs";
@@ -2325,11 +2850,9 @@ export function Submissions() {
       {rebateYear === "2023" && <Submissions2023 />}
       {rebateYear === "2024" && <Submissions2024 />}
 
-      {content && (
-        <div className="margin-top-4 padding-2 padding-bottom-0 border-1px border-base-lighter bg-base-lightest">
-          <MarkdownContent children={content.allRebatesOutro} />
-        </div>
-      )}
+      <div className="margin-top-4 padding-2 padding-bottom-0 border-1px border-base-lighter bg-base-lightest">
+        <MarkdownContent children={staticContent.allRebatesOutro} />
+      </div>
     </>
   );
 }

@@ -27,6 +27,7 @@ const {
   FORMIO_2022_FRF_PATH,
   FORMIO_2022_PRF_PATH,
   FORMIO_2022_CRF_PATH,
+  FORMIO_2022_CHANGE_PATH,
   FORMIO_2023_FRF_PATH,
   FORMIO_2023_PRF_PATH,
   FORMIO_2023_CRF_PATH,
@@ -52,7 +53,7 @@ const formUrl = {
     frf: `${formioProjectUrl}/${FORMIO_2022_FRF_PATH}`,
     prf: `${formioProjectUrl}/${FORMIO_2022_PRF_PATH}`,
     crf: `${formioProjectUrl}/${FORMIO_2022_CRF_PATH}`,
-    change: "", // NOTE: Change Request form was added in the 2023 rebate year
+    change: `${formioProjectUrl}/${FORMIO_2022_CHANGE_PATH}`,
   },
   2023: {
     frf: `${formioProjectUrl}/${FORMIO_2023_FRF_PATH}`,
@@ -150,6 +151,9 @@ const formioCSBMetadata = {
   "csb-app-cloud-origin": SERVER_URL || "localhost",
 };
 
+/** Example VIN value used in OpenAPI docs (used by EPA API scan) */
+const formioExampleVin = "00000000000000000";
+
 /** Example mongoId value used in OpenAPI docs (used by EPA API scan) */
 const formioExampleMongoId = "000000000000000000000000";
 
@@ -175,6 +179,7 @@ module.exports = {
   formIntroSubstring,
   submissionPeriodOpen,
   formioCSBMetadata,
+  formioExampleVin,
   formioExampleMongoId,
   formioExampleRebateId,
   formioExampleComboKey,

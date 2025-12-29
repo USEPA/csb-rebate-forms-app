@@ -1,7 +1,7 @@
 import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import {
-  type UseMutationResult,
+  type UseQueryResult,
   useQueryClient,
   useQuery,
   useMutation,
@@ -10,8 +10,8 @@ import { Formio } from "@formio/js";
 import { type FormType, Form } from "@formio/react";
 import clsx from "clsx";
 import { cloneDeep } from "lodash";
-import icon from "uswds/img/usa-icons-bg/search--white.svg";
-import icons from "uswds/img/sprite.svg";
+import search from "@uswds/uswds/img/usa-icons-bg/search--white.svg";
+import icons from "@uswds/uswds/img/sprite.svg";
 // ---
 import {
   type RebateYear,
@@ -22,10 +22,10 @@ import {
   type FormioCRF2022FormSubmission,
   type FormioFRF2023FormSubmission,
   type FormioPRF2023FormSubmission,
-  // type FormioCRF2023FormSubmission
+  type FormioCRF2023FormSubmission,
   type FormioFRF2024FormSubmission,
-  // type FormioPRF2025FormSubmission,
-  // type FormioCRF2023FormSubmission
+  // type FormioPRF2024FormSubmission,
+  // type FormioCRF2024FormSubmission
 } from "@/types";
 import {
   serverUrl,
@@ -38,7 +38,7 @@ import {
 import {
   getData,
   postData,
-  useContentData,
+  usePublicConfigData,
   useHelpdeskAccess,
   submissionNeedsEdits,
   submissionNeedsReimbursement,
@@ -121,6 +121,7 @@ function useSubmissionPDFQuery(options: {
     | FormioCRF2022FormSubmission
     | FormioFRF2023FormSubmission
     | FormioPRF2023FormSubmission
+    | FormioCRF2023FormSubmission
     | FormioFRF2024FormSubmission;
 }) {
   const { formio } = options;
@@ -165,12 +166,7 @@ function ResultTableRow(props: {
   setActionsData: Dispatch<
     SetStateAction<{ fetched: boolean; results: SubmissionAction[] }>
   >;
-  submissionMutation: UseMutationResult<
-    Response["formio"],
-    unknown,
-    DraftSubmission,
-    unknown
-  >;
+  submissionQuery: UseQueryResult<Response, Error>;
   formType: CSBFormType;
   rebateId: string | null;
   formio:
@@ -179,6 +175,7 @@ function ResultTableRow(props: {
     | FormioCRF2022FormSubmission
     | FormioFRF2023FormSubmission
     | FormioPRF2023FormSubmission
+    | FormioCRF2023FormSubmission
     | FormioFRF2024FormSubmission;
   bap: BapSubmissionData | null;
 }) {
@@ -186,7 +183,7 @@ function ResultTableRow(props: {
     formDisplayed,
     setFormDisplayed,
     setActionsData,
-    submissionMutation,
+    submissionQuery,
     formType,
     rebateId,
     formio,
@@ -205,11 +202,12 @@ function ResultTableRow(props: {
     queryClient.resetQueries({ queryKey: ["helpdesk/actions"] });
   }, [queryClient]);
 
-  const actionsUrl = `${serverUrl}/api/help/formio/actions/${formId}/${mongoId}`;
-
   const actionsQuery = useQuery({
     queryKey: ["helpdesk/actions"],
-    queryFn: () => getData<SubmissionAction[]>(actionsUrl),
+    queryFn: () => {
+      const url = `${serverUrl}/api/help/formio/actions/${formId}/${mongoId}`;
+      return getData<SubmissionAction[]>(url);
+    },
     enabled: false,
   });
 
@@ -224,6 +222,25 @@ function ResultTableRow(props: {
   }, [actionsQuery.status, actionsQuery.data, setActionsData]);
 
   const pdfQuery = useSubmissionPDFQuery({ formio });
+
+  const submissionMutation = useMutation({
+    mutationFn: (submission: DraftSubmission) => {
+      const url = `${serverUrl}/api/help/formio/submission/${rebateYear}/${formType}/${mongoId}`;
+      return postData<Response["formio"]>(url, submission);
+    },
+    onSuccess: (res, _payload, _context) => {
+      queryClient.setQueryData<Response>(
+        ["helpdesk/submission"],
+        (prevData) => {
+          return prevData?.formio
+            ? { ...prevData, formio: { ...prevData.formio, submission: res } }
+            : prevData;
+        },
+      );
+
+      submissionQuery.refetch();
+    },
+  });
 
   if (!rebateYear) {
     return null;
@@ -431,7 +448,9 @@ export function Helpdesk() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const content = useContentData();
+  const publicConfigData = usePublicConfigData();
+  const { staticContent } = publicConfigData || {};
+
   const helpdeskAccess = useHelpdeskAccess();
   const { rebateYear } = useRebateYearState();
   const { setRebateYear } = useRebateYearActions();
@@ -455,12 +474,11 @@ export function Helpdesk() {
     queryClient.resetQueries({ queryKey: ["helpdesk/submission"] });
   }, [queryClient]);
 
-  const submissionUrl = `${serverUrl}/api/help/formio/submission/${rebateYear}/${formType}/${searchText}`;
-
   const submissionQuery = useQuery({
     queryKey: ["helpdesk/submission"],
     queryFn: () => {
-      return getData<Response>(submissionUrl).then((res) => {
+      const url = `${serverUrl}/api/help/formio/submission/${rebateYear}/${formType}/${searchText}`;
+      return getData<Response>(url).then((res) => {
         /**
          * Change the formUrl the File component uses, so the s3 requests are
          * routed through the CSB server app.
@@ -494,24 +512,6 @@ export function Helpdesk() {
     }
   }, [submissionQuery.status, setResultDisplayed]);
 
-  const submissionMutation = useMutation({
-    mutationFn: (submission: DraftSubmission) => {
-      return postData<Response["formio"]>(submissionUrl, submission);
-    },
-    onSuccess: (res, _payload, _context) => {
-      queryClient.setQueryData<Response>(
-        ["helpdesk/submission"],
-        (prevData) => {
-          return prevData?.formio
-            ? { ...prevData, formio: { ...prevData.formio, submission: res } }
-            : prevData;
-        },
-      );
-
-      submissionQuery.refetch();
-    },
-  });
-
   const { rebateId, schema, formio, bap } = submissionQuery.data ?? {
     rebateId: null,
     schema: null,
@@ -519,7 +519,7 @@ export function Helpdesk() {
     bap: null,
   };
 
-  if (helpdeskAccess === "pending" || !rebateYear) {
+  if (!staticContent || helpdeskAccess === "pending" || !rebateYear) {
     return <Loading />;
   }
 
@@ -533,11 +533,9 @@ export function Helpdesk() {
 
   return (
     <>
-      {content && (
-        <div className="margin-top-4">
-          <MarkdownContent children={content.helpdeskIntro} />
-        </div>
-      )}
+      <div className="margin-top-4">
+        <MarkdownContent children={staticContent.helpdeskIntro} />
+      </div>
 
       <div className="margin-top-1 padding-2 border-1px border-base-lighter bg-base-lightest">
         <nav className="flex-align-center tablet:display-flex">
@@ -671,7 +669,7 @@ export function Helpdesk() {
               <span className="usa-search__submit-text">Search</span>
               <img
                 className="usa-search__submit-icon"
-                src={icon}
+                src={search}
                 alt="Search"
               />
             </button>
@@ -781,7 +779,7 @@ export function Helpdesk() {
                       formDisplayed={formDisplayed}
                       setFormDisplayed={setFormDisplayed}
                       setActionsData={setActionsData}
-                      submissionMutation={submissionMutation}
+                      submissionQuery={submissionQuery}
                       formType={formType}
                       rebateId={rebateId}
                       formio={formio}

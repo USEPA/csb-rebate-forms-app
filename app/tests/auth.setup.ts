@@ -1,19 +1,19 @@
 import path from "node:path";
 import { test, expect } from "@playwright/test";
-import "dotenv/config";
+// ---
+import { url, username, password } from "./config";
 
-const { TEST_USERNAME, TEST_PASSWORD } = process.env;
 const authFile = path.join(__dirname, "../playwright/.auth/user.json");
 
 test("log in", async ({ page }) => {
-  await page.goto("http://localhost:3000/welcome");
+  await page.goto(`${url}/welcome`);
 
   await page.getByRole("link", { name: "Sign in" }).click();
-  await page.getByLabel("Username").fill(TEST_USERNAME || "");
-  await page.getByLabel("Password").fill(TEST_PASSWORD || "");
+  await page.getByLabel("Username").fill(username);
+  await page.getByLabel("Password").fill(password);
   await page.getByRole("button", { name: "Login" }).click();
 
-  await page.waitForURL("http://localhost:3000/");
+  await page.waitForURL(url);
 
   const heading = page.getByRole("heading", {
     name: "Clean School Bus Rebate Forms",

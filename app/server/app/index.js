@@ -3,7 +3,7 @@ require("dotenv").config();
 const { resolve } = require("node:path");
 const { readFile } = require("node:fs/promises");
 const express = require("express");
-const axios = require("axios").default || require("axios"); // TODO: https://github.com/axios/axios/issues/5011
+const axios = require("axios");
 const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
@@ -30,6 +30,7 @@ const requiredEnvironmentVariables = [
   "JWT_PRIVATE_KEY",
   "JWT_PUBLIC_KEY",
   "CSB_REBATE_YEAR",
+  "CSB_LOGIN_ENABLED",
   "CSB_2022_FRF_OPEN",
   "CSB_2022_PRF_OPEN",
   "CSB_2022_CRF_OPEN",

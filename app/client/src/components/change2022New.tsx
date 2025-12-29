@@ -13,7 +13,7 @@ import { type FormType, type Submission, Form } from "@formio/react";
 import clsx from "clsx";
 import icons from "@uswds/uswds/img/sprite.svg";
 // ---
-import { type CSBFormType, type FormioChange2024FormSubmission } from "@/types";
+import { type CSBFormType, type FormioChange2022FormSubmission } from "@/types";
 import { serverUrl, messages } from "@/config";
 import {
   getData,
@@ -37,24 +37,24 @@ type SubmissionData = {
 
 /** Custom hook to fetch Formio schema and update Formio submission data */
 function useFormioSchemaQueryAndSubmissionMutation() {
-  const url = `${serverUrl}/api/formio/2024/change`;
+  const url = `${serverUrl}/api/formio/2022/change`;
 
   const query = useQuery({
-    queryKey: ["formio/2024/change"],
+    queryKey: ["formio/2022/change"],
     queryFn: () => getData<FormType>(url),
     refetchOnWindowFocus: false,
   });
 
   const mutation = useMutation({
     mutationFn: (submission: Submission) => {
-      return postData<FormioChange2024FormSubmission>(url, submission);
+      return postData<FormioChange2022FormSubmission>(url, submission);
     },
   });
 
   return { query, mutation };
 }
 
-export function ChangeRequest2024Button(props: {
+export function ChangeRequest2022Button(props: {
   formType: CSBFormType;
   comboKey: string;
   rebateId: string | null;
@@ -93,7 +93,7 @@ export function ChangeRequest2024Button(props: {
         </span>
       </button>
 
-      <ChangeRequest2024Dialog
+      <ChangeRequest2022Dialog
         dialogShown={dialogShown}
         closeDialog={closeDialog}
         {...props}
@@ -102,7 +102,7 @@ export function ChangeRequest2024Button(props: {
   );
 }
 
-function ChangeRequest2024Dialog(props: {
+function ChangeRequest2022Dialog(props: {
   dialogShown: boolean;
   closeDialog: () => void;
   formType: CSBFormType;
@@ -185,7 +185,7 @@ function ChangeRequest2024Dialog(props: {
               </div>
 
               <div className={clsx("tw:m-auto tw:max-w-6xl tw:p-4")}>
-                <ChangeRequest2024Form {...props} />
+                <ChangeRequest2022Form {...props} />
               </div>
             </TransitionChild>
             {/* </DialogPanel> */}
@@ -196,7 +196,7 @@ function ChangeRequest2024Dialog(props: {
   );
 }
 
-function ChangeRequest2024Form(props: {
+function ChangeRequest2022Form(props: {
   dialogShown: boolean;
   closeDialog: () => void;
   formType: CSBFormType;
@@ -228,7 +228,7 @@ function ChangeRequest2024Form(props: {
   } = useNotificationsActions();
 
   const changeRequestsQuery = useChangeRequestsQuery({
-    rebateYear: "2024",
+    rebateYear: "2022",
     enabled: false,
   });
 

@@ -5,7 +5,7 @@ import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
 import { type FormProps, type Submission, Form } from "@formio/react";
 import clsx from "clsx";
 import { cloneDeep, isEqual } from "lodash";
-import icons from "uswds/img/sprite.svg";
+import icons from "@uswds/uswds/img/sprite.svg";
 // ---
 import {
   type FormioSchemaAndSubmission,
@@ -13,10 +13,11 @@ import {
 } from "@/types";
 import { serverUrl, messages } from "@/config";
 import {
+  getComboKeyFieldName,
   getData,
   postData,
-  useContentData,
-  useConfigData,
+  usePublicConfigData,
+  usePrivateConfigData,
   useBapSamData,
   useSubmissionPDFQuery,
   useSubmissionsQueries,
@@ -83,11 +84,15 @@ export function CRF2022() {
 function CloseOutRequestForm(props: { email: string }) {
   const { email } = props;
 
+  const rebateYear = "2022";
+
   const navigate = useNavigate();
   const { id: rebateId } = useParams<"id">(); // CSB Rebate ID (6 digits)
 
-  const content = useContentData();
-  const configData = useConfigData();
+  const publicConfigData = usePublicConfigData();
+  const { staticContent } = publicConfigData || {};
+
+  const privateConfigData = usePrivateConfigData();
   const bapSamData = useBapSamData();
   const {
     displaySuccessNotification,
@@ -95,19 +100,21 @@ function CloseOutRequestForm(props: { email: string }) {
     dismissNotification,
   } = useNotificationsActions();
 
-  const submissionsQueries = useSubmissionsQueries("2022");
-  const submissions = useSubmissions("2022");
+  const submissionsQueries = useSubmissionsQueries(rebateYear);
+  const submissions = useSubmissions(rebateYear);
 
   const { query, mutation } = useFormioSubmissionQueryAndMutation(rebateId);
   const { access, schema, submission } = query.data ?? {};
 
+  const comboKeyFieldName = getComboKeyFieldName(rebateYear);
+
+  const crfComboKey = String(submission?.data?.[comboKeyFieldName] ?? "");
   const mongoId = submission?._id || "";
-  const comboKey = submission?.data.bap_hidden_entity_combo_key || "";
 
   const pdfQuery = useSubmissionPDFQuery({
-    rebateYear: "2022",
+    rebateYear,
     formType: "crf",
-    mongoId: submission?._id || "",
+    mongoId,
   });
 
   /**
@@ -141,7 +148,7 @@ function CloseOutRequestForm(props: { email: string }) {
    */
   const lastSuccesfullySubmittedData = useRef<{ [field: string]: unknown }>({});
 
-  if (!configData || !bapSamData) {
+  if (!staticContent || !privateConfigData || !bapSamData) {
     return <Loading />;
   }
 
@@ -153,7 +160,7 @@ function CloseOutRequestForm(props: { email: string }) {
     return <Message type="error" text={messages.formSubmissionsError} />;
   }
 
-  if (query.isInitialLoading) {
+  if (query.isLoading) {
     return <Loading />;
   }
 
@@ -170,16 +177,18 @@ function CloseOutRequestForm(props: { email: string }) {
         bap: rebate.crf.bap,
       });
 
-  const crfSubmissionPeriodOpen = configData.submissionPeriodOpen["2022"].crf;
+  const crfSubmissionPeriodOpen =
+    privateConfigData.submissionPeriodOpen[rebateYear].crf;
 
   const formIsReadOnly =
     (submission.state === "submitted" || !crfSubmissionPeriodOpen) &&
     !crfNeedsEdits;
 
-  /** matched SAM.gov entity for the Close Out submission */
+  /**
+   * Matched SAM.gov entity for the CRF submission.
+   */
   const entity = bapSamData.entities.find((entity) => {
-    const { ENTITY_COMBO_KEY__c } = entity;
-    return ENTITY_COMBO_KEY__c === submission.data.bap_hidden_entity_combo_key;
+    return entity.ENTITY_COMBO_KEY__c === crfComboKey;
   });
 
   if (!entity) {
@@ -198,19 +207,17 @@ function CloseOutRequestForm(props: { email: string }) {
 
   return (
     <div className="margin-top-2">
-      {content && (
-        <div className="margin-top-4">
-          <MarkdownContent
-            children={
-              submission.state === "draft"
-                ? content.draftCRFIntro
-                : submission.state === "submitted"
-                  ? content.submittedCRFIntro
-                  : ""
-            }
-          />
-        </div>
-      )}
+      <div className="margin-top-4">
+        <MarkdownContent
+          children={
+            submission.state === "draft"
+              ? staticContent.draftCRFIntro
+              : submission.state === "submitted"
+                ? staticContent.submittedCRFIntro
+                : ""
+          }
+        />
+      </div>
 
       <ul className="usa-icon-list">
         <li className="usa-icon-list__item">
@@ -225,7 +232,7 @@ function CloseOutRequestForm(props: { email: string }) {
         </li>
       </ul>
 
-      {submission?._id && (
+      {mongoId && (
         <p>
           <button
             className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
@@ -273,7 +280,7 @@ function CloseOutRequestForm(props: { email: string }) {
       <div className="csb-form">
         <Form
           src={schema}
-          url={`${serverUrl}/api/formio/2022/s3/crf/${mongoId}/${comboKey}`}
+          url={`${serverUrl}/api/formio/2022/s3/crf/${mongoId}/${crfComboKey}`}
           submission={{
             /**
              * NOTE: The `csb-form-submission-state` metadata field's value is
@@ -411,6 +418,7 @@ function CloseOutRequestForm(props: { email: string }) {
             // to the form (ignoring current user fields)
             const currentData = { ...data };
             const submittedData = { ...lastSuccesfullySubmittedData.current };
+
             delete currentData.hidden_current_user_email;
             delete currentData.hidden_current_user_title;
             delete currentData.hidden_current_user_name;

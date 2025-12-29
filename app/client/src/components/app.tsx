@@ -14,8 +14,8 @@ import { TooltipProvider } from "@radix-ui/react-tooltip";
 // ---
 import { serverBasePath, serverUrl, cloudSpace, messages } from "@/config";
 import {
-  useContentQuery,
-  useContentData,
+  usePublicConfigQuery,
+  usePublicConfigData,
   useUserQuery,
   useUserData,
 } from "@/utilities";
@@ -23,19 +23,20 @@ import { Loading } from "@/components/loading";
 import { Message } from "@/components/message";
 import { MarkdownContent } from "@/components/markdownContent";
 import { Welcome } from "@/routes/welcome";
-import { UserDashboard } from "@/components/userDashboard";
+import { UserLayout } from "@/components/userLayout";
 import { ConfirmationDialog } from "@/components/confirmationDialog";
 import { Notifications } from "@/components/notifications";
 import { Helpdesk } from "@/routes/helpdesk";
-import { Submissions } from "@/routes/submissions";
+import { Dashboard } from "@/routes/dashboard";
 import { FRFNew } from "@/routes/frfNew";
+import { Change2022 } from "@/routes/change2022";
 import { FRF2022 } from "@/routes/frf2022";
 import { PRF2022 } from "@/routes/prf2022";
 import { CRF2022 } from "@/routes/crf2022";
 import { Change2023 } from "@/routes/change2023";
 import { FRF2023 } from "@/routes/frf2023";
 import { PRF2023 } from "@/routes/prf2023";
-// import { CRF2023 } from "@/routes/crf2023";
+import { CRF2023 } from "@/routes/crf2023";
 import { Change2024 } from "@/routes/change2024";
 import { FRF2024 } from "@/routes/frf2024";
 // import { PRF2024 } from "@/routes/prf2024";
@@ -44,10 +45,11 @@ import { useDialogState, useDialogActions } from "@/contexts/dialog";
 
 /** Custom hook to display a site-wide alert banner */
 function useSiteAlertBanner() {
-  const content = useContentData();
+  const publicConfigData = usePublicConfigData();
+  const { staticContent } = publicConfigData || {};
 
   useEffect(() => {
-    if (!content || content.siteAlert === "") return;
+    if (!staticContent || staticContent.siteAlert === "") return;
 
     const container = document.querySelector(".usa-site-alert");
     if (!container) return;
@@ -63,7 +65,7 @@ function useSiteAlertBanner() {
           <div className="usa-alert__content">
             <div className="usa-alert__text">
               <MarkdownContent
-                children={content.siteAlert}
+                children={staticContent.siteAlert}
                 components={{
                   h1: (props) => <h3 className="usa-alert__heading">{props.children}</h3>, // prettier-ignore
                   h2: (props) => <h3 className="usa-alert__heading">{props.children}</h3>, // prettier-ignore
@@ -75,7 +77,7 @@ function useSiteAlertBanner() {
         </div>
       </div>,
     );
-  }, [content]);
+  }, [staticContent]);
 }
 
 /** Custom hook to display the CSB disclaimer banner for development/staging */
@@ -217,17 +219,21 @@ function ProtectedRoute() {
     return <Navigate to="/welcome" replace />;
   }
 
+  if (!data || !data.mail) {
+    return null;
+  }
+
   return (
     <TooltipProvider>
       <ConfirmationDialog />
       <Notifications />
-      <UserDashboard email={data?.mail || ""} />
+      <UserLayout email={data.mail} />
     </TooltipProvider>
   );
 }
 
 export function App() {
-  useContentQuery();
+  usePublicConfigQuery();
   useSiteAlertBanner();
   useDisclaimerBanner();
 
@@ -235,7 +241,7 @@ export function App() {
     <Route errorElement={<Message type="error" text={messages.genericError} />}>
       <Route path="/welcome" element={<Welcome />} />
       <Route path="/" element={<ProtectedRoute />}>
-        <Route index element={<Submissions />} />
+        <Route index element={<Dashboard />} />
 
         <Route path="helpdesk" element={<Helpdesk />} />
 
@@ -256,16 +262,17 @@ export function App() {
 
         <Route path="frf/new" element={<FRFNew />} />
 
+        <Route path="change/2022/:id" element={<Change2022 />} />
         <Route path="frf/2022/:id" element={<FRF2022 />} />
         <Route path="prf/2022/:id" element={<PRF2022 />} />
         <Route path="crf/2022/:id" element={<CRF2022 />} />
 
-        <Route path="/change/2023/:id" element={<Change2023 />} />
+        <Route path="change/2023/:id" element={<Change2023 />} />
         <Route path="frf/2023/:id" element={<FRF2023 />} />
         <Route path="prf/2023/:id" element={<PRF2023 />} />
-        {/* <Route path="crf/2023/:id" element={<CRF2023 />} /> */}
+        <Route path="crf/2023/:id" element={<CRF2023 />} />
 
-        <Route path="/change/2024/:id" element={<Change2024 />} />
+        <Route path="change/2024/:id" element={<Change2024 />} />
         <Route path="frf/2024/:id" element={<FRF2024 />} />
         {/* <Route path="prf/2024/:id" element={<PRF2024 />} /> */}
         {/* <Route path="crf/2024/:id" element={<CRF2024 />} /> */}

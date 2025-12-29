@@ -5,7 +5,7 @@ import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
 import { type FormProps, type Submission, Form } from "@formio/react";
 import clsx from "clsx";
 import { cloneDeep, isEqual } from "lodash";
-import icons from "uswds/img/sprite.svg";
+import icons from "@uswds/uswds/img/sprite.svg";
 // ---
 import {
   type FormioSchemaAndSubmission,
@@ -13,10 +13,12 @@ import {
 } from "@/types";
 import { serverUrl, messages } from "@/config";
 import {
+  getComboKeyFieldName,
+  getRebateIdFieldName,
   getData,
   postData,
-  useContentData,
-  useConfigData,
+  usePublicConfigData,
+  usePrivateConfigData,
   useBapSamData,
   useSubmissionPDFQuery,
   useSubmissionsQueries,
@@ -81,11 +83,15 @@ export function FRF2024() {
 function FundingRequestForm(props: { email: string }) {
   const { email } = props;
 
+  const rebateYear = "2024";
+
   const navigate = useNavigate();
   const { id: mongoId } = useParams<"id">(); // MongoDB ObjectId string
 
-  const content = useContentData();
-  const configData = useConfigData();
+  const publicConfigData = usePublicConfigData();
+  const { staticContent } = publicConfigData || {};
+
+  const privateConfigData = usePrivateConfigData();
   const bapSamData = useBapSamData();
   const { displayDialog } = useDialogActions();
   const {
@@ -95,16 +101,19 @@ function FundingRequestForm(props: { email: string }) {
     dismissNotification,
   } = useNotificationsActions();
 
-  const submissionsQueries = useSubmissionsQueries("2024");
-  const submissions = useSubmissions("2024");
+  const submissionsQueries = useSubmissionsQueries(rebateYear);
+  const submissions = useSubmissions(rebateYear);
 
   const { query, mutation } = useFormioSubmissionQueryAndMutation(mongoId);
   const { access, schema, submission } = query.data ?? {};
 
-  const comboKey = submission?.data._bap_entity_combo_key || "";
+  const comboKeyFieldName = getComboKeyFieldName(rebateYear);
+  const rebateIdFieldName = getRebateIdFieldName(rebateYear);
+
+  const frfComboKey = String(submission?.data?.[comboKeyFieldName] ?? "");
 
   const pdfQuery = useSubmissionPDFQuery({
-    rebateYear: "2024",
+    rebateYear,
     formType: "frf",
     mongoId,
   });
@@ -140,7 +149,7 @@ function FundingRequestForm(props: { email: string }) {
    */
   const lastSuccesfullySubmittedData = useRef<{ [field: string]: unknown }>({});
 
-  if (!configData || !bapSamData) {
+  if (!staticContent || !privateConfigData || !bapSamData) {
     return <Loading />;
   }
 
@@ -152,7 +161,7 @@ function FundingRequestForm(props: { email: string }) {
     return <Message type="error" text={messages.formSubmissionsError} />;
   }
 
-  if (query.isInitialLoading) {
+  if (query.isLoading) {
     return <Loading />;
   }
 
@@ -169,16 +178,18 @@ function FundingRequestForm(props: { email: string }) {
         bap: rebate.frf.bap,
       });
 
-  const frfSubmissionPeriodOpen = configData.submissionPeriodOpen["2024"].frf;
+  const frfSubmissionPeriodOpen =
+    privateConfigData.submissionPeriodOpen[rebateYear].frf;
 
   const formIsReadOnly =
     (submission.state === "submitted" || !frfSubmissionPeriodOpen) &&
     !frfNeedsEdits;
 
-  /** matched SAM.gov entity for the Application submission */
+  /**
+   * Matched SAM.gov entity for the FRF submission.
+   */
   const entity = bapSamData.entities.find((entity) => {
-    const { ENTITY_COMBO_KEY__c } = entity;
-    return ENTITY_COMBO_KEY__c === submission.data._bap_entity_combo_key;
+    return entity.ENTITY_COMBO_KEY__c === frfComboKey;
   });
 
   if (!entity) {
@@ -247,6 +258,9 @@ function FundingRequestForm(props: { email: string }) {
       confirmedAction: () => {
         const prf = rebate.prf.formio;
 
+        const prfComboKey = String(prf?.data?.[comboKeyFieldName] ?? "");
+        const prfRebateId = String(prf?.data?.[rebateIdFieldName] ?? "");
+
         if (!prf) {
           displayErrorNotification({
             id: Date.now(),
@@ -284,8 +298,8 @@ function FundingRequestForm(props: { email: string }) {
 
         postData(url, {
           mongoId: prf._id,
-          rebateId: prf.data._bap_rebate_id,
-          comboKey: prf.data._bap_entity_combo_key,
+          rebateId: prfRebateId,
+          comboKey: prfComboKey,
         })
           .then((_res) => {
             window.location.reload();
@@ -323,19 +337,17 @@ function FundingRequestForm(props: { email: string }) {
 
   return (
     <div className="margin-top-2">
-      {content && (
-        <div className="margin-top-4">
-          <MarkdownContent
-            children={
-              submission.state === "draft"
-                ? content.draftFRFIntro
-                : submission.state === "submitted"
-                  ? content.submittedFRFIntro
-                  : ""
-            }
-          />
-        </div>
-      )}
+      <div className="margin-top-4">
+        <MarkdownContent
+          children={
+            submission.state === "draft"
+              ? staticContent.draftFRFIntro
+              : submission.state === "submitted"
+                ? staticContent.submittedFRFIntro
+                : ""
+          }
+        />
+      </div>
 
       <ul className="usa-icon-list">
         <li className="usa-icon-list__item">
@@ -409,7 +421,7 @@ function FundingRequestForm(props: { email: string }) {
       <div className="csb-form">
         <Form
           src={schema}
-          url={`${serverUrl}/api/formio/2024/s3/frf/${mongoId}/${comboKey}`}
+          url={`${serverUrl}/api/formio/2024/s3/frf/${mongoId}/${frfComboKey}`}
           submission={{
             /**
              * NOTE: The `csb-form-submission-state` metadata field's value is

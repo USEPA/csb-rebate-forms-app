@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "epa-csb-server",
-    "version": "7.0.0",
+    "version": "8.0.0",
     "license": {
       "name": "CC0-1.0"
     },
@@ -99,24 +99,6 @@
         }
       }
     },
-    "/api/content": {
-      "get": {
-        "summary": "Get static content from S3.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "An object containing text from each static markdown file.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/user": {
       "get": {
         "summary": "Get user data from EPA Gateway/Login.gov.",
@@ -152,9 +134,36 @@
         }
       }
     },
-    "/api/config": {
+    "/api/config/public": {
       "get": {
-        "summary": "Get CSB app specific configuration (form open enrollment status, etc.)",
+        "summary": "Get CSB app specific public configuration (csb app login status and static content)",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "CSB app login status and static content from S3.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "loginEnabled": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "staticContent": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/config/private": {
+      "get": {
+        "summary": "Get CSB app specific private configuration (form open enrollment status, etc.)",
         "parameters": [],
         "responses": {
           "200": {
@@ -290,6 +299,31 @@
                   "items": {
                     "type": "object"
                   }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/formio/2022/district/{rebateId}": {
+      "get": {
+        "summary": "Get the school district info associated with a provided CSB Rebate ID",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/rebateId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An object containing school district info associated with the CSB Rebate ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
                 }
               }
             }
@@ -776,9 +810,161 @@
         }
       }
     },
+    "/api/formio/2022/changes": {
+      "get": {
+        "summary": "Get user's 2022 Change Request form submissions from Formio.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "An array of 2022 Change Request form submissions.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/formio/2022/change": {
+      "get": {
+        "summary": "Get the 2022 Change Request form's schema from Formio.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The 2022 Change Request form's schema.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "summary": "Post a new 2022 Change Request form submission to Formio.",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The newly created 2022 Change Request form submission.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/formio/2022/change/{mongoId}": {
+      "get": {
+        "summary": "Get an existing 2022 Change Request form's schema and submission data from Formio.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/mongoId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The 2022 Change Request form's schema, form submission, and user access status.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FormioSchemaAndSubmission"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/formio/2023/check-vin/{vin}": {
+      "get": {
+        "summary": "Check for duplicate VINs in the BAP.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "vin",
+            "description": "The bus VIN to search for.",
+            "required": true,
+            "example": "11111111111111111",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "rebateId",
+            "description": "The CSB Rebate ID of the current submission.",
+            "required": false,
+            "example": "123456",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "debug",
+            "description": "Return debug info from the BAP in the response.",
+            "required": false,
+            "example": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An object containing the duplicate VIN data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
     "/api/formio/2023/nces/{searchText}": {
       "get": {
-        "summary": "search 2023 NCES data with the provided NCES ID and return a match.",
+        "summary": "Search 2023 NCES data with the provided NCES ID and return a match.",
         "parameters": [
           {
             "in": "path",
@@ -798,6 +984,59 @@
               "application/json": {
                 "schema": {
                   "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/formio/2023/district/{rebateId}": {
+      "get": {
+        "summary": "Get the school district info associated with a provided CSB Rebate ID",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/rebateId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An object containing school district info associated with the CSB Rebate ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/formio/2023/contacts/{rebateId}": {
+      "get": {
+        "summary": "Get contacts associated with a provided CSB Rebate ID",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/rebateId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An array of objects containing contact data associated with the CSB Rebate ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
                 }
               }
             }
@@ -1169,6 +1408,121 @@
         }
       }
     },
+    "/api/formio/2023/crf-submissions": {
+      "get": {
+        "summary": "Get user's 2023 CRF submissions from Formio.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "An array of 2023 CRF submissions.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/formio/2023/crf-submission": {
+      "post": {
+        "summary": "Post a new 2023 CRF submission to Formio.",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The newly created 2023 CRF submission.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/formio/2023/crf-submission/{rebateId}": {
+      "get": {
+        "summary": "Get an existing 2023 CRF's schema and submission data from Formio.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/rebateId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The 2023 CRF schema, form submission, and user access status.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FormioSchemaAndSubmission"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "summary": "Post an update to an existing draft 2023 CRF submission to Formio.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/rebateId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated 2023 CRF submission.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
     "/api/formio/2023/changes": {
       "get": {
         "summary": "Get user's 2023 Change Request form submissions from Formio.",
@@ -1287,6 +1641,31 @@
         "responses": {
           "200": {
             "description": "An object containing the matched NCES data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/formio/2024/district/{rebateId}": {
+      "get": {
+        "summary": "Get the school district info associated with a provided CSB Rebate ID",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/rebateId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An object containing school district info associated with the CSB Rebate ID.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1659,7 +2038,7 @@
           {
             "in": "path",
             "name": "id",
-            "description": "The BAP CSB Rebate Id or Formio MongoDB ObjectId.",
+            "description": "The CSB Rebate ID or Formio MongoDB ObjectId.",
             "required": true,
             "example": "000000",
             "schema": {
@@ -1744,7 +2123,7 @@
           {
             "in": "path",
             "name": "id",
-            "description": "The BAP CSB Rebate Id or Formio MongoDB ObjectId.",
+            "description": "The CSB Rebate ID or Formio MongoDB ObjectId.",
             "required": true,
             "example": "000000000000000000000000",
             "schema": {
@@ -1895,6 +2274,17 @@
         }
       }
     },
+    "/api/status/formio/2022/change": {
+      "get": {
+        "summary": "CSB Formio 2022 Change Request form schema check.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/status/formio/2023/frf": {
       "get": {
         "summary": "CSB Formio 2023 FRF schema check.",
@@ -1909,6 +2299,17 @@
     "/api/status/formio/2023/prf": {
       "get": {
         "summary": "CSB Formio 2023 PRF schema check.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/status/formio/2023/crf": {
+      "get": {
+        "summary": "CSB Formio 2023 CRF schema check.",
         "parameters": [],
         "responses": {
           "200": {
@@ -1956,7 +2357,7 @@
       "rebateYear": {
         "in": "path",
         "name": "rebateYear",
-        "description": "The Clean School Bus Rebate year (2022, 2023).",
+        "description": "The Clean School Bus Rebate year (2022, 2023, 2024).",
         "required": true,
         "example": "2022",
         "schema": {
@@ -1996,7 +2397,7 @@
       "rebateId": {
         "in": "path",
         "name": "rebateId",
-        "description": "The BAP CSB Rebate Id",
+        "description": "The CSB Rebate ID",
         "required": true,
         "example": "000000",
         "schema": {

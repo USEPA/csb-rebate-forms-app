@@ -3,13 +3,13 @@ import { Formio } from "@formio/js";
 import bootstrap4 from "@formio/bootstrap/bootstrap4";
 import premium from "@formio/premium";
 import uswds from "@formio/uswds";
-import icons from "uswds/img/sprite.svg";
+import icons from "@uswds/uswds/img/sprite.svg";
 // ---
 import { serverUrl, formioPremiumKey } from "@/config";
 import {
   useHelpdeskAccess,
-  useConfigQuery,
-  useConfigData,
+  usePrivateConfigQuery,
+  usePrivateConfigData,
   useBapSamQuery,
   useBapSamData,
 } from "@/utilities";
@@ -65,16 +65,16 @@ function SignOutIconText() {
   );
 }
 
-export function UserDashboard(props: { email: string }) {
+export function UserLayout(props: { email: string }) {
   const { email } = props;
 
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
-  useConfigQuery();
+  usePrivateConfigQuery();
   useBapSamQuery();
 
-  const configData = useConfigData();
+  const privateConfigData = usePrivateConfigData();
   const bapSamData = useBapSamData();
 
   const { displayDialog } = useDialogActions();
@@ -107,7 +107,7 @@ export function UserDashboard(props: { email: string }) {
     });
   }
 
-  if (!configData || !bapSamData || !email) {
+  if (!privateConfigData || !bapSamData || !email) {
     return <Loading />;
   }
 
@@ -198,7 +198,7 @@ export function UserDashboard(props: { email: string }) {
         </nav>
       </div>
 
-      <Outlet context={{ email }} />
+      {bapSamData.results && <Outlet context={{ email }} />}
     </div>
   );
 }

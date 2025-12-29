@@ -47,7 +47,8 @@ function reducer(state: State, action: Action): State {
 export function RebateYearProvider({ children }: Props) {
   /**
    * NOTE: `rebateYear` initialized as null, but will be redefined after the
-   * initial config data fetch (see `useConfigQuery` in `utilities.ts`).
+   * initial private config data fetch (see `usePrivateConfigQuery` in
+   * `utilities.ts`).
    */
   const initialState: State = {
     rebateYear: null,

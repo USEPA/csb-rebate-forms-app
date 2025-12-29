@@ -9,7 +9,7 @@ import icons from "@uswds/uswds/img/sprite.svg";
 // ---
 import {
   type FormioSchemaAndSubmission,
-  type FormioPRF2023FormSubmission,
+  type FormioCRF2023FormSubmission,
 } from "@/types";
 import { serverUrl, messages } from "@/config";
 import {
@@ -33,20 +33,20 @@ import { Message } from "@/components/message";
 import { MarkdownContent } from "@/components/markdownContent";
 import { useNotificationsActions } from "@/contexts/notifications";
 
-type Response = FormioSchemaAndSubmission<FormioPRF2023FormSubmission>;
+type Response = FormioSchemaAndSubmission<FormioCRF2023FormSubmission>;
 
 /** Custom hook to fetch and update Formio submission data */
 function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    queryClient.resetQueries({ queryKey: ["formio/2023/prf-submission"] });
+    queryClient.resetQueries({ queryKey: ["formio/2023/crf-submission"] });
   }, [queryClient]);
 
-  const url = `${serverUrl}/api/formio/2023/prf-submission/${rebateId}`;
+  const url = `${serverUrl}/api/formio/2023/crf-submission/${rebateId}`;
 
   const query = useQuery({
-    queryKey: ["formio/2023/prf-submission", { id: rebateId }],
+    queryKey: ["formio/2023/crf-submission", { id: rebateId }],
     queryFn: () => getData<Response>(url),
     refetchOnWindowFocus: false,
   });
@@ -56,11 +56,11 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
       mongoId: string;
       submission: Submission;
     }) => {
-      return postData<FormioPRF2023FormSubmission>(url, updatedSubmission);
+      return postData<FormioCRF2023FormSubmission>(url, updatedSubmission);
     },
     onSuccess: (res, _payload, _context) => {
       return queryClient.setQueryData<Response>(
-        ["formio/2023/prf-submission", { id: rebateId }],
+        ["formio/2023/crf-submission", { id: rebateId }],
         (prevData) => {
           return prevData?.submission
             ? { ...prevData, submission: res }
@@ -73,15 +73,15 @@ function useFormioSubmissionQueryAndMutation(rebateId: string | undefined) {
   return { query, mutation };
 }
 
-export function PRF2023() {
+export function CRF2023() {
   const { email } = useOutletContext<{ email: string }>();
   /* ensure user verification (JWT refresh) doesn't cause form to re-render */
   return useMemo(() => {
-    return <PaymentRequestForm email={email} />;
+    return <CloseOutRequestForm email={email} />;
   }, [email]);
 }
 
-function PaymentRequestForm(props: { email: string }) {
+function CloseOutRequestForm(props: { email: string }) {
   const { email } = props;
 
   const rebateYear = "2023";
@@ -108,12 +108,12 @@ function PaymentRequestForm(props: { email: string }) {
 
   const comboKeyFieldName = getComboKeyFieldName(rebateYear);
 
-  const prfComboKey = String(submission?.data?.[comboKeyFieldName] ?? "");
+  const crfComboKey = String(submission?.data?.[comboKeyFieldName] ?? "");
   const mongoId = submission?._id || "";
 
   const pdfQuery = useSubmissionPDFQuery({
     rebateYear,
-    formType: "prf",
+    formType: "crf",
     mongoId,
   });
 
@@ -170,33 +170,25 @@ function PaymentRequestForm(props: { email: string }) {
 
   const rebate = submissions.find((r) => r.rebateId === rebateId);
 
-  const frfNeedsEdits = !rebate
+  const crfNeedsEdits = !rebate
     ? false
     : submissionNeedsEdits({
-        formio: rebate.frf.formio,
-        bap: rebate.frf.bap,
+        formio: rebate.crf.formio,
+        bap: rebate.crf.bap,
       });
 
-  const prfNeedsEdits = !rebate
-    ? false
-    : submissionNeedsEdits({
-        formio: rebate.prf.formio,
-        bap: rebate.prf.bap,
-      });
-
-  const prfSubmissionPeriodOpen =
-    privateConfigData.submissionPeriodOpen[rebateYear].prf;
+  const crfSubmissionPeriodOpen =
+    privateConfigData.submissionPeriodOpen[rebateYear].crf;
 
   const formIsReadOnly =
-    frfNeedsEdits ||
-    ((submission.state === "submitted" || !prfSubmissionPeriodOpen) &&
-      !prfNeedsEdits);
+    (submission.state === "submitted" || !crfSubmissionPeriodOpen) &&
+    !crfNeedsEdits;
 
   /**
-   * Matched SAM.gov entity for the PRF submission.
+   * Matched SAM.gov entity for the CRF submission.
    */
   const entity = bapSamData.entities.find((entity) => {
-    return entity.ENTITY_COMBO_KEY__c === prfComboKey;
+    return entity.ENTITY_COMBO_KEY__c === crfComboKey;
   });
 
   if (!entity) {
@@ -226,17 +218,13 @@ function PaymentRequestForm(props: { email: string }) {
         <MarkdownContent
           children={
             submission.state === "draft"
-              ? staticContent.draftPRFIntro
+              ? staticContent.draftCRFIntro
               : submission.state === "submitted"
-                ? staticContent.submittedPRFIntro
+                ? staticContent.submittedCRFIntro
                 : ""
           }
         />
       </div>
-
-      {frfNeedsEdits && (
-        <Message type="warning" text={messages.prfWillBeDeleted} />
-      )}
 
       <ul className="usa-icon-list">
         <li className="usa-icon-list__item">
@@ -299,7 +287,7 @@ function PaymentRequestForm(props: { email: string }) {
       <div className="csb-form">
         <Form
           src={schema}
-          url={`${serverUrl}/api/formio/2023/s3/prf/${mongoId}/${prfComboKey}`}
+          url={`${serverUrl}/api/formio/2023/s3/crf/${mongoId}/${crfComboKey}`}
           submission={{
             /**
              * NOTE: The `csb-form-submission-state` metadata field's value is
@@ -374,8 +362,7 @@ function PaymentRequestForm(props: { email: string }) {
                     >
                       {onSubmitParam.state === "submitted" && (
                         <>
-                          Payment Request <em>{rebateId}</em> submitted
-                          successfully.
+                          Close Out <em>{rebateId}</em> submitted successfully.
                         </>
                       )}
 
@@ -408,7 +395,7 @@ function PaymentRequestForm(props: { email: string }) {
                       )}
                     >
                       {onSubmitParam.state === "submitted" && (
-                        <>Error submitting Payment Request form.</>
+                        <>Error submitting Close Out form.</>
                       )}
 
                       {onSubmitParam.state === "draft" && (
@@ -507,10 +494,6 @@ function PaymentRequestForm(props: { email: string }) {
           }}
         />
       </div>
-
-      {frfNeedsEdits && (
-        <Message type="warning" text={messages.prfWillBeDeleted} />
-      )}
     </div>
   );
 }
