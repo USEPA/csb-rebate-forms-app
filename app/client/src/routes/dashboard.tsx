@@ -42,7 +42,7 @@ import { Loading, LoadingButtonIcon } from "@/components/loading";
 import { Message } from "@/components/message";
 import { MarkdownContent } from "@/components/markdownContent";
 import { TextWithTooltip } from "@/components/tooltip";
-import { ChangeRequest2022Button } from "@/components/change2022New";
+// import { ChangeRequest2022Button } from "@/components/change2022New";
 import { ChangeRequest2023Button } from "@/components/change2023New";
 import { ChangeRequest2024Button } from "@/components/change2024New";
 import { useNotificationsActions } from "@/contexts/notifications";
@@ -95,7 +95,9 @@ function NewApplicationIconText() {
   );
 }
 
-function SubmissionsTableHeader() {
+function SubmissionsTableHeader(props: { rebateYear: RebateYear }) {
+  const { rebateYear } = props;
+
   return (
     <thead>
       <tr className="font-sans-2xs text-no-wrap text-bottom">
@@ -155,12 +157,14 @@ function SubmissionsTableHeader() {
           />
         </th>
 
-        <th scope="col" className={clsx("tw:text-right")}>
-          <TextWithTooltip
-            text="Change Request"
-            tooltip="Submit a change request for an extension, to request edits, or to withdraw from the rebate program"
-          />
-        </th>
+        {rebateYear === "2023" || rebateYear === "2024" ? (
+          <th scope="col" className={clsx("tw:text-right")}>
+            <TextWithTooltip
+              text="Change Request"
+              tooltip="Submit a change request for an extension, to request edits, or to withdraw from the rebate program"
+            />
+          </th>
+        ) : null}
       </tr>
     </thead>
   );
@@ -319,7 +323,7 @@ function FRF2022Submission(props: { rebate: Rebate2022 }) {
 
   const frfComboKey = String(frf.formio.data?.[comboKeyFieldName] ?? "");
 
-  const { email } = useOutletContext<{ email: string }>();
+  // const { email } = useOutletContext<{ email: string }>();
 
   const privateConfigData = usePrivateConfigData();
   const bapSamData = useBapSamData();
@@ -335,19 +339,19 @@ function FRF2022Submission(props: { rebate: Rebate2022 }) {
 
   if (!entity) return null;
 
-  const { title, name } = getUserInfo(email, entity);
+  // const { title, name } = getUserInfo(email, entity);
 
   const frfSubmissionPeriodOpen =
     privateConfigData.submissionPeriodOpen["2022"].frf;
 
   const {
-    sam_hidden_applicant_name,
+    // sam_hidden_applicant_name,
     applicantUEI,
     applicantEfti,
     applicantEfti_display,
     applicantOrganizationName,
     schoolDistrictName,
-    schoolDistrictState,
+    // schoolDistrictState,
     last_updated_by,
   } = frf.formio.data;
 
@@ -548,6 +552,7 @@ save the form for the EFT indicator to be displayed. */
         <span title={`${date} ${time}`}>{date}</span>
       </td>
 
+      {/*
       <td className={clsx("tw:min-[30rem]:text-right")}>
         <ChangeRequest2022Button
           formType={"frf"}
@@ -566,6 +571,7 @@ save the form for the EFT indicator to be displayed. */
           }}
         />
       </td>
+      */}
     </tr>
   );
 }
@@ -578,7 +584,7 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
   const rebateIdFieldName = getRebateIdFieldName(rebateYear);
 
   const frfComboKey = String(frf.formio.data?.[comboKeyFieldName] ?? "");
-  const prfComboKey = String(prf.formio?.data?.[comboKeyFieldName] ?? "");
+  // const prfComboKey = String(prf.formio?.data?.[comboKeyFieldName] ?? "");
   const prfRebateId = String(prf.formio?.data?.[rebateIdFieldName] ?? "");
 
   const navigate = useNavigate();
@@ -696,8 +702,11 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
   // return if a Payment Request submission has not been created for this rebate
   if (!prf.formio) return null;
 
-  const { hidden_current_user_email, applicantName, schoolDistrictName } =
-    prf.formio.data;
+  const {
+    hidden_current_user_email,
+    // applicantName,
+    // schoolDistrictName
+  } = prf.formio.data;
 
   const date = new Date(prf.formio.modified).toLocaleDateString();
   const time = new Date(prf.formio.modified).toLocaleTimeString();
@@ -790,6 +799,7 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
         <span title={`${date} ${time}`}>{date}</span>
       </td>
 
+      {/*
       <td className={clsx("tw:min-[30rem]:text-right")}>
         <ChangeRequest2022Button
           formType={"prf"}
@@ -808,6 +818,7 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
           }}
         />
       </td>
+      */}
     </tr>
   );
 }
@@ -820,7 +831,7 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
   const rebateIdFieldName = getRebateIdFieldName(rebateYear);
 
   const prfComboKey = String(prf.formio?.data?.[comboKeyFieldName] ?? "");
-  const crfComboKey = String(crf.formio?.data?.[comboKeyFieldName] ?? "");
+  // const crfComboKey = String(crf.formio?.data?.[comboKeyFieldName] ?? "");
   const crfRebateId = String(crf.formio?.data?.[rebateIdFieldName] ?? "");
 
   const navigate = useNavigate();
@@ -938,7 +949,10 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
   // return if a Close Out submission has not been created for this rebate
   if (!crf.formio) return null;
 
-  const { hidden_current_user_email, schoolDistrictName } = crf.formio.data;
+  const {
+    hidden_current_user_email,
+    // schoolDistrictName
+  } = crf.formio.data;
 
   const date = new Date(crf.formio.modified).toLocaleDateString();
   const time = new Date(crf.formio.modified).toLocaleTimeString();
@@ -1037,6 +1051,7 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
         <span title={`${date} ${time}`}>{date}</span>
       </td>
 
+      {/*
       <td className={clsx("tw:min-[30rem]:text-right")}>
         <ChangeRequest2022Button
           formType={"crf"}
@@ -1054,7 +1069,7 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
             districtState: "", // NOTE: not available in the 2022 CRF
           }}
         />
-      </td>
+      </td>*/}
     </tr>
   );
 }
@@ -1105,7 +1120,7 @@ function Submissions2022() {
           aria-label="Your 2022 Rebate Forms"
           className="usa-table usa-table--stacked usa-table--borderless width-full"
         >
-          <SubmissionsTableHeader />
+          <SubmissionsTableHeader rebateYear={rebateYear} />
           <tbody className={clsx("tw:[&_:is(th,td)]:text-[15px]")}>
             {submissions.map((rebate, index) => {
               return rebate.rebateYear === rebateYear ? (
@@ -2057,7 +2072,7 @@ function Submissions2023() {
           aria-label="Your 2023 Rebate Forms"
           className="usa-table usa-table--stacked usa-table--borderless width-full"
         >
-          <SubmissionsTableHeader />
+          <SubmissionsTableHeader rebateYear={rebateYear} />
           <tbody className={clsx("tw:[&_:is(th,td)]:text-[15px]")}>
             {submissions.map((rebate, index) => {
               return rebate.rebateYear === rebateYear ? (
@@ -2744,7 +2759,7 @@ function Submissions2024() {
           aria-label="Your 2024 Rebate Forms"
           className="usa-table usa-table--stacked usa-table--borderless width-full"
         >
-          <SubmissionsTableHeader />
+          <SubmissionsTableHeader rebateYear={rebateYear} />
           <tbody className={clsx("tw:[&_:is(th,td)]:text-[15px]")}>
             {submissions.map((rebate, index) => {
               return rebate.rebateYear === rebateYear ? (

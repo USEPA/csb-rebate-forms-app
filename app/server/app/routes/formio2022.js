@@ -155,22 +155,22 @@ router.post("/crf-submission/:rebateId", fetchBapComboKeys, (req, res) => {
 
 // --- get user's 2022 Change Request form submissions from Formio
 router.get("/changes", fetchBapComboKeys, (req, res) => {
-  fetchChangeRequests({ rebateYear, req, res });
+  res.json([]); // TODO: replace with `fetchChangeRequests({ rebateYear, req, res })` when Change Request Form is ready
 });
 
 // --- get the 2022 Change Request form's schema from Formio
-router.get("/change", fetchBapComboKeys, (req, res) => {
-  fetchChangeRequestSchema({ rebateYear, req, res });
-});
+// router.get("/change", fetchBapComboKeys, (req, res) => {
+//   fetchChangeRequestSchema({ rebateYear, req, res });
+// });
 
 // --- post a new 2022 Change Request form submission to Formio
-router.post("/change", fetchBapComboKeys, (req, res) => {
-  createChangeRequest({ rebateYear, req, res });
-});
+// router.post("/change", fetchBapComboKeys, (req, res) => {
+//   createChangeRequest({ rebateYear, req, res });
+// });
 
 // --- get an existing 2022 Change Request form's schema and submission data from Formio
-router.get("/change/:mongoId", fetchBapComboKeys, (req, res) => {
-  fetchChangeRequest({ rebateYear, req, res });
-});
+// router.get("/change/:mongoId", fetchBapComboKeys, (req, res) => {
+//   fetchChangeRequest({ rebateYear, req, res });
+// });
 
 module.exports = router;
