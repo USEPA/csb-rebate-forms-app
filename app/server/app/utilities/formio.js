@@ -1432,6 +1432,11 @@ function fetchDataForCRFSubmission({ rebateYear, req, res }) {
               Infrastructure_Cost_per_Charger_from_PRF__c,
               Charger_Cost_Includes_Installation__c,
               Infrastructure_Owner_Contact_ID__c,
+              Vendor_Address__c,
+              Vendor_City__c,
+              Vendor_State_Abbreviation__c,
+              Vendor_Zip__c,
+              County__c,
             } = prf2023InfrastructureRecord;
 
             const ownerRecord = prf2023ContactsQuery.find((contact) => {
@@ -1463,11 +1468,11 @@ function fetchDataForCRFSubmission({ rebateYear, req, res }) {
                 org_contact_fname: ownerRecord?.FirstName,
                 org_contact_lname: ownerRecord?.LastName,
               },
-              infra_address: ownerRecord?.Account?.BillingStreet,
-              infra_city: ownerRecord?.Account?.BillingCity,
-              infra_state: ownerRecord?.Account?.BillingState,
-              infra_zip: ownerRecord?.Account?.BillingPostalCode,
-              infra_county: ownerRecord?.Account?.County__c,
+              infra_address: Vendor_Address__c,
+              infra_city: Vendor_City__c,
+              infra_state: Vendor_State_Abbreviation__c,
+              infra_zip: Vendor_Zip__c,
+              infra_county: County__c,
             };
           },
         );
