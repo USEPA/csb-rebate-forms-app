@@ -569,6 +569,7 @@ const { submissionPeriodOpen } = require("../config/formio");
  *  Infrastructure_Cost_per_Charger_from_PRF__c: number | null
  *  Charger_Cost_Includes_Installation__c: boolean
  *  Infrastructure_Owner_Contact_ID__c: string | null
+ *  Infrastructure_Supplier_Contact_ID__c: string | null
  *  Vendor_Address__c: string | null
  *  Vendor_City__c: string | null
  *  Vendor_State_Abbreviation__c: string | null
@@ -2474,6 +2475,7 @@ async function queryBapFor2023CRFData(req, prfReviewItemId) {
   //   Infrastructure_Cost_per_Charger_from_PRF__c,
   //   Charger_Cost_Includes_Installation__c,
   //   Infrastructure_Owner_Contact_ID__c
+  //   Infrastructure_Supplier_Contact_ID__c,
   //   Vendor_Address__c,
   //   Vendor_City__c,
   //   Vendor_State_Abbreviation__c,
@@ -2516,6 +2518,7 @@ async function queryBapFor2023CRFData(req, prfReviewItemId) {
         Infrastructure_Cost_per_Charger_from_PRF__c: 1,
         Charger_Cost_Includes_Installation__c: 1,
         Infrastructure_Owner_Contact_ID__c: 1,
+        Infrastructure_Supplier_Contact_ID__c: 1,
         Vendor_Address__c: 1,
         Vendor_City__c: 1,
         Vendor_State_Abbreviation__c: 1,
@@ -2530,6 +2533,7 @@ async function queryBapFor2023CRFData(req, prfReviewItemId) {
     "New_Bus_Owner_Contact_ID__c",
     "Old_Bus_Owner_Contact_ID__c",
     "Infrastructure_Owner_Contact_ID__c",
+    "Infrastructure_Supplier_Contact_ID__c",
   ];
 
   // Unique contact IDs from both bus and infrastructure records
