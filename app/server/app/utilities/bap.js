@@ -588,6 +588,11 @@ const { submissionPeriodOpen } = require("../config/formio");
  *    attributes: { type: "Account", url: string }
  *    Id: string
  *    Name: string
+ *    BillingStreet: string
+ *    BillingCity: string
+ *    BillingState: string
+ *    BillingPostalCode: string
+ *    County__c: string
  *  }
  * }[]} prf2023ContactsQuery
  */
@@ -2550,7 +2555,12 @@ async function queryBapFor2023CRFData(req, prfReviewItemId) {
   //   Email,
   //   Phone,
   //   Account.Id,
-  //   Account.Name
+  //   Account.Name,
+  //   Account.BillingStreet,
+  //   Account.BillingCity,
+  //   Account.BillingState,
+  //   Account.BillingPostalCode,
+  //   Account.County__c
   // FROM
   //   Contact
   // WHERE
@@ -2576,6 +2586,11 @@ async function queryBapFor2023CRFData(req, prfReviewItemId) {
               Phone: 1,
               "Account.Id": 1,
               "Account.Name": 1,
+              "Account.BillingStreet": 1,
+              "Account.BillingCity": 1,
+              "Account.BillingState": 1,
+              "Account.BillingPostalCode": 1,
+              "Account.County__c": 1,
             },
           )
           .execute(async (err, records) => ((await err) ? err : records));
