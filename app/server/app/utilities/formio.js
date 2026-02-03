@@ -1298,15 +1298,15 @@ function fetchDataForCRFSubmission({ rebateYear, req, res }) {
                   ? BillingStreet.split("\n")
                   : BillingStreet.includes(",")
                     ? BillingStreet.split(",")
-                    : [BillingStreet, ""];
+                    : [BillingStreet || "", ""];
 
               array.push({
                 org_number: jsonOrg.org_number,
                 org_type: jsonOrg.org_type,
                 _org_id: orgId,
                 _org_name: orgName,
-                _org_address_1: orgStreetAddress1,
-                _org_address_2: orgStreetAddress2,
+                _org_address_1: orgStreetAddress1?.trim(),
+                _org_address_2: orgStreetAddress2?.trim(),
                 _org_county: County__c,
                 _org_city: BillingCity,
                 _org_state: BillingState,
@@ -1526,8 +1526,8 @@ function fetchDataForCRFSubmission({ rebateYear, req, res }) {
             _bap_district_id: CSB_School_District__r?.Id,
             _bap_district_nces_id: CSB_NCES_ID__c,
             _bap_district_name: CSB_School_District__r?.Name,
-            _bap_district_address_1: schoolDistrictStreetAddress1,
-            _bap_district_address_2: schoolDistrictStreetAddress2,
+            _bap_district_address_1: schoolDistrictStreetAddress1?.trim(),
+            _bap_district_address_2: schoolDistrictStreetAddress2?.trim(),
             _bap_district_city: CSB_School_District__r?.BillingCity,
             _bap_district_state: CSB_School_District__r?.BillingState,
             _bap_district_zip: CSB_School_District__r?.BillingPostalCode,
