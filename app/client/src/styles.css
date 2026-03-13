@@ -52,6 +52,16 @@
   display: none;
 }
 
+.csb-form .choices__list {
+  /**
+   * NOTE: Ensure ChoicesJS select options are visible. Adding this style rule
+   * previously wasn't necessary, but after upgrading the formiojs packages to
+   * match their API server version 9.6.8 release, the ChoicesJS select options
+   * were no longer visible, so adding this style rule was this fix.
+   */
+  width: 100%;
+}
+
 /* --- Radix UI --- */
 [data-radix-popper-content-wrapper] {
   transition-property: none;
