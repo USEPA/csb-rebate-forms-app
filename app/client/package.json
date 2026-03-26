@@ -36,11 +36,11 @@
     "vite": "7.1.7"
   },
   "dependencies": {
-    "@formio/bootstrap": "3.1.4",
-    "@formio/js": "5.2.6",
-    "@formio/premium": "3.0.11",
+    "@formio/bootstrap": "3.2.1",
+    "@formio/js": "5.3.1",
+    "@formio/premium": "3.1.1",
     "@formio/react": "6.1.0",
-    "@formio/uswds": "2.6.5",
+    "@formio/uswds": "2.7.1",
     "@fortawesome/fontawesome-free": "7.0.1",
     "@headlessui/react": "2.2.9",
     "@heroicons/react": "2.2.0",
