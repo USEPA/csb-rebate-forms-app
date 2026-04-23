@@ -5,7 +5,7 @@ import premium from "@formio/premium";
 import uswds from "@formio/uswds";
 import icons from "@uswds/uswds/img/sprite.svg";
 // ---
-import { serverUrl, formioPremiumKey } from "@/config";
+import { serverUrl } from "@/config";
 import {
   useHelpdeskAccess,
   usePrivateConfigQuery,
@@ -17,7 +17,6 @@ import { Loading } from "@/components/loading";
 import { useDialogActions } from "@/contexts/dialog";
 
 Formio.icons = "fontawesome";
-Formio.license = formioPremiumKey;
 
 /* eslint-disable-next-line react-hooks/rules-of-hooks */
 Formio.use(premium);
@@ -110,6 +109,8 @@ export function UserLayout(props: { email: string }) {
   if (!privateConfigData || !bapSamData || !email) {
     return <Loading />;
   }
+
+  Formio.license = privateConfigData.formioPremiumKey;
 
   return (
     <div>

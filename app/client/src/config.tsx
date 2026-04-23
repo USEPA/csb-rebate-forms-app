@@ -1,9 +1,4 @@
-const {
-  MODE,
-  VITE_SERVER_BASE_PATH,
-  VITE_CLOUD_SPACE,
-  VITE_FORMIO_PREMIUM_KEY,
-} = import.meta.env;
+const { MODE, VITE_SERVER_BASE_PATH, VITE_CLOUD_SPACE } = import.meta.env;
 
 // allows the app to be accessed from a sub directory of a server (e.g. /csb)
 export const serverBasePath =
@@ -13,8 +8,6 @@ export const serverUrl = window.location.origin + serverBasePath;
 
 export const cloudSpace =
   MODE === "development" ? "dev" : VITE_CLOUD_SPACE || "";
-
-export const formioPremiumKey = VITE_FORMIO_PREMIUM_KEY || "";
 
 export const messages = {
   genericError: "The application has encountered an unknown error.",
