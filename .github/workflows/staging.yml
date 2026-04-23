@@ -77,7 +77,6 @@ jobs:
       FORMIO_PROJECT_NAME: ${{ secrets.FORMIO_PROJECT_NAME }}
       FORMIO_API_KEY: ${{ secrets.FORMIO_API_KEY }}
       FORMIO_PKG_AUTH_TOKEN: ${{ secrets.FORMIO_PKG_AUTH_TOKEN }}
-      FORMIO_PREMIUM_KEY: ${{ secrets.FORMIO_PREMIUM_KEY }}
       BAP_REST_API_VERSION: ${{ secrets.BAP_REST_API_VERSION }}
       BAP_CLIENT_ID: ${{ secrets.BAP_CLIENT_ID }}
       BAP_CLIENT_SECRET: ${{ secrets.BAP_CLIENT_SECRET }}
@@ -117,7 +116,6 @@ jobs:
         run: |
           VITE_SERVER_BASE_PATH="$SERVER_BASE_PATH" \
             VITE_CLOUD_SPACE="$CLOUD_SPACE" \
-            VITE_FORMIO_PREMIUM_KEY="$FORMIO_PREMIUM_KEY" \
             npm run build
           rm ../server/app/public/index.html
           cd build
