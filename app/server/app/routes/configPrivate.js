@@ -7,7 +7,7 @@ const {
 } = require("../config/formio");
 const { ensureAuthenticated } = require("../middleware");
 
-const { CSB_REBATE_YEAR } = process.env;
+const { CSB_REBATE_YEAR, FORMIO_PREMIUM_KEY } = process.env;
 
 const router = express.Router();
 
@@ -22,6 +22,7 @@ router.get("/", (_req, res) => {
   return res.json({
     formioBaseUrl,
     formioProjectName,
+    formioPremiumKey: FORMIO_PREMIUM_KEY,
     rebateYear: CSB_REBATE_YEAR || year,
     submissionPeriodOpen,
   });
