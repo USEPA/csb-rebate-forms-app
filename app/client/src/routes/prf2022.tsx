@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { useNavigate, useOutletContext, useParams } from "react-router";
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
+import { type Webform } from "@formio/js";
 import { type FormProps, type Submission, Form } from "@formio/react";
 import clsx from "clsx";
 import { cloneDeep, isEqual } from "lodash";
@@ -147,6 +148,20 @@ function PaymentRequestForm(props: { email: string }) {
    * field data in the form has changed).
    */
   const lastSuccesfullySubmittedData = useRef<{ [field: string]: unknown }>({});
+
+  const formInstance = useRef<Webform | null>(null);
+
+  /**
+   * After saving a draft, reset Formio webform's submitted property so
+   * untouched fields do not show validation errors.
+   */
+  function clearWebformSubmittedFlag() {
+    const instance = formInstance.current;
+
+    if (instance) {
+      instance.submitted = false;
+    }
+  }
 
   if (!staticContent || !privateConfigData || !bapSamData) {
     return <Loading />;
@@ -334,6 +349,9 @@ function PaymentRequestForm(props: { email: string }) {
             readOnly: formIsReadOnly,
             noAlerts: true,
           }}
+          onFormReady={(instance: Webform) => {
+            formInstance.current = instance;
+          }}
           onSubmit={(onSubmitParam) => {
             if (formIsReadOnly) return;
 
@@ -424,6 +442,10 @@ function PaymentRequestForm(props: { email: string }) {
                 });
               },
               onSettled: (_data, _error, _payload, _context) => {
+                if (onSubmitParam.state === "draft") {
+                  queueMicrotask(clearWebformSubmittedFlag);
+                }
+
                 dataIsPosting.current = false;
                 formIsBeingSubmitted.current = false;
               },
