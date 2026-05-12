@@ -7,7 +7,7 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# Set default working directory for all jobs to /app
+    # Set default working directory for all jobs to /app
 defaults:
   run:
     working-directory: ./app
@@ -26,7 +26,6 @@ jobs:
       SERVER_BASE_PATH: /csb
       FORMIO_BASE_URL: ${{ secrets.FORMIO_BASE_URL }}
       FORMIO_PROJECT_NAME: ${{ secrets.FORMIO_PROJECT_NAME }}
-      FORMIO_PKG_AUTH_TOKEN: ${{ secrets.FORMIO_PKG_AUTH_TOKEN }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -54,10 +53,6 @@ jobs:
           path: ~/client/.npm
           key: v1-npm-client-deps-${{ hashFiles('**/client/package-lock.json') }}
           restore-keys: v1-npm-client-deps-
-
-      - name: Add Formio private package repo auth token
-        run: echo "//pkg.form.io/:_authToken=${FORMIO_PKG_AUTH_TOKEN}" > .npmrc
-        working-directory: app/client
 
       - name: Install client app dependencies
         run: npm install
