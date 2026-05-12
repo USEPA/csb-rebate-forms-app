@@ -85,7 +85,7 @@ jobs:
       - uses: actions/setup-node@v6
 
       - name: Install client app dependencies
-        run: npm ci --registry=https://registry.npmjs.org --replace-registry-host=always
+        run: npm ci
         working-directory: app/client
 
       - name: Build client app and move files to server app
