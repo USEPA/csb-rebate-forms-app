@@ -24,8 +24,6 @@ jobs:
       APP_VERSION: 8.0.1
       CLOUD_SPACE: production
       SERVER_BASE_PATH: /csb
-      FORMIO_BASE_URL: ${{ secrets.FORMIO_BASE_URL }}
-      FORMIO_PROJECT_NAME: ${{ secrets.FORMIO_PROJECT_NAME }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
