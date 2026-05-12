@@ -27,7 +27,7 @@ jobs:
         working-directory: app/server
 
       - name: Install client app dependencies
-        run: npm ci
+        run: npm ci --registry=https://registry.npmjs.org --replace-registry-host=always
         working-directory: app/client
 
       - name: Build client app and move files to server app
