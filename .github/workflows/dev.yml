@@ -1,29 +1,20 @@
-# This is a basic workflow to help you get started with Actions
-
 name: Dev Deploy
 
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the develop branch
   push:
     branches: [develop]
 
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# Set default working directory for all jobs to /app
 defaults:
   run:
     working-directory: ./app
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build:
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
     environment: dev
 
-    # Set environment variables
     env:
       APP_NAME: csb-dev
       CLOUD_SPACE: dev
@@ -76,7 +67,6 @@ jobs:
       FORMIO_BASE_URL: ${{ secrets.FORMIO_BASE_URL }}
       FORMIO_PROJECT_NAME: ${{ secrets.FORMIO_PROJECT_NAME }}
       FORMIO_API_KEY: ${{ secrets.FORMIO_API_KEY }}
-      FORMIO_PKG_AUTH_TOKEN: ${{ secrets.FORMIO_PKG_AUTH_TOKEN }}
       FORMIO_PREMIUM_KEY: ${{ secrets.FORMIO_PREMIUM_KEY }}
       BAP_REST_API_VERSION: ${{ secrets.BAP_REST_API_VERSION }}
       BAP_CLIENT_ID: ${{ secrets.BAP_CLIENT_ID }}
@@ -89,42 +79,25 @@ jobs:
       AWS_DEFAULT_REGION: ${{ secrets.S3_PUBLIC_REGION }}
       S3_PUBLIC_BUCKET: ${{ secrets.S3_PUBLIC_BUCKET }}
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
 
-      # Set up node and npm
-      - uses: actions/setup-node@master
-
-      # Run front-end processes (install, lint, test, bundle)
-      - name: Cache node modules
-        uses: actions/cache@v4
-        with:
-          path: ~/client/.npm
-          key: v1-npm-client-deps-${{ hashFiles('**/client/package-lock.json') }}
-          restore-keys: v1-npm-client-deps-
-
-      - name: Add Formio private package repo auth token
-        run: echo "//pkg.form.io/:_authToken=${FORMIO_PKG_AUTH_TOKEN}" > .npmrc
-        working-directory: app/client
+      - uses: actions/setup-node@v6
 
       - name: Install client app dependencies
-        run: npm install
+        run: npm ci
         working-directory: app/client
 
       - name: Build client app and move files to server app
         run: |
           VITE_SERVER_BASE_PATH="$SERVER_BASE_PATH" \
             VITE_CLOUD_SPACE="$CLOUD_SPACE" \
-            VITE_FORMIO_PREMIUM_KEY="$FORMIO_PREMIUM_KEY" \
             npm run build
           rm ../server/app/public/index.html
           cd build
           mv * ../../server/app/public
         working-directory: app/client
 
-      # Run CloudFoundry/Cloud.gov deployment
       - name: Set up Cloud Foundry CLI
         run: |
           curl -v -L -o cf-cli_amd64.deb 'https://cli.run.pivotal.io/stable?release=debian64&version=v7&source=github'
@@ -182,6 +155,7 @@ jobs:
           cf set-env $APP_NAME "FORMIO_BASE_URL" "$FORMIO_BASE_URL" > /dev/null
           cf set-env $APP_NAME "FORMIO_PROJECT_NAME" "$FORMIO_PROJECT_NAME" > /dev/null
           cf set-env $APP_NAME "FORMIO_API_KEY" "$FORMIO_API_KEY" > /dev/null
+          cf set-env $APP_NAME "FORMIO_PREMIUM_KEY" "$FORMIO_PREMIUM_KEY" > /dev/null
           cf set-env $APP_NAME "BAP_REST_API_VERSION" "$BAP_REST_API_VERSION" > /dev/null
           cf set-env $APP_NAME "BAP_CLIENT_ID" "$BAP_CLIENT_ID" > /dev/null
           cf set-env $APP_NAME "BAP_CLIENT_SECRET" "$BAP_CLIENT_SECRET" > /dev/null
@@ -191,17 +165,16 @@ jobs:
           cf set-env $APP_NAME "S3_PUBLIC_BUCKET" "$S3_PUBLIC_BUCKET" > /dev/null
           cf set-env $APP_NAME "S3_PUBLIC_REGION" "$AWS_DEFAULT_REGION" > /dev/null
 
-      # Sync static content to public S3 bucket
       - name: Sync static content to S3
         run: aws s3 sync . s3://$S3_PUBLIC_BUCKET/content
         working-directory: app/server/app/content
 
-      # Set CORS configuration for public S3 bucket
       - name: Set S3 CORS configuration
-        run: aws s3api put-bucket-cors --bucket $S3_PUBLIC_BUCKET --cors-configuration file://s3CORS.json
+        run:
+          aws s3api put-bucket-cors --bucket $S3_PUBLIC_BUCKET --cors-configuration
+          file://s3CORS.json
         working-directory: app/server/app/config
 
-      # Now that client is built and included in server app, only push server app to Cloud.gov
       - name: Deploy application to Cloud.gov
         run: cf push $APP_NAME --strategy rolling -f ../manifest-dev.yml -p . -t 180
         working-directory: app/server

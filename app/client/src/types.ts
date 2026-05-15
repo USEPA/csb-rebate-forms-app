@@ -27,6 +27,7 @@ export type PublicConfigData = {
 export type PrivateConfigData = {
   formioBaseUrl: string;
   formioProjectName: string;
+  formioPremiumKey: string;
   rebateYear: RebateYear;
   submissionPeriodOpen: {
     2022: { frf: boolean; prf: boolean; crf: boolean };
