@@ -118,12 +118,14 @@ function useInactivityDialog(callback: () => void) {
   const user = useUserData();
   const privateConfigData = usePrivateConfigData();
 
+  const sixtySeconds = 60;
+
   const jwtExpirationSeconds = privateConfigData
     ? privateConfigData.jwtExpirationSeconds
-    : 15 * 60; // fallback to 15 minutes if private config data isn't available
+    : 15 * sixtySeconds; // fallback to 15 minutes if private config data isn't available
 
   /** NOTE: 1 minute initial time used in the logout countdown timer */
-  const [countdownSeconds, setCountdownSeconds] = useState(60);
+  const [countdownSeconds, setCountdownSeconds] = useState(sixtySeconds);
 
   const { reset } = useIdleTimer({
     /**
@@ -133,7 +135,7 @@ function useInactivityDialog(callback: () => void) {
      * 1 minute countdown in a warning modal prompting user action to remain
      * logged in.
      */
-    timeout: (jwtExpirationSeconds - 60) * 1000,
+    timeout: (jwtExpirationSeconds - sixtySeconds) * 1000,
     onIdle: () => {
       /* display a 1 minute countdown dialog after 14 minutes of idle time. */
       displayDialog({
@@ -147,7 +149,7 @@ function useInactivityDialog(callback: () => void) {
         ),
         confirmText: "Stay logged in",
         confirmedAction: () => {
-          setCountdownSeconds(60);
+          setCountdownSeconds(sixtySeconds);
           callback();
           reset();
         },
@@ -159,13 +161,13 @@ function useInactivityDialog(callback: () => void) {
          * keep the logout timer at 1 minute if the countdown dialog isn't
          * shown, so the logout timer is ready for the next inactivity warning.
          */
-        setCountdownSeconds(60);
+        setCountdownSeconds(sixtySeconds);
       }
 
       if (!user) return;
 
       const jwtTimeToExpireInSeconds = user.exp - Date.now() / 1000;
-      const threeMinutesInSeconds = 3 * 60;
+      const threeMinutesInSeconds = 3 * sixtySeconds;
 
       /**
        * if the user causes action and the JWT is set to expire within 3 minutes,
@@ -190,11 +192,14 @@ function useInactivityDialog(callback: () => void) {
     if (dialogShown && heading === "Inactivity Warning") {
       const timeoutID = setTimeout(() => {
         setCountdownSeconds((seconds) => (seconds > 0 ? seconds - 1 : seconds));
+
+        const remainingSeconds =
+          countdownSeconds > 0 ? countdownSeconds - 1 : countdownSeconds;
+
         updateDialogDescription(
           <p>
-            You will be automatically logged out in{" "}
-            {countdownSeconds > 0 ? countdownSeconds - 1 : countdownSeconds}{" "}
-            seconds due to inactivity.
+            You will be automatically logged out in {remainingSeconds} seconds
+            due to inactivity.
           </p>,
         );
       }, 1000);
