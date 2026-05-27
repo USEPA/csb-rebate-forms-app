@@ -16,6 +16,7 @@ import { serverBasePath, serverUrl, cloudSpace, messages } from "@/config";
 import {
   usePublicConfigQuery,
   usePublicConfigData,
+  usePrivateConfigData,
   useUserQuery,
   useUserData,
 } from "@/utilities";
@@ -115,19 +116,24 @@ function useInactivityDialog(callback: () => void) {
   const { dialogShown, heading } = useDialogState();
   const { displayDialog, updateDialogDescription } = useDialogActions();
   const user = useUserData();
+  const privateConfigData = usePrivateConfigData();
+
+  const jwtExpirationSeconds = privateConfigData
+    ? privateConfigData.jwtExpirationSeconds
+    : 15 * 60; // fallback to 15 minutes if private config data isn't available
 
   /** NOTE: 1 minute initial time used in the logout countdown timer */
   const [countdownSeconds, setCountdownSeconds] = useState(60);
 
   const { reset } = useIdleTimer({
     /**
-     * NOTE: setting timeout to be one minute less than the JWT's configured 15
-     * minute timeout (set via the `expiresIn` option in the server app's
+     * NOTE: setting timeout to be one minute less than the JWT's configured
+     * expiration time (set via the `expiresIn` option in the server app's
      * createJWT() middleware function), so `onIdle` is called and displays a
      * 1 minute countdown in a warning modal prompting user action to remain
      * logged in.
      */
-    timeout: 14 * 60 * 1000,
+    timeout: (jwtExpirationSeconds - 60) * 1000,
     onIdle: () => {
       /* display a 1 minute countdown dialog after 14 minutes of idle time. */
       displayDialog({
@@ -141,6 +147,7 @@ function useInactivityDialog(callback: () => void) {
         ),
         confirmText: "Stay logged in",
         confirmedAction: () => {
+          setCountdownSeconds(60);
           callback();
           reset();
         },
