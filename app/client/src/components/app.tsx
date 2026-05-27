@@ -156,12 +156,11 @@ function useInactivityDialog(callback: () => void) {
       });
     },
     onAction: () => {
-      if (!dialogShown) {
-        /**
-         * keep the logout timer at 1 minute if the countdown dialog isn't
-         * shown, so the logout timer is ready for the next inactivity warning.
-         */
-        setCountdownSeconds(sixtySeconds);
+      const inactivityWarningShown =
+        dialogShown && heading === "Inactivity Warning";
+
+      if (inactivityWarningShown) {
+        return;
       }
 
       if (!user) return;
@@ -174,6 +173,7 @@ function useInactivityDialog(callback: () => void) {
        * call the callback (access /api/user) to refresh the JWT behind the scenes
        */
       if (jwtTimeToExpireInSeconds < threeMinutesInSeconds) {
+        setCountdownSeconds(sixtySeconds);
         callback();
         reset();
       }
@@ -183,13 +183,16 @@ function useInactivityDialog(callback: () => void) {
   });
 
   useEffect(() => {
+    const inactivityWarningShown =
+      dialogShown && heading === "Inactivity Warning";
+
     /** log the user out if the inactivity countdown reaches zero. */
     if (countdownSeconds <= 0) {
       window.location.href = `${serverUrl}/logout?RelayState=/welcome?info=timeout`;
     }
 
     /** update the inactivity warning's countdown time remaining every second. */
-    if (dialogShown && heading === "Inactivity Warning") {
+    if (inactivityWarningShown) {
       const timeoutID = setTimeout(() => {
         setCountdownSeconds((seconds) => (seconds > 0 ? seconds - 1 : seconds));
 
