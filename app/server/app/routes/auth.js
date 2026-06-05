@@ -2,7 +2,7 @@ const express = require("express");
 const passport = require("passport");
 const samlStrategy = require("../config/samlStrategy");
 const { ensureAuthenticated } = require("../middleware");
-const { createJWT, jwtCookieName } = require("../utilities/createJwt");
+const { createJWT, jwtCookieName } = require("../utilities/jwt");
 const log = require("../utilities/logger");
 
 const { NODE_ENV, CLIENT_URL, SERVER_URL, SAML_PUBLIC_KEY } = process.env;

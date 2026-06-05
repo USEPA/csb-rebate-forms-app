@@ -6,6 +6,7 @@ const {
   submissionPeriodOpen,
 } = require("../config/formio");
 const { ensureAuthenticated } = require("../middleware");
+const { jwtExpirationSeconds } = require("../utilities/jwt");
 
 const { CSB_REBATE_YEAR, FORMIO_PREMIUM_KEY } = process.env;
 
@@ -23,6 +24,7 @@ router.get("/", (_req, res) => {
     formioBaseUrl,
     formioProjectName,
     formioPremiumKey: FORMIO_PREMIUM_KEY,
+    jwtExpirationSeconds,
     rebateYear: CSB_REBATE_YEAR || year,
     submissionPeriodOpen,
   });

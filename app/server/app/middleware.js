@@ -3,11 +3,7 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const ObjectId = require("mongodb").ObjectId;
 // ---
-const {
-  createJWT,
-  jwtAlgorithm,
-  jwtCookieName,
-} = require("./utilities/createJwt");
+const { createJWT, jwtAlgorithm, jwtCookieName } = require("./utilities/jwt");
 const log = require("./utilities/logger");
 const { getBapComboKeys } = require("./utilities/bap");
 
