@@ -30,7 +30,7 @@ import { Notifications } from "@/components/notifications";
 import { Helpdesk } from "@/routes/helpdesk";
 import { Dashboard } from "@/routes/dashboard";
 import { FRFNew } from "@/routes/frfNew";
-// import { Change2022 } from "@/routes/change2022";
+import { Change2022 } from "@/routes/change2022";
 import { FRF2022 } from "@/routes/frf2022";
 import { PRF2022 } from "@/routes/prf2022";
 import { CRF2022 } from "@/routes/crf2022";
@@ -290,7 +290,7 @@ export function App() {
 
         <Route path="frf/new" element={<FRFNew />} />
 
-        {/* <Route path="change/2022/:id" element={<Change2022 />} /> */}
+        <Route path="change/2022/:id" element={<Change2022 />} />
         <Route path="frf/2022/:id" element={<FRF2022 />} />
         <Route path="prf/2022/:id" element={<PRF2022 />} />
         <Route path="crf/2022/:id" element={<CRF2022 />} />
