@@ -32,6 +32,7 @@ jobs:
       SAML_PRIVATE_KEY: ${{ secrets.SAML_PRIVATE_KEY }}
       JWT_PUBLIC_KEY: ${{ secrets.JWT_PUBLIC_KEY }}
       JWT_PRIVATE_KEY: ${{ secrets.JWT_PRIVATE_KEY }}
+      JWT_EXPIRATION_MINUTES: 15
       CSB_REBATE_YEAR: 2023
       CSB_LOGIN_ENABLED: true
       CSB_2022_FRF_OPEN: true
@@ -100,7 +101,7 @@ jobs:
 
       - name: Set up Cloud Foundry CLI
         run: |
-          curl -v -L -o cf-cli_amd64.deb 'https://cli.run.pivotal.io/stable?release=debian64&version=v7&source=github'
+          curl -v -L -o cf-cli_amd64.deb 'https://packages.cloudfoundry.org/stable?release=debian64&version=8.18.3&source=github-rel'
           sudo dpkg -i cf-cli_amd64.deb
           cf -v
           cf api https://api.fr.cloud.gov
@@ -120,6 +121,7 @@ jobs:
           cf set-env $APP_NAME "SAML_PRIVATE_KEY" "$SAML_PRIVATE_KEY" > /dev/null
           cf set-env $APP_NAME "JWT_PUBLIC_KEY" "$JWT_PUBLIC_KEY" > /dev/null
           cf set-env $APP_NAME "JWT_PRIVATE_KEY" "$JWT_PRIVATE_KEY" > /dev/null
+          cf set-env $APP_NAME "JWT_EXPIRATION_MINUTES" "$JWT_EXPIRATION_MINUTES" > /dev/null
           cf set-env $APP_NAME "CSB_REBATE_YEAR" "$CSB_REBATE_YEAR" > /dev/null
           cf set-env $APP_NAME "CSB_LOGIN_ENABLED" "$CSB_LOGIN_ENABLED" > /dev/null
           cf set-env $APP_NAME "CSB_2022_FRF_OPEN" "$CSB_2022_FRF_OPEN" > /dev/null

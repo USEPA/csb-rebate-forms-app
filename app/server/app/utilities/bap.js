@@ -2646,7 +2646,8 @@ async function queryForCSBRebateSchoolDistrictInfo(req, rebateId) {
   //     FROM
   //       Object_Item_Contacts__r
   //     WHERE
-  //       Contact_Type__c = 'School District Contact'
+  //       Contact_Type__c = 'School District Contact' AND
+  //       Active__c = true
   //     ORDER BY
   //       CreatedDate DESC
   //     LIMIT 1
@@ -2664,7 +2665,8 @@ async function queryForCSBRebateSchoolDistrictInfo(req, rebateId) {
   //       Order_Requests__r
   //     WHERE
   //       RecordType.DeveloperName = 'CSB_Change_Request' AND
-  //       Request_Type__c = 'School District Changes'
+  //       Request_Type__c = 'School District Changes' AND
+  //       Change_Status__c = 'Accepted'
   //     ORDER BY
   //       CreatedDate DESC
   //     LIMIT 1
@@ -2706,6 +2708,7 @@ async function queryForCSBRebateSchoolDistrictInfo(req, rebateId) {
     })
     .where({
       Contact_Type__c: "School District Contact",
+      Active__c: true,
     })
     .sort({ CreatedDate: -1 })
     .limit(1)
@@ -2724,6 +2727,7 @@ async function queryForCSBRebateSchoolDistrictInfo(req, rebateId) {
     .where({
       "RecordType.DeveloperName": "CSB_Change_Request",
       Request_Type__c: "School District Changes",
+      Change_Status__c: "Accepted",
     })
     .sort({ CreatedDate: -1 })
     .limit(1)

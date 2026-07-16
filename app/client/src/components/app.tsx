@@ -16,6 +16,7 @@ import { serverBasePath, serverUrl, cloudSpace, messages } from "@/config";
 import {
   usePublicConfigQuery,
   usePublicConfigData,
+  usePrivateConfigData,
   useUserQuery,
   useUserData,
 } from "@/utilities";
@@ -29,7 +30,7 @@ import { Notifications } from "@/components/notifications";
 import { Helpdesk } from "@/routes/helpdesk";
 import { Dashboard } from "@/routes/dashboard";
 import { FRFNew } from "@/routes/frfNew";
-// import { Change2022 } from "@/routes/change2022";
+import { Change2022 } from "@/routes/change2022";
 import { FRF2022 } from "@/routes/frf2022";
 import { PRF2022 } from "@/routes/prf2022";
 import { CRF2022 } from "@/routes/crf2022";
@@ -115,21 +116,38 @@ function useInactivityDialog(callback: () => void) {
   const { dialogShown, heading } = useDialogState();
   const { displayDialog, updateDialogDescription } = useDialogActions();
   const user = useUserData();
+  const privateConfigData = usePrivateConfigData();
 
-  /** NOTE: 1 minute initial time used in the logout countdown timer */
-  const [countdownSeconds, setCountdownSeconds] = useState(60);
+  const sixtySeconds = 60;
+
+  const jwtExpirationSeconds = privateConfigData
+    ? privateConfigData.jwtExpirationSeconds
+    : 15 * sixtySeconds; // fallback to 15 minutes if private config data isn't available
+
+  /** NOTE: One minute initial time used in the logout countdown timer */
+  const [countdownSeconds, setCountdownSeconds] = useState(sixtySeconds);
 
   const { reset } = useIdleTimer({
     /**
-     * NOTE: setting timeout to be one minute less than the JWT's configured 15
-     * minute timeout (set via the `expiresIn` option in the server app's
+     * NOTE: Setting timeout to be two minutes less than the JWT's configured
+     * expiration time (set via the `expiresIn` option in the server app's
      * createJWT() middleware function), so `onIdle` is called and displays a
-     * 1 minute countdown in a warning modal prompting user action to remain
+     * one minute countdown in a warning modal prompting user action to remain
      * logged in.
+     *
+     * When the countdown expires, the user will be logged out.
+     *
+     * The extra one minute of buffer time is to account for any potential
+     * delays bettween the client app's action to refresh the JWT (via the
+     * callback function that calls `/api/user`) and the server app's response
+     * that updates the JWT's expiration time on the server.
      */
-    timeout: 14 * 60 * 1000,
+    timeout: (jwtExpirationSeconds - 2 * sixtySeconds) * 1000,
     onIdle: () => {
-      /* display a 1 minute countdown dialog after 14 minutes of idle time. */
+      /**
+       * NOTE: Display a one minute inactivity warning countdown dialog after
+       * the idle time reaches the configured timeout.
+       */
       displayDialog({
         dismissable: false,
         heading: "Inactivity Warning",
@@ -141,30 +159,31 @@ function useInactivityDialog(callback: () => void) {
         ),
         confirmText: "Stay logged in",
         confirmedAction: () => {
+          setCountdownSeconds(sixtySeconds);
           callback();
           reset();
         },
       });
     },
     onAction: () => {
-      if (!dialogShown) {
-        /**
-         * keep the logout timer at 1 minute if the countdown dialog isn't
-         * shown, so the logout timer is ready for the next inactivity warning.
-         */
-        setCountdownSeconds(60);
+      const inactivityWarningShown =
+        dialogShown && heading === "Inactivity Warning";
+
+      if (inactivityWarningShown) {
+        return;
       }
 
       if (!user) return;
 
       const jwtTimeToExpireInSeconds = user.exp - Date.now() / 1000;
-      const threeMinutesInSeconds = 3 * 60;
 
       /**
-       * if the user causes action and the JWT is set to expire within 3 minutes,
-       * call the callback (access /api/user) to refresh the JWT behind the scenes
+       * NOTE: If the JWT is set to expire within three minutes, call the
+       * callback function (which calls `/api/user`) to refresh the JWT's
+       * expiration time on the server.
        */
-      if (jwtTimeToExpireInSeconds < threeMinutesInSeconds) {
+      if (jwtTimeToExpireInSeconds < 3 * sixtySeconds) {
+        setCountdownSeconds(sixtySeconds);
         callback();
         reset();
       }
@@ -174,20 +193,29 @@ function useInactivityDialog(callback: () => void) {
   });
 
   useEffect(() => {
-    /** log the user out if the inactivity countdown reaches zero. */
+    const inactivityWarningShown =
+      dialogShown && heading === "Inactivity Warning";
+
+    /** NOTE: Log the user out if the inactivity countdown time reaches zero. */
     if (countdownSeconds <= 0) {
       window.location.href = `${serverUrl}/logout?RelayState=/welcome?info=timeout`;
     }
 
-    /** update the inactivity warning's countdown time remaining every second. */
-    if (dialogShown && heading === "Inactivity Warning") {
+    /**
+     * NOTE: Update the inactivity warning's countdown time remaining every
+     * second.
+     */
+    if (inactivityWarningShown) {
       const timeoutID = setTimeout(() => {
         setCountdownSeconds((seconds) => (seconds > 0 ? seconds - 1 : seconds));
+
+        const remainingSeconds =
+          countdownSeconds > 0 ? countdownSeconds - 1 : countdownSeconds;
+
         updateDialogDescription(
           <p>
-            You will be automatically logged out in{" "}
-            {countdownSeconds > 0 ? countdownSeconds - 1 : countdownSeconds}{" "}
-            seconds due to inactivity.
+            You will be automatically logged out in {remainingSeconds} seconds
+            due to inactivity.
           </p>,
         );
       }, 1000);
@@ -262,7 +290,7 @@ export function App() {
 
         <Route path="frf/new" element={<FRFNew />} />
 
-        {/* <Route path="change/2022/:id" element={<Change2022 />} /> */}
+        <Route path="change/2022/:id" element={<Change2022 />} />
         <Route path="frf/2022/:id" element={<FRF2022 />} />
         <Route path="prf/2022/:id" element={<PRF2022 />} />
         <Route path="crf/2022/:id" element={<CRF2022 />} />
