@@ -637,8 +637,8 @@ const { submissionPeriodOpen } = require("../config/formio");
  *      attributes: { type: "Order_Request__c", url: string }
  *      Id: string
  *      CSB_NCES_ID__c: string
- *      Org_District_Prioritized__c: string
- *      Self_Certification_Category__c: string
+ *      School_District_Prioritized__c: string
+ *      CR_Self_Certification_Category__c: string
  *      Prioritized_as_High_Need__c: boolean
  *      Prioritized_as_Tribal__c: boolean
  *      Prioritized_as_Rural__c: boolean
@@ -2656,8 +2656,8 @@ async function queryForCSBRebateSchoolDistrictInfo(req, rebateId) {
   //     SELECT
   //       Id,
   //       CSB_NCES_ID__c,
-  //       Org_District_Prioritized__c,
-  //       Self_Certification_Category__c,
+  //       School_District_Prioritized__c,
+  //       CR_Self_Certification_Category__c,
   //       Prioritized_as_High_Need__c,
   //       Prioritized_as_Tribal__c,
   //       Prioritized_as_Rural__c
@@ -2718,8 +2718,8 @@ async function queryForCSBRebateSchoolDistrictInfo(req, rebateId) {
       // "*": 1,
       Id: 1, // Salesforce record ID
       CSB_NCES_ID__c: 1,
-      Org_District_Prioritized__c: 1,
-      Self_Certification_Category__c: 1,
+      School_District_Prioritized__c: 1,
+      CR_Self_Certification_Category__c: 1,
       Prioritized_as_High_Need__c: 1,
       Prioritized_as_Tribal__c: 1,
       Prioritized_as_Rural__c: 1,
