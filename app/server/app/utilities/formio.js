@@ -86,6 +86,8 @@ const formDataFieldNames = {
       "_formio_schoolDistrictName",
       "org_district_orgName",
       "org_district_state",
+      "org_district_prioritized",
+      "org_district_povertyRate",
     ],
     prf: [
       "_user_email",
@@ -94,6 +96,8 @@ const formDataFieldNames = {
       "_bap_applicant_name",
       "_bap_district_name",
       "_bap_district_state",
+      "_bap_district_priority",
+      "_bap_district_self_certify",
     ],
     crf: [
       "_user_email",
@@ -102,6 +106,8 @@ const formDataFieldNames = {
       "_bap_applicant_name",
       "_bap_district_name",
       "_bap_district_state",
+      "_bap_district_priority",
+      "_bap_district_self_certify",
     ],
     change: [
       "_request_form",

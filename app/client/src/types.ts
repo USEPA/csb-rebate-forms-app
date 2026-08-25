@@ -331,6 +331,8 @@ type FormioFRF2023DashboardDataFields = {
   _formio_schoolDistrictName: string;
   org_district_orgName: string;
   org_district_state: string;
+  org_district_prioritized: string;
+  org_district_povertyRate: string;
 };
 
 type FormioFRF2023FormDataFields = FormioFRF2023DashboardDataFields & {
@@ -356,6 +358,8 @@ type FormioPRF2023DashboardDataFields = {
   _bap_applicant_name: string;
   _bap_district_name: string;
   _bap_district_state: string;
+  _bap_district_priority: string;
+  _bap_district_self_certify: string;
 };
 
 type FormioPRF2023FormDataFields = FormioPRF2023DashboardDataFields & {
@@ -397,13 +401,11 @@ type FormioPRF2023FormDataFields = FormioPRF2023DashboardDataFields & {
   _bap_district_address_2: string;
   _bap_district_city: string;
   _bap_district_zip: string;
-  _bap_district_priority: string;
   _bap_district_priority_reason: {
     highNeed: boolean;
     tribal: boolean;
     rural: boolean;
   };
-  _bap_district_self_certify: string;
   _bap_district_contact_id: string;
   _bap_district_contact_fname: string;
   _bap_district_contact_lname: string;
@@ -475,6 +477,8 @@ type FormioCRF2023DashboardDataFields = {
   _bap_applicant_name: string;
   _bap_district_name: string;
   _bap_district_state: string;
+  _bap_district_priority: string;
+  _bap_district_self_certify: string;
 };
 
 type FormioCRF2023FormDataFields = FormioCRF2023DashboardDataFields & {
@@ -517,13 +521,11 @@ type FormioCRF2023FormDataFields = FormioCRF2023DashboardDataFields & {
   _bap_district_address_2: string;
   _bap_district_city: string;
   _bap_district_zip: string;
-  _bap_district_priority: string;
   _bap_district_priority_reason: {
     highNeed: boolean;
     tribal: boolean;
     rural: boolean;
   };
-  _bap_district_self_certify: string;
   _bap_district_contact_id: string;
   _bap_district_contact_recordtype: string;
   _bap_district_contact_fname: string;

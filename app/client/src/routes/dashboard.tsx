@@ -1318,6 +1318,8 @@ function FRF2023Submission(props: { rebate: Rebate2023 }) {
     _formio_schoolDistrictName,
     org_district_orgName,
     org_district_state,
+    org_district_prioritized,
+    org_district_povertyRate,
   } = frf.formio.data;
 
   const date = new Date(frf.formio.modified).toLocaleDateString();
@@ -1506,6 +1508,8 @@ handle when it's value is an empty string. */}
             applicantName: _bap_applicant_name,
             districtName: org_district_orgName,
             districtState: org_district_state,
+            districtPriority: org_district_prioritized,
+            districtSelfCertify: org_district_povertyRate,
           }}
         />
       </td>
@@ -1644,6 +1648,8 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
     _bap_applicant_name,
     _bap_district_name,
     _bap_district_state,
+    _bap_district_priority,
+    _bap_district_self_certify,
   } = prf.formio.data;
 
   const date = new Date(prf.formio.modified).toLocaleDateString();
@@ -1752,6 +1758,8 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
             applicantName: _bap_applicant_name,
             districtName: _bap_district_name,
             districtState: _bap_district_state,
+            districtPriority: _bap_district_priority,
+            districtSelfCertify: _bap_district_self_certify,
           }}
         />
       </td>
@@ -1890,6 +1898,8 @@ function CRF2023Submission(props: { rebate: Rebate2023 }) {
     _bap_applicant_name,
     _bap_district_name,
     _bap_district_state,
+    _bap_district_priority,
+    _bap_district_self_certify,
   } = crf.formio.data;
 
   const date = new Date(crf.formio.modified).toLocaleDateString();
@@ -2004,6 +2014,8 @@ function CRF2023Submission(props: { rebate: Rebate2023 }) {
             applicantName: _bap_applicant_name,
             districtName: _bap_district_name,
             districtState: _bap_district_state,
+            districtPriority: _bap_district_priority,
+            districtSelfCertify: _bap_district_self_certify,
           }}
         />
       </td>
