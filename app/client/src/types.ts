@@ -329,6 +329,7 @@ type FormioFRF2023DashboardDataFields = {
   appInfo_efti: string;
   appInfo_orgName: string;
   _formio_schoolDistrictName: string;
+  org_district_ncesId: string;
   org_district_orgName: string;
   org_district_state: string;
   org_district_prioritized: string;
@@ -356,6 +357,7 @@ type FormioPRF2023DashboardDataFields = {
   _bap_entity_combo_key: string;
   _bap_rebate_id: string;
   _bap_applicant_name: string;
+  _bap_district_nces_id: string;
   _bap_district_name: string;
   _bap_district_state: string;
   _bap_district_priority: string;
@@ -396,7 +398,6 @@ type FormioPRF2023FormDataFields = FormioPRF2023DashboardDataFields & {
   _bap_alternate_email: string | null;
   _bap_alternate_phone: string | null;
   _bap_district_id: string;
-  _bap_district_nces_id: string;
   _bap_district_address_1: string;
   _bap_district_address_2: string;
   _bap_district_city: string;
@@ -475,6 +476,7 @@ type FormioCRF2023DashboardDataFields = {
   _bap_entity_combo_key: string;
   _bap_rebate_id: string;
   _bap_applicant_name: string;
+  _bap_district_nces_id: string;
   _bap_district_name: string;
   _bap_district_state: string;
   _bap_district_priority: string;
@@ -516,7 +518,6 @@ type FormioCRF2023FormDataFields = FormioCRF2023DashboardDataFields & {
   _bap_alternate_email: string | null;
   _bap_alternate_phone: string | null;
   _bap_district_id: string;
-  _bap_district_nces_id: string;
   _bap_district_address_1: string;
   _bap_district_address_2: string;
   _bap_district_city: string;
