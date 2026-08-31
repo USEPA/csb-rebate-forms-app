@@ -156,7 +156,7 @@ type FormioFRF2022DashboardDataFields = {
   schoolDistrictName: string;
   schoolDistrictState: string;
   schoolDistricPrioritized: string;
-  // school district self-certify?
+  schoolDistricttPovertyRate: number;
   last_updated_by: string;
 };
 
@@ -184,9 +184,7 @@ type FormioPRF2022DashboardDataFields = {
   applicantName: string;
   ncesDistrictId: string;
   schoolDistrictName: string;
-  // school district state?
   schoolDistrictPrioritized: string;
-  // school district self-certify?
 };
 
 type FormioPRF2022FormDataFields = FormioPRF2022DashboardDataFields & {
@@ -233,9 +231,7 @@ type FormioCRF2022DashboardDataFields = {
   hidden_bap_rebate_id: string;
   ncesDistrictId: string;
   schoolDistrictName: string;
-  // school district state?
   schoolDistrictPrioritized: string;
-  // school district self-certify?
 };
 
 type FormioCRF2022FormDataFields = FormioCRF2022DashboardDataFields & {

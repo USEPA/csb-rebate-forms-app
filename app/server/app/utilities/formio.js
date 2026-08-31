@@ -54,7 +54,7 @@ const formDataFieldNames = {
       "schoolDistrictName",
       "schoolDistrictState",
       "schoolDistricPrioritized",
-      // school district self-certify?
+      "schoolDistricttPovertyRate",
       "last_updated_by",
     ],
     prf: [
@@ -64,9 +64,7 @@ const formDataFieldNames = {
       "applicantName",
       "ncesDistrictId",
       "schoolDistrictName",
-      // school district state?
       "schoolDistrictPrioritized",
-      // school district self-certify?
     ],
     crf: [
       "bap_hidden_entity_combo_key",
@@ -74,9 +72,7 @@ const formDataFieldNames = {
       "hidden_bap_rebate_id",
       "ncesDistrictId",
       "schoolDistrictName",
-      // school district state?
       "schoolDistrictPrioritized",
-      // school district self-certify?
     ],
     change: [
       "_request_form",
