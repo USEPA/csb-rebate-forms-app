@@ -50,8 +50,11 @@ const formDataFieldNames = {
       "applicantEfti",
       "applicantEfti_display",
       "applicantOrganizationName",
+      "ncesDistrictId",
       "schoolDistrictName",
       "schoolDistrictState",
+      "schoolDistricPrioritized",
+      // school district self-certify?
       "last_updated_by",
     ],
     prf: [
@@ -59,13 +62,21 @@ const formDataFieldNames = {
       "hidden_current_user_email",
       "hidden_bap_rebate_id",
       "applicantName",
+      "ncesDistrictId",
       "schoolDistrictName",
+      // school district state?
+      "schoolDistrictPrioritized",
+      // school district self-certify?
     ],
     crf: [
       "bap_hidden_entity_combo_key",
       "hidden_current_user_email",
       "hidden_bap_rebate_id",
+      "ncesDistrictId",
       "schoolDistrictName",
+      // school district state?
+      "schoolDistrictPrioritized",
+      // school district self-certify?
     ],
     change: [
       "_request_form",
