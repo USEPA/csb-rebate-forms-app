@@ -350,7 +350,7 @@ function FRF2022Submission(props: { rebate: Rebate2022 }) {
     schoolDistrictName,
     schoolDistrictState,
     schoolDistricPrioritized,
-    // school district self-certify?
+    schoolDistricttPovertyRate,
     last_updated_by,
   } = frf.formio.data;
 
@@ -568,7 +568,7 @@ save the form for the EFT indicator to be displayed. */
             districtName: schoolDistrictName,
             districtState: schoolDistrictState,
             districtPriority: schoolDistricPrioritized,
-            districtSelfCertify: "", // TODO
+            districtSelfCertify: schoolDistricttPovertyRate,
           }}
         />
       </td>
@@ -702,14 +702,14 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
   // return if a Payment Request submission has not been created for this rebate
   if (!prf.formio) return null;
 
+  const { schoolDistrictState, schoolDistricttPovertyRate } = frf.formio.data;
+
   const {
     hidden_current_user_email,
     applicantName,
     ncesDistrictId,
     schoolDistrictName,
-    // school district state?
     schoolDistrictPrioritized,
-    // school district self-certify?
   } = prf.formio.data;
 
   const date = new Date(prf.formio.modified).toLocaleDateString();
@@ -818,9 +818,9 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
             applicantName: applicantName,
             districtNcesId: ncesDistrictId,
             districtName: schoolDistrictName,
-            districtState: "", // NOTE: not available in the 2022 PRF
+            districtState: schoolDistrictState, // NOTE: from FRF
             districtPriority: schoolDistrictPrioritized,
-            districtSelfCertify: "", // TODO
+            districtSelfCertify: schoolDistricttPovertyRate, // NOTE: from FRF
           }}
         />
       </td>
@@ -955,12 +955,16 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
   if (!crf.formio) return null;
 
   const {
+    sam_hidden_applicant_name,
+    schoolDistrictState,
+    schoolDistricttPovertyRate,
+  } = frf.formio.data;
+
+  const {
     hidden_current_user_email,
     ncesDistrictId,
     schoolDistrictName,
-    // school district state?
     schoolDistrictPrioritized,
-    // school district self-certify?
   } = crf.formio.data;
 
   const date = new Date(crf.formio.modified).toLocaleDateString();
@@ -1072,12 +1076,12 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
             userEmail: email,
             userTitle: title,
             userName: name,
-            applicantName: "", // NOTE: not available in the 2022 CRF
+            applicantName: sam_hidden_applicant_name, // NOTE: from FRF
             districtNcesId: ncesDistrictId,
             districtName: schoolDistrictName,
-            districtState: "", // NOTE: not available in the 2022 CRF
+            districtState: schoolDistrictState, // NOTE: from FRF
             districtPriority: schoolDistrictPrioritized,
-            districtSelfCertify: "", // TODO
+            districtSelfCertify: schoolDistricttPovertyRate, // NOTE: from FRF
           }}
         />
       </td>

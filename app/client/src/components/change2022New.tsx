@@ -35,7 +35,7 @@ type SubmissionData = {
   districtName: string;
   districtState: string;
   districtPriority: string;
-  districtSelfCertify: string;
+  districtSelfCertify: string | number;
 };
 
 /** Custom hook to fetch Formio schema and update Formio submission data */
