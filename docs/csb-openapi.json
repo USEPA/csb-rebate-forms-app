@@ -838,6 +838,82 @@
         }
       }
     },
+    "/api/formio/2022/change": {
+      "get": {
+        "summary": "Get the 2022 Change Request form's schema from Formio.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The 2022 Change Request form's schema.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "summary": "Post a new 2022 Change Request form submission to Formio.",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The newly created 2022 Change Request form submission.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/formio/2022/change/{mongoId}": {
+      "get": {
+        "summary": "Get an existing 2022 Change Request form's schema and submission data from Formio.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/mongoId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The 2022 Change Request form's schema, form submission, and user access status.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FormioSchemaAndSubmission"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
     "/api/formio/2023/check-vin/{vin}": {
       "get": {
         "summary": "Check for duplicate VINs in the BAP.",
