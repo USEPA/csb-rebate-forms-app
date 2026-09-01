@@ -152,8 +152,11 @@ type FormioFRF2022DashboardDataFields = {
   applicantEfti: string;
   applicantEfti_display: string;
   applicantOrganizationName: string;
+  ncesDistrictId: string;
   schoolDistrictName: string;
   schoolDistrictState: string;
+  schoolDistricPrioritized: string;
+  schoolDistricttPovertyRate: string | number;
   last_updated_by: string;
 };
 
@@ -179,7 +182,9 @@ type FormioPRF2022DashboardDataFields = {
   hidden_current_user_email: string;
   hidden_bap_rebate_id: string;
   applicantName: string;
+  ncesDistrictId: string;
   schoolDistrictName: string;
+  schoolDistrictPrioritized: string;
 };
 
 type FormioPRF2022FormDataFields = FormioPRF2022DashboardDataFields & {
@@ -224,7 +229,9 @@ type FormioCRF2022DashboardDataFields = {
   bap_hidden_entity_combo_key: string;
   hidden_current_user_email: string;
   hidden_bap_rebate_id: string;
+  ncesDistrictId: string;
   schoolDistrictName: string;
+  schoolDistrictPrioritized: string;
 };
 
 type FormioCRF2022FormDataFields = FormioCRF2022DashboardDataFields & {
