@@ -156,7 +156,7 @@ type FormioFRF2022DashboardDataFields = {
   schoolDistrictName: string;
   schoolDistrictState: string;
   schoolDistricPrioritized: string;
-  schoolDistricttPovertyRate: number;
+  schoolDistricttPovertyRate: string | number;
   last_updated_by: string;
 };
 
