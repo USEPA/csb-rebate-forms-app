@@ -346,8 +346,11 @@ function FRF2022Submission(props: { rebate: Rebate2022 }) {
     applicantEfti,
     applicantEfti_display,
     applicantOrganizationName,
+    ncesDistrictId,
     schoolDistrictName,
     schoolDistrictState,
+    schoolDistricPrioritized,
+    schoolDistricttPovertyRate,
     last_updated_by,
   } = frf.formio.data;
 
@@ -561,8 +564,11 @@ save the form for the EFT indicator to be displayed. */
             userTitle: title,
             userName: name,
             applicantName: sam_hidden_applicant_name,
+            districtNcesId: ncesDistrictId,
             districtName: schoolDistrictName,
             districtState: schoolDistrictState,
+            districtPriority: schoolDistricPrioritized,
+            districtSelfCertify: schoolDistricttPovertyRate,
           }}
         />
       </td>
@@ -618,7 +624,7 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
   if (frfSelectedButNoPRF) {
     return (
       <tr className={highlightedTableRowClassNames}>
-        <th scope="row" colSpan={6}>
+        <th scope="row" colSpan={7}>
           <button
             className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
             disabled={!prfSubmissionPeriodOpen}
@@ -696,8 +702,15 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
   // return if a Payment Request submission has not been created for this rebate
   if (!prf.formio) return null;
 
-  const { hidden_current_user_email, applicantName, schoolDistrictName } =
-    prf.formio.data;
+  const { schoolDistrictState, schoolDistricttPovertyRate } = frf.formio.data;
+
+  const {
+    hidden_current_user_email,
+    applicantName,
+    ncesDistrictId,
+    schoolDistrictName,
+    schoolDistrictPrioritized,
+  } = prf.formio.data;
 
   const date = new Date(prf.formio.modified).toLocaleDateString();
   const time = new Date(prf.formio.modified).toLocaleTimeString();
@@ -803,8 +816,11 @@ function PRF2022Submission(props: { rebate: Rebate2022 }) {
             userTitle: title,
             userName: name,
             applicantName: applicantName,
+            districtNcesId: ncesDistrictId,
             districtName: schoolDistrictName,
-            districtState: "", // NOTE: not available in the 2022 PRF
+            districtState: schoolDistrictState, // NOTE: from FRF
+            districtPriority: schoolDistrictPrioritized,
+            districtSelfCertify: schoolDistricttPovertyRate, // NOTE: from FRF
           }}
         />
       </td>
@@ -860,7 +876,7 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
   if (prfApprovedButNoCRF) {
     return (
       <tr className={highlightedTableRowClassNames}>
-        <th scope="row" colSpan={6}>
+        <th scope="row" colSpan={7}>
           <button
             className="usa-button font-sans-2xs margin-right-0 padding-x-105 padding-y-1"
             disabled={!crfSubmissionPeriodOpen}
@@ -938,7 +954,18 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
   // return if a Close Out submission has not been created for this rebate
   if (!crf.formio) return null;
 
-  const { hidden_current_user_email, schoolDistrictName } = crf.formio.data;
+  const {
+    sam_hidden_applicant_name,
+    schoolDistrictState,
+    schoolDistricttPovertyRate,
+  } = frf.formio.data;
+
+  const {
+    hidden_current_user_email,
+    ncesDistrictId,
+    schoolDistrictName,
+    schoolDistrictPrioritized,
+  } = crf.formio.data;
 
   const date = new Date(crf.formio.modified).toLocaleDateString();
   const time = new Date(crf.formio.modified).toLocaleTimeString();
@@ -1049,9 +1076,12 @@ function CRF2022Submission(props: { rebate: Rebate2022 }) {
             userEmail: email,
             userTitle: title,
             userName: name,
-            applicantName: "", // NOTE: not available in the 2022 CRF
+            applicantName: sam_hidden_applicant_name, // NOTE: from FRF
+            districtNcesId: ncesDistrictId,
             districtName: schoolDistrictName,
-            districtState: "", // NOTE: not available in the 2022 CRF
+            districtState: schoolDistrictState, // NOTE: from FRF
+            districtPriority: schoolDistrictPrioritized,
+            districtSelfCertify: schoolDistricttPovertyRate, // NOTE: from FRF
           }}
         />
       </td>
@@ -1119,7 +1149,7 @@ function Submissions2022() {
                       <th
                         className={clsx("p-0", "tw:leading-none")}
                         scope="row"
-                        colSpan={6}
+                        colSpan={7}
                       >
                         &nbsp;
                       </th>
@@ -1316,8 +1346,11 @@ function FRF2023Submission(props: { rebate: Rebate2023 }) {
     appInfo_efti,
     appInfo_orgName,
     _formio_schoolDistrictName,
+    org_district_ncesId,
     org_district_orgName,
     org_district_state,
+    org_district_prioritized,
+    org_district_povertyRate,
   } = frf.formio.data;
 
   const date = new Date(frf.formio.modified).toLocaleDateString();
@@ -1504,8 +1537,11 @@ handle when it's value is an empty string. */}
             userTitle: title,
             userName: name,
             applicantName: _bap_applicant_name,
+            districtNcesId: org_district_ncesId,
             districtName: org_district_orgName,
             districtState: org_district_state,
+            districtPriority: org_district_prioritized,
+            districtSelfCertify: org_district_povertyRate,
           }}
         />
       </td>
@@ -1642,8 +1678,11 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
   const {
     _user_email,
     _bap_applicant_name,
+    _bap_district_nces_id,
     _bap_district_name,
     _bap_district_state,
+    _bap_district_priority,
+    _bap_district_self_certify,
   } = prf.formio.data;
 
   const date = new Date(prf.formio.modified).toLocaleDateString();
@@ -1750,8 +1789,11 @@ function PRF2023Submission(props: { rebate: Rebate2023 }) {
             userTitle: title,
             userName: name,
             applicantName: _bap_applicant_name,
+            districtNcesId: _bap_district_nces_id,
             districtName: _bap_district_name,
             districtState: _bap_district_state,
+            districtPriority: _bap_district_priority,
+            districtSelfCertify: _bap_district_self_certify,
           }}
         />
       </td>
@@ -1888,8 +1930,11 @@ function CRF2023Submission(props: { rebate: Rebate2023 }) {
   const {
     _user_email,
     _bap_applicant_name,
+    _bap_district_nces_id,
     _bap_district_name,
     _bap_district_state,
+    _bap_district_priority,
+    _bap_district_self_certify,
   } = crf.formio.data;
 
   const date = new Date(crf.formio.modified).toLocaleDateString();
@@ -2002,8 +2047,11 @@ function CRF2023Submission(props: { rebate: Rebate2023 }) {
             userTitle: title,
             userName: name,
             applicantName: _bap_applicant_name,
+            districtNcesId: _bap_district_nces_id,
             districtName: _bap_district_name,
             districtState: _bap_district_state,
+            districtPriority: _bap_district_priority,
+            districtSelfCertify: _bap_district_self_certify,
           }}
         />
       </td>

@@ -31,8 +31,11 @@ type SubmissionData = {
   userTitle: string;
   userName: string;
   applicantName: string;
+  districtNcesId: string;
   districtName: string;
   districtState: string;
+  districtPriority: string;
+  districtSelfCertify: string;
 };
 
 /** Custom hook to fetch Formio schema and update Formio submission data */
@@ -311,8 +314,11 @@ function ChangeRequest2023Form(props: {
               _user_title: data.userTitle,
               _user_name: data.userName,
               _bap_applicant_name: data.applicantName,
+              _bap_district_nces_id: data.districtNcesId,
               _bap_district_name: data.districtName,
               _bap_district_state: data.districtState,
+              _bap_district_priority: data.districtPriority,
+              _bap_district_self_certify: data.districtSelfCertify,
               ...pendingSubmissionData.current,
             },
           }}
