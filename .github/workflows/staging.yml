@@ -38,12 +38,15 @@ jobs:
       CSB_2022_FRF_OPEN: true
       CSB_2022_PRF_OPEN: true
       CSB_2022_CRF_OPEN: true
+      CSB_2022_CHANGE_OPEN: true
       CSB_2023_FRF_OPEN: true
       CSB_2023_PRF_OPEN: true
       CSB_2023_CRF_OPEN: true
+      CSB_2023_CHANGE_OPEN: true
       CSB_2024_FRF_OPEN: true
       CSB_2024_PRF_OPEN: true
       CSB_2024_CRF_OPEN: true
+      CSB_2024_CHANGE_OPEN: true
       FORMIO_2022_FRF_SUBSTRING: ${{ secrets.FORMIO_2022_FRF_SUBSTRING }}
       FORMIO_2022_PRF_SUBSTRING: ${{ secrets.FORMIO_2022_PRF_SUBSTRING }}
       FORMIO_2022_CRF_SUBSTRING: ${{ secrets.FORMIO_2022_CRF_SUBSTRING }}
@@ -127,12 +130,15 @@ jobs:
           cf set-env $APP_NAME "CSB_2022_FRF_OPEN" "$CSB_2022_FRF_OPEN" > /dev/null
           cf set-env $APP_NAME "CSB_2022_PRF_OPEN" "$CSB_2022_PRF_OPEN" > /dev/null
           cf set-env $APP_NAME "CSB_2022_CRF_OPEN" "$CSB_2022_CRF_OPEN" > /dev/null
+          cf set-env $APP_NAME "CSB_2022_CHANGE_OPEN" "$CSB_2022_CHANGE_OPEN" > /dev/null
           cf set-env $APP_NAME "CSB_2023_FRF_OPEN" "$CSB_2023_FRF_OPEN" > /dev/null
           cf set-env $APP_NAME "CSB_2023_PRF_OPEN" "$CSB_2023_PRF_OPEN" > /dev/null
           cf set-env $APP_NAME "CSB_2023_CRF_OPEN" "$CSB_2023_CRF_OPEN" > /dev/null
+          cf set-env $APP_NAME "CSB_2023_CHANGE_OPEN" "$CSB_2023_CHANGE_OPEN" > /dev/null
           cf set-env $APP_NAME "CSB_2024_FRF_OPEN" "$CSB_2024_FRF_OPEN" > /dev/null
           cf set-env $APP_NAME "CSB_2024_PRF_OPEN" "$CSB_2024_PRF_OPEN" > /dev/null
           cf set-env $APP_NAME "CSB_2024_CRF_OPEN" "$CSB_2024_CRF_OPEN" > /dev/null
+          cf set-env $APP_NAME "CSB_2024_CHANGE_OPEN" "$CSB_2024_CHANGE_OPEN" > /dev/null
           cf set-env $APP_NAME "FORMIO_2022_FRF_SUBSTRING" "$FORMIO_2022_FRF_SUBSTRING" > /dev/null
           cf set-env $APP_NAME "FORMIO_2022_PRF_SUBSTRING" "$FORMIO_2022_PRF_SUBSTRING" > /dev/null
           cf set-env $APP_NAME "FORMIO_2022_CRF_SUBSTRING" "$FORMIO_2022_CRF_SUBSTRING" > /dev/null
