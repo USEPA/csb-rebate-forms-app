@@ -52,6 +52,8 @@ export function Change2024() {
     return <Message type="error" text={messages.formSubmissionError} />;
   }
 
+  const comboKey = submission.data._bap_entity_combo_key;
+
   return (
     <div className="margin-top-2">
       <div className="margin-top-4">
@@ -74,6 +76,7 @@ export function Change2024() {
       <div className="csb-form">
         <Form
           src={schema}
+          url={`${serverUrl}/api/formio/2024/s3/change/${mongoId}/${comboKey}`}
           submission={submission}
           options={{
             readOnly: true,

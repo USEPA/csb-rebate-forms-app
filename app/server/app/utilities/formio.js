@@ -2897,7 +2897,11 @@ function fetchChangeRequestSchema({ rebateYear, req, res }) {
   axiosFormio(req)
     .get(formioFormUrl)
     .then((axiosRes) => axiosRes.data)
-    .then((schema) => res.json(schema))
+    .then((schema) => {
+      const formSchema = applyDevelopmentSchemaModifications({ schema });
+
+      return res.json(formSchema);
+    })
     .catch((error) => {
       // NOTE: error is logged in axiosFormio response interceptor
       const errorStatus = error.response?.status || 500;
