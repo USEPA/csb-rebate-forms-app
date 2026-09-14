@@ -77,6 +77,11 @@ export type BapSamData =
   | { results: false; entities: [] }
   | { results: true; entities: BapSamEntity[] };
 
+export type BapRebates = {
+  submissionsInfo: BapSubmissionInfo[];
+  districtNameChanges: { [rebateId: string]: string };
+};
+
 export type BapSubmissionInfo = {
   attributes: { type: "Order_Request__c"; url: string };
   Id: string;
@@ -112,7 +117,7 @@ export type BapSubmissionInfo = {
 };
 
 /** BAP submissions info by rebate year and form type (FRF, PRF, CRF). */
-export type BapSubmissionsInfo = {
+export type BapSubmissionsInfoByRebateYear = {
   2022: {
     frfs: BapSubmissionInfo[];
     prfs: BapSubmissionInfo[];

@@ -17,8 +17,9 @@ import {
   type UserData,
   type BapSamEntity,
   type BapSamData,
+  type BapRebates,
   type BapSubmissionInfo,
-  type BapSubmissionsInfo,
+  type BapSubmissionsInfoByRebateYear,
   type BapSubmissionData,
   type FormioSubmission,
   type FormioFRF2022DashboardSubmission,
@@ -51,12 +52,12 @@ type FormioChangeRequestsByYear<Year> =
   Year extends "2024" ? FormioChange2024DashboardSubmission[] | undefined :
   never;
 
-/** BAP and Formio submissions data by rebate year. */
+/** BAP and Formio submissions info and data by rebate year. */
 /* prettier-ignore */
 type BapAndFormioSubmissionsByYear<Year> =
-  Year extends "2022" ? BapSubmissionsInfo | FormioFRF2022DashboardSubmission[] | FormioPRF2022DashboardSubmission[] | FormioCRF2022DashboardSubmission[] :
-  Year extends "2023" ? BapSubmissionsInfo | FormioFRF2023DashboardSubmission[] | FormioPRF2023DashboardSubmission[] | FormioCRF2023DashboardSubmission[] :
-  Year extends "2024" ? BapSubmissionsInfo | FormioFRF2024DashboardSubmission[] | FormioPRF2024DashboardSubmission[] | FormioCRF2024DashboardSubmission[] :
+  Year extends "2022" ? BapSubmissionsInfoByRebateYear | FormioFRF2022DashboardSubmission[] | FormioPRF2022DashboardSubmission[] | FormioCRF2022DashboardSubmission[] :
+  Year extends "2023" ? BapSubmissionsInfoByRebateYear | FormioFRF2023DashboardSubmission[] | FormioPRF2023DashboardSubmission[] | FormioCRF2023DashboardSubmission[] :
+  Year extends "2024" ? BapSubmissionsInfoByRebateYear | FormioFRF2024DashboardSubmission[] | FormioPRF2024DashboardSubmission[] | FormioCRF2024DashboardSubmission[] :
   never;
 
 /**
@@ -397,14 +398,14 @@ export function useSubmissionsQueries<Year extends RebateYear>(
     queryKey: ["bap/rebates"],
     queryFn: () => {
       const url = `${serverUrl}/api/bap/rebates`;
-      return getData<BapSubmissionInfo[]>(url).then((res) => {
+      return getData<BapRebates>(url).then((res) => {
         const { submissionsInfo } = res;
 
         if (!Array.isArray(submissionsInfo)) {
           return Promise.reject(submissionsInfo);
         }
 
-        const result: BapSubmissionsInfo = submissionsInfo.reduce(
+        const result: BapSubmissionsInfoByRebateYear = submissionsInfo.reduce(
           (object, item) => {
             const { Record_Type_Name__c, Rebate_Program_Year__c } = item;
 
@@ -556,7 +557,7 @@ function useCombinedSubmissions<Year extends RebateYear>(
 ): { [rebateId: string]: RebateByYear<Year> } {
   const queryClient = useQueryClient();
 
-  const bapSubmissionsInfo = queryClient.getQueryData<BapSubmissionsInfo>(["bap/rebates"]); // prettier-ignore
+  const bapSubmissionsInfo = queryClient.getQueryData<BapSubmissionsInfoByRebateYear>(["bap/rebates"]); // prettier-ignore
 
   const formioFRF2022Data = queryClient.getQueryData<FormioFRF2022DashboardSubmission[]>(["formio/2022/frf-submissions"]); // prettier-ignore
   const formioFRF2023Data = queryClient.getQueryData<FormioFRF2023DashboardSubmission[]>(["formio/2023/frf-submissions"]); // prettier-ignore
