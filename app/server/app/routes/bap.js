@@ -75,8 +75,8 @@ router.get("/sam", (req, res) => {
     });
 });
 
-// --- get info associated with user's form submissions from the BAP
-router.get("/submissions", fetchBapComboKeys, (req, res) => {
+// --- get info associated with user's form submissions and any school district name changes from the BAP
+router.get("/rebates", fetchBapComboKeys, (req, res) => {
   const { mail } = req.user;
 
   const { adminOrHelpdeskUser, noBapComboKeys } = checkUserData({ req });

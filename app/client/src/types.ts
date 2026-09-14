@@ -77,7 +77,7 @@ export type BapSamData =
   | { results: false; entities: [] }
   | { results: true; entities: BapSamEntity[] };
 
-export type BapFormSubmission = {
+export type BapSubmissionInfo = {
   attributes: { type: "Order_Request__c"; url: string };
   Id: string;
   UEI_EFTI_Combo_Key__c: string; // UEI + EFTI combo key
@@ -111,21 +111,22 @@ export type BapFormSubmission = {
   };
 };
 
-export type BapFormSubmissions = {
+/** BAP submissions info by rebate year and form type (FRF, PRF, CRF). */
+export type BapSubmissionsInfo = {
   2022: {
-    frfs: BapFormSubmission[];
-    prfs: BapFormSubmission[];
-    crfs: BapFormSubmission[];
+    frfs: BapSubmissionInfo[];
+    prfs: BapSubmissionInfo[];
+    crfs: BapSubmissionInfo[];
   };
   2023: {
-    frfs: BapFormSubmission[];
-    prfs: BapFormSubmission[];
-    crfs: BapFormSubmission[];
+    frfs: BapSubmissionInfo[];
+    prfs: BapSubmissionInfo[];
+    crfs: BapSubmissionInfo[];
   };
   2024: {
-    frfs: BapFormSubmission[];
-    prfs: BapFormSubmission[];
-    crfs: BapFormSubmission[];
+    frfs: BapSubmissionInfo[];
+    prfs: BapSubmissionInfo[];
+    crfs: BapSubmissionInfo[];
   };
 };
 
