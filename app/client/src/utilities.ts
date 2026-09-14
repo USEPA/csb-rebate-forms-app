@@ -398,13 +398,15 @@ export function useSubmissionsQueries<Year extends RebateYear>(
     queryFn: () => {
       const url = `${serverUrl}/api/bap/submissions`;
       return getData<BapFormSubmission[]>(url).then((res) => {
-        if (!Array.isArray(res)) {
-          return Promise.reject(res);
+        const { submissionsInfo } = res;
+
+        if (!Array.isArray(submissionsInfo)) {
+          return Promise.reject(submissionsInfo);
         }
 
-        const submissions: BapFormSubmissions = res.reduce(
-          (object, submission) => {
-            const { Record_Type_Name__c, Rebate_Program_Year__c } = submission;
+        const result: BapFormSubmissions = submissionsInfo.reduce(
+          (object, item) => {
+            const { Record_Type_Name__c, Rebate_Program_Year__c } = item;
 
             const rebateYear =
               Rebate_Program_Year__c === null ? "2022" : Rebate_Program_Year__c;
@@ -419,7 +421,7 @@ export function useSubmissionsQueries<Year extends RebateYear>(
                     : null;
 
             if (rebateYear && formType) {
-              object[rebateYear][formType].push(submission);
+              object[rebateYear][formType].push(item);
             }
 
             return object;
@@ -443,7 +445,7 @@ export function useSubmissionsQueries<Year extends RebateYear>(
           },
         );
 
-        return Promise.resolve(submissions);
+        return Promise.resolve(result);
       });
     },
     refetchOnWindowFocus: false,

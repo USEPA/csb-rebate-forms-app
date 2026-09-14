@@ -602,6 +602,27 @@ const { submissionPeriodOpen } = require("../config/formio");
  * @typedef {{
  *  attributes: { type: "Application__c", url: string }
  *  Id: string
+ *  CSB_Rebate_ID__c: string
+ *  School_District__r: {
+ *    attributes: { type: "Account", url: string }
+ *    Id: string
+ *    Name: string
+ *  }
+ *  Order_Requests__r: {
+ *    totalSize: 1
+ *    done: true
+ *    records: {
+ *      attributes: { type: "Order_Request__c", url: string }
+ *      Id: string
+ *    }[]
+ *  }
+ * }} SchoolDistrictNameChanges
+ */
+
+/**
+ * @typedef {{
+ *  attributes: { type: "Application__c", url: string }
+ *  Id: string
  *  CSB_School_District_ID_NCES__c: string
  *  School_District__r: {
  *    attributes: { type: "Account", url: string }
@@ -2608,6 +2629,79 @@ async function queryBapFor2023CRFData(req, prfReviewItemId) {
 }
 
 /**
+ * Uses cached JSforce connection to query the BAP for school district name
+ * changes associated with a list of CSB Rebate IDs (as a result of a school
+ * district change in a change request form submission).
+ *
+ * @param {express.Request} req
+ * @param {string[]} rebateIds
+ * @returns {Promise<SchoolDistrictNameChanges>}
+ */
+async function queryForSchoolDistrictNameChanges(req, rebateIds) {
+  const logMessage =
+    `Querying the BAP for school district name changes associated with ` +
+    `CSB Rebate IDs: '${rebateIds.join("', '")}'.`;
+  log({ level: "info", message: logMessage, req });
+
+  /** @type {{ bapConnection: jsforce.Connection }} */
+  const { bapConnection } = req.app.locals;
+
+  // SELECT
+  //   Id,
+  //   CSB_Rebate_ID__c,
+  //   School_District__r.Id,
+  //   School_District__r.Name,
+  //   (
+  //     SELECT
+  //       Id
+  //     FROM
+  //       Order_Requests__r
+  //     WHERE
+  //       RecordType.DeveloperName = 'CSB_Change_Request' AND
+  //       Request_Type__c = 'School District Changes' AND
+  //       Change_Status__c = 'Accepted'
+  //     ORDER BY
+  //       CreatedDate DESC
+  //     LIMIT 1
+  //   )
+  // FROM
+  //   Application__c
+  // WHERE
+  //   RecordType.DeveloperName = 'CSB_Rebate' AND
+  //   CSB_Rebate_ID__c IN('${rebateIds.join("', '")}')
+
+  const schoolDistrictNameChangesQuery = await bapConnection
+    .sobject("Application__c")
+    .select({
+      // "*": 1,
+      Id: 1, // Salesforce record ID
+      CSB_Rebate_ID__c: 1,
+      "School_District__r.Id": 1,
+      "School_District__r.Name": 1,
+    })
+    .where({
+      "RecordType.DeveloperName": "CSB_Rebate",
+      CSB_Rebate_ID__c: { $in: rebateIds },
+    })
+    .include("Order_Requests__r")
+    .select({
+      // "*": 1,
+      Id: 1, // Salesforce record ID
+    })
+    .where({
+      "RecordType.DeveloperName": "CSB_Change_Request",
+      Request_Type__c: "School District Changes",
+      Change_Status__c: "Accepted",
+    })
+    .sort({ CreatedDate: -1 })
+    .limit(1)
+    .end()
+    .execute(async (err, records) => ((await err) ? err : records));
+
+  return schoolDistrictNameChangesQuery;
+}
+
+/**
  * Uses cached JSforce connection to query the BAP for school district info
  * associated with a CSB Rebate ID (as a result of a school district change in a
  * change request form submission).
@@ -2988,7 +3082,25 @@ function getBapDataFor2023CRF(req, prfReviewItemId) {
 }
 
 /**
- * Fetches school district info associated with a provided CSB Rebate ID.
+ * Fetches school district name changes associated with a provided list of CSB
+ * Rebate IDs (as a result of a school district change in a change request form
+ * submission).
+ *
+ * @param {Object} param
+ * @param {string[]} param.rebateIds
+ * @param {express.Request} param.req
+ * @returns {ReturnType<queryForSchoolDistrictNameChanges>}
+ */
+function getBapSchoolDistrictNameChanges({ rebateIds, req }) {
+  return verifyBapConnection(req, {
+    name: queryForSchoolDistrictNameChanges,
+    args: [req, rebateIds],
+  });
+}
+
+/**
+ * Fetches school district info associated with a provided CSB Rebate ID (as a
+ * result of a school district change in a change request form submission).
  *
  * @param {Object} param
  * @param {string} param.rebateId
@@ -3100,6 +3212,7 @@ module.exports = {
   getBapDataFor2024PRF,
   getBapDataFor2022CRF,
   getBapDataFor2023CRF,
+  getBapSchoolDistrictNameChanges,
   getCSBRebateSchoolDistrictInfo,
   getCSBRebateContacts,
   checkForBapDuplicates,

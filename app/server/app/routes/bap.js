@@ -5,6 +5,7 @@ const {
   // checkForBapDuplicates,
   getSamEntities,
   getBapSubmissionsInfo,
+  getBapSchoolDistrictNameChanges,
 } = require("../utilities/bap");
 const { checkUserData } = require("../utilities/user");
 const log = require("../utilities/logger");
@@ -86,7 +87,7 @@ router.get("/submissions", fetchBapComboKeys, (req, res) => {
     }
 
     const logMessage =
-      `User with email '${mail}' attempted to fetch form submissions ` +
+      `User with email '${mail}' attempted to fetch form submissions info ` +
       `from the BAP without any SAM.gov combo keys.`;
     log({ level: "error", message: logMessage, req });
 
@@ -96,10 +97,42 @@ router.get("/submissions", fetchBapComboKeys, (req, res) => {
   }
 
   return getBapSubmissionsInfo(req)
-    .then((submissionsInfo) => res.json(submissionsInfo))
+    .then((submissionsInfo) => {
+      const rebateIds = submissionsInfo.map((item) => item.Parent_Rebate_ID__c);
+
+      return getBapSchoolDistrictNameChanges({
+        rebateIds,
+        req,
+      })
+        .then((districtNameChanges) => {
+          const result = districtNameChanges.reduce((object, item) => {
+            const { CSB_Rebate_ID__c, School_District__r, Order_Requests__r } =
+              item;
+
+            if (Order_Requests__r !== null) {
+              object[CSB_Rebate_ID__c] = School_District__r?.Name;
+            }
+
+            return object;
+          }, {});
+
+          return res.json({
+            submissionsInfo,
+            districtNameChanges: result,
+          });
+        })
+        .catch((error) => {
+          const errorStatus = 500;
+          const errorMessage = `Error getting school district changes from the BAP.`;
+
+          log({ level: "error", message: errorMessage, req, otherInfo: error });
+
+          return res.status(errorStatus).json({ message: errorMessage });
+        });
+    })
     .catch((error) => {
       const errorStatus = 500;
-      const errorMessage = `Error getting form submissions statuses from the BAP.`;
+      const errorMessage = `Error getting info associated with form submissions from the BAP.`;
 
       log({ level: "error", message: errorMessage, req, otherInfo: error });
 
