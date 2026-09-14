@@ -116,25 +116,6 @@ export type BapSubmissionInfo = {
   };
 };
 
-/** BAP submissions info by rebate year and form type (FRF, PRF, CRF). */
-export type BapSubmissionsInfoByRebateYear = {
-  2022: {
-    frfs: BapSubmissionInfo[];
-    prfs: BapSubmissionInfo[];
-    crfs: BapSubmissionInfo[];
-  };
-  2023: {
-    frfs: BapSubmissionInfo[];
-    prfs: BapSubmissionInfo[];
-    crfs: BapSubmissionInfo[];
-  };
-  2024: {
-    frfs: BapSubmissionInfo[];
-    prfs: BapSubmissionInfo[];
-    crfs: BapSubmissionInfo[];
-  };
-};
-
 export type BapSubmissionData = {
   modified: string | null; // ISO 8601 date time string
   comboKey: string | null; // UEI + EFTI combo key
