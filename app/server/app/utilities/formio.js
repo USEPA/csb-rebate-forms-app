@@ -14,7 +14,7 @@ const {
   formioNoUserAccess,
 } = require("../config/formio");
 const {
-  getBapFormSubmissionsStatuses,
+  getBapSubmissionsInfo,
   getBapDataFor2022PRF,
   getBapDataFor2023PRF,
   getBapDataFor2024PRF,
@@ -2484,12 +2484,12 @@ function deletePRFSubmission({ rebateYear, req, res }) {
    * ensure the BAP status of the corresponding FRF submission is "Edits
    * Requested" before deleting the FRF submission from Formio
    */
-  getBapFormSubmissionsStatuses(req, req.bapComboKeys)
-    .then((submissions) => {
-      const frf = submissions.find((submission) => {
+  getBapSubmissionsInfo(req, req.bapComboKeys)
+    .then((submissionsInfo) => {
+      const frf = submissionsInfo.find((item) => {
         return (
-          submission.Parent_Rebate_ID__c === rebateId &&
-          submission.Record_Type_Name__c.startsWith("CSB Funding Request")
+          item.Parent_Rebate_ID__c === rebateId &&
+          item.Record_Type_Name__c.startsWith("CSB Funding Request")
         );
       });
 

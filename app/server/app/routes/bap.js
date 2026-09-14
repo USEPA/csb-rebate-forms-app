@@ -4,7 +4,7 @@ const { ensureAuthenticated, fetchBapComboKeys } = require("../middleware");
 const {
   // checkForBapDuplicates,
   getSamEntities,
-  getBapFormSubmissionsStatuses,
+  getBapSubmissionsInfo,
 } = require("../utilities/bap");
 const { checkUserData } = require("../utilities/user");
 const log = require("../utilities/logger");
@@ -74,7 +74,7 @@ router.get("/sam", (req, res) => {
     });
 });
 
-// --- get user's form submissions statuses from the BAP
+// --- get info associated with user's form submissions from the BAP
 router.get("/submissions", fetchBapComboKeys, (req, res) => {
   const { mail } = req.user;
 
@@ -95,8 +95,8 @@ router.get("/submissions", fetchBapComboKeys, (req, res) => {
     return res.status(errorStatus).json({ message: errorMessage });
   }
 
-  return getBapFormSubmissionsStatuses(req)
-    .then((submissions) => res.json(submissions))
+  return getBapSubmissionsInfo(req)
+    .then((submissionsInfo) => res.json(submissionsInfo))
     .catch((error) => {
       const errorStatus = 500;
       const errorMessage = `Error getting form submissions statuses from the BAP.`;

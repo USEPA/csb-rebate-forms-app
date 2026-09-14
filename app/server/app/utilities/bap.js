@@ -46,7 +46,7 @@ const { submissionPeriodOpen } = require("../config/formio");
  */
 
 /**
- * @typedef {Object} BapFormSubmission
+ * @typedef {Object} BapSubmissionInfo
  * @property {{ type: "Order_Request__c", url: string }} attributes
  * @property {string} Id
  * @property {string} UEI_EFTI_Combo_Key__c
@@ -899,17 +899,17 @@ async function queryForSamEntities(req, email) {
 }
 
 /**
- * Uses cached JSforce connection to query the BAP for a single form submission's
- * statuses and related metadata.
+ * Uses cached JSforce connection to query the BAP for info (e.g. review status,
+ * etc.) associated with a single form submission.
  *
  * @param {express.Request} req
  * @param {RebateYear} rebateYear
  * @param {FormType} formType
  * @param {string | null} rebateId
  * @param {string | null} mongoId
- * @returns {Promise<BapFormSubmission | null>} fields associated a form submission
+ * @returns {Promise<BapSubmissionInfo | null>} fields associated a form submission
  */
-async function queryForBapFormSubmissionData(
+async function queryForBapSubmissionInfo(
   req,
   rebateYear,
   formType,
@@ -920,7 +920,7 @@ async function queryForBapFormSubmissionData(
     ? `rebateId: '${rebateId}'`
     : `mongoId: '${mongoId}'`;
   const logMessage =
-    `Querying the BAP for ${formType.toUpperCase()} submission data ` +
+    `Querying the BAP for info on ${formType.toUpperCase()} submission ` +
     `associated with ${loggedId}.`;
   log({ level: "info", message: logMessage, req });
 
@@ -1012,18 +1012,18 @@ async function queryForBapFormSubmissionData(
 }
 
 /**
- * Uses cached JSforce connection to query the BAP for form submissions statuses
- * and related metadata.
+ * Uses cached JSforce connection to query the BAP for info (e.g. review status,
+ * etc.) for all form submissions associated with a set of combo keys.
  *
  * @param {express.Request} req
- * @returns {Promise<BapFormSubmission[]>} collection of fields associated with each form submission
+ * @returns {Promise<BapSubmissionInfo[]>} collection of fields associated with each form submission
  */
-async function queryForBapFormSubmissionsStatuses(req) {
+async function queryForBapSubmissionsInfo(req) {
   /** @type {{ bapComboKeys: string[] }} */
   const { bapComboKeys } = req;
 
   const logMessage =
-    `Querying the BAP for form submissions statuses associated with ` +
+    `Querying the BAP for info on all form submissions associated with ` +
     `combokeys: '${bapComboKeys}'.`;
   log({ level: "info", message: logMessage, req });
 
@@ -2609,7 +2609,8 @@ async function queryBapFor2023CRFData(req, prfReviewItemId) {
 
 /**
  * Uses cached JSforce connection to query the BAP for school district info
- * associated with a CSB Rebate ID.
+ * associated with a CSB Rebate ID (as a result of a school district change in a
+ * change request form submission).
  *
  * @param {express.Request} req
  * @param {string} rebateId
@@ -2875,7 +2876,8 @@ function getBapComboKeys(req, email) {
 }
 
 /**
- * Fetches data associated with a provided form submission.
+ * Fetches info (e.g. review status, etc.) associated with a single form
+ * submission.
  *
  * @param {Object} param
  * @param {RebateYear} param.rebateYear
@@ -2883,9 +2885,9 @@ function getBapComboKeys(req, email) {
  * @param {string | null} param.rebateId
  * @param {string | null} param.mongoId
  * @param {express.Request} param.req
- * @returns {ReturnType<queryForBapFormSubmissionData>}
+ * @returns {ReturnType<queryForBapSubmissionInfo>}
  */
-function getBapFormSubmissionData({
+function getBapSubmissionInfo({
   rebateYear,
   formType,
   rebateId,
@@ -2893,20 +2895,21 @@ function getBapFormSubmissionData({
   req,
 }) {
   return verifyBapConnection(req, {
-    name: queryForBapFormSubmissionData,
+    name: queryForBapSubmissionInfo,
     args: [req, rebateYear, formType, rebateId, mongoId],
   });
 }
 
 /**
- * Fetches form submissions statuses associated with a provided set of combo keys.
+ * Fetches info (e.g. review status, etc.) for all form submissions associated
+ * with a set of combo keys.
  *
  * @param {express.Request} req
- * @returns {ReturnType<queryForBapFormSubmissionsStatuses>}
+ * @returns {ReturnType<queryForBapSubmissionsInfo>}
  */
-function getBapFormSubmissionsStatuses(req) {
+function getBapSubmissionsInfo(req) {
   return verifyBapConnection(req, {
-    name: queryForBapFormSubmissionsStatuses,
+    name: queryForBapSubmissionsInfo,
     args: [req],
   });
 }
@@ -3069,7 +3072,7 @@ function checkFormSubmissionPeriodAndBapStatus({
   }
 
   /** Form submission period is closed, so only continue if edits are requested. */
-  return getBapFormSubmissionsStatuses(req, [comboKey]).then((submissions) => {
+  return getBapSubmissionsInfo(req, [comboKey]).then((submissions) => {
     const submission = submissions.find((s) => s.CSB_Form_ID__c === mongoId);
 
     const statusField =
@@ -3090,8 +3093,8 @@ function checkFormSubmissionPeriodAndBapStatus({
 module.exports = {
   getSamEntities,
   getBapComboKeys,
-  getBapFormSubmissionData,
-  getBapFormSubmissionsStatuses,
+  getBapSubmissionInfo,
+  getBapSubmissionsInfo,
   getBapDataFor2022PRF,
   getBapDataFor2023PRF,
   getBapDataFor2024PRF,

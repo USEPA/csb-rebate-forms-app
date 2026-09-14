@@ -9,7 +9,7 @@ const {
   formioExampleRebateId,
 } = require("../config/formio");
 const { ensureAuthenticated, ensureHelpdesk } = require("../middleware");
-const { getBapFormSubmissionData } = require("../utilities/bap");
+const { getBapSubmissionInfo } = require("../utilities/bap");
 const { getRebateIdFieldName } = require("../utilities/formio");
 const log = require("../utilities/logger");
 
@@ -123,14 +123,14 @@ function fetchFormioSubmissionData({
  *  req: express.Request
  * }} param
  */
-function fetchBapSubmissionData({
+function fetchBapSubmissionInfo({
   rebateYear,
   formType,
   rebateId,
   mongoId,
   req,
 }) {
-  return getBapFormSubmissionData({
+  return getBapSubmissionInfo({
     rebateYear,
     formType,
     rebateId,
@@ -262,7 +262,7 @@ router.get("/formio/submission/:rebateYear/:formType/:id", async (req, res) => {
           req,
         });
 
-  result.bap = await fetchBapSubmissionData({
+  result.bap = await fetchBapSubmissionInfo({
     rebateYear,
     formType,
     rebateId,
@@ -283,7 +283,9 @@ router.get("/formio/submission/:rebateYear/:formType/:id", async (req, res) => {
 
   if (!result.formio && !result.bap) {
     const errorStatus = 400;
-    const errorMessage = `Error getting ${rebateYear} ${formName} form submission '${rebateId | mongoId}'.`;
+    const errorMessage =
+      `Error getting ${rebateYear} ${formName} ` +
+      `form submission '${rebateId | mongoId}'.`;
     return res.status(errorStatus).json({ message: errorMessage });
   }
 
