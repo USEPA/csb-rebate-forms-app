@@ -455,12 +455,12 @@ export function useSubmissionsQueries<Year extends RebateYear>(
           },
         );
 
-        const result: BapRebatesParsed = {
+        const bapRebates: BapRebatesParsed = {
           submissionsInfo: submissionsInfoByYearAndFormType,
           districtNameChanges,
         };
 
-        return Promise.resolve(result);
+        return Promise.resolve(bapRebates);
       });
     },
     refetchOnWindowFocus: false,
@@ -559,6 +559,19 @@ export function useSubmissionsQueries<Year extends RebateYear>(
   return useQueries({ queries }) as UseQueryResult<
     BapAndFormioSubmissionsByYear<Year>
   >[];
+}
+
+/** Custom hook to retrieve school district name changes from the BAP. **/
+export function useBapDistrictNameChanges(): BapRebates["districtNameChanges"] {
+  const queryClient = useQueryClient();
+
+  const bapRebates = queryClient.getQueryData<BapRebatesParsed>(["bap/rebates"]); // prettier-ignore
+
+  if (!bapRebates) {
+    return {};
+  }
+
+  return bapRebates.districtNameChanges;
 }
 
 /**
