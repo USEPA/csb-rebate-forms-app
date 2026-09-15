@@ -289,19 +289,27 @@
         }
       }
     },
-    "/api/bap/submissions": {
+    "/api/bap/rebates": {
       "get": {
-        "summary": "Get user's form submissions statuses from the BAP.",
+        "summary": "Get info associated with user's form submissions and any school district name changes from the BAP.",
         "parameters": [],
         "responses": {
           "200": {
-            "description": "An array of form submission statuses, and other relevant fields.",
+            "description": "An array of form submission statuses with other relevant fields and an object containing school district name changes keyed by CSB Rebate Id.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object"
+                  "type": "object",
+                  "properties": {
+                    "submissionsInfo": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "districtNameChanges": {
+                      "type": "object"
+                    }
                   }
                 }
               }

@@ -77,7 +77,12 @@ export type BapSamData =
   | { results: false; entities: [] }
   | { results: true; entities: BapSamEntity[] };
 
-export type BapFormSubmission = {
+export type BapRebates = {
+  submissionsInfo: BapSubmissionInfo[];
+  districtNameChanges: { [rebateId: string]: string };
+};
+
+export type BapSubmissionInfo = {
   attributes: { type: "Order_Request__c"; url: string };
   Id: string;
   UEI_EFTI_Combo_Key__c: string; // UEI + EFTI combo key
@@ -108,24 +113,6 @@ export type BapFormSubmission = {
     CSB_Closeout_Request_Status__c: string;
     Reimbursement_Needed__c: boolean;
     attributes: { type: string; url: string };
-  };
-};
-
-export type BapFormSubmissions = {
-  2022: {
-    frfs: BapFormSubmission[];
-    prfs: BapFormSubmission[];
-    crfs: BapFormSubmission[];
-  };
-  2023: {
-    frfs: BapFormSubmission[];
-    prfs: BapFormSubmission[];
-    crfs: BapFormSubmission[];
-  };
-  2024: {
-    frfs: BapFormSubmission[];
-    prfs: BapFormSubmission[];
-    crfs: BapFormSubmission[];
   };
 };
 
