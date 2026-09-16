@@ -241,9 +241,11 @@ function ChangeRequest2023Form(props: {
 
   /**
    * Stores when data is being posted to the server, so a loading overlay can
-   * be rendered over the form, preventing the user from losing input data when
-   * the form is re-rendered with data returned from the server's successful
-   * post response.
+   * be rendered over the form, blocking further interaction until the request
+   * settles (NOTE: In the other multi-step forms, this is necessary so there
+   * isn't data loss when the form is re-rendered with new data returned from
+   * the server's successful post response, but we'll keep the pattern here for
+   * consistency).
    */
   const dataIsPosting = useRef(false);
 
@@ -254,12 +256,30 @@ function ChangeRequest2023Form(props: {
   const formIsBeingSubmitted = useRef(false);
 
   /**
-   * Stores the form data's state right after the user clicks the Submit button.
-   * As soon as a post request to submit the data succeeds, this pending
-   * submission data is reset to an empty object. This pending data is passed
-   * into the Form component's `submission` prop.
+   * Keep the initial submission object stable for this mounted form. Formio
+   * reapplies its `submission` prop whenever that object's reference changes,
+   * which would otherwise reset unsaved input during unrelated React renders,
+   * such as the `/api/user` JWT refresh.
    */
-  const pendingSubmissionData = useRef<{ [field: string]: unknown }>({});
+  const initialSubmission = useRef<Submission>({
+    data: {
+      _request_form: formType,
+      _bap_entity_combo_key: comboKey,
+      _bap_rebate_id: rebateId,
+      _mongo_id: mongoId,
+      _formio_state: formioState,
+      _bap_status: bapStatus,
+      _user_email: data.userEmail,
+      _user_title: data.userTitle,
+      _user_name: data.userName,
+      _bap_applicant_name: data.applicantName,
+      _bap_district_nces_id: data.districtNcesId,
+      _bap_district_name: data.districtName,
+      _bap_district_state: data.districtState,
+      _bap_district_priority: data.districtPriority,
+      _bap_district_self_certify: data.districtSelfCertify,
+    },
+  });
 
   if (query.isLoading || !staticContent) {
     return <Loading />;
@@ -303,26 +323,7 @@ function ChangeRequest2023Form(props: {
         <Form
           src={schema}
           url={`${serverUrl}/api/formio/2023/s3/change/${mongoId}/${comboKey}`}
-          submission={{
-            data: {
-              _request_form: formType,
-              _bap_entity_combo_key: comboKey,
-              _bap_rebate_id: rebateId,
-              _mongo_id: mongoId,
-              _formio_state: formioState,
-              _bap_status: bapStatus,
-              _user_email: data.userEmail,
-              _user_title: data.userTitle,
-              _user_name: data.userName,
-              _bap_applicant_name: data.applicantName,
-              _bap_district_nces_id: data.districtNcesId,
-              _bap_district_name: data.districtName,
-              _bap_district_state: data.districtState,
-              _bap_district_priority: data.districtPriority,
-              _bap_district_self_certify: data.districtSelfCertify,
-              ...pendingSubmissionData.current,
-            },
-          }}
+          submission={initialSubmission.current}
           options={{
             noAlerts: true,
           }}
@@ -331,16 +332,11 @@ function ChangeRequest2023Form(props: {
             if (formIsBeingSubmitted.current) return;
             formIsBeingSubmitted.current = true;
 
-            const data = { ...onSubmitParam.data };
-
             dismissNotification({ id: 0 });
             dataIsPosting.current = true;
-            pendingSubmissionData.current = data;
 
             mutation.mutate(onSubmitParam, {
               onSuccess: (res, _payload, _context) => {
-                pendingSubmissionData.current = {};
-
                 displaySuccessNotification({
                   id: Date.now(),
                   body: (
