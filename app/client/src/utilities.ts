@@ -17,8 +17,8 @@ import {
   type UserData,
   type BapSamEntity,
   type BapSamData,
-  type BapFormSubmission,
-  type BapFormSubmissions,
+  type BapRebates,
+  type BapSubmissionInfo,
   type BapSubmissionData,
   type FormioSubmission,
   type FormioFRF2022DashboardSubmission,
@@ -51,12 +51,22 @@ type FormioChangeRequestsByYear<Year> =
   Year extends "2024" ? FormioChange2024DashboardSubmission[] | undefined :
   never;
 
-/** BAP and Formio submissions by rebate year. */
+/* prettier-ignore */
+type BapRebatesParsed = {
+  submissionsInfo: {
+    2022: { frfs: BapSubmissionInfo[]; prfs: BapSubmissionInfo[]; crfs: BapSubmissionInfo[] };
+    2023: { frfs: BapSubmissionInfo[]; prfs: BapSubmissionInfo[]; crfs: BapSubmissionInfo[] };
+    2024: { frfs: BapSubmissionInfo[]; prfs: BapSubmissionInfo[]; crfs: BapSubmissionInfo[] };
+  };
+  districtNameChanges: { [rebateId: string]: string };
+};
+
+/** BAP and Formio submissions info and data by rebate year. */
 /* prettier-ignore */
 type BapAndFormioSubmissionsByYear<Year> =
-  Year extends "2022" ? BapFormSubmissions | FormioFRF2022DashboardSubmission[] | FormioPRF2022DashboardSubmission[] | FormioCRF2022DashboardSubmission[] :
-  Year extends "2023" ? BapFormSubmissions | FormioFRF2023DashboardSubmission[] | FormioPRF2023DashboardSubmission[] | FormioCRF2023DashboardSubmission[] :
-  Year extends "2024" ? BapFormSubmissions | FormioFRF2024DashboardSubmission[] | FormioPRF2024DashboardSubmission[] | FormioCRF2024DashboardSubmission[] :
+  Year extends "2022" ? BapRebatesParsed | FormioFRF2022DashboardSubmission[] | FormioPRF2022DashboardSubmission[] | FormioCRF2022DashboardSubmission[] :
+  Year extends "2023" ? BapRebatesParsed | FormioFRF2023DashboardSubmission[] | FormioPRF2023DashboardSubmission[] | FormioCRF2023DashboardSubmission[] :
+  Year extends "2024" ? BapRebatesParsed | FormioFRF2024DashboardSubmission[] | FormioPRF2024DashboardSubmission[] | FormioCRF2024DashboardSubmission[] :
   never;
 
 /**
@@ -389,22 +399,24 @@ export function useChangeRequests<Year extends RebateYear>(
   return result as FormioChangeRequestsByYear<Year>;
 }
 
-/** Custom hook to fetch submissions from the BAP and Formio. */
+/** Custom hook to fetch submissions data from the BAP and Formio. */
 export function useSubmissionsQueries<Year extends RebateYear>(
   rebateYear: Year,
 ): UseQueryResult<BapAndFormioSubmissionsByYear<Year>>[] {
-  const bapQuery = {
-    queryKey: ["bap/submissions"],
+  const bapRebatesQuery = {
+    queryKey: ["bap/rebates"],
     queryFn: () => {
-      const url = `${serverUrl}/api/bap/submissions`;
-      return getData<BapFormSubmission[]>(url).then((res) => {
-        if (!Array.isArray(res)) {
-          return Promise.reject(res);
+      const url = `${serverUrl}/api/bap/rebates`;
+      return getData<BapRebates>(url).then((res) => {
+        const { submissionsInfo, districtNameChanges } = res;
+
+        if (!Array.isArray(submissionsInfo)) {
+          return Promise.reject(submissionsInfo);
         }
 
-        const submissions: BapFormSubmissions = res.reduce(
-          (object, submission) => {
-            const { Record_Type_Name__c, Rebate_Program_Year__c } = submission;
+        const submissionsInfoByYearAndFormType = submissionsInfo.reduce(
+          (object, item) => {
+            const { Record_Type_Name__c, Rebate_Program_Year__c } = item;
 
             const rebateYear =
               Rebate_Program_Year__c === null ? "2022" : Rebate_Program_Year__c;
@@ -419,31 +431,36 @@ export function useSubmissionsQueries<Year extends RebateYear>(
                     : null;
 
             if (rebateYear && formType) {
-              object[rebateYear][formType].push(submission);
+              object[rebateYear][formType].push(item);
             }
 
             return object;
           },
           {
             2022: {
-              frfs: [] as BapFormSubmission[],
-              prfs: [] as BapFormSubmission[],
-              crfs: [] as BapFormSubmission[],
+              frfs: [] as BapSubmissionInfo[],
+              prfs: [] as BapSubmissionInfo[],
+              crfs: [] as BapSubmissionInfo[],
             },
             2023: {
-              frfs: [] as BapFormSubmission[],
-              prfs: [] as BapFormSubmission[],
-              crfs: [] as BapFormSubmission[],
+              frfs: [] as BapSubmissionInfo[],
+              prfs: [] as BapSubmissionInfo[],
+              crfs: [] as BapSubmissionInfo[],
             },
             2024: {
-              frfs: [] as BapFormSubmission[],
-              prfs: [] as BapFormSubmission[],
-              crfs: [] as BapFormSubmission[],
+              frfs: [] as BapSubmissionInfo[],
+              prfs: [] as BapSubmissionInfo[],
+              crfs: [] as BapSubmissionInfo[],
             },
           },
         );
 
-        return Promise.resolve(submissions);
+        const bapRebates: BapRebatesParsed = {
+          submissionsInfo: submissionsInfoByYearAndFormType,
+          districtNameChanges,
+        };
+
+        return Promise.resolve(bapRebates);
       });
     },
     refetchOnWindowFocus: false,
@@ -532,16 +549,29 @@ export function useSubmissionsQueries<Year extends RebateYear>(
 
   const queries: UseQueryOptions<BapAndFormioSubmissionsByYear<RebateYear>>[] =
     rebateYear === "2022"
-      ? [bapQuery, formioFRF2022Query, formioPRF2022Query, formioCRF2022Query]
+      ? [bapRebatesQuery, formioFRF2022Query, formioPRF2022Query, formioCRF2022Query] // prettier-ignore
       : rebateYear === "2023"
-        ? [bapQuery, formioFRF2023Query, formioPRF2023Query, formioCRF2023Query]
+        ? [bapRebatesQuery, formioFRF2023Query, formioPRF2023Query, formioCRF2023Query] // prettier-ignore
         : rebateYear === "2024"
-          ? [bapQuery, formioFRF2024Query, formioPRF2024Query, formioCRF2024Query] // prettier-ignore
+          ? [bapRebatesQuery, formioFRF2024Query, formioPRF2024Query, formioCRF2024Query] // prettier-ignore
           : [];
 
   return useQueries({ queries }) as UseQueryResult<
     BapAndFormioSubmissionsByYear<Year>
   >[];
+}
+
+/** Custom hook to retrieve school district name changes from the BAP. **/
+export function useBapDistrictNameChanges(): BapRebates["districtNameChanges"] {
+  const queryClient = useQueryClient();
+
+  const bapRebates = queryClient.getQueryData<BapRebatesParsed>(["bap/rebates"]); // prettier-ignore
+
+  if (!bapRebates) {
+    return {};
+  }
+
+  return bapRebates.districtNameChanges;
 }
 
 /**
@@ -554,7 +584,7 @@ function useCombinedSubmissions<Year extends RebateYear>(
 ): { [rebateId: string]: RebateByYear<Year> } {
   const queryClient = useQueryClient();
 
-  const bapFormSubmissions = queryClient.getQueryData<BapFormSubmissions>(["bap/submissions"]); // prettier-ignore
+  const bapRebates = queryClient.getQueryData<BapRebatesParsed>(["bap/rebates"]); // prettier-ignore
 
   const formioFRF2022Data = queryClient.getQueryData<FormioFRF2022DashboardSubmission[]>(["formio/2022/frf-submissions"]); // prettier-ignore
   const formioFRF2023Data = queryClient.getQueryData<FormioFRF2023DashboardSubmission[]>(["formio/2023/frf-submissions"]); // prettier-ignore
@@ -601,7 +631,7 @@ function useCombinedSubmissions<Year extends RebateYear>(
 
   /* ensure form submissions data has been fetched from both the BAP and Formio */
   if (
-    !bapFormSubmissions ||
+    !bapRebates ||
     !formioFRFSubmissions ||
     !formioPRFSubmissions ||
     !formioCRFSubmissions
@@ -616,9 +646,9 @@ function useCombinedSubmissions<Year extends RebateYear>(
    * to be updated).
    */
   for (const formioFRFSubmission of formioFRFSubmissions) {
-    const bapMatch = bapFormSubmissions[rebateYear].frfs.find((bapFRFSub) => {
-      return bapFRFSub.CSB_Form_ID__c === formioFRFSubmission._id;
-    });
+    const bapMatch = bapRebates.submissionsInfo[rebateYear].frfs.find(
+      (bapFRFSub) => bapFRFSub.CSB_Form_ID__c === formioFRFSubmission._id,
+    );
 
     const modified = bapMatch?.CSB_Modified_Full_String__c || null;
     const comboKey = bapMatch?.UEI_EFTI_Combo_Key__c || null;
@@ -664,9 +694,9 @@ function useCombinedSubmissions<Year extends RebateYear>(
     const formioBapRebateId =
       (formioPRFSubmission.data?.[formioBapPrfRebateIdField] as string) || null;
 
-    const bapMatch = bapFormSubmissions[rebateYear].prfs.find((bapPRFSub) => {
-      return bapPRFSub.Parent_Rebate_ID__c === formioBapRebateId;
-    });
+    const bapMatch = bapRebates.submissionsInfo[rebateYear].prfs.find(
+      (bapPRFSub) => bapPRFSub.Parent_Rebate_ID__c === formioBapRebateId,
+    );
 
     const modified = bapMatch?.CSB_Modified_Full_String__c || null;
     const comboKey = bapMatch?.UEI_EFTI_Combo_Key__c || null;
@@ -701,9 +731,9 @@ function useCombinedSubmissions<Year extends RebateYear>(
     const formioBapRebateId =
       (formioCRFSubmission.data?.[formioBapCrfRebateIdField] as string) || null;
 
-    const bapMatch = bapFormSubmissions[rebateYear].crfs.find((bapCRFSub) => {
-      return bapCRFSub.Parent_Rebate_ID__c === formioBapRebateId;
-    });
+    const bapMatch = bapRebates.submissionsInfo[rebateYear].crfs.find(
+      (bapCRFSub) => bapCRFSub.Parent_Rebate_ID__c === formioBapRebateId,
+    );
 
     const modified = bapMatch?.CSB_Modified_Full_String__c || null;
     const comboKey = bapMatch?.UEI_EFTI_Combo_Key__c || null;

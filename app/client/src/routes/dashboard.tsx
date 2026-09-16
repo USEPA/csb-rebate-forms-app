@@ -33,6 +33,7 @@ import {
   useChangeRequests,
   useSubmissionsQueries,
   useSubmissions,
+  useBapDistrictNameChanges,
   submissionNeedsEdits,
   submissionNeedsReimbursement,
   entityIsActive,
@@ -138,7 +139,7 @@ function SubmissionsTableHeader() {
           />
           <br />
           <TextWithTooltip
-            text="School District"
+            text="Current School District"
             tooltip="School district represented by applicant"
           />
         </th>
@@ -323,6 +324,7 @@ function FRF2022Submission(props: { rebate: Rebate2022 }) {
 
   const privateConfigData = usePrivateConfigData();
   const bapSamData = useBapSamData();
+  const districtNameChanges = useBapDistrictNameChanges();
 
   if (!privateConfigData || !bapSamData) return null;
 
@@ -356,6 +358,13 @@ function FRF2022Submission(props: { rebate: Rebate2022 }) {
 
   const date = new Date(frf.formio.modified).toLocaleDateString();
   const time = new Date(frf.formio.modified).toLocaleTimeString();
+
+  const frfRebateId = frf.bap?.rebateId;
+
+  const rebateSchoolDistrictName =
+    frfRebateId && districtNameChanges[frfRebateId]
+      ? districtNameChanges[frfRebateId]
+      : schoolDistrictName;
 
   const frfNeedsEdits = submissionNeedsEdits({
     formio: frf.formio,
@@ -416,10 +425,8 @@ function FRF2022Submission(props: { rebate: Rebate2022 }) {
       </th>
 
       <td className={statusTableCellClassNames}>
-        {frf.bap?.rebateId ? (
-          <span title={`Application ID: ${frf.formio._id}`}>
-            {frf.bap.rebateId}
-          </span>
+        {frfRebateId ? (
+          <span title={`Application ID: ${frf.formio._id}`}>{frfRebateId}</span>
         ) : (
           <TextWithTooltip
             text=" "
@@ -534,8 +541,8 @@ save the form for the EFT indicator to be displayed. */
             />
           )}
           <br />
-          {Boolean(schoolDistrictName) ? (
-            schoolDistrictName
+          {Boolean(rebateSchoolDistrictName) ? (
+            rebateSchoolDistrictName
           ) : (
             <TextWithTooltip
               text=" "
@@ -555,7 +562,7 @@ save the form for the EFT indicator to be displayed. */
         <ChangeRequest2022Button
           formType={"frf"}
           comboKey={frfComboKey}
-          rebateId={frf.bap?.rebateId || null}
+          rebateId={frfRebateId || null}
           mongoId={frf.formio._id}
           formioState={frf.formio.state || ""}
           bapStatus={frfBapStatus || ""}
@@ -1322,6 +1329,7 @@ function FRF2023Submission(props: { rebate: Rebate2023 }) {
 
   const privateConfigData = usePrivateConfigData();
   const bapSamData = useBapSamData();
+  const districtNameChanges = useBapDistrictNameChanges();
 
   if (!privateConfigData || !bapSamData) return null;
 
@@ -1355,6 +1363,13 @@ function FRF2023Submission(props: { rebate: Rebate2023 }) {
 
   const date = new Date(frf.formio.modified).toLocaleDateString();
   const time = new Date(frf.formio.modified).toLocaleTimeString();
+
+  const frfRebateId = frf.bap?.rebateId;
+
+  const rebateSchoolDistrictName =
+    frfRebateId && districtNameChanges[frfRebateId]
+      ? districtNameChanges[frfRebateId]
+      : _formio_schoolDistrictName;
 
   const frfNeedsEdits = submissionNeedsEdits({
     formio: frf.formio,
@@ -1415,10 +1430,8 @@ function FRF2023Submission(props: { rebate: Rebate2023 }) {
       </th>
 
       <td className={statusTableCellClassNames}>
-        {frf.bap?.rebateId ? (
-          <span title={`Application ID: ${frf.formio._id}`}>
-            {frf.bap.rebateId}
-          </span>
+        {frfRebateId ? (
+          <span title={`Application ID: ${frf.formio._id}`}>{frfRebateId}</span>
         ) : (
           <TextWithTooltip
             text=" "
@@ -1507,8 +1520,8 @@ handle when it's value is an empty string. */}
             />
           )}
           <br />
-          {Boolean(_formio_schoolDistrictName) ? (
-            _formio_schoolDistrictName
+          {Boolean(rebateSchoolDistrictName) ? (
+            rebateSchoolDistrictName
           ) : (
             <TextWithTooltip
               text=" "
@@ -1528,7 +1541,7 @@ handle when it's value is an empty string. */}
         <ChangeRequest2023Button
           formType={"frf"}
           comboKey={frfComboKey}
-          rebateId={frf.bap?.rebateId || null}
+          rebateId={frfRebateId || null}
           mongoId={frf.formio._id}
           formioState={frf.formio.state || ""}
           bapStatus={frfBapStatus || ""}
@@ -2292,6 +2305,7 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 
   const privateConfigData = usePrivateConfigData();
   const bapSamData = useBapSamData();
+  const districtNameChanges = useBapDistrictNameChanges();
 
   if (!privateConfigData || !bapSamData) return null;
 
@@ -2322,6 +2336,13 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 
   const date = new Date(frf.formio.modified).toLocaleDateString();
   const time = new Date(frf.formio.modified).toLocaleTimeString();
+
+  const frfRebateId = frf.bap?.rebateId;
+
+  const rebateSchoolDistrictName =
+    frfRebateId && districtNameChanges[frfRebateId]
+      ? districtNameChanges[frfRebateId]
+      : _formio_schoolDistrictName;
 
   const frfNeedsEdits = submissionNeedsEdits({
     formio: frf.formio,
@@ -2382,10 +2403,8 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
       </th>
 
       <td className={statusTableCellClassNames}>
-        {frf.bap?.rebateId ? (
-          <span title={`Application ID: ${frf.formio._id}`}>
-            {frf.bap.rebateId}
-          </span>
+        {frfRebateId ? (
+          <span title={`Application ID: ${frf.formio._id}`}>{frfRebateId}</span>
         ) : (
           <TextWithTooltip
             text=" "
@@ -2459,8 +2478,8 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
             />
           )}
           <br />
-          {Boolean(_formio_schoolDistrictName) ? (
-            _formio_schoolDistrictName
+          {Boolean(rebateSchoolDistrictName) ? (
+            rebateSchoolDistrictName
           ) : (
             <TextWithTooltip
               text=" "
@@ -2480,7 +2499,7 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
         <ChangeRequest2024Button
           formType={"frf"}
           comboKey={frfComboKey}
-          rebateId={frf.bap?.rebateId || null}
+          rebateId={frfRebateId || null}
           mongoId={frf.formio._id}
           formioState={frf.formio.state || ""}
           bapStatus={frfBapStatus || ""}
@@ -2489,8 +2508,11 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
             userTitle: title,
             userName: name,
             applicantName: _bap_applicant_name,
+            districtNcesId: "", // NOTE: Not used in the 2024 Change Request Form
             districtName: org_district_name,
             districtState: org_district_state,
+            districtPriority: "", // NOTE: Not used in the 2024 Change Request Form
+            districtSelfCertify: "", // NOTE: Not used in the 2024 Change Request Form
           }}
         />
       </td>
@@ -2733,8 +2755,11 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 //             userTitle: title,
 //             userName: name,
 //             applicantName: _bap_applicant_name,
+//             districtNcesId: "", // NOTE: Not used in the 2024 Change Request Form
 //             districtName: _bap_district_name,
 //             districtState: _bap_district_state,
+//             districtPriority: "", // NOTE: Not used in the 2024 Change Request Form
+//             districtSelfCertify: "", // NOTE: Not used in the 2024 Change Request Form
 //           }}
 //         />
 //       </td>
