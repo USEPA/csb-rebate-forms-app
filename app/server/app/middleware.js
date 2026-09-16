@@ -55,11 +55,15 @@ function ensureAuthenticated(req, res, next, rejectCallback = rejectRequest) {
         return rejectCallback(req, res, jwtExpired);
       }
 
-      /** Add user to the request object. */
-      req.user = decoded;
-
       /** Create a new token to update expiration to 15 min from now. */
       const newToken = createJWT(decoded);
+
+      /**
+       * Use the refreshed claims so downstream routes receive the new
+       * expiration. This is safe to decode without re-verifying because the
+       * server just signed it.
+       */
+      req.user = jwt.decode(newToken);
 
       /** Add JWT in cookie and proceed with request. */
       res.cookie(jwtCookieName, newToken, {
