@@ -2508,8 +2508,11 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
             userTitle: title,
             userName: name,
             applicantName: _bap_applicant_name,
+            districtNcesId: "", // NOTE: Not used in the 2024 Change Request Form
             districtName: org_district_name,
             districtState: org_district_state,
+            districtPriority: "", // NOTE: Not used in the 2024 Change Request Form
+            districtSelfCertify: "", // NOTE: Not used in the 2024 Change Request Form
           }}
         />
       </td>
@@ -2752,8 +2755,11 @@ function FRF2024Submission(props: { rebate: Rebate2024 }) {
 //             userTitle: title,
 //             userName: name,
 //             applicantName: _bap_applicant_name,
+//             districtNcesId: "", // NOTE: Not used in the 2024 Change Request Form
 //             districtName: _bap_district_name,
 //             districtState: _bap_district_state,
+//             districtPriority: "", // NOTE: Not used in the 2024 Change Request Form
+//             districtSelfCertify: "", // NOTE: Not used in the 2024 Change Request Form
 //           }}
 //         />
 //       </td>
