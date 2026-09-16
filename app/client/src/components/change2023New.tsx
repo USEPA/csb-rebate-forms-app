@@ -240,16 +240,6 @@ function ChangeRequest2023Form(props: {
   const schema = query.data;
 
   /**
-   * Stores when data is being posted to the server, so a loading overlay can
-   * be rendered over the form, blocking further interaction until the request
-   * settles (NOTE: In the other multi-step forms, this is necessary so there
-   * isn't data loss when the form is re-rendered with new data returned from
-   * the server's successful post response, but we'll keep the pattern here for
-   * consistency).
-   */
-  const dataIsPosting = useRef(false);
-
-  /**
    * Stores when the form is being submitted, so it can be referenced in the
    * Form component's `onSubmit` event prop to prevent double submits.
    */
@@ -298,7 +288,7 @@ function ChangeRequest2023Form(props: {
         }}
       />
 
-      <Dialog open={dataIsPosting.current} onClose={(_value) => {}}>
+      <Dialog open={mutation.isPending} onClose={(_value) => {}}>
         <DialogBackdrop
           className={clsx("tw:fixed tw:inset-0 tw:z-20 tw:bg-black/30")}
         />
@@ -333,7 +323,6 @@ function ChangeRequest2023Form(props: {
             formIsBeingSubmitted.current = true;
 
             dismissNotification({ id: 0 });
-            dataIsPosting.current = true;
 
             mutation.mutate(onSubmitParam, {
               onSuccess: (res, _payload, _context) => {
@@ -384,7 +373,6 @@ function ChangeRequest2023Form(props: {
                 setTimeout(() => dismissNotification({ id }), 5000);
               },
               onSettled: (_data, _error, _payload, _context) => {
-                dataIsPosting.current = false;
                 formIsBeingSubmitted.current = false;
               },
             });
