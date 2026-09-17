@@ -15,6 +15,7 @@ import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { serverBasePath, serverUrl, cloudSpace, messages } from "@/config";
 import {
   usePublicConfigQuery,
+  usePrivateConfigQuery,
   usePublicConfigData,
   usePrivateConfigData,
   useUserQuery,
@@ -227,6 +228,8 @@ function useInactivityDialog(callback: () => void) {
 
 function ProtectedRoute() {
   const { pathname } = useLocation();
+
+  usePrivateConfigQuery();
 
   const { isLoading, isError, data, refetch } = useUserQuery();
 
