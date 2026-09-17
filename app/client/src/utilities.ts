@@ -146,7 +146,7 @@ export function postData<T = unknown>(url: string, data: object) {
 /** Custom hook to fetch CSB public configuration data. */
 export function usePublicConfigQuery() {
   const query = useQuery({
-    queryKey: ["public-config"],
+    queryKey: ["config/public"],
     queryFn: () => {
       const url = `${serverUrl}/api/config/public`;
       return getData<PublicConfigData>(url);
@@ -160,7 +160,7 @@ export function usePublicConfigQuery() {
 /** Custom hook that returns cached fetched CSB public configuration data. */
 export function usePublicConfigData() {
   const queryClient = useQueryClient();
-  return queryClient.getQueryData<PublicConfigData>(["public-config"]);
+  return queryClient.getQueryData<PublicConfigData>(["config/public"]);
 }
 
 /**
@@ -172,7 +172,7 @@ export function usePrivateConfigQuery() {
   const { setRebateYear } = useRebateYearActions();
 
   const query = useQuery({
-    queryKey: ["private-config"],
+    queryKey: ["config/private"],
     queryFn: () => {
       const url = `${serverUrl}/api/config/private`;
       return getData<PrivateConfigData>(url);
@@ -208,7 +208,7 @@ export function usePrivateConfigQuery() {
 /** Custom hook that returns cached fetched CSB private configuration data. */
 export function usePrivateConfigData() {
   const queryClient = useQueryClient();
-  return queryClient.getQueryData<PrivateConfigData>(["private-config"]);
+  return queryClient.getQueryData<PrivateConfigData>(["config/private"]);
 }
 
 /** Custom hook to fetch user data. */
