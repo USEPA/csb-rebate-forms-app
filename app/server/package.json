@@ -14,24 +14,24 @@
     "lint": "eslint ./ --fix"
   },
   "dependencies": {
-    "axios": "1.12.2",
+    "axios": "1.20.0",
     "cookie-parser": "1.4.7",
-    "cors": "2.8.5",
-    "dotenv": "17.2.3",
-    "express": "5.1.0",
-    "helmet": "8.1.0",
-    "jsforce": "3.10.7",
-    "jsonwebtoken": "9.0.2",
+    "cors": "2.8.6",
+    "dotenv": "18.0.5",
+    "express": "5.2.1",
+    "helmet": "8.3.0",
+    "jsforce": "3.10.28",
+    "jsonwebtoken": "9.0.3",
     "log4js": "6.9.1",
-    "mongodb": "6.20.0",
-    "morgan": "1.10.1",
+    "mongodb": "7.7.0",
+    "morgan": "1.12.1",
     "passport": "0.7.0",
     "passport-saml": "3.2.4"
   },
   "devDependencies": {
-    "eslint": "9.36.0",
+    "eslint": "10.12.0",
     "eslint-config-prettier": "10.1.8",
-    "eslint-plugin-prettier": "5.5.4",
-    "nodemon": "3.1.10"
+    "eslint-plugin-prettier": "5.5.6",
+    "nodemon": "3.1.14"
   }
 }
