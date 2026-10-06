@@ -355,7 +355,7 @@ function FundingRequestForm(props: { email: string }) {
       <div className="margin-top-4">
         <MarkdownContent
           children={
-            submission.state === "draft"
+            submission.state === "draft" || frfNeedsEdits
               ? staticContent.draftFRFIntro
               : submission.state === "submitted"
                 ? staticContent.submittedFRFIntro
