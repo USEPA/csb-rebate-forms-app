@@ -1,10 +1,10 @@
 import path from "node:path";
-import { defineConfig, loadEnv } from "vite";
-import react from "@vitejs/plugin-react-swc";
+import { type ConfigEnv, defineConfig, loadEnv } from "vite";
+import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 
 // https://vitejs.dev/config/
-export default ({ mode }) => {
+export default ({ mode }: ConfigEnv) => {
   process.env = { ...process.env, ...loadEnv(mode, process.cwd()) };
 
   const { VITE_SERVER_BASE_PATH } = process.env;
@@ -35,10 +35,13 @@ export default ({ mode }) => {
     define: {
       "process.env": {},
     },
+    legacy: {
+      inconsistentCjsInterop: true,
+    },
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
-        "@": path.resolve(__dirname, "./src"),
+        "@": path.resolve(import.meta.dirname, "./src"),
       },
     },
     server: {
