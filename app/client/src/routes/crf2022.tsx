@@ -225,7 +225,7 @@ function CloseOutRequestForm(props: { email: string }) {
       <div className="margin-top-4">
         <MarkdownContent
           children={
-            submission.state === "draft"
+            submission.state === "draft" || crfNeedsEdits
               ? staticContent.draftCRFIntro
               : submission.state === "submitted"
                 ? staticContent.submittedCRFIntro

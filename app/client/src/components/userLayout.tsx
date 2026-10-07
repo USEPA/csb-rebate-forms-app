@@ -8,7 +8,6 @@ import icons from "@uswds/uswds/img/sprite.svg";
 import { serverUrl } from "@/config";
 import {
   useHelpdeskAccess,
-  usePrivateConfigQuery,
   usePrivateConfigData,
   useBapSamQuery,
   useBapSamData,
@@ -70,7 +69,6 @@ export function UserLayout(props: { email: string }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
-  usePrivateConfigQuery();
   useBapSamQuery();
 
   const privateConfigData = usePrivateConfigData();

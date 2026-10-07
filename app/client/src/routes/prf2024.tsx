@@ -240,7 +240,7 @@ function PaymentRequestForm(props: { email: string }) {
       <div className="margin-top-4">
         <MarkdownContent
           children={
-            submission.state === "draft"
+            submission.state === "draft" || prfNeedsEdits
               ? staticContent.draftPRFIntro
               : submission.state === "submitted"
                 ? staticContent.submittedPRFIntro
